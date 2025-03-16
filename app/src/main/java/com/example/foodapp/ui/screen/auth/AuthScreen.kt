@@ -55,7 +55,7 @@ fun AuthScreen() {
         Image(painter = painterResource(id = R.drawable.background), contentDescription = null,
             modifier = Modifier.onGloballyPositioned {
                 imageSize.value = it.size
-            }.alpha(0.6f),
+            }.alpha(0.5f),
             contentScale = ContentScale.FillBounds)
         Box(
             modifier = Modifier
@@ -65,7 +65,7 @@ fun AuthScreen() {
         Column(modifier = Modifier.fillMaxWidth().padding(top = 110.dp).padding(16.dp)) {
             Text(
                 text = stringResource(id = R.string.welcome),
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.surface,
                 fontSize = 50.sp,
                 lineHeight = 50.sp,
                 fontWeight = FontWeight.Bold,
@@ -74,7 +74,7 @@ fun AuthScreen() {
             )
             Text(
                 text = stringResource(id = R.string.app_name),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.primaryContainer,
                 fontWeight = FontWeight.Bold,
                 fontSize = 50.sp,
                 modifier = Modifier

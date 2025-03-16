@@ -7,4 +7,8 @@
     <string name="sign_in_with">Đăng nhập với</string>
     <string name="sign_with_facebook">Facebook</string>
     <string name="sign_with_google">Google</string>
+    <string name="password">Mật khẩu</string>
+    <string name="email">Email</string>
+    <string name="username">Tên đăng nhập</string>
+    <string name="sign_up">Đăng kí</string>
 </resources>

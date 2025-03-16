@@ -16,6 +16,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.ui.screen.auth.AuthScreen
+import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
 import com.example.foodapp.ui.theme.FoodAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
             FoodAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                    Box(modifier = Modifier.padding(innerPadding))
-                    AuthScreen()
+                    SignUpScreen()
                 }
             }
         }
