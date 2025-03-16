@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">FoodApp</string>
+    <string name="welcome">Chào mừng đến với</string>
+    <string name="app_description">Thưởng thức món ngon yêu thích, giao tận tay trong tích tắc.</string>
+    <string name="sign_with_email">Đăng nhập bằng email</string>
+    <string name="already_have_account">Bạn chưa có tài khoản? Đăng kí</string>
+    <string name="sign_in_with">Đăng nhập với</string>
+    <string name="sign_with_facebook">Facebook</string>
+    <string name="sign_with_google">Google</string>
 </resources>
