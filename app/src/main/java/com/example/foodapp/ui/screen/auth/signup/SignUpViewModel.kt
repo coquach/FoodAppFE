@@ -68,6 +68,12 @@ class SignUpViewModel @Inject constructor(val foodApi: FoodApi): ViewModel() {
        }
     }
 
+    fun onLoginClick() {
+        viewModelScope.launch {
+            _navigationEvent.emit(SignUpNavigationEvent.NavigateLogin)
+        }
+    }
+
 
     sealed class  SignUpNavigationEvent {
         data object NavigateLogin: SignUpNavigationEvent()

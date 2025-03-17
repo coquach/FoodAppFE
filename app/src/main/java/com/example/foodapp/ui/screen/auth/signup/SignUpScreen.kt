@@ -46,14 +46,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
 import com.example.foodapp.ui.FoodAppTextField
 import com.example.foodapp.ui.GroupSocialButtons
+import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.Home
+import com.example.foodapp.ui.navigation.Login
+import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun SignUpScreen(
+    navController: NavController,
     viewModel: SignUpViewModel = hiltViewModel()
 ) {
     val username = viewModel.username.collectAsStateWithLifecycle()
@@ -90,11 +97,18 @@ fun SignUpScreen(
             viewModel.navigationEvent.collectLatest { event ->
                 when (event) {
                     is SignUpViewModel.SignUpNavigationEvent.NavigateHome -> {
-                        Toast.makeText(
-                            context,
-                            "Sign up successfully",
-                            Toast.LENGTH_SHORT
-                        )
+                        navController.navigate(Home) {
+                            popUpTo(Auth) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                    is SignUpViewModel.SignUpNavigationEvent.NavigateLogin -> {
+                        navController.navigate(Login) {
+                            popUpTo(Auth) {
+                                inclusive = true
+                            }
+                        }
                     }
                     else -> {
                         // Handle other navigation events
@@ -200,7 +214,9 @@ fun SignUpScreen(
                 text = stringResource(id = R.string.already_have_account),
                 modifier = Modifier
                     .padding(8.dp)
-                    .clickable {  }
+                    .clickable {
+                        viewModel.onLoginClick()
+                    }
                     .fillMaxWidth(),
                 textAlign = TextAlign.Center
 
@@ -215,6 +231,6 @@ fun SignUpScreen(
 @Composable
 fun SignUpScreenPreview() {
     FoodAppTheme {
-        SignUpScreen()
+        SignUpScreen(rememberNavController())
     }
 }

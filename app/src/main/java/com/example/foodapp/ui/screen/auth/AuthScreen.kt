@@ -9,13 +9,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BottomAppBarDefaults.windowInsets
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -38,12 +42,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
 import com.example.foodapp.ui.GroupSocialButtons
+import com.example.foodapp.ui.navigation.Login
+import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.theme.FoodAppTheme
 
 @Composable
-fun AuthScreen() {
+fun AuthScreen(
+    navController: NavController
+) {
     val imageSize = remember { mutableStateOf(IntSize.Zero) }
     val brush = Brush.verticalGradient(
         colors = listOf(
@@ -51,7 +61,11 @@ fun AuthScreen() {
         ),
         startY = imageSize.value.height.toFloat() / 3,
     )
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(Color.Black)
+
+    ) {
         Image(painter = painterResource(id = R.drawable.background), contentDescription = null,
             modifier = Modifier.onGloballyPositioned {
                 imageSize.value = it.size
@@ -97,7 +111,9 @@ fun AuthScreen() {
             GroupSocialButtons()
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = {},
+                onClick = {
+                    navController.navigate(SignUp)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.2f)),
                 shape = RoundedCornerShape(32.dp),
@@ -105,7 +121,9 @@ fun AuthScreen() {
             ) {
                 Text(text = stringResource(id = R.string.sign_with_email), color = Color.White)
             }
-            TextButton(onClick = {}) {
+            TextButton(onClick = {
+                navController.navigate(Login)
+            }) {
                 Text(text = stringResource(id = R.string.already_have_account), color = Color.White)
             }
 
@@ -118,6 +136,6 @@ fun AuthScreen() {
 @Composable
 fun AuthScreenPreview() {
     FoodAppTheme {
-        AuthScreen()
+        AuthScreen(rememberNavController())
     }
 }
