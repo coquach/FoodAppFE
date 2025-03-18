@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,17 +58,17 @@ fun CategoryItem(
     Column(
         modifier = Modifier
             .padding(8.dp)
-            .clip(RoundedCornerShape(45.dp))
             .height(90.dp)
             .width(60.dp)
             .clickable { onCategorySelected(category) }
             .shadow(
-                elevation = 3.dp,
+                elevation = 16.dp,
                 shape = RoundedCornerShape(45.dp),
                 ambientColor = Color.Gray.copy(alpha = 0.8f),
                 spotColor = Color.Gray.copy(alpha = 0.8f)
             )
             .background(color = MaterialTheme.colorScheme.onPrimary)
+            .clip(RoundedCornerShape(45.dp))
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -90,8 +91,8 @@ fun CategoryItem(
         Spacer(modifier = Modifier.size(8.dp))
         Text(
             text = category.name,
-            color = MaterialTheme.colorScheme.onSurface,
-            style = TextStyle(fontSize = 10.sp),
+            color = MaterialTheme.colorScheme.primary,
+            style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold),
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
