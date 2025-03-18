@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -14,30 +13,30 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
+import com.example.foodapp.data.models.response.FoodItem
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.navigation.SignUp
+import com.example.foodapp.ui.navigation.foodItemNavType
 import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
+import com.example.foodapp.ui.screen.food_item_details.FoodDetailsScreen
 import com.example.foodapp.ui.screen.home.HomeScreen
 
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -47,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.reflect.typeOf
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -145,6 +145,16 @@ class MainActivity : ComponentActivity() {
                            }
                            composable<Home>() {
                                HomeScreen(navController, this)
+                           }
+                           composable<FoodDetails>(
+                                typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
+                           ) {
+                               val route = it.toRoute<FoodDetails>()
+                               FoodDetailsScreen(
+                                   navController,
+                                   foodItem = route.foodItem,
+                                   this@SharedTransitionLayout
+                               )
                            }
 
                        }
