@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.example.foodapp.data.FoodApi
+import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.models.request.SignUpRequest
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
@@ -18,7 +19,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SignUpViewModel @Inject constructor(override val foodApi: FoodApi): BaseAuthViewModel(foodApi) {
+class SignUpViewModel @Inject constructor(
+    override val foodApi: FoodApi,
+    val session: FoodAppSession
+) : BaseAuthViewModel(foodApi) {
 
     private val _uiState = MutableStateFlow<SignUpEvent>(SignUpEvent.Nothing)
     val uiState = _uiState.asStateFlow()
@@ -48,46 +52,47 @@ class SignUpViewModel @Inject constructor(override val foodApi: FoodApi): BaseAu
     }
 
     fun onSignUpClick() {
-       viewModelScope.launch {
-           _uiState.value = SignUpEvent.Loading
-           try {
-               val response = safeApiCall {
-                   foodApi.signUp(
-                       SignUpRequest(
-                           username = username.value,
-                           email = email.value,
-                           password = password.value
-                       )
-                   )
-               }
-               when (response) {
-                   is ApiResponse.Success -> {
-                       _uiState.value = SignUpEvent.Success
+        viewModelScope.launch {
+            _uiState.value = SignUpEvent.Loading
+            try {
+                val response = safeApiCall {
+                    foodApi.signUp(
+                        SignUpRequest(
+                            username = username.value,
+                            email = email.value,
+                            password = password.value
+                        )
+                    )
+                }
+                when (response) {
+                    is ApiResponse.Success -> {
 
-                       _navigationEvent.emit(SignUpNavigationEvent.NavigateHome)
-                   }
+                        _uiState.value = SignUpEvent.Success
+                        session.storeToken(response.data.token)
+                        _navigationEvent.emit(SignUpNavigationEvent.NavigateHome)
+                    }
 
-                   else -> {
-                       val err = (response as? ApiResponse.Error)?.code ?: 0
-                       error = "Đăng kí thất bại"
-                       errorDescription = "Không thể đăng ký tài khoản"
-                       when (err) {
-                           400 -> {
-                               error = "Thông tin không hợp lệ"
-                               errorDescription = "Vui lòng nhập thông tin chính xác."
-                           }
-                       }
-                       _uiState.value = SignUpEvent.Error
-                   }
-               }
+                    else -> {
+                        val err = (response as? ApiResponse.Error)?.code ?: 0
+                        error = "Đăng kí thất bại"
+                        errorDescription = "Không thể đăng ký tài khoản"
+                        when (err) {
+                            400 -> {
+                                error = "Thông tin không hợp lệ"
+                                errorDescription = "Vui lòng nhập thông tin chính xác."
+                            }
+                        }
+                        _uiState.value = SignUpEvent.Error
+                    }
+                }
 
 
-           } catch (e: Exception) {
-               e.printStackTrace()
-               _uiState.value = SignUpEvent.Error
-           }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.value = SignUpEvent.Error
+            }
 
-       }
+        }
     }
 
     fun onLoginClick() {
@@ -97,15 +102,15 @@ class SignUpViewModel @Inject constructor(override val foodApi: FoodApi): BaseAu
     }
 
 
-    sealed class  SignUpNavigationEvent {
-        data object NavigateLogin: SignUpNavigationEvent()
-        data object NavigateHome: SignUpNavigationEvent()
+    sealed class SignUpNavigationEvent {
+        data object NavigateLogin : SignUpNavigationEvent()
+        data object NavigateHome : SignUpNavigationEvent()
     }
 
     sealed class SignUpEvent {
-        data object Nothing: SignUpEvent()
-        data object Success: SignUpEvent()
-        data object Error: SignUpEvent()
-        data object Loading: SignUpEvent()
+        data object Nothing : SignUpEvent()
+        data object Success : SignUpEvent()
+        data object Error : SignUpEvent()
+        data object Loading : SignUpEvent()
     }
 }

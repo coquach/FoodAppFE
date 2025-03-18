@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
                    val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = if(session.getToken()!= null) Home else Auth,
+                        startDestination = if(session.getToken()!= null) Home else Auth, //demo on fake api
                         modifier = Modifier
                             .padding(innerPadding),
                         enterTransition = {

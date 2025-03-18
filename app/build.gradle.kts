@@ -40,7 +40,9 @@ android {
     buildFeatures {
         compose = true
     }
+
 }
+
 
 dependencies {
 
@@ -80,3 +82,4 @@ dependencies {
 kapt {
     correctErrorTypes = true
 }
+
