@@ -1,5 +1,6 @@
 package com.example.foodapp.data
 
+import com.example.foodapp.data.models.request.LoginRequest
 import com.example.foodapp.data.models.request.SignUpRequest
 import com.example.foodapp.data.models.response.AuthResponse
 import retrofit2.http.Body
@@ -10,6 +11,10 @@ interface FoodApi {
     @GET("/food") //demo
     suspend fun getFoods(): List<String>
 
-    @POST("/auth/signup")
+    @POST("/auth/signup") //demo
     suspend fun signUp(@Body request: SignUpRequest): AuthResponse
+
+    @POST("/auth/login") //demo
+    suspend fun login(@Body request: LoginRequest): AuthResponse
+
 }

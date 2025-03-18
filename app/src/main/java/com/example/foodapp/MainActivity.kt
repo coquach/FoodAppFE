@@ -28,6 +28,7 @@ import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.screen.auth.AuthScreen
+import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
 
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -76,12 +77,9 @@ class MainActivity : ComponentActivity() {
             }
         }
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(
-                android.graphics.Color.TRANSPARENT,
+        enableEdgeToEdge()
 
-            )
-        )
+
         setContent {
             FoodAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -99,13 +97,7 @@ class MainActivity : ComponentActivity() {
                             SignUpScreen(navController)
                         }
                         composable<Login>() {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Green)
-                            ){
-
-                            }
+                            LoginScreen(navController)
                         }
                         composable<Home>() {
                             Box(
