@@ -27,6 +27,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.data.FoodApi
+import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
@@ -47,8 +48,12 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     var showSplashScreen = true
+
     @Inject
     lateinit var foodApi: FoodApi
+
+    @Inject
+    lateinit var session: FoodAppSession
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
             setKeepOnScreenCondition{
@@ -91,7 +96,7 @@ class MainActivity : ComponentActivity() {
                    val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = Home,
+                        startDestination = if(session.getToken()!= null) Home else Auth,
                         modifier = Modifier
                             .padding(innerPadding),
                         enterTransition = {
