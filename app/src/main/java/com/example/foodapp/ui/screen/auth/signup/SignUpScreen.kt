@@ -22,13 +22,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
+import com.example.foodapp.ui.BasicDialog
 import com.example.foodapp.ui.FoodAppTextField
 import com.example.foodapp.ui.GroupSocialButtons
 import com.example.foodapp.ui.navigation.Auth
@@ -57,7 +62,9 @@ import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
     navController: NavController,
@@ -69,7 +76,43 @@ fun SignUpScreen(
     var showPassword by remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val loading = remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showDialog by remember { mutableStateOf(false) }
 
+
+    LaunchedEffect(errorMessage.value) {
+        if (errorMessage.value != null)
+            scope.launch {
+                showDialog = true
+            }
+    }
+
+    val context = LocalContext.current
+    LaunchedEffect(true) {
+        viewModel.navigationEvent.collectLatest { event ->
+            when (event) {
+                is SignUpViewModel.SignUpNavigationEvent.NavigateHome -> {
+                    navController.navigate(Home) {
+                        popUpTo(Auth) {
+                            inclusive = true
+                        }
+                    }
+                }
+                is SignUpViewModel.SignUpNavigationEvent.NavigateLogin -> {
+                    navController.navigate(Login) {
+                        popUpTo(Auth) {
+                            inclusive = true
+                        }
+                    }
+                }
+                else -> {
+                    // Handle other navigation events
+                }
+            }
+
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center ) {
 
@@ -92,31 +135,7 @@ fun SignUpScreen(
                 errorMessage.value = null
             }
         }
-        val context = LocalContext.current
-        LaunchedEffect(true) {
-            viewModel.navigationEvent.collectLatest { event ->
-                when (event) {
-                    is SignUpViewModel.SignUpNavigationEvent.NavigateHome -> {
-                        navController.navigate(Home) {
-                            popUpTo(Auth) {
-                                inclusive = true
-                            }
-                        }
-                    }
-                    is SignUpViewModel.SignUpNavigationEvent.NavigateLogin -> {
-                        navController.navigate(Login) {
-                            popUpTo(Auth) {
-                                inclusive = true
-                            }
-                        }
-                    }
-                    else -> {
-                        // Handle other navigation events
-                    }
-                }
 
-            }
-        }
 
 
         Column(
@@ -175,7 +194,6 @@ fun SignUpScreen(
 
             )
             Spacer(modifier = Modifier.size(16.dp))
-            Text(text = errorMessage.value ?: "", color = MaterialTheme.colorScheme.error)
             Button(
                 onClick = viewModel::onSignUpClick,
                 modifier = Modifier
@@ -223,6 +241,20 @@ fun SignUpScreen(
             )
             GroupSocialButtons(color = Color.Black)
 
+        }
+    }
+    if (showDialog) {
+        ModalBottomSheet(onDismissRequest = { showDialog = false }, sheetState = sheetState) {
+            BasicDialog(
+                title = viewModel.error,
+                description = viewModel.errorDescription,
+                onClick = {
+                    scope.launch {
+                        sheetState.hide()
+                        showDialog = false
+                    }
+                }
+            )
         }
     }
 }

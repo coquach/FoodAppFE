@@ -6,6 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.models.request.LoginRequest
 import com.example.foodapp.data.models.request.SignUpRequest
+import com.example.foodapp.data.remote.ApiResponse
+import com.example.foodapp.data.remote.safeApiCall
+import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
+import com.example.foodapp.ui.screen.auth.signup.SignUpViewModel.SignUpEvent
+import com.example.foodapp.ui.screen.auth.signup.SignUpViewModel.SignUpNavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -16,7 +21,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(val foodApi: FoodApi): ViewModel() {
+class LoginViewModel @Inject constructor(override val foodApi: FoodApi): BaseAuthViewModel(foodApi) {
 
     private val _uiState = MutableStateFlow<LoginEvent>(LoginEvent.Nothing)
     val uiState = _uiState.asStateFlow()
@@ -43,22 +48,41 @@ class LoginViewModel @Inject constructor(val foodApi: FoodApi): ViewModel() {
     fun onLoginClick() {
        viewModelScope.launch {
            _uiState.value = LoginEvent.Loading
-            try {
-                val response = foodApi.login(
-                    LoginRequest(
-                        username = username.value,
-                        password = password.value
-                    )
-                )
-                if (response.token.isNotEmpty()) {
-                    _uiState.value = LoginEvent.Success
-                    _navigationEvent.emit(LoginNavigationEvent.NavigateHome)
-                }
+           try {
+               val response = safeApiCall {
+                   foodApi.login(
+                       LoginRequest(
+                           username = username.value,
+                           password = password.value
+                       )
+                   )
+               }
+               when (response) {
+                   is ApiResponse.Success -> {
+                       _uiState.value = LoginEvent.Success
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.value = LoginEvent.Error
-            }
+                       _navigationEvent.emit(LoginNavigationEvent.NavigateHome)
+                   }
+
+                   else -> {
+                       val err = (response as? ApiResponse.Error)?.code ?: 0
+                       error = "Đăng nhập thất bại"
+                       errorDescription = "Không thể đăng nhập tài khoản"
+                       when (err) {
+                           400 -> {
+                               error = "Thông tin không hợp lệ"
+                               errorDescription = "Vui lòng nhập thông tin chính xác."
+                           }
+                       }
+                       _uiState.value = LoginEvent.Error
+                   }
+               }
+
+
+           } catch (e: Exception) {
+               e.printStackTrace()
+               _uiState.value = LoginEvent.Error
+           }
 
        }
     }

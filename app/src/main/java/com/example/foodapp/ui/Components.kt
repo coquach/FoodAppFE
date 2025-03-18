@@ -21,12 +21,14 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -186,3 +188,39 @@ fun FoodAppTextField(
         )
     }
 }
+
+@Composable
+fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
+    Surface {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = description,
+            )
+            Spacer(modifier = Modifier.size(16.dp))
+            Button(
+                onClick = onClick,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                shape = RoundedCornerShape(16.dp),
+
+                ) {
+                Text(
+                    text = stringResource(id = R.string.ok),
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                )
+            }
+        }
+    }
+}
+
