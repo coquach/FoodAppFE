@@ -34,6 +34,7 @@ import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
+import com.example.foodapp.ui.screen.home.HomeScreen
 
 import com.example.foodapp.ui.theme.FoodAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,7 +91,7 @@ class MainActivity : ComponentActivity() {
                    val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = Auth,
+                        startDestination = Home,
                         modifier = Modifier
                             .padding(innerPadding),
                         enterTransition = {
@@ -129,13 +130,7 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(navController)
                         }
                         composable<Home>() {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Red)
-                            ){
-
-                            }
+                           HomeScreen(navController)
                         }
 
                     }
