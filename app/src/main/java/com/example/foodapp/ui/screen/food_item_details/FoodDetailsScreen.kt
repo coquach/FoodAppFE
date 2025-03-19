@@ -1,11 +1,13 @@
 package com.example.foodapp.ui.screen.food_item_details
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -26,27 +29,61 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.models.response.FoodItem
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.FoodDetailsScreen(
     navController: NavController,
     foodItem: FoodItem,
-    animatedVisibilityScope: SharedTransitionScope
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    viewModel: FoodDetailsViewModel = hiltViewModel()
 ) {
-    val count = rememberSaveable { mutableStateOf(0) }
+    val count = viewModel.quantity.collectAsStateWithLifecycle()
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val isLoading = remember {
+        mutableStateOf(false)
+    }
+
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collectLatest {
+            when (it) {
+                is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
+                    Toast.makeText(
+                        navController.context,
+                        "Item added to cart",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                is FoodDetailsViewModel.FoodDetailsEvent.ShowErrorDialog -> {
+                    Toast.makeText(
+                        navController.context,
+                        it.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                is FoodDetailsViewModel.FoodDetailsEvent.GoToCart -> {
+
+                }
+            }
+        }
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         FoodHeader(
             imageUrl = foodItem.imageUrl,
@@ -70,7 +107,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
         ) {
             Text(
                 text = "$${foodItem.price}", color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.headlineLarge
             )
             Spacer(modifier = Modifier.weight(1f))
             Row(
@@ -78,7 +115,10 @@ fun SharedTransitionScope.FoodDetailsScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.add),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable { viewModel.incrementQuantity() }
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text(
@@ -89,31 +129,37 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
                 Image(
                     painter = painterResource(id = R.drawable.minus),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable { viewModel.decrementQuantity() }
                 )
             }
         }
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-
-            }) {
+                viewModel.addToCart(foodItemId = foodItem.id?: "")
+            },
+            enabled = !isLoading.value,
+            modifier = Modifier.padding(8.dp)
+        ) {
             Row(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.primary)
                     .padding(horizontal = 8.dp)
                     .clip(RoundedCornerShape(32.dp)),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 AnimatedVisibility(visible = !isLoading.value) {
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
                             painter = painterResource(id = R.drawable.cart),
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(
-                            text = "Add to Cart".uppercase(),
+                            text = "Thêm vào giỏ hàng".uppercase(),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

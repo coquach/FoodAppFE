@@ -1,7 +1,9 @@
 package com.example.foodapp.data
 
+import com.example.foodapp.data.models.request.AddToCartRequest
 import com.example.foodapp.data.models.request.LoginRequest
 import com.example.foodapp.data.models.request.SignUpRequest
+import com.example.foodapp.data.models.response.AddToCartResponse
 import com.example.foodapp.data.models.response.AuthResponse
 import com.example.foodapp.data.models.response.CategoriesResponse
 import retrofit2.Response
@@ -18,5 +20,8 @@ interface FoodApi {
 
     @POST("/auth/login") //demo
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
+
+    @POST("/cart")
+    suspend fun addToCart(@Body cartRequest: AddToCartRequest): Response<AddToCartResponse>
 
 }
