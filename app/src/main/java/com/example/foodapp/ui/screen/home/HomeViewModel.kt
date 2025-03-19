@@ -3,7 +3,7 @@ package com.example.foodapp.ui.screen.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.FoodApi
-import com.example.foodapp.data.dto.response.Category
+import com.example.foodapp.data.model.Category
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -57,6 +57,7 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.FoodItem
 
 import com.example.foodapp.ui.BasicDialog
+import com.example.foodapp.ui.FoodItemCounter
 
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -137,31 +138,16 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 style = MaterialTheme.typography.headlineLarge
             )
             Spacer(modifier = Modifier.weight(1f))
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.add),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable { viewModel.incrementQuantity() }
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = "${count.value}",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(modifier = Modifier.size(8.dp))
+            FoodItemCounter(
+                count = count.value,
+                onCounterIncrement = {
+                    viewModel.incrementQuantity()
+                },
+                onCounterDecrement = {
+                    viewModel.decrementQuantity()
+                }
+            )
 
-                Image(
-                    painter = painterResource(id = R.drawable.minus),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable { viewModel.decrementQuantity() }
-                )
-            }
         }
         Spacer(modifier = Modifier.weight(1f))
         Button(

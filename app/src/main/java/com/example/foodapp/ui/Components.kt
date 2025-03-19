@@ -2,6 +2,7 @@ package com.example.foodapp.ui
 
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -221,6 +223,39 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun FoodItemCounter(
+    onCounterIncrement : () -> Unit,
+    onCounterDecrement : () -> Unit,
+    count: Int
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.add),
+            contentDescription = null,
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable { onCounterIncrement.invoke()}
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            text = "${count}",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.minus),
+            contentDescription = null,
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable { onCounterDecrement.invoke() }
+        )
     }
 }
 
