@@ -26,7 +26,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
-import com.example.foodapp.data.models.response.FoodItem
+import com.example.foodapp.data.model.FoodItem
+
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Home

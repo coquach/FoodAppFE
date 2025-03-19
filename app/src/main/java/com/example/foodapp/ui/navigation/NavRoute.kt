@@ -1,6 +1,6 @@
 package com.example.foodapp.ui.navigation
 
-import com.example.foodapp.data.models.response.FoodItem
+import com.example.foodapp.data.model.FoodItem
 import kotlinx.serialization.Serializable
 
 

@@ -1,6 +1,4 @@
-package com.example.foodapp.data.models.response
-
-import android.os.Message
+package com.example.foodapp.data.dto.response
 
 data class AddToCartResponse(
     val id: String,

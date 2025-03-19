@@ -1,11 +1,11 @@
 package com.example.foodapp.data
 
-import com.example.foodapp.data.models.request.AddToCartRequest
-import com.example.foodapp.data.models.request.LoginRequest
-import com.example.foodapp.data.models.request.SignUpRequest
-import com.example.foodapp.data.models.response.AddToCartResponse
-import com.example.foodapp.data.models.response.AuthResponse
-import com.example.foodapp.data.models.response.CategoriesResponse
+import com.example.foodapp.data.dto.request.AddToCartRequest
+import com.example.foodapp.data.dto.request.LoginRequest
+import com.example.foodapp.data.dto.request.SignUpRequest
+import com.example.foodapp.data.dto.response.AddToCartResponse
+import com.example.foodapp.data.dto.response.AuthResponse
+import com.example.foodapp.data.dto.response.CategoriesResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

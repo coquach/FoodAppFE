@@ -1,16 +1,14 @@
 package com.example.foodapp.ui.screen.auth.signup
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
-import com.example.foodapp.data.models.request.SignUpRequest
+import com.example.foodapp.data.dto.request.SignUpRequest
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
 import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
