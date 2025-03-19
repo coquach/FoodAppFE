@@ -1,6 +1,6 @@
 package com.example.foodapp.ui.screen.food_item_details
 
-import android.widget.Toast
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -23,9 +23,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,9 +46,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.models.response.FoodItem
+import com.example.foodapp.ui.BasicDialog
 import kotlinx.coroutines.flow.collectLatest
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SharedTransitionScope.FoodDetailsScreen(
     navController: NavController,
@@ -60,23 +63,18 @@ fun SharedTransitionScope.FoodDetailsScreen(
         mutableStateOf(false)
     }
 
+    val showSuccessDialog = remember { mutableStateOf(false) }
+    val showErrorDialog = remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
                 is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
-                    Toast.makeText(
-                        navController.context,
-                        "Item added to cart",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                   showSuccessDialog.value = true
                 }
                 is FoodDetailsViewModel.FoodDetailsEvent.ShowErrorDialog -> {
-                    Toast.makeText(
-                        navController.context,
-                        it.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showErrorDialog.value = true
                 }
                 is FoodDetailsViewModel.FoodDetailsEvent.GoToCart -> {
 
@@ -170,6 +168,53 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 }
             }
 
+        }
+    }
+
+    if (showSuccessDialog.value) {
+        ModalBottomSheet(onDismissRequest = { showSuccessDialog.value = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Món đã được thêm vào giỏ", style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                Button(
+                    onClick = {
+                        showSuccessDialog.value = false
+                        viewModel.goToCart()
+                    }, modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(text = "Đi đến giỏ hàng")
+                }
+
+                Button(
+                    onClick = {
+                        showSuccessDialog.value = false
+                    }, modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(text = "OK")
+                }
+
+            }
+        }
+    }
+    if (showErrorDialog.value) {
+        ModalBottomSheet(onDismissRequest = { showSuccessDialog.value = false }) {
+            BasicDialog(
+                title = "Lỗi",
+                description = (uiState.value as? FoodDetailsViewModel.FoodDetailsState.Error)?.message
+                    ?: "Không thể thêm vào giỏ hàng"
+            ) {
+                showErrorDialog.value = false
+            }
         }
     }
 }

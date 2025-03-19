@@ -23,14 +23,16 @@ class FoodDetailsViewModel @Inject constructor(val foodApi: FoodApi) : ViewModel
     private val _event = MutableSharedFlow<FoodDetailsEvent>()
     val event = _event.asSharedFlow()
 
-    private val _quantity = MutableStateFlow<Int>(0)
+    private val _quantity = MutableStateFlow<Int>(1)
     val quantity = _quantity.asStateFlow()
 
     fun incrementQuantity() {
+        if (quantity.value == 10) return
         _quantity.value += 1
     }
 
     fun decrementQuantity() {
+        if (quantity.value == 1) return
         _quantity.value -= 1
     }
 
@@ -59,6 +61,12 @@ class FoodDetailsViewModel @Inject constructor(val foodApi: FoodApi) : ViewModel
                     _event.emit(FoodDetailsEvent.ShowErrorDialog("Unknown Error"))
                 }
             }
+        }
+    }
+
+    fun goToCart() {
+        viewModelScope.launch {
+            _event.emit(FoodDetailsEvent.GoToCart)
         }
     }
 
