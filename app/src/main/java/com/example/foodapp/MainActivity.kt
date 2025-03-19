@@ -153,7 +153,7 @@ class MainActivity : ComponentActivity() {
                                FoodDetailsScreen(
                                    navController,
                                    foodItem = route.foodItem,
-                                    this
+                                    this,
                                )
                            }
 

@@ -1,12 +1,18 @@
 package com.example.foodapp.ui.screen.food_item_details
 
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,13 +37,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -47,7 +57,9 @@ import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.models.response.FoodItem
 import com.example.foodapp.ui.BasicDialog
+
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -65,24 +77,40 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
     val showSuccessDialog = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val scope = rememberCoroutineScope()
 
 
+    when (uiState.value) {
+        FoodDetailsViewModel.FoodDetailsState.Loading -> {
+            isLoading.value = true
+        }
+
+        else -> {
+            isLoading.value = false
+        }
+    }
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
                 is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
-                   showSuccessDialog.value = true
+                    showSuccessDialog.value = true
                 }
+
                 is FoodDetailsViewModel.FoodDetailsEvent.ShowErrorDialog -> {
                     showErrorDialog.value = true
                 }
+
                 is FoodDetailsViewModel.FoodDetailsEvent.GoToCart -> {
 
                 }
             }
         }
     }
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         FoodHeader(
             imageUrl = foodItem.imageUrl,
             foodID = foodItem.id ?: "default id",
@@ -95,13 +123,14 @@ fun SharedTransitionScope.FoodDetailsScreen(
         FoodDetail(
             title = foodItem.name,
             description = foodItem.description,
-            foodID = foodItem.id?: "default id",
+            foodID = foodItem.id ?: "default id",
             animatedVisibilityScope = animatedVisibilityScope
         )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+
         ) {
             Text(
                 text = "$${foodItem.price}", color = MaterialTheme.colorScheme.primary,
@@ -120,7 +149,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text(
-                    text = "$count",
+                    text = "${count.value}",
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
@@ -137,34 +166,40 @@ fun SharedTransitionScope.FoodDetailsScreen(
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                viewModel.addToCart(foodItemId = foodItem.id?: "")
+                viewModel.addToCart(foodItemId = foodItem.id ?: "")
             },
             enabled = !isLoading.value,
-            modifier = Modifier.padding(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
-            Row(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(horizontal = 8.dp)
-                    .clip(RoundedCornerShape(32.dp)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AnimatedVisibility(visible = !isLoading.value) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.cart),
-                            contentDescription = null
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = "Thêm vào giỏ hàng".uppercase(),
-                            style = MaterialTheme.typography.bodyMedium
+            Box {
+                AnimatedContent(
+                    targetState = isLoading.value ,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f) togetherWith
+                                fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
+                    }
+                ) { target ->
+                    if (target) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier
+                                .padding(horizontal = 32.dp)
+                                .size(24.dp)
                         )
                     }
-
-                }
-                AnimatedVisibility(visible = isLoading.value) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                painter = painterResource(id = R.drawable.cart),
+                                contentDescription = null
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text(
+                                text = "Thêm vào giỏ hàng".uppercase(),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
                 }
             }
 
@@ -172,7 +207,10 @@ fun SharedTransitionScope.FoodDetailsScreen(
     }
 
     if (showSuccessDialog.value) {
-        ModalBottomSheet(onDismissRequest = { showSuccessDialog.value = false }) {
+        ModalBottomSheet(
+            onDismissRequest = { showSuccessDialog.value = false },
+            sheetState = sheetState
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -195,7 +233,10 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
                 Button(
                     onClick = {
-                        showSuccessDialog.value = false
+                        scope.launch {
+                            sheetState.hide()
+                            showSuccessDialog.value = false
+                        }
                     }, modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
@@ -207,18 +248,23 @@ fun SharedTransitionScope.FoodDetailsScreen(
         }
     }
     if (showErrorDialog.value) {
-        ModalBottomSheet(onDismissRequest = { showSuccessDialog.value = false }) {
+        ModalBottomSheet(
+            onDismissRequest = { showSuccessDialog.value = false },
+            sheetState = sheetState
+        ) {
             BasicDialog(
                 title = "Lỗi",
                 description = (uiState.value as? FoodDetailsViewModel.FoodDetailsState.Error)?.message
                     ?: "Không thể thêm vào giỏ hàng"
             ) {
-                showErrorDialog.value = false
+                scope.launch {
+                    sheetState.hide()
+                    showErrorDialog.value = false
+                }
             }
         }
     }
 }
-
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -232,7 +278,7 @@ fun SharedTransitionScope.FoodDetail(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
     ) {
         Text(
             text = title,
@@ -307,20 +353,28 @@ fun SharedTransitionScope.FoodHeader(
             onClick = onBackButton,
             modifier = Modifier
                 .padding(16.dp)
-                .size(48.dp)
+                .size(80.dp)
                 .align(Alignment.TopStart)
         ) {
-            Image(painter = painterResource(id = R.drawable.back), contentDescription = null)
+            Image(
+                painter = painterResource(id = R.drawable.back),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(80.dp)
+            )
         }
         IconButton(
             onClick = onFavoriteButton,
             modifier = Modifier
                 .padding(16.dp)
-                .size(48.dp)
+                .size(80.dp)
                 .align(Alignment.TopEnd)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.favorite), contentDescription = null
+                painter = painterResource(id = R.drawable.favorite),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(80.dp)
             )
         }
     }
