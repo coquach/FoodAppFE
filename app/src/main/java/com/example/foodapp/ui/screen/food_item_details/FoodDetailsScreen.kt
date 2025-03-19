@@ -58,6 +58,7 @@ import com.example.foodapp.data.model.FoodItem
 
 import com.example.foodapp.ui.BasicDialog
 import com.example.foodapp.ui.FoodItemCounter
+import com.example.foodapp.ui.navigation.Cart
 
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -103,7 +104,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 }
 
                 is FoodDetailsViewModel.FoodDetailsEvent.GoToCart -> {
-
+                    navController.navigate(Cart)
                 }
             }
         }
@@ -152,7 +153,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                viewModel.addToCart(foodItemId = foodItem.id ?: "")
+                viewModel.addToCart(foodItem = foodItem)
             },
             enabled = !isLoading.value,
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)

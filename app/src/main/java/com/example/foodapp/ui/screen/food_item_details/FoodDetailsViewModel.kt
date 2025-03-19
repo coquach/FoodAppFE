@@ -3,7 +3,10 @@ package com.example.foodapp.ui.screen.food_item_details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.FoodApi
+import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.dto.request.AddToCartRequest
+import com.example.foodapp.data.model.CartItem
+import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,10 +15,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class FoodDetailsViewModel @Inject constructor(val foodApi: FoodApi) : ViewModel() {
+class FoodDetailsViewModel @Inject constructor(
+    private val cartRepository: CartRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<FoodDetailsState>(FoodDetailsState.Nothing)
     val uiState = _uiState.asStateFlow()
@@ -36,33 +42,32 @@ class FoodDetailsViewModel @Inject constructor(val foodApi: FoodApi) : ViewModel
         _quantity.value -= 1
     }
 
-    fun addToCart(foodItemId: String ) {
+    fun addToCart(foodItem: FoodItem ) {
         viewModelScope.launch {
             _uiState.value = FoodDetailsState.Loading
-            val response = safeApiCall {
-                foodApi.addToCart(
-                    AddToCartRequest(
-                        menuItemId = foodItemId,
-                        quantity = _quantity.value
-                    )
+            try {
+
+
+                val cartItem = CartItem(
+                    addedAt = System.currentTimeMillis().toString(),
+                    id = UUID.randomUUID().toString(),
+                    menuItemId = foodItem,
+                    quantity = quantity.value,
+                    userId = "currentUserId"  // Nếu có hệ thống auth, thay bằng user thật
                 )
+
+                cartRepository.addToCart(cartItem)
+
+                _uiState.value = FoodDetailsState.Nothing
+                _event.emit(FoodDetailsEvent.OnAddToCart)
+
+            } catch (e: Exception) {
+                _uiState.value = FoodDetailsState.Error(e.message ?: "Không thể thêm vào giỏ hàng.")
+                _event.emit(FoodDetailsEvent.ShowErrorDialog(e.message ?: "Có lỗi xảy ra."))
             }
-            when (response) {
-                is ApiResponse.Success -> {
-                    _uiState.value = FoodDetailsState.Nothing
-                    _event.emit(FoodDetailsEvent.OnAddToCart)
-                }
-                is ApiResponse.Error -> {
-                    _uiState.value = FoodDetailsState.Error(response.message)
-                    _event.emit(FoodDetailsEvent.ShowErrorDialog(response.message))
-                }
-                else -> {
-                    _uiState.value = FoodDetailsState.Error("Unknown Error")
-                    _event.emit(FoodDetailsEvent.ShowErrorDialog("Unknown Error"))
-                }
             }
         }
-    }
+
 
     fun goToCart() {
         viewModelScope.launch {

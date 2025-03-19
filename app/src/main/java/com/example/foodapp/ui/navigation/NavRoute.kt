@@ -18,3 +18,6 @@ object Home
 
 @Serializable
 data class FoodDetails(val foodItem: FoodItem)
+
+@Serializable
+object Cart

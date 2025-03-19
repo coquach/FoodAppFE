@@ -29,6 +29,7 @@ import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.model.FoodItem
 
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
@@ -37,6 +38,7 @@ import com.example.foodapp.ui.navigation.foodItemNavType
 import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
+import com.example.foodapp.ui.screen.cart.CartScreen
 import com.example.foodapp.ui.screen.food_item_details.FoodDetailsScreen
 import com.example.foodapp.ui.screen.home.HomeScreen
 
@@ -156,6 +158,9 @@ class MainActivity : ComponentActivity() {
                                    foodItem = route.foodItem,
                                     this,
                                )
+                           }
+                           composable<Cart> {
+                               CartScreen(navController)
                            }
 
                        }

@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,13 +37,19 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.ui.FoodItemCounter
+import com.example.foodapp.utils.StringUtils
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CartScreen(
     navController: NavController,
     viewModel: CartViewModel = hiltViewModel()
 ) {
+
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+
+
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         CartHeaderView( onBack = { navController.popBackStack() })
@@ -69,7 +76,7 @@ fun CartScreen(
                 val cartItems = (uiState.value as CartViewModel.CartState.Success).cartItems
                 val checkoutDetails = (uiState.value as CartViewModel.CartState.Success).checkoutDetails
                 LazyColumn {
-                    items(cartItems) {
+                    items(cartItems, key = { it.id }) {
                         CartItemView(
                             cartItem = it,
                             onIncrement = {
@@ -106,6 +113,18 @@ fun CartScreen(
             CartViewModel.CartState.Nothing -> {}
 
         }
+        Spacer(modifier = Modifier.weight(1f))
+        if (uiState.value is CartViewModel.CartState.Success) {
+            Button(
+                onClick = {
+                    viewModel.checkout()
+                },
+                modifier = Modifier.fillMaxWidth()
+
+            ) {
+                Text(text = "Thanh toán")
+            }
+        }
 
 
     }
@@ -118,21 +137,25 @@ fun CheckoutDetailsView(
     Column() {
         CheckoutRowItem(
             title = "Tổng giá",
-            value = "${checkoutDetails.subTotal}",
-            currency = "đồng")
+            value = checkoutDetails.subTotal
+        )
+        CheckoutRowItem(
+            title = "Thuế GTGT",
+            value = checkoutDetails.tax
+        )
         CheckoutRowItem(
             title = "Phí ship",
-            value = "${checkoutDetails.deliveryFee}",
-            currency = "đồng")
+            value = checkoutDetails.deliveryFee
+            )
         CheckoutRowItem(
             title = "Tổng cộng",
-            value = "${checkoutDetails.totalAmount}",
-            currency = "đồng")
+            value = checkoutDetails.totalAmount
+        )
     }
 }
 
 @Composable
-fun CheckoutRowItem(title: String, value: String, currency: String) {
+fun CheckoutRowItem(title: String, value: Float) {
     Row(
         modifier = Modifier
            .fillMaxWidth()
@@ -146,12 +169,7 @@ fun CheckoutRowItem(title: String, value: String, currency: String) {
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        )
-        Text(
-            text = currency,
+            text = StringUtils.formatCurrency(value),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
@@ -168,7 +186,8 @@ fun CartItemView(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         AsyncImage(
@@ -181,7 +200,7 @@ fun CartItemView(
         )
         Spacer(modifier = Modifier.size(12.dp))
         Column(
-
+           verticalArrangement = Arrangement.Center
         ) {
             Row {
                 Text(
@@ -191,19 +210,21 @@ fun CartItemView(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(
-                    onClick = { /*TODO*/ }
+                    onClick = { /*TODO*/ },
+                    modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primaryContainer
+                        tint = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
                 Text(
                     text = cartItem.menuItemId.description,
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.outline,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
                 Row {
                     Text(

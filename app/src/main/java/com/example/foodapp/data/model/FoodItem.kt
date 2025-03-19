@@ -10,5 +10,5 @@ data class FoodItem(
     val id: String? = null,
     val imageUrl: String,
     val name: String,
-    val price: Double,
+    val price: Float
 )
