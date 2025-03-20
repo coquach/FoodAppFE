@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-open class HomeViewModel @Inject constructor(private val foodApi: FoodApi) :ViewModel()  {
+class HomeViewModel @Inject constructor(private val foodApi: FoodApi) :ViewModel()  {
 
     val _uiState = MutableStateFlow<HomeState>(HomeState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -30,7 +30,7 @@ open class HomeViewModel @Inject constructor(private val foodApi: FoodApi) :View
         getPopularRestaurants()
     }
     
-    fun getCategories() {
+    private fun getCategories() {
         viewModelScope.launch {
             val response = safeApiCall {
                 foodApi.getCategories()
