@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,22 +57,11 @@ import kotlinx.coroutines.flow.collectLatest
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
-    navController: NavController, viewModel: CartViewModel = hiltViewModel()
+    navController: NavController,
+    viewModel: CartViewModel = hiltViewModel()
 ) {
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val cartItems by remember {
-        derivedStateOf {
-            (uiState.value as? CartViewModel.CartState.Success)?.cartItems ?: emptyList()
-        }
-    }
-    val checkoutDetails by remember {
-        derivedStateOf {
-            (uiState.value as? CartViewModel.CartState.Success)?.checkoutDetails ?: CheckoutDetails(
-                0f, 0f, 0f, 0f
-            )
-        }
-    }
     val showErrorDialog = remember {
         mutableStateOf(
             false
@@ -124,6 +115,7 @@ fun CartScreen(
             }
 
             is CartViewModel.CartState.Success -> {
+                val cartItems = (uiState.value as CartViewModel.CartState.Success).cartItems
                 if (cartItems.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier
@@ -135,7 +127,9 @@ fun CartScreen(
                                 viewModel.incrementQuantity(item)
                             }, onDecrement = { item, _ ->
                                 viewModel.decrementQuantity(item)
-                            }, onRemove = { item -> viewModel.removeItem(item) })
+                            }, onRemove = { item -> viewModel.removeItem(item) }
+                            )
+
                         }
                     }
                 } else {
@@ -180,6 +174,7 @@ fun CartScreen(
 
         if (uiState.value is CartViewModel.CartState.Success) {
             Column {
+                val checkoutDetails = (uiState.value as CartViewModel.CartState.Success).checkoutDetails
                 CheckoutDetailsView(checkoutDetails = checkoutDetails)
                 Button(
                     onClick = {
@@ -293,9 +288,11 @@ fun CartItemView(
             }
             Text(
                 text = cartItem.menuItemId.description,
-                maxLines = 1,
                 color = MaterialTheme.colorScheme.outline,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.width(200.dp)
             )
             Spacer(modifier = Modifier.size(8.dp))
             Row(

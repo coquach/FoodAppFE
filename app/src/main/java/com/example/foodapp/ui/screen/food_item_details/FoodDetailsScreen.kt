@@ -83,6 +83,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val scope = rememberCoroutineScope()
 
+    val successMessage = remember { mutableStateOf("") }
+
 
     when (uiState.value) {
         FoodDetailsViewModel.FoodDetailsState.Loading -> {
@@ -96,7 +98,12 @@ fun SharedTransitionScope.FoodDetailsScreen(
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
+                is FoodDetailsViewModel.FoodDetailsEvent.OnItemAlreadyInCart -> {
+                    successMessage.value = "Món đã có trong giỏ hàng"
+                    showSuccessDialog.value = true
+                }
                 is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
+                    successMessage.value = "Đã thêm món trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
 
@@ -206,7 +213,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Món đã được thêm vào giỏ", style = MaterialTheme.typography.titleLarge
+                    text = successMessage.value,
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 Button(

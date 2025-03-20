@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -42,31 +43,41 @@ class FoodDetailsViewModel @Inject constructor(
         _quantity.value -= 1
     }
 
-    fun addToCart(foodItem: FoodItem ) {
+    fun addToCart(foodItem: FoodItem) {
         viewModelScope.launch {
             _uiState.value = FoodDetailsState.Loading
             try {
+                val currentItems = cartRepository.getCartItems().first().toMutableList()
+                val existingItemIndex = currentItems.indexOfFirst { it.menuItemId.id == foodItem.id }
 
-
-                val cartItem = CartItem(
-                    addedAt = System.currentTimeMillis().toString(),
-                    id = UUID.randomUUID().toString(),
-                    menuItemId = foodItem,
-                    quantity = quantity.value,
-                    userId = "currentUserId"  // Nếu có hệ thống auth, thay bằng user thật
-                )
-
-                cartRepository.addToCart(cartItem)
+                if (existingItemIndex != -1) {
+                    val updatedItem = currentItems[existingItemIndex].copy(
+                        quantity = quantity.value
+                    )
+                    currentItems[existingItemIndex] = updatedItem
+                    cartRepository.saveCartItems(currentItems)
+                    _event.emit(FoodDetailsEvent.OnItemAlreadyInCart)
+                } else {
+                    val newItem = CartItem(
+                        id = UUID.randomUUID().toString(),
+                        menuItemId = foodItem,
+                        quantity = 1,
+                        userId = "user_123",
+                        addedAt = System.currentTimeMillis().toString()
+                    )
+                    currentItems.add(newItem)
+                    cartRepository.saveCartItems(currentItems)
+                    _event.emit(FoodDetailsEvent.OnAddToCart)
+                }
 
                 _uiState.value = FoodDetailsState.Nothing
-                _event.emit(FoodDetailsEvent.OnAddToCart)
 
             } catch (e: Exception) {
                 _uiState.value = FoodDetailsState.Error(e.message ?: "Không thể thêm vào giỏ hàng.")
                 _event.emit(FoodDetailsEvent.ShowErrorDialog(e.message ?: "Có lỗi xảy ra."))
             }
-            }
         }
+    }
 
 
     fun goToCart() {
@@ -85,7 +96,8 @@ class FoodDetailsViewModel @Inject constructor(
     sealed class FoodDetailsEvent {
         data class ShowErrorDialog(val message: String) : FoodDetailsEvent()
         data object OnAddToCart : FoodDetailsEvent()
-        data object GoToCart: FoodDetailsEvent()
+        data object OnItemAlreadyInCart : FoodDetailsEvent()
+        data object GoToCart : FoodDetailsEvent()
 
     }
 }

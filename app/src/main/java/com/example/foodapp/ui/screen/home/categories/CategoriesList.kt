@@ -90,8 +90,7 @@ fun CategoryItem(
             color = MaterialTheme.colorScheme.primary,
             style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold),
             textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            maxLines = 1
         )
 
     }

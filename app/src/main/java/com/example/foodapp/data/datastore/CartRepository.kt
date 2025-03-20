@@ -14,6 +14,7 @@ import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import java.io.IOException
@@ -35,53 +36,61 @@ class CartRepository @Inject constructor(
         val KEY_TOTAL_AMOUNT = floatPreferencesKey("key_total_amount")
     }
 
-    suspend fun getCartItems(): List<CartItem> {
-        val json = dataStore.data.map { preferences ->
-            preferences[Keys.CART_ITEMS] ?: "[]"
-        }.first()
-        return Gson().fromJson(json, object : TypeToken<List<CartItem>>() {}.type)
+    // Lấy danh sách CartItem từ DataStore dưới dạng Flow
+    fun getCartItems(): Flow<List<CartItem>> {
+        return dataStore.data.map { preferences ->
+            val json = preferences[Keys.CART_ITEMS] ?: "[]"
+            Gson().fromJson(json, object : TypeToken<List<CartItem>>() {}.type) ?: emptyList()
+        }
     }
 
+    // Lưu danh sách CartItem vào DataStore + Cập nhật lại Checkout
     suspend fun saveCartItems(cartItems: List<CartItem>) {
         try {
             val json = Json.encodeToString(cartItems)
             dataStore.edit { preferences ->
                 preferences[Keys.CART_ITEMS] = json
             }
-        } catch (e: IOException) {
+            updateCheckoutDetails(cartItems) // 🔥 Đảm bảo cập nhật checkout sau khi lưu giỏ hàng
+        } catch (e: Exception) {
             Log.e("CartRepository", "Lỗi khi lưu giỏ hàng: ${e.message}")
             throw Exception("Không thể lưu giỏ hàng. Vui lòng thử lại sau.")
-        } catch (e: JsonSyntaxException) {
-            Log.e("CartRepository", "Dữ liệu giỏ hàng bị lỗi: ${e.message}")
-            throw Exception("Dữ liệu giỏ hàng không hợp lệ. Hãy xóa giỏ hàng và thử lại.")
-        } catch (e: Exception) {
-            Log.e("CartRepository", "Lỗi không xác định: ${e.message}")
-            throw Exception("Lỗi không xác định. Vui lòng thử lại.")
         }
     }
 
+    // 🔥 Thêm hoặc cập nhật sản phẩm trong giỏ hàng
     suspend fun addToCart(cartItem: CartItem) {
-        val currentItems = getCartItems().toMutableList()
-        val existingItemIndex = currentItems.indexOfFirst { it.id == cartItem.id }
-        if (existingItemIndex != -1) {
+        getCartItems().firstOrNull()?.let { currentItems ->
+            val updatedItems = currentItems.toMutableList()
+            val existingIndex = updatedItems.indexOfFirst { it.id == cartItem.id }
 
-            val existingItem = currentItems[existingItemIndex]
-            currentItems[existingItemIndex] =
-                existingItem.copy(quantity = existingItem.quantity + cartItem.quantity)
-        } else {
-            currentItems.add(cartItem)
+            if (existingIndex != -1) {
+                // Nếu đã có, cập nhật số lượng
+                val existingItem = updatedItems[existingIndex]
+                updatedItems[existingIndex] = existingItem.copy(quantity = cartItem.quantity)
+            } else {
+                // Nếu chưa có, thêm mới
+                updatedItems.add(cartItem)
+            }
+            saveCartItems(updatedItems)
+
         }
-        saveCartItems(currentItems)
-        updateCheckoutDetails(currentItems)
     }
 
+    // 🔥 Xóa sản phẩm khỏi giỏ hàng
     suspend fun removeFromCart(cartItem: CartItem) {
-        val currentItems = getCartItems().toMutableList()
-        currentItems.removeAll { it.id == cartItem.id }
-        saveCartItems(currentItems)
-        updateCheckoutDetails(currentItems)
+        getCartItems().firstOrNull()?.let { currentItems ->
+            val updatedItems = currentItems.filter { it.id != cartItem.id }
+            saveCartItems(updatedItems)
+        }
     }
 
+    // 🔥 Xóa toàn bộ giỏ hàng
+    suspend fun clearCart() {
+        saveCartItems(emptyList()) // Gọi hàm lưu với danh sách rỗng
+    }
+
+    // Lấy chi tiết thanh toán từ DataStore
     fun getCheckoutDetails(): Flow<CheckoutDetails> {
         return dataStore.data.map { preferences ->
             CheckoutDetails(
@@ -93,28 +102,27 @@ class CartRepository @Inject constructor(
         }
     }
 
-    suspend fun saveCheckoutDetails(checkoutDetails: CheckoutDetails) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_SUBTOTAL] = checkoutDetails.subTotal
-            preferences[PreferencesKeys.KEY_TAX] = checkoutDetails.tax
-            preferences[PreferencesKeys.KEY_DELIVERY_FEE] = checkoutDetails.deliveryFee
-            preferences[PreferencesKeys.KEY_TOTAL_AMOUNT] = checkoutDetails.totalAmount
+    // Lưu chi tiết thanh toán vào DataStore
+    private suspend fun saveCheckoutDetails(checkoutDetails: CheckoutDetails) {
+        try {
+            dataStore.edit {
+                it[PreferencesKeys.KEY_SUBTOTAL] = checkoutDetails.subTotal
+                it[PreferencesKeys.KEY_TAX] = checkoutDetails.tax
+                it[PreferencesKeys.KEY_DELIVERY_FEE] = checkoutDetails.deliveryFee
+                it[PreferencesKeys.KEY_TOTAL_AMOUNT] = checkoutDetails.totalAmount
+            }
+        } catch (e: Exception) {
+            Log.e("CartRepository", "Lỗi khi lưu chi tiết thanh toán: ${e.localizedMessage}")
         }
     }
 
+    // Cập nhật lại chi tiết thanh toán dựa trên giỏ hàng hiện tại
     private suspend fun updateCheckoutDetails(cartItems: List<CartItem>) {
         val subTotal = cartItems.sumOf { it.quantity * it.menuItemId.price.toDouble() }.toFloat()
         val tax = subTotal * 0.1f // Giả sử thuế là 10%
         val deliveryFee = if (subTotal > 0) 15000f else 0f
         val totalAmount = subTotal + tax + deliveryFee
 
-        val checkoutDetails =
-            CheckoutDetails(
-                subTotal = subTotal,
-                tax = tax,
-                deliveryFee = deliveryFee,
-                totalAmount = totalAmount
-            )
-        saveCheckoutDetails(checkoutDetails)
+        saveCheckoutDetails(CheckoutDetails(subTotal = subTotal, tax = tax, deliveryFee = deliveryFee, totalAmount = totalAmount))
     }
 }
