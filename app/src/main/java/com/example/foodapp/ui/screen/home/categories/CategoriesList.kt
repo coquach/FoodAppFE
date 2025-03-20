@@ -30,18 +30,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.foodapp.data.dto.response.Category
+
+import com.example.foodapp.data.model.Category
 
 
 @Composable
 fun CategoriesList(
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit
-){
+) {
     LazyRow {
-       items(categories) {
-           CategoryItem(category = it, onCategorySelected = onCategorySelected)
-       }
+        items(categories) {
+            CategoryItem(category = it, onCategorySelected = onCategorySelected)
+        }
     }
 }
 
@@ -49,7 +50,7 @@ fun CategoriesList(
 fun CategoryItem(
     category: Category,
     onCategorySelected: (Category) -> Unit
-){
+) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -73,14 +74,14 @@ fun CategoryItem(
             model = category.imageUrl,
             contentDescription = null,
             modifier = Modifier
-               .size(40.dp)
+                .size(40.dp)
                 .shadow(
                     elevation = 16.dp,
                     shape = CircleShape,
                     ambientColor = MaterialTheme.colorScheme.primaryContainer,
                     spotColor = MaterialTheme.colorScheme.primaryContainer
                 )
-               .clip(CircleShape),
+                .clip(CircleShape),
             contentScale = ContentScale.Inside
         )
         Spacer(modifier = Modifier.size(8.dp))

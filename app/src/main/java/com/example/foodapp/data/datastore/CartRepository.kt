@@ -12,6 +12,7 @@ import com.example.foodapp.data.model.CheckoutDetails
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
@@ -26,12 +27,14 @@ class CartRepository @Inject constructor(
     private object Keys {
         val CART_ITEMS = stringPreferencesKey("cart_items")
     }
+
     private object PreferencesKeys {
         val KEY_SUBTOTAL = floatPreferencesKey("key_subtotal")
         val KEY_TAX = floatPreferencesKey("key_tax")
         val KEY_DELIVERY_FEE = floatPreferencesKey("key_delivery_fee")
         val KEY_TOTAL_AMOUNT = floatPreferencesKey("key_total_amount")
     }
+
     suspend fun getCartItems(): List<CartItem> {
         val json = dataStore.data.map { preferences ->
             preferences[Keys.CART_ITEMS] ?: "[]"
@@ -59,7 +62,15 @@ class CartRepository @Inject constructor(
 
     suspend fun addToCart(cartItem: CartItem) {
         val currentItems = getCartItems().toMutableList()
-        currentItems.add(cartItem)
+        val existingItemIndex = currentItems.indexOfFirst { it.id == cartItem.id }
+        if (existingItemIndex != -1) {
+
+            val existingItem = currentItems[existingItemIndex]
+            currentItems[existingItemIndex] =
+                existingItem.copy(quantity = existingItem.quantity + cartItem.quantity)
+        } else {
+            currentItems.add(cartItem)
+        }
         saveCartItems(currentItems)
         updateCheckoutDetails(currentItems)
     }
@@ -71,14 +82,15 @@ class CartRepository @Inject constructor(
         updateCheckoutDetails(currentItems)
     }
 
-    suspend fun getCheckoutDetails(): CheckoutDetails {
-        val preferences = dataStore.data.first()
-        return CheckoutDetails(
-            subTotal = preferences[PreferencesKeys.KEY_SUBTOTAL] ?: 0f,
-            tax = preferences[PreferencesKeys.KEY_TAX] ?: 0f,
-            deliveryFee = preferences[PreferencesKeys.KEY_DELIVERY_FEE] ?: 0f,
-            totalAmount = preferences[PreferencesKeys.KEY_TOTAL_AMOUNT] ?: 0f
-        )
+    fun getCheckoutDetails(): Flow<CheckoutDetails> {
+        return dataStore.data.map { preferences ->
+            CheckoutDetails(
+                subTotal = preferences[PreferencesKeys.KEY_SUBTOTAL] ?: 0f,
+                tax = preferences[PreferencesKeys.KEY_TAX] ?: 0f,
+                deliveryFee = preferences[PreferencesKeys.KEY_DELIVERY_FEE] ?: 0f,
+                totalAmount = preferences[PreferencesKeys.KEY_TOTAL_AMOUNT] ?: 0f
+            )
+        }
     }
 
     suspend fun saveCheckoutDetails(checkoutDetails: CheckoutDetails) {
@@ -89,13 +101,20 @@ class CartRepository @Inject constructor(
             preferences[PreferencesKeys.KEY_TOTAL_AMOUNT] = checkoutDetails.totalAmount
         }
     }
+
     private suspend fun updateCheckoutDetails(cartItems: List<CartItem>) {
         val subTotal = cartItems.sumOf { it.quantity * it.menuItemId.price.toDouble() }.toFloat()
         val tax = subTotal * 0.1f // Giả sử thuế là 10%
         val deliveryFee = if (subTotal > 0) 15000f else 0f
         val totalAmount = subTotal + tax + deliveryFee
 
-        val checkoutDetails = CheckoutDetails(subTotal, tax, deliveryFee, totalAmount)
+        val checkoutDetails =
+            CheckoutDetails(
+                subTotal = subTotal,
+                tax = tax,
+                deliveryFee = deliveryFee,
+                totalAmount = totalAmount
+            )
         saveCheckoutDetails(checkoutDetails)
     }
 }

@@ -59,6 +59,7 @@ import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.ui.BasicDialog
 import com.example.foodapp.ui.FoodItemCounter
 import com.example.foodapp.ui.navigation.Cart
+import com.example.foodapp.utils.StringUtils
 
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -135,7 +136,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
         ) {
             Text(
-                text = "$${foodItem.price}", color = MaterialTheme.colorScheme.primary,
+                text = StringUtils.formatCurrency(foodItem.price),
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.headlineLarge
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -160,7 +162,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
         ) {
             Box {
                 AnimatedContent(
-                    targetState = isLoading.value ,
+                    targetState = isLoading.value,
                     transitionSpec = {
                         fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f) togetherWith
                                 fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
@@ -173,8 +175,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                                 .padding(horizontal = 32.dp)
                                 .size(24.dp)
                         )
-                    }
-                    else {
+                    } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Image(
                                 painter = painterResource(id = R.drawable.cart),
@@ -201,7 +202,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Món đã được thêm vào giỏ", style = MaterialTheme.typography.titleLarge
@@ -336,34 +338,34 @@ fun SharedTransitionScope.FoodHeader(
                     RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
                 ), contentScale = ContentScale.Crop
         )
-        IconButton(
-            onClick = onBackButton,
+
+        Image(
+            painter = painterResource(id = R.drawable.back),
+            contentDescription = null,
             modifier = Modifier
                 .padding(16.dp)
                 .size(80.dp)
                 .align(Alignment.TopStart)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.back),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-            )
-        }
-        IconButton(
-            onClick = onFavoriteButton,
+                .clip(CircleShape)
+                .clickable {
+                    onBackButton.invoke()
+                }
+
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.favorite),
+            contentDescription = null,
             modifier = Modifier
                 .padding(16.dp)
                 .size(80.dp)
                 .align(Alignment.TopEnd)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.favorite),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-            )
-        }
+                .clip(CircleShape)
+                .clickable {
+                    onBackButton.invoke()
+                }
+
+        )
     }
 }
 

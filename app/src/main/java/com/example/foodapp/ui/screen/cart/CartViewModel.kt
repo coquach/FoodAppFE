@@ -8,8 +8,10 @@ import com.example.foodapp.data.model.CheckoutDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,11 +20,21 @@ class CartViewModel @Inject constructor(
     private val cartRepository: CartRepository,
 ) : ViewModel() {
 
+    var errorTitle : String = ""
+    var errorMessage : String = ""
+
     private val _uiState = MutableStateFlow<CartState>(CartState.Nothing)
     val uiState = _uiState.asStateFlow()
 
     private val _event = MutableSharedFlow<CartEvents>()
     val event = _event.asSharedFlow()
+
+    val checkoutDetails = cartRepository.getCheckoutDetails().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = CheckoutDetails(0f, 0f, 0f, 0f)
+    )
+
 
     init {
         getCart()
@@ -33,24 +45,24 @@ class CartViewModel @Inject constructor(
             _uiState.value = CartState.Loading
             try {
                 val cartItems = cartRepository.getCartItems()
-                val checkoutDetails = cartRepository.getCheckoutDetails()
-                _uiState.value = CartState.Success(cartItems, checkoutDetails)
+
+                _uiState.value = CartState.Success(cartItems, checkoutDetails.value)
             } catch (e: Exception) {
                 _uiState.value = CartState.Error("Không thể cập nhật số lượng: ${e.message}")
             }
         }
     }
 
-    fun incrementQuantity(cartItem: CartItem, quantity: Int) {
+    fun incrementQuantity(cartItem: CartItem) {
         if (cartItem.quantity == 10) // VD số lượng tối đa
             return
-        updateItemQuantity(cartItem, quantity + 1)
+        updateItemQuantity(cartItem, cartItem.quantity + 1)
     }
 
-    fun decrementQuantity(cartItem: CartItem, quantity: Int) {
+    fun decrementQuantity(cartItem: CartItem) {
         if (cartItem.quantity == 1)
             return
-        updateItemQuantity(cartItem, quantity - 1)
+        updateItemQuantity(cartItem, cartItem.quantity - 1)
 
     }
     fun removeItem(cartItem: CartItem) {
@@ -62,10 +74,12 @@ class CartViewModel @Inject constructor(
                     currentItems.removeAll { it.id == cartItem.id }
                     cartRepository.saveCartItems(currentItems)
 
-                    val checkoutDetails = cartRepository.getCheckoutDetails()
-                    _uiState.value = CartState.Success(currentItems, checkoutDetails)
+
+                    _uiState.value = CartState.Success(currentItems, checkoutDetails.value)
                 } catch (e: Exception) {
-                    _uiState.value = CartState.Error("Không thể xoá sản phẩm: ${e.message}")
+                    errorTitle = "Không thể xóa"
+                    errorMessage = "Đã xảy ra lỗi khi xóa mặt hàng"
+                    _event.emit(CartEvents.OnItemRemoveError)
                 }
             }
         }
@@ -82,10 +96,12 @@ class CartViewModel @Inject constructor(
                 }
                 cartRepository.saveCartItems(updatedItems)
 
-                val checkoutDetails = cartRepository.getCheckoutDetails()
-                _uiState.value = CartState.Success(updatedItems, checkoutDetails)
+
+                _uiState.value = CartState.Success(updatedItems, checkoutDetails.value)
             } catch (e: Exception) {
-                _uiState.value = CartState.Error("Không thể cập nhật số lượng: ${e.message}")
+                errorTitle = "Không thể cập nhật số lượng"
+                errorMessage = "Đã xảy ra lỗi khi cập nhật số lượng của mặt hàng"
+                _event.emit(CartEvents.OnQuantityUpdateError)
             }
         }
     }
