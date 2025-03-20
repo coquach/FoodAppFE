@@ -5,25 +5,50 @@ import android.os.Bundle
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.foodapp.data.FoodApi
+import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.Home
+import com.example.foodapp.ui.navigation.Login
+import com.example.foodapp.ui.navigation.SignUp
+import com.example.foodapp.ui.screen.auth.AuthScreen
+import com.example.foodapp.ui.screen.auth.login.LoginScreen
+import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
+import com.example.foodapp.ui.screen.home.HomeScreen
+
 import com.example.foodapp.ui.theme.FoodAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     var showSplashScreen = true
+    @Inject
+    lateinit var foodApi: FoodApi
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
             setKeepOnScreenCondition{
@@ -58,39 +83,74 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+
         setContent {
             FoodAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                   val navController = rememberNavController()
+                    NavHost(
+                        navController = navController,
+                        startDestination = Home,
+                        modifier = Modifier
+                            .padding(innerPadding),
+                        enterTransition = {
+                            slideIntoContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                animationSpec = tween(300)
+                            ) + fadeIn(animationSpec = tween(300))
+                        },
+                        exitTransition = {
+                            slideOutOfContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                animationSpec = tween(300)
+                            ) + fadeOut(animationSpec = tween(300))
+                        },
+                        popEnterTransition = {
+                            slideIntoContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                                animationSpec = tween(300)
+                            ) + fadeIn(animationSpec = tween(300))
+                        },
+                        popExitTransition = {
+                            slideOutOfContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                                animationSpec = tween(300)
+                            ) + fadeOut(animationSpec = tween(300))
+                        }
+
+                    ) {
+                        composable<Auth>() {
+                            AuthScreen(navController)
+                        }
+                        composable<SignUp>() {
+                            SignUpScreen(navController)
+                        }
+                        composable<Login>() {
+                            LoginScreen(navController)
+                        }
+                        composable<Home>() {
+                           HomeScreen(navController)
+                        }
+
+                    }
                 }
             }
+
         }
         CoroutineScope(Dispatchers.IO).launch {
             delay(3000)
             showSplashScreen = false
         }
+
     }
 
-
-
+}
+fun ComponentActivity.enableEdgeToEdge(
+    statusBarStyle : SystemBarStyle = SystemBarStyle.auto(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+    navigationBarStyle : SystemBarStyle = SystemBarStyle.auto(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
+    ) {
 
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    FoodAppTheme {
-        Greeting("Android")
-    }
-}
