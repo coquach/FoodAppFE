@@ -3,25 +3,33 @@ package com.example.foodapp.data.remote
 import retrofit2.Response
 
 sealed class ApiResponse<out T> {
-    data class Success<out T>(val data: T) : ApiResponse<T>()
-    data class Error(val code: Int, val message: String) : ApiResponse<Nothing>() {
-        fun formatMsg(): String {
-            return "Error: $code  $message"
-        }
-    }
+    abstract val status: Int
+    abstract val message: String
 
-    data class Exception(val exception: kotlin.Exception) : ApiResponse<Nothing>()
+    data class Success<out T>(
+        override val status: Int,
+        override val message: String,
+        val data: T?
+    ) : ApiResponse<T>()
+
+    data class Error(
+        override val status: Int,
+        override val message: String
+    ) : ApiResponse<Nothing>() {
+        fun formatMsg(): String = "Error: $status $message"
+    }
 }
 
-suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): ApiResponse<T> {
+
+suspend fun <T> safeApiCall(apiCall: suspend () -> Response<ApiResponse<T>>): ApiResponse<T> {
     return try {
-        val res = apiCall.invoke()
-        if (res.isSuccessful) {
-            ApiResponse.Success(res.body()!!)
+        val response = apiCall.invoke()
+        if (response.isSuccessful) {
+            response.body() ?: ApiResponse.Error(response.code(), "Empty response")
         } else {
-            ApiResponse.Error(res.code(), res.errorBody()?.string() ?: "Unknown Error")
+            ApiResponse.Error(response.code(), response.errorBody()?.string() ?: "Unknown Error")
         }
     } catch (e: Exception) {
-        ApiResponse.Exception(e)
+        ApiResponse.Error(0, e.message ?: "Unexpected error")
     }
 }

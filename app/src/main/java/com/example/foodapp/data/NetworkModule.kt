@@ -1,6 +1,7 @@
 package com.example.foodapp.data
 
 import android.content.Context
+import android.util.Log
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,10 +22,13 @@ object NetworkModule {
     fun provideClient(session: FoodAppSession) : OkHttpClient {
         val client = OkHttpClient.Builder()
         client.addInterceptor { chain ->
+            val token = session.getToken()
             val request = chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer ${session.getToken()}")
-                .build()
-            chain.proceed(request)
+
+            if (!token.isNullOrEmpty()) {
+                request.addHeader("Authorization", "Bearer $token")
+            }
+            chain.proceed(request.build())
         }
         client.addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -36,7 +40,7 @@ object NetworkModule {
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .client(client)
-            .baseUrl("http://10.0.2.2:8080")
+            .baseUrl("http://10.0.2.2:8080/api/v1/")
             .addConverterFactory(GsonConverterFactory.create())
            .build()
     }

@@ -66,12 +66,12 @@ class SignUpViewModel @Inject constructor(
                     is ApiResponse.Success -> {
 
                         _uiState.value = SignUpEvent.Success
-                        session.storeToken(response.data.token)
+                        session.storeToken(response.data?.accessToken ?: "")
                         _navigationEvent.emit(SignUpNavigationEvent.NavigateHome)
                     }
 
                     else -> {
-                        val err = (response as? ApiResponse.Error)?.code ?: 0
+                        val err = (response as? ApiResponse.Error)?.status ?: 0
                         error = "Đăng kí thất bại"
                         errorDescription = "Không thể đăng ký tài khoản"
                         when (err) {

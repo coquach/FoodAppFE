@@ -37,7 +37,7 @@ class HomeViewModel @Inject constructor(private val foodApi: FoodApi) :ViewModel
             }
             when(response) {
                 is ApiResponse.Success -> {
-                    categories = response.data.data
+                    categories = (response.data as? List<Category>) ?: emptyList()
                     _uiState.value = HomeState.Success
 
                 }

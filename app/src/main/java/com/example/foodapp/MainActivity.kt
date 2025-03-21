@@ -108,16 +108,7 @@ class MainActivity : ComponentActivity() {
                    SharedTransitionLayout {
                        NavHost(
                            navController = navController,
-//                           startDestination = if(session.getToken()!= null) Home else Auth, //demo on fake api
-                           startDestination = FoodDetails(foodItem = FoodItem(
-                               id = "3",
-                               name = "Sushi Cá Hồi",
-                               imageUrl = "https://www.themealdb.com/images/media/meals/g046bb1663960946.jpg",
-                               description = "Sushi tươi ngon với cá hồi, cơm Nhật và wasabi.",
-
-                               price = 100000f
-                           )
-                           ),
+                           startDestination = if(!session.getToken().isNullOrEmpty()) Home else Auth, //demo on fake api
                            modifier = Modifier
                                .padding(innerPadding),
                            enterTransition = {

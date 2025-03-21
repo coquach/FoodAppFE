@@ -120,7 +120,7 @@ class CartRepository @Inject constructor(
     private suspend fun updateCheckoutDetails(cartItems: List<CartItem>) {
         val subTotal = cartItems.sumOf { it.quantity * it.menuItemId.price.toDouble() }.toFloat()
         val tax = subTotal * 0.1f // Giả sử thuế là 10%
-        val deliveryFee = if (subTotal > 0) 15000f else 0f
+        val deliveryFee = if (subTotal >= 500000f) 0f else 15000f
         val totalAmount = subTotal + tax + deliveryFee
 
         saveCheckoutDetails(CheckoutDetails(subTotal = subTotal, tax = tax, deliveryFee = deliveryFee, totalAmount = totalAmount))

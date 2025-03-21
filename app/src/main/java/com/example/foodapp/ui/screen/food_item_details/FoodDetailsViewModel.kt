@@ -83,6 +83,7 @@ class FoodDetailsViewModel @Inject constructor(
     fun goToCart() {
         viewModelScope.launch {
             _event.emit(FoodDetailsEvent.GoToCart)
+            _quantity.value = 1
         }
     }
 
