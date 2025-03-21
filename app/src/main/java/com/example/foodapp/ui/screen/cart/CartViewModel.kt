@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.screen.cart
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.datastore.CartRepository
@@ -38,6 +39,10 @@ class CartViewModel @Inject constructor(
         initialValue = CheckoutDetails(0f, 0f, 0f, 0f)
     )
 
+    private val _selectedItems = mutableStateListOf<CartItem>()
+    val selectedItems: List<CartItem> get() = _selectedItems
+
+
 
     init {
         getCart()
@@ -45,7 +50,6 @@ class CartViewModel @Inject constructor(
 
     private fun getCart() {
         viewModelScope.launch {
-            _uiState.value = CartState.Loading
             try {
                 combine(
                     cartRepository.getCartItems(),
@@ -74,12 +78,11 @@ class CartViewModel @Inject constructor(
 
     }
 
-    fun removeItem(cartItem: CartItem) {
+    fun removeItem() {
         viewModelScope.launch {
-            viewModelScope.launch {
-                _uiState.value = CartState.Loading
                 try {
-                    cartRepository.removeFromCart(cartItem)
+                    cartRepository.clearCartItems(_selectedItems)
+                    _selectedItems.clear()
                     getCart()
                 } catch (e: Exception) {
                     errorTitle = "Không thể xóa"
@@ -87,13 +90,11 @@ class CartViewModel @Inject constructor(
                     _event.emit(CartEvents.OnItemRemoveError)
                 }
             }
-        }
     }
 
 
     private fun updateItemQuantity(cartItem: CartItem, quantity: Int) {
         viewModelScope.launch {
-            _uiState.value = CartState.Loading
             try {
                 val currentItems = cartRepository.getCartItems().first().toMutableList()
                 val index = currentItems.indexOfFirst { it.id == cartItem.id }
@@ -111,6 +112,20 @@ class CartViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleSelection(cartItem: CartItem) {
+        if (_selectedItems.contains(cartItem)) {
+            _selectedItems.remove(cartItem)
+        } else {
+            _selectedItems.add(cartItem)
+        }
+    }
+
+    fun selectAllItems(cartItems: List<CartItem>, isSelectAll: Boolean) {
+        _selectedItems.clear()
+        if (isSelectAll) _selectedItems.addAll(cartItems)
+    }
+
 
     fun checkout() {
 

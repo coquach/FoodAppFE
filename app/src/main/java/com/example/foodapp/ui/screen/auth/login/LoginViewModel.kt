@@ -59,7 +59,6 @@ class LoginViewModel @Inject constructor(
                 when (response) {
                     is ApiResponse.Success -> {
                         _uiState.value = LoginEvent.Success
-                        session.storeToken(response.data?.accessToken ?: "")
                         _navigationEvent.emit(LoginNavigationEvent.NavigateHome)
                     }
 

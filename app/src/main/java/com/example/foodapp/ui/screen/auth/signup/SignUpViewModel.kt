@@ -66,7 +66,7 @@ class SignUpViewModel @Inject constructor(
                     is ApiResponse.Success -> {
 
                         _uiState.value = SignUpEvent.Success
-                        session.storeToken(response.data?.accessToken ?: "")
+
                         _navigationEvent.emit(SignUpNavigationEvent.NavigateHome)
                     }
 

@@ -22,7 +22,7 @@ object NetworkModule {
     fun provideClient(session: FoodAppSession) : OkHttpClient {
         val client = OkHttpClient.Builder()
         client.addInterceptor { chain ->
-            val token = session.getToken()
+            val token = session.getAccessToken()
             val request = chain.request().newBuilder()
 
             if (!token.isNullOrEmpty()) {

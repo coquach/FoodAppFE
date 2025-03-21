@@ -78,12 +78,34 @@ class CartRepository @Inject constructor(
     }
 
     // 🔥 Xóa sản phẩm khỏi giỏ hàng
-    suspend fun removeFromCart(cartItem: CartItem) {
-        getCartItems().firstOrNull()?.let { currentItems ->
-            val updatedItems = currentItems.filter { it.id != cartItem.id }
-            saveCartItems(updatedItems)
+    suspend fun clearCartItems(cartItemsToRemove: List<CartItem>) {
+        try {
+            val currentItems = getCartItems().firstOrNull() ?: emptyList()
+
+            if (cartItemsToRemove.isEmpty()) return
+
+            val updatedItems = currentItems.filterNot { item ->
+                cartItemsToRemove.any { it.id == item.id }
+            }
+
+            dataStore.edit { preferences ->
+                if (updatedItems.isEmpty()) {
+
+                    preferences.remove(Keys.CART_ITEMS)
+                } else {
+
+                    val json = Json.encodeToString(updatedItems)
+                    preferences[Keys.CART_ITEMS] = json
+                }
+            }
+
+            updateCheckoutDetails(updatedItems)
+
+        } catch (e: Exception) {
+            Log.e("CartRepository", "Lỗi khi xóa sản phẩm trong giỏ hàng: ${e.localizedMessage}")
         }
     }
+
 
     // 🔥 Xóa toàn bộ giỏ hàng
     suspend fun clearCart() {
