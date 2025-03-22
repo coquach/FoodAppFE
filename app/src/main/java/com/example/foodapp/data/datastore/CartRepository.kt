@@ -106,11 +106,11 @@ class CartRepository @Inject constructor(
         }
     }
 
-
-    // 🔥 Xóa toàn bộ giỏ hàng
-    suspend fun clearCart() {
-        saveCartItems(emptyList()) // Gọi hàm lưu với danh sách rỗng
+    fun getCartSize(): Flow<Int> {
+        return getCartItems().map { it.size }
     }
+
+
 
     // Lấy chi tiết thanh toán từ DataStore
     fun getCheckoutDetails(): Flow<CheckoutDetails> {
