@@ -1,6 +1,5 @@
 package com.example.foodapp.ui.screen.cart
 
-import android.view.MenuItem
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -9,8 +8,11 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.Row
@@ -24,8 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -50,26 +51,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
+import com.example.foodapp.data.model.Address
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
-import com.example.foodapp.data.model.FoodItem
+
 import com.example.foodapp.ui.BasicDialog
 import com.example.foodapp.ui.FoodItemCounter
+import com.example.foodapp.ui.Loading
+import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.utils.StringUtils
 import kotlinx.coroutines.flow.collectLatest
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,6 +103,9 @@ fun CartScreen(
                 is CartViewModel.CartEvents.ShowErrorDialog -> {
                     showErrorDialog.value = true
                 }
+                is CartViewModel.CartEvents.OnAddress -> {
+                    navController.navigate(AddressList)
+                }
 
                 else -> {
 
@@ -123,19 +132,7 @@ fun CartScreen(
         when (uiState.value) {
             is CartViewModel.CartState.Loading -> {
                 Spacer(modifier = Modifier.size(16.dp))
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.size(16.dp))
-                    CircularProgressIndicator()
-                    Text(
-                        text = "Đang tải...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
+                Loading()
             }
 
             is CartViewModel.CartState.Success -> {
@@ -185,6 +182,10 @@ fun CartScreen(
                         exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
                     ) {
                         Column {
+                            AddressCard(
+                                null,
+                               onAddressClicked = { viewModel.onAddressClicked() }
+                            )
                             CheckoutDetailsView(checkoutDetails = checkoutDetails)
                             Button(
                                 onClick = { viewModel.checkout() },
@@ -226,7 +227,7 @@ fun CartScreen(
                     val message = (uiState.value as CartViewModel.CartState.Error).message
                     Text(text = message, style = MaterialTheme.typography.bodyMedium)
                     Button(onClick = { /*TODO*/ }) {
-                        Text(text = "Retry")
+                        Text(text = "Tải lại")
                     }
 
                 }
@@ -248,6 +249,47 @@ fun CartScreen(
         }
     }
 }
+
+@Composable
+fun AddressCard(address: Address?, onAddressClicked: () -> Unit ) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable {
+                onAddressClicked.invoke()
+            }
+            .padding(16.dp)
+
+    ) {
+        if (address != null) {
+            Column {
+                Text(
+                    text = address.addressLine1,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(
+                    text = "${address.city}, ${address.state}, ${address.country}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            }
+        }
+        else {
+            Text(
+                text = "Chọn địa chỉ",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+
+}
+
 
 @Composable
 fun CheckoutDetailsView(
@@ -366,6 +408,9 @@ fun CartItemView(
     }
 }
 
+
+
+
 @Composable
 fun CartBottomBar(
     onSelectAll: () -> Unit,
@@ -376,7 +421,6 @@ fun CartBottomBar(
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp
     ) {
         Row(
             modifier = Modifier
@@ -412,7 +456,7 @@ fun CartHeaderView(
     ) {
 
         IconButton(
-            onClick = onBack, modifier = Modifier.size(48.dp)
+            onClick = onBack
         ) {
             Image(
                 painter = painterResource(id = R.drawable.back),

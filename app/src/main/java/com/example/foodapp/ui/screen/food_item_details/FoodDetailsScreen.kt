@@ -347,33 +347,32 @@ fun SharedTransitionScope.FoodHeader(
                 ), contentScale = ContentScale.Crop
         )
 
+
         Image(
             painter = painterResource(id = R.drawable.back),
             contentDescription = null,
             modifier = Modifier
                 .padding(16.dp)
-                .size(80.dp)
                 .align(Alignment.TopStart)
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(16.dp))
                 .clickable {
                     onBackButton.invoke()
                 }
 
         )
 
-        Image(
-            painter = painterResource(id = R.drawable.favorite),
-            contentDescription = null,
+
+        IconButton(
+            onClick = onFavoriteButton,
             modifier = Modifier
                 .padding(16.dp)
-                .size(80.dp)
+                .size(48.dp)
                 .align(Alignment.TopEnd)
-                .clip(CircleShape)
-                .clickable {
-                    onBackButton.invoke()
-                }
-
-        )
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.favorite), contentDescription = null
+            )
+        }
     }
 }
 

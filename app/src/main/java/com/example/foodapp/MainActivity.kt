@@ -38,6 +38,8 @@ import androidx.navigation.toRoute
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.ui.navigation.AddAddress
+import com.example.foodapp.ui.navigation.AddressList
 
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Cart
@@ -52,6 +54,8 @@ import com.example.foodapp.ui.navigation.Reservation
 
 import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.navigation.foodItemNavType
+import com.example.foodapp.ui.screen.address.AddressListScreen
+import com.example.foodapp.ui.screen.address.addAddress.AddAddressScreen
 import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
@@ -182,7 +186,15 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         NavHost(
                             navController = navController,
-                            startDestination = Home, //demo on fake api
+//                            startDestination = FoodDetails(foodItem = FoodItem(
+//                                id = "3",
+//                                name = "Sushi Cá Hồi",
+//                                imageUrl = "https://www.themealdb.com/images/media/meals/g046bb1663960946.jpg",
+//                                description = "Sushi tươi ngon với cá hồi, cơm Nhật và wasabi.",
+//
+//                                price = 12.99f
+//                            )), //demo on fake api
+                            startDestination = Home,
                             modifier = Modifier
                                 .padding(innerPadding),
                             enterTransition = {
@@ -253,6 +265,14 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<Order> {
                                 shouldShowButton.value = true
+                            }
+                            composable<AddressList> {
+                                shouldShowButton.value = false
+                                AddressListScreen(navController)
+                            }
+                            composable<AddAddress> {
+                                shouldShowButton.value = false
+                                AddAddressScreen(navController)
                             }
 
                         }

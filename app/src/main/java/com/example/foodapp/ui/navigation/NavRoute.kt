@@ -37,3 +37,9 @@ object Favorite : NavRoute
 
 @Serializable
 object Order : NavRoute
+
+@Serializable
+object AddressList : NavRoute
+
+@Serializable
+object AddAddress : NavRoute

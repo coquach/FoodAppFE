@@ -2,6 +2,9 @@ package com.example.foodapp.data
 
 import android.content.Context
 import android.util.Log
+import com.example.foodapp.location.LocationManager
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,5 +56,10 @@ object NetworkModule {
     @Provides
     fun provideSession(@ApplicationContext context: Context): FoodAppSession {
         return FoodAppSession(context)
+    }
+
+    @Provides
+    fun provideLocationService(@ApplicationContext context: Context): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(context)
     }
 }
