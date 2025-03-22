@@ -2,6 +2,7 @@ package com.example.foodapp.data
 
 import android.content.Context
 import android.util.Log
+import com.example.foodapp.BuildConfig
 import com.example.foodapp.location.LocationManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -43,7 +44,7 @@ object NetworkModule {
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .client(client)
-            .baseUrl("http://10.0.2.2:8080/api/v1/")
+            .baseUrl(BuildConfig.BACKEND_URL)
             .addConverterFactory(GsonConverterFactory.create())
            .build()
     }

@@ -48,7 +48,7 @@ fun SharedTransitionScope.HomeScreen(
                 },
                 bgColor = MaterialTheme.colorScheme.surface,
             ) {
-                Box(modifier = Modifier.size(48.dp)) {
+                Box(modifier = Modifier.size(56.dp)) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_cart),
                         tint = MaterialTheme.colorScheme.primaryContainer,

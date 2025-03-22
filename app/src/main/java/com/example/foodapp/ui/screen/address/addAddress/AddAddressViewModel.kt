@@ -1,6 +1,7 @@
 package com.example.foodapp.ui.screen.address.addAddress
 
 import androidx.lifecycle.ViewModel
+import com.example.foodapp.data.model.Address
 import com.example.foodapp.location.LocationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,7 +18,18 @@ class AddAddressViewModel @Inject constructor(val locationManager: LocationManag
     private val _event = MutableSharedFlow<AddAddressEvent>()
     val event = _event.asSharedFlow()
 
+    private val _address = MutableStateFlow<Address?>(null)
+    val address = _address.asStateFlow()
+
     fun getLocation() = locationManager.getLocation()
+
+    fun reverseGeoCode(lat: Double, lon: Double) {
+
+    }
+
+    fun onAddAddressClicked() {
+        TODO("Not yet implemented")
+    }
 
 
     sealed class AddAddressEvent {

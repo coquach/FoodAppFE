@@ -290,7 +290,9 @@ fun MyFloatingActionButton(
 fun BoxScope.ItemCount(count: Int) {
     Box(
         modifier = Modifier
+            .padding(6.dp)
             .background(MaterialTheme.colorScheme.error, shape = CircleShape)
+            .padding(vertical = 3.dp, horizontal = 4.dp)
             .align(Alignment.TopEnd)
             .wrapContentSize(align = Alignment.Center),
         contentAlignment = Alignment.Center

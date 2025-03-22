@@ -186,15 +186,14 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         NavHost(
                             navController = navController,
-//                            startDestination = FoodDetails(foodItem = FoodItem(
-//                                id = "3",
-//                                name = "Sushi Cá Hồi",
-//                                imageUrl = "https://www.themealdb.com/images/media/meals/g046bb1663960946.jpg",
-//                                description = "Sushi tươi ngon với cá hồi, cơm Nhật và wasabi.",
-//
-//                                price = 12.99f
-//                            )), //demo on fake api
-                            startDestination = Home,
+                            startDestination = FoodDetails(foodItem = FoodItem(
+                                id = "3",
+                                name = "Sushi Cá Hồi",
+                                imageUrl = "https://www.themealdb.com/images/media/meals/g046bb1663960946.jpg",
+                                description = "Sushi tươi ngon với cá hồi, cơm Nhật và wasabi.",
+
+                                price = 12.99f
+                            )), //demo on fake api
                             modifier = Modifier
                                 .padding(innerPadding),
                             enterTransition = {
