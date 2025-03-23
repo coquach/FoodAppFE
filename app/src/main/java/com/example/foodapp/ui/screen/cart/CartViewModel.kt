@@ -60,6 +60,8 @@ class CartViewModel @Inject constructor(
                     _uiState.value = state
                 }
             } catch (e: Exception) {
+                errorTitle = "Lỗi"
+                errorMessage = "Không thể tải được giỏ hàng: ${e.message}"
                 _uiState.value = CartState.Error("Không thể tải được giỏ hàng: ${e.message}")
             }
         }
@@ -128,7 +130,9 @@ class CartViewModel @Inject constructor(
 
 
     fun checkout() {
-
+        viewModelScope.launch {
+            _event.emit(CartEvents.NavigateToCheckOut)
+        }
     }
 
     fun onAddressClicked() {
@@ -154,5 +158,6 @@ class CartViewModel @Inject constructor(
         data object OnQuantityUpdateError : CartEvents()
         data object OnItemRemoveError : CartEvents()
         data object OnAddress: CartEvents()
+        data object NavigateToCheckOut : CartEvents()
     }
 }

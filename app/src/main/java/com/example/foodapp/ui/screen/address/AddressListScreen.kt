@@ -35,7 +35,6 @@ import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.ui.Loading
 import com.example.foodapp.ui.navigation.AddAddress
-import com.example.foodapp.ui.screen.cart.AddressCard
 import com.example.foodapp.ui.screen.cart.CartViewModel
 import kotlinx.coroutines.flow.collectLatest
 
@@ -117,8 +116,7 @@ fun AddressListScreen(
                             .weight(1f)
                             .fillMaxWidth()
                     ) {
-                        items(data) { address ->
-                            AddressCard(address = address, onAddressClicked = {})
+                        items(data) { 
 
                         }
                     }

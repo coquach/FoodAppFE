@@ -22,10 +22,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -56,6 +60,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 
@@ -73,6 +78,7 @@ import com.example.foodapp.ui.BasicDialog
 import com.example.foodapp.ui.FoodItemCounter
 import com.example.foodapp.ui.Loading
 import com.example.foodapp.ui.navigation.AddressList
+import com.example.foodapp.ui.navigation.Checkout
 import com.example.foodapp.utils.StringUtils
 import kotlinx.coroutines.flow.collectLatest
 
@@ -106,6 +112,9 @@ fun CartScreen(
                 is CartViewModel.CartEvents.OnAddress -> {
                     navController.navigate(AddressList)
                 }
+                is CartViewModel.CartEvents.NavigateToCheckOut -> {
+                    navController.navigate(Checkout)
+                }
 
                 else -> {
 
@@ -119,7 +128,9 @@ fun CartScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+
 
     ) {
         CartHeaderView(
@@ -182,10 +193,6 @@ fun CartScreen(
                         exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
                     ) {
                         Column {
-                            AddressCard(
-                                null,
-                               onAddressClicked = { viewModel.onAddressClicked() }
-                            )
                             CheckoutDetailsView(checkoutDetails = checkoutDetails)
                             Button(
                                 onClick = { viewModel.checkout() },
@@ -250,45 +257,7 @@ fun CartScreen(
     }
 }
 
-@Composable
-fun AddressCard(address: Address?, onAddressClicked: () -> Unit ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable {
-                onAddressClicked.invoke()
-            }
-            .padding(16.dp)
 
-    ) {
-        if (address != null) {
-            Column {
-                Text(
-                    text = address.addressLine1,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    text = "${address.city}, ${address.state}, ${address.country}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-        }
-        else {
-            Text(
-                text = "Chọn địa chỉ",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-
-}
 
 
 @Composable
@@ -306,13 +275,13 @@ fun CheckoutDetailsView(
             title = "Phí ship", value = checkoutDetails.deliveryFee
         )
         CheckoutRowItem(
-            title = "Tổng cộng", value = checkoutDetails.totalAmount
+            title = "Tổng cộng", value = checkoutDetails.totalAmount, fontWeight = FontWeight.Bold
         )
     }
 }
 
 @Composable
-fun CheckoutRowItem(title: String, value: Float) {
+fun CheckoutRowItem(title: String, value: Float, fontWeight: FontWeight = FontWeight.Normal) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -322,13 +291,15 @@ fun CheckoutRowItem(title: String, value: Float) {
         Text(
             text = title,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            fontWeight = fontWeight
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = StringUtils.formatCurrency(value),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            fontWeight = fontWeight
         )
     }
 
@@ -337,7 +308,7 @@ fun CheckoutRowItem(title: String, value: Float) {
 @Composable
 fun CartItemView(
     cartItem: CartItem,
-    isEditMode: Boolean,
+    isEditMode: Boolean = false,
     isChecked: Boolean,
     onCheckedChange: (CartItem) -> Unit,
     onIncrement: (CartItem, Int) -> Unit,
@@ -451,32 +422,34 @@ fun CartHeaderView(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        IconButton(
-            onClick = onBack
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.back),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            contentDescription = null,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .clip(CircleShape)
+                .clickable { onBack.invoke() },
+            tint = MaterialTheme.colorScheme.primary
+        )
 
 
         Text(
             text = "Giỏ hàng",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier
+                .weight(1f)
+                .wrapContentWidth(Alignment.CenterHorizontally)
         )
         TextButton(onClick = { onEditToggle(!isEditing) }) {
             Text(
                 text = if (isEditing) "Xong" else "Sửa",
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.width(50.dp)
+                modifier = Modifier.width(48.dp)
             )
 
         }
