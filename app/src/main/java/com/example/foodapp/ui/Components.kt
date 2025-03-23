@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodapp.R
+import com.example.foodapp.ui.screen.cart.CartViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.serialization.json.JsonNull.content
 
@@ -368,6 +369,25 @@ fun HeaderDefaultView(
                 .wrapContentWidth(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.size(50.dp))
+    }
+}
+
+@Composable
+fun Retry(
+    message: String,
+    onClicked: () -> Unit
+) {
+    Column(
+        Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Text(text = message, style = MaterialTheme.typography.bodyMedium)
+        Button(onClick = onClicked) {
+            Text(text = "Tải lại")
+        }
+
     }
 }
 

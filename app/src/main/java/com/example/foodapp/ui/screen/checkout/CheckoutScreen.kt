@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -58,6 +60,7 @@ import com.example.foodapp.ui.BasicDialog
 import com.example.foodapp.ui.FoodItemCounter
 import com.example.foodapp.ui.HeaderDefaultView
 import com.example.foodapp.ui.Loading
+import com.example.foodapp.ui.Retry
 import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.OrderSuccess
 
@@ -172,18 +175,11 @@ fun CheckoutScreen(
 
 
             is CheckoutViewModel.CheckoutState.Error -> {
-                Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    val message = (uiState.value as CartViewModel.CartState.Error).message
-                    Text(text = message, style = MaterialTheme.typography.bodyMedium)
-                    Button(onClick = { /*TODO*/ }) {
-                        Text(text = "Tải lại")
-                    }
-
-                }
+                val message = (uiState.value as CartViewModel.CartState.Error).message
+                Retry(
+                    message,
+                    onClicked = {}
+                )
             }
 
             is CheckoutViewModel.CheckoutState.Nothing -> {}
@@ -263,7 +259,6 @@ fun ItemView(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
             model = cartItem.menuItemId.imageUrl,
@@ -275,34 +270,53 @@ fun ItemView(
         )
         Spacer(modifier = Modifier.size(8.dp))
         Column(
-            verticalArrangement = Arrangement.Center,
             modifier = Modifier.weight(1f)
         ) {
+            Column(
+                horizontalAlignment = Alignment.Start
+            ) {
 
-            Text(
-                text = cartItem.menuItemId.name,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
+                Text(
+                    text = cartItem.menuItemId.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
 
-            Text(
-                text = cartItem.menuItemId.description,
-                color = MaterialTheme.colorScheme.outline,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+                Text(
+                    text = cartItem.menuItemId.description,
+                    color = MaterialTheme.colorScheme.outline,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.End
+
+            ) {
+                Text(
+                    text = "SL: ${cartItem.quantity}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+
+                    )
+                Text(
+                    text = StringUtils.formatCurrency(cartItem.menuItemId.price),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+                )
+            }
 
 
         }
-        Text(
-            text = "SL: ${cartItem.quantity}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.align(Alignment.Bottom)
-        )
     }
+
+
 }
 
 @Composable

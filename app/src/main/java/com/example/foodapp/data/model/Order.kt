@@ -7,7 +7,7 @@ data class Order(
     val items: List<OrderItem>,
     val paymentMethod: String,
     val status: String,
-    val totalAmount: Double,
+    val totalAmount: Float,
     val updatedAt: String,
     val userId: String
 )

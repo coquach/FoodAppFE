@@ -77,6 +77,7 @@ import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.ui.BasicDialog
 import com.example.foodapp.ui.FoodItemCounter
 import com.example.foodapp.ui.Loading
+import com.example.foodapp.ui.Retry
 import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.Checkout
 import com.example.foodapp.utils.StringUtils
@@ -226,18 +227,11 @@ fun CartScreen(
             }
 
             is CartViewModel.CartState.Error -> {
-                Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    val message = (uiState.value as CartViewModel.CartState.Error).message
-                    Text(text = message, style = MaterialTheme.typography.bodyMedium)
-                    Button(onClick = { /*TODO*/ }) {
-                        Text(text = "Tải lại")
-                    }
-
-                }
+                val message = (uiState.value as CartViewModel.CartState.Error).message
+                Retry(
+                    message = message,
+                    onClicked = {}
+                )
             }
 
             CartViewModel.CartState.Nothing -> {}

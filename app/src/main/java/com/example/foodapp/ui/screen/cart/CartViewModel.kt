@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
+import com.example.foodapp.ui.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +51,7 @@ class CartViewModel @Inject constructor(
 
     private fun getCart() {
         viewModelScope.launch {
+            _uiState.value = CartState.Loading
             try {
                 combine(
                     cartRepository.getCartItems(),

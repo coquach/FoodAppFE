@@ -20,10 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.res.painterResource
 
@@ -50,7 +53,8 @@ import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Notification
-import com.example.foodapp.ui.navigation.Order
+import com.example.foodapp.ui.navigation.OrderDetails
+import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.navigation.Reservation
 
@@ -65,6 +69,8 @@ import com.example.foodapp.ui.screen.cart.CartScreen
 import com.example.foodapp.ui.screen.checkout.CheckoutScreen
 import com.example.foodapp.ui.screen.food_item_details.FoodDetailsScreen
 import com.example.foodapp.ui.screen.home.HomeScreen
+import com.example.foodapp.ui.screen.order.OrderListScreen
+import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
 import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
 
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -94,7 +100,7 @@ class MainActivity : ComponentActivity() {
         data object Reservation :
             BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
 
-        data object Order : BottomNavItem(com.example.foodapp.ui.navigation.Order, R.drawable.ic_home)
+        data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
 
     }
 
@@ -176,7 +182,10 @@ class MainActivity : ComponentActivity() {
                                                 contentDescription = null,
                                                 tint = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outline
                                             )
-                                        }
+                                        },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            indicatorColor = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent
+                                        )
                                     )
                                 }
                             }
@@ -259,8 +268,9 @@ class MainActivity : ComponentActivity() {
                             composable<Reservation> {
                                 shouldShowBottomNav.value = true
                             }
-                            composable<Order> {
+                            composable<OrderList> {
                                 shouldShowBottomNav.value = true
+                                OrderListScreen(navController)
                             }
                             composable<AddressList> {
                                 shouldShowBottomNav.value = false
@@ -278,6 +288,14 @@ class MainActivity : ComponentActivity() {
                                 shouldShowBottomNav.value = false
                                 val orderID = it.toRoute<OrderSuccess>().orderId
                                 OrderSuccess(orderID, navController)
+                            }
+
+                            composable<OrderDetails> {
+                                shouldShowBottomNav.value = false
+                                val orderID = it.toRoute<OrderDetails>().orderId
+                                OrderDetailScreen(
+                                    navController, orderID
+                                )
                             }
 
                         }
