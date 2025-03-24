@@ -50,8 +50,11 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 
+@OptIn(FlowPreview::class)
 @Composable
 fun AddAddressScreen(
     navController: NavController,
@@ -91,15 +94,16 @@ fun AddAddressScreen(
                 LaunchedEffect(key1 = cameraState) {
                     snapshotFlow {
                         cameraState.position.target
-                    }.collectLatest {
-                        centerScreenMarker.value = cameraState.position.target
-                        if (!cameraState.isMoving) {
-                            viewModel.reverseGeoCode(
-                                centerScreenMarker.value.latitude,
-                                centerScreenMarker.value.longitude
-                            )
+                    }.debounce(500)
+                        .collectLatest {
+                            centerScreenMarker.value = cameraState.position.target
+                            if (!cameraState.isMoving) {
+                                viewModel.reverseGeoCode(
+                                    centerScreenMarker.value.latitude,
+                                    centerScreenMarker.value.longitude
+                                )
+                            }
                         }
-                    }
                 }
                 GoogleMap(
                     cameraPositionState = cameraState,
@@ -139,24 +143,31 @@ fun AddAddressScreen(
 
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Column {
-                                if (uiState.value is AddAddressViewModel.AddAddressState.AddressStoring) {
-                                    CircularProgressIndicator()
-                                } else if (uiState.value is AddAddressViewModel.AddAddressState.Error) {
-                                    Text(
-                                        text = (uiState.value as AddAddressViewModel.AddAddressState.Error).message,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                } else {
-                                    Text(
-                                        text = it.addressLine1,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Spacer(modifier = Modifier.size(4.dp))
-                                    Text(
-                                        text = "${it.city}, ${it.state}, ${it.country}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.Gray
-                                    )
+                                when (uiState.value) {
+                                    is AddAddressViewModel.AddAddressState.AddressStoring -> {}
+                                    is AddAddressViewModel.AddAddressState.Error -> {
+                                        Text(
+                                            text = (uiState.value as AddAddressViewModel.AddAddressState.Error).message,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                    }
+
+                                    AddAddressViewModel.AddAddressState.Loading -> {
+                                        CircularProgressIndicator()
+                                    }
+
+                                    AddAddressViewModel.AddAddressState.Success -> {
+                                        Text(
+                                            text = it.addressLine1,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text(
+                                            text = "${it.city}, ${it.state}, ${it.country}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Gray
+                                        )
+                                    }
                                 }
                             }
                             Button(onClick = { viewModel.onAddAddressClicked() }) {
