@@ -37,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -74,6 +75,8 @@ import com.example.foodapp.ui.screen.cart.CartScreen
 import com.example.foodapp.ui.screen.checkout.CheckoutScreen
 import com.example.foodapp.ui.screen.food_item_details.FoodDetailsScreen
 import com.example.foodapp.ui.screen.home.HomeScreen
+import com.example.foodapp.ui.screen.notification.NotificationListScreen
+import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.screen.order.OrderListScreen
 import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
 import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
@@ -155,6 +158,7 @@ class MainActivity : ComponentActivity() {
                     BottomNavItem.Reservation,
                     BottomNavItem.Order
                 )
+                val notificationViewModel: NotificationViewModel = hiltViewModel()
 
                 val shouldShowBottomNav = remember {
                     mutableStateOf(true)
@@ -247,7 +251,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<Home> {
                                 shouldShowBottomNav.value = true
-                                HomeScreen(navController, this)
+                                HomeScreen(navController, this,  notificationViewModel = notificationViewModel)
                             }
                             composable<FoodDetails>(
                                 typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
@@ -265,7 +269,8 @@ class MainActivity : ComponentActivity() {
                                 CartScreen(navController)
                             }
                             composable<Notification> {
-                                shouldShowBottomNav.value = true
+                                shouldShowBottomNav.value = false
+                                NotificationListScreen(navController)
                             }
                             composable<Favorite> {
                                 shouldShowBottomNav.value = true
