@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.runtime.compose.android)
+    implementation(libs.google.firebase.messaging.ktx)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -83,8 +85,9 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.play.services.location)
-    implementation(libs.firebase.bom)
-    implementation(libs.okhttp)
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
+
 
 
 
