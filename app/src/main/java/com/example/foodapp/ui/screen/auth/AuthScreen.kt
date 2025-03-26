@@ -52,7 +52,8 @@ import com.example.foodapp.ui.theme.FoodAppTheme
 
 @Composable
 fun AuthScreen(
-    navController: NavController
+    navController: NavController,
+    isCustomer: Boolean = true
 ) {
     val imageSize = remember { mutableStateOf(IntSize.Zero) }
     val brush = Brush.verticalGradient(
@@ -97,6 +98,7 @@ fun AuthScreen(
                 text = stringResource(id = R.string.app_description),
                 color = MaterialTheme.colorScheme.surface,
                 fontSize = 20.sp,
+                lineHeight = 28.sp,
                 modifier = Modifier.padding(vertical = 16.dp)
 
             )
@@ -108,19 +110,21 @@ fun AuthScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            GroupSocialButtons()
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    navController.navigate(SignUp)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.2f)),
-                shape = RoundedCornerShape(32.dp),
-                border = BorderStroke(1.dp, Color.White)
-            ) {
-                Text(text = stringResource(id = R.string.sign_with_email), color = Color.White)
-            }
+           if(isCustomer) {
+               GroupSocialButtons()
+               Spacer(modifier = Modifier.height(16.dp))
+               Button(
+                   onClick = {
+                       navController.navigate(SignUp)
+                   },
+                   modifier = Modifier.fillMaxWidth(),
+                   colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.2f)),
+                   shape = RoundedCornerShape(32.dp),
+                   border = BorderStroke(1.dp, Color.White)
+               ) {
+                   Text(text = stringResource(id = R.string.sign_with_email), color = Color.White)
+               }
+           }
             TextButton(onClick = {
                 navController.navigate(Login)
             }) {

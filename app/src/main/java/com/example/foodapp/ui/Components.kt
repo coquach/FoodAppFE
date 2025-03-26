@@ -63,7 +63,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodapp.R
-import com.example.foodapp.ui.screen.cart.CartViewModel
+
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.serialization.json.JsonNull.content
 

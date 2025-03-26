@@ -23,8 +23,16 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BACKEND_URL", "\"${project.findProperty("BACKEND_URL") ?: ""}\"")
-        buildConfigField("String", "MAPS_API_KEY", "\"${project.findProperty("MAPS_API_KEY") ?: ""}\"")
+        buildConfigField(
+            "String",
+            "BACKEND_URL",
+            "\"${project.findProperty("BACKEND_URL") ?: ""}\""
+        )
+        buildConfigField(
+            "String",
+            "MAPS_API_KEY",
+            "\"${project.findProperty("MAPS_API_KEY") ?: ""}\""
+        )
     }
 
     compileOptions {
@@ -38,7 +46,36 @@ android {
         compose = true
         buildConfig = true
     }
+    flavorDimensions += "environment"
 
+    productFlavors {
+        create("customer") {
+            dimension = "environment"
+        }
+        create("restaurant") {
+            dimension = "environment"
+            applicationIdSuffix = ".restaurant"
+            resValue(
+                type = "string",
+                name = "app_name",
+                value = "FA Restaurant"
+            )
+            resValue(
+                "string",
+                "app_description",
+                "Quản lý đơn hàng, theo dõi doanh thu, tối ưu vận hành."
+            )
+        }
+        create("staff") {
+            dimension = "environment"
+            applicationIdSuffix = ".staff"
+            resValue(
+                "string",
+                "app_description",
+                "Hỗ trợ khách hàng, xử lý đơn hàng nhanh chóng."
+            )
+        }
+    }
 }
 secrets {
     propertiesFileName = "secrets.properties"
@@ -87,10 +124,6 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-messaging-ktx")
-
-
-
-
 
 
 }

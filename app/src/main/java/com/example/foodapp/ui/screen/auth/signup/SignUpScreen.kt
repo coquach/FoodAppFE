@@ -153,6 +153,7 @@ fun SignUpScreen(
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.primary
 
             )
             Spacer(modifier = Modifier.size(20.dp))
@@ -183,7 +184,7 @@ fun SignUpScreen(
                 trailingIcon = {
 
                     Image(
-                        painter = if (showPassword) painterResource(id = R.drawable.ic_slash_eye) else painterResource(id = R.drawable.ic_eye),
+                        painter = if (showPassword) painterResource(id = R.drawable.ic_eye) else painterResource(id = R.drawable.ic_slash_eye),
                         contentDescription = null,
                         modifier = Modifier
                             .size(24.dp)

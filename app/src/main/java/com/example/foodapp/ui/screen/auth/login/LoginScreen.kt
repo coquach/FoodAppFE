@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     navController: NavController,
+    isCustomer: Boolean = true,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val username = viewModel.username.collectAsStateWithLifecycle()
@@ -145,8 +146,9 @@ fun LoginScreen(
         ) {
 
             Text(
-                text = stringResource(id = R.string.sign_up),
+                text = stringResource(id = R.string.log_in),
                 fontSize = 32.sp,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
 
@@ -172,7 +174,7 @@ fun LoginScreen(
                 trailingIcon = {
 
                     Image(
-                        painter = if (showPassword) painterResource(id = R.drawable.ic_slash_eye) else painterResource(id = R.drawable.ic_eye),
+                        painter = if (showPassword) painterResource(id = R.drawable.ic_eye) else painterResource(id = R.drawable.ic_slash_eye),
                         contentDescription = null,
                         modifier = Modifier
                             .size(24.dp)
@@ -217,19 +219,21 @@ fun LoginScreen(
 
             }
             Spacer(modifier = Modifier.size(16.dp))
-            Text(
-                text = stringResource(id = R.string.dont_have_account),
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clickable {
-                        viewModel.onSignUpClick()
-                    }
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center
+            if(isCustomer) {
+                Text(
+                    text = stringResource(id = R.string.dont_have_account),
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable {
+                            viewModel.onSignUpClick()
+                        }
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
 
-            )
-            GroupSocialButtons(color = Color.Black)
+                )
+                GroupSocialButtons(color = Color.Black)
 
+            }
         }
     }
     if (showDialog) {
