@@ -1,4 +1,4 @@
-package com.example.foodapp.data.models.request
+package com.example.foodapp.data.dto.request
 
 data class AddToCartRequest(
     val menuItemId: String,

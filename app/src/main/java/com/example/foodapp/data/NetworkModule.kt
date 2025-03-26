@@ -1,6 +1,11 @@
 package com.example.foodapp.data
 
 import android.content.Context
+import android.util.Log
+import com.example.foodapp.BuildConfig
+import com.example.foodapp.location.LocationManager
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,10 +26,13 @@ object NetworkModule {
     fun provideClient(session: FoodAppSession) : OkHttpClient {
         val client = OkHttpClient.Builder()
         client.addInterceptor { chain ->
+            val token = session.getAccessToken()
             val request = chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer ${session.getToken()}")
-                .build()
-            chain.proceed(request)
+
+            if (!token.isNullOrEmpty()) {
+                request.addHeader("Authorization", "Bearer $token")
+            }
+            chain.proceed(request.build())
         }
         client.addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -36,7 +44,7 @@ object NetworkModule {
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .client(client)
-            .baseUrl("http://10.0.2.2:8080")
+            .baseUrl(BuildConfig.BACKEND_URL)
             .addConverterFactory(GsonConverterFactory.create())
            .build()
     }
@@ -49,5 +57,10 @@ object NetworkModule {
     @Provides
     fun provideSession(@ApplicationContext context: Context): FoodAppSession {
         return FoodAppSession(context)
+    }
+
+    @Provides
+    fun provideLocationService(@ApplicationContext context: Context): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(context)
     }
 }

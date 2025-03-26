@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -55,8 +54,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.data.models.response.FoodItem
+import com.example.foodapp.data.model.FoodItem
+
 import com.example.foodapp.ui.BasicDialog
+import com.example.foodapp.ui.FoodItemCounter
+import com.example.foodapp.ui.navigation.Cart
+import com.example.foodapp.utils.StringUtils
 
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -80,6 +83,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val scope = rememberCoroutineScope()
 
+    val successMessage = remember { mutableStateOf("") }
+
 
     when (uiState.value) {
         FoodDetailsViewModel.FoodDetailsState.Loading -> {
@@ -93,7 +98,12 @@ fun SharedTransitionScope.FoodDetailsScreen(
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
+                is FoodDetailsViewModel.FoodDetailsEvent.OnItemAlreadyInCart -> {
+                    successMessage.value = "Món đã có trong giỏ hàng"
+                    showSuccessDialog.value = true
+                }
                 is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
+                    successMessage.value = "Đã thêm món trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
 
@@ -102,7 +112,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 }
 
                 is FoodDetailsViewModel.FoodDetailsEvent.GoToCart -> {
-
+                    navController.navigate(Cart)
                 }
             }
         }
@@ -133,47 +143,33 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
         ) {
             Text(
-                text = "$${foodItem.price}", color = MaterialTheme.colorScheme.primary,
+                text = StringUtils.formatCurrency(foodItem.price),
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.headlineLarge
             )
             Spacer(modifier = Modifier.weight(1f))
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.add),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable { viewModel.incrementQuantity() }
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = "${count.value}",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(modifier = Modifier.size(8.dp))
+            FoodItemCounter(
+                count = count.value,
+                onCounterIncrement = {
+                    viewModel.incrementQuantity()
+                },
+                onCounterDecrement = {
+                    viewModel.decrementQuantity()
+                }
+            )
 
-                Image(
-                    painter = painterResource(id = R.drawable.minus),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable { viewModel.decrementQuantity() }
-                )
-            }
         }
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                viewModel.addToCart(foodItemId = foodItem.id ?: "")
+                viewModel.addToCart(foodItem = foodItem)
             },
             enabled = !isLoading.value,
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Box {
                 AnimatedContent(
-                    targetState = isLoading.value ,
+                    targetState = isLoading.value,
                     transitionSpec = {
                         fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f) togetherWith
                                 fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
@@ -186,8 +182,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                                 .padding(horizontal = 32.dp)
                                 .size(24.dp)
                         )
-                    }
-                    else {
+                    } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Image(
                                 painter = painterResource(id = R.drawable.cart),
@@ -214,10 +209,12 @@ fun SharedTransitionScope.FoodDetailsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Món đã được thêm vào giỏ", style = MaterialTheme.typography.titleLarge
+                    text = successMessage.value,
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 Button(
@@ -349,32 +346,31 @@ fun SharedTransitionScope.FoodHeader(
                     RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
                 ), contentScale = ContentScale.Crop
         )
-        IconButton(
-            onClick = onBackButton,
+
+
+        Image(
+            painter = painterResource(id = R.drawable.back),
+            contentDescription = null,
             modifier = Modifier
                 .padding(16.dp)
-                .size(80.dp)
                 .align(Alignment.TopStart)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.back),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-            )
-        }
+                .clip(RoundedCornerShape(16.dp))
+                .clickable {
+                    onBackButton.invoke()
+                }
+
+        )
+
+
         IconButton(
             onClick = onFavoriteButton,
             modifier = Modifier
                 .padding(16.dp)
-                .size(80.dp)
+                .size(48.dp)
                 .align(Alignment.TopEnd)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.favorite),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
+                painter = painterResource(id = R.drawable.favorite), contentDescription = null
             )
         }
     }

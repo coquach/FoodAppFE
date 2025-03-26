@@ -3,7 +3,10 @@ package com.example.foodapp.ui.screen.food_item_details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.FoodApi
-import com.example.foodapp.data.models.request.AddToCartRequest
+import com.example.foodapp.data.datastore.CartRepository
+import com.example.foodapp.data.dto.request.AddToCartRequest
+import com.example.foodapp.data.model.CartItem
+import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,11 +14,15 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class FoodDetailsViewModel @Inject constructor(val foodApi: FoodApi) : ViewModel() {
+class FoodDetailsViewModel @Inject constructor(
+    private val cartRepository: CartRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<FoodDetailsState>(FoodDetailsState.Nothing)
     val uiState = _uiState.asStateFlow()
@@ -36,37 +43,47 @@ class FoodDetailsViewModel @Inject constructor(val foodApi: FoodApi) : ViewModel
         _quantity.value -= 1
     }
 
-    fun addToCart(foodItemId: String ) {
+    fun addToCart(foodItem: FoodItem) {
         viewModelScope.launch {
             _uiState.value = FoodDetailsState.Loading
-            val response = safeApiCall {
-                foodApi.addToCart(
-                    AddToCartRequest(
-                        menuItemId = foodItemId,
-                        quantity = _quantity.value
+            try {
+                val currentItems = cartRepository.getCartItems().first().toMutableList()
+                val existingItemIndex = currentItems.indexOfFirst { it.menuItemId.id == foodItem.id }
+
+                if (existingItemIndex != -1) {
+                    val updatedItem = currentItems[existingItemIndex].copy(
+                        quantity = quantity.value
                     )
-                )
-            }
-            when (response) {
-                is ApiResponse.Success -> {
-                    _uiState.value = FoodDetailsState.Nothing
+                    currentItems[existingItemIndex] = updatedItem
+                    cartRepository.saveCartItems(currentItems)
+                    _event.emit(FoodDetailsEvent.OnItemAlreadyInCart)
+                } else {
+                    val newItem = CartItem(
+                        id = UUID.randomUUID().toString(),
+                        menuItemId = foodItem,
+                        quantity = 1,
+                        userId = "user_123",
+                        addedAt = System.currentTimeMillis().toString()
+                    )
+                    currentItems.add(newItem)
+                    cartRepository.saveCartItems(currentItems)
                     _event.emit(FoodDetailsEvent.OnAddToCart)
                 }
-                is ApiResponse.Error -> {
-                    _uiState.value = FoodDetailsState.Error(response.message)
-                    _event.emit(FoodDetailsEvent.ShowErrorDialog(response.message))
-                }
-                else -> {
-                    _uiState.value = FoodDetailsState.Error("Unknown Error")
-                    _event.emit(FoodDetailsEvent.ShowErrorDialog("Unknown Error"))
-                }
+
+                _uiState.value = FoodDetailsState.Nothing
+
+            } catch (e: Exception) {
+                _uiState.value = FoodDetailsState.Error(e.message ?: "Không thể thêm vào giỏ hàng.")
+                _event.emit(FoodDetailsEvent.ShowErrorDialog(e.message ?: "Có lỗi xảy ra."))
             }
         }
     }
 
+
     fun goToCart() {
         viewModelScope.launch {
             _event.emit(FoodDetailsEvent.GoToCart)
+            _quantity.value = 1
         }
     }
 
@@ -80,7 +97,8 @@ class FoodDetailsViewModel @Inject constructor(val foodApi: FoodApi) : ViewModel
     sealed class FoodDetailsEvent {
         data class ShowErrorDialog(val message: String) : FoodDetailsEvent()
         data object OnAddToCart : FoodDetailsEvent()
-        data object GoToCart: FoodDetailsEvent()
+        data object OnItemAlreadyInCart : FoodDetailsEvent()
+        data object GoToCart : FoodDetailsEvent()
 
     }
 }

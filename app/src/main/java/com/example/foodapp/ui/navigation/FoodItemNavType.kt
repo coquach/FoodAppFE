@@ -2,7 +2,8 @@ package com.example.foodapp.ui.navigation
 
 import android.os.Bundle
 import androidx.navigation.NavType
-import com.example.foodapp.data.models.response.FoodItem
+
+import com.example.foodapp.data.model.FoodItem
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
