@@ -3,7 +3,7 @@ package com.example.foodapp.nofication
 import android.app.PendingIntent
 import android.content.Intent
 import android.util.Log
-import com.example.foodapp.MainActivity
+import com.se114.foodapp.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
