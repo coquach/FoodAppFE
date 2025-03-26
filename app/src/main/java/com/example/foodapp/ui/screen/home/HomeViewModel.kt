@@ -22,12 +22,13 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val foodApi: FoodApi,
     private val cartRepository: CartRepository
+
 ) : ViewModel() {
 
     val _uiState = MutableStateFlow<HomeState>(HomeState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private val _navigationEvent = MutableSharedFlow<HomeNavigationEvents?>()
+    private val _navigationEvent = MutableSharedFlow<HomeNavigationEvents>()
     val navigationEvent = _navigationEvent.asSharedFlow()
 
     var categories = emptyList<Category>()
@@ -67,6 +68,12 @@ class HomeViewModel @Inject constructor(
 
     }
 
+    fun onNotificationClicked() {
+        viewModelScope.launch {
+            _navigationEvent.emit(HomeNavigationEvents.NavigateToNotification)
+        }
+    }
+
 
     sealed class HomeState {
         data object Loading : HomeState()
@@ -75,6 +82,7 @@ class HomeViewModel @Inject constructor(
     }
 
     sealed class HomeNavigationEvents {
-        data object NavigateDetail : HomeNavigationEvents()
+        data object NavigateToDetail : HomeNavigationEvents()
+        data object NavigateToNotification : HomeNavigationEvents()
     }
 }

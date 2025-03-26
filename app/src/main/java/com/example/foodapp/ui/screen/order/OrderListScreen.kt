@@ -189,7 +189,10 @@ fun OrderListInternal(list: List<Order>, onClick: (Order) -> Unit) {
             Text(text = "Không có đơn hàng nào")
         }
     } else {
-        LazyColumn {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top
+        ) {
             items(list) { order ->
                 OrderListItem(order = order, onClick = { onClick(order) })
             }

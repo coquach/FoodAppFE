@@ -1,12 +1,16 @@
 package com.example.foodapp
 
 import android.animation.ObjectAnimator
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -20,7 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
+
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +35,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 
 import androidx.core.animation.doOnEnd
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -69,6 +75,8 @@ import com.example.foodapp.ui.screen.cart.CartScreen
 import com.example.foodapp.ui.screen.checkout.CheckoutScreen
 import com.example.foodapp.ui.screen.food_item_details.FoodDetailsScreen
 import com.example.foodapp.ui.screen.home.HomeScreen
+import com.example.foodapp.ui.screen.notification.NotificationListScreen
+import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.screen.order.OrderListScreen
 import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
 import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
@@ -150,6 +158,7 @@ class MainActivity : ComponentActivity() {
                     BottomNavItem.Reservation,
                     BottomNavItem.Order
                 )
+                val notificationViewModel: NotificationViewModel = hiltViewModel()
 
                 val shouldShowBottomNav = remember {
                     mutableStateOf(true)
@@ -242,7 +251,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<Home> {
                                 shouldShowBottomNav.value = true
-                                HomeScreen(navController, this)
+                                HomeScreen(navController, this,  notificationViewModel = notificationViewModel)
                             }
                             composable<FoodDetails>(
                                 typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
@@ -260,7 +269,8 @@ class MainActivity : ComponentActivity() {
                                 CartScreen(navController)
                             }
                             composable<Notification> {
-                                shouldShowBottomNav.value = true
+                                shouldShowBottomNav.value = false
+                                NotificationListScreen(navController)
                             }
                             composable<Favorite> {
                                 shouldShowBottomNav.value = true
@@ -304,11 +314,31 @@ class MainActivity : ComponentActivity() {
             }
 
         }
+        requestNotificationPermission()
         CoroutineScope(Dispatchers.IO).launch {
             delay(3000)
             showSplashScreen = false
         }
 
+    }
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Log.d("Notification", "Người dùng đã cấp quyền!")
+            } else {
+                Log.e("Notification", "Người dùng từ chối quyền!")
+            }
+        }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this, android.Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 
 }
