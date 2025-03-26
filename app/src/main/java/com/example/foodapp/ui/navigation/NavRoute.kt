@@ -36,10 +36,19 @@ object Reservation : NavRoute
 object Favorite : NavRoute
 
 @Serializable
-object Order : NavRoute
+object OrderList : NavRoute
 
 @Serializable
 object AddressList : NavRoute
 
 @Serializable
 object AddAddress : NavRoute
+
+@Serializable
+object Checkout : NavRoute
+
+@Serializable
+data class OrderSuccess(val orderId: String) : NavRoute
+
+@Serializable
+data class OrderDetails(val orderId: String) : NavRoute

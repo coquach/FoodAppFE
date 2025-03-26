@@ -20,10 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.res.painterResource
 
@@ -43,13 +46,16 @@ import com.example.foodapp.ui.navigation.AddressList
 
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Cart
+import com.example.foodapp.ui.navigation.Checkout
 import com.example.foodapp.ui.navigation.Favorite
 import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Notification
-import com.example.foodapp.ui.navigation.Order
+import com.example.foodapp.ui.navigation.OrderDetails
+import com.example.foodapp.ui.navigation.OrderList
+import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.navigation.Reservation
 
 import com.example.foodapp.ui.navigation.SignUp
@@ -60,8 +66,12 @@ import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
 import com.example.foodapp.ui.screen.cart.CartScreen
+import com.example.foodapp.ui.screen.checkout.CheckoutScreen
 import com.example.foodapp.ui.screen.food_item_details.FoodDetailsScreen
 import com.example.foodapp.ui.screen.home.HomeScreen
+import com.example.foodapp.ui.screen.order.OrderListScreen
+import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
+import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
 
 import com.example.foodapp.ui.theme.FoodAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,7 +100,7 @@ class MainActivity : ComponentActivity() {
         data object Reservation :
             BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
 
-        data object Order : BottomNavItem(com.example.foodapp.ui.navigation.Order, R.drawable.ic_home)
+        data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
 
     }
 
@@ -141,7 +151,7 @@ class MainActivity : ComponentActivity() {
                     BottomNavItem.Order
                 )
 
-                val shouldShowButton = remember {
+                val shouldShowBottomNav = remember {
                     mutableStateOf(true)
                 }
 
@@ -153,7 +163,7 @@ class MainActivity : ComponentActivity() {
 
                         val currentRoute =
                             navController.currentBackStackEntryAsState().value?.destination
-                        AnimatedVisibility(visible = shouldShowButton.value) {
+                        AnimatedVisibility(visible = shouldShowBottomNav.value) {
 
                             NavigationBar(
                                 containerColor = MaterialTheme.colorScheme.onPrimary
@@ -172,7 +182,10 @@ class MainActivity : ComponentActivity() {
                                                 contentDescription = null,
                                                 tint = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outline
                                             )
-                                        }
+                                        },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            indicatorColor = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent
+                                        )
                                     )
                                 }
                             }
@@ -186,14 +199,7 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         NavHost(
                             navController = navController,
-                            startDestination = FoodDetails(foodItem = FoodItem(
-                                id = "3",
-                                name = "Sushi Cá Hồi",
-                                imageUrl = "https://www.themealdb.com/images/media/meals/g046bb1663960946.jpg",
-                                description = "Sushi tươi ngon với cá hồi, cơm Nhật và wasabi.",
-
-                                price = 12.99f
-                            )), //demo on fake api
+                            startDestination = Home, //demo on fake api
                             modifier = Modifier
                                 .padding(innerPadding),
                             enterTransition = {
@@ -223,25 +229,25 @@ class MainActivity : ComponentActivity() {
 
                         ) {
                             composable<Auth> {
-                                shouldShowButton.value = false
+                                shouldShowBottomNav.value = false
                                 AuthScreen(navController)
                             }
                             composable<SignUp> {
-                                shouldShowButton.value = false
+                                shouldShowBottomNav.value = false
                                 SignUpScreen(navController)
                             }
                             composable<Login> {
-                                shouldShowButton.value = false
+                                shouldShowBottomNav.value = false
                                 LoginScreen(navController)
                             }
                             composable<Home> {
-                                shouldShowButton.value = true
+                                shouldShowBottomNav.value = true
                                 HomeScreen(navController, this)
                             }
                             composable<FoodDetails>(
                                 typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
                             ) {
-                                shouldShowButton.value = false
+                                shouldShowBottomNav.value = false
                                 val route = it.toRoute<FoodDetails>()
                                 FoodDetailsScreen(
                                     navController,
@@ -250,28 +256,46 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable<Cart> {
-                                shouldShowButton.value = false
+                                shouldShowBottomNav.value = false
                                 CartScreen(navController)
                             }
                             composable<Notification> {
-                                shouldShowButton.value = true
+                                shouldShowBottomNav.value = true
                             }
                             composable<Favorite> {
-                                shouldShowButton.value = true
+                                shouldShowBottomNav.value = true
                             }
                             composable<Reservation> {
-                                shouldShowButton.value = true
+                                shouldShowBottomNav.value = true
                             }
-                            composable<Order> {
-                                shouldShowButton.value = true
+                            composable<OrderList> {
+                                shouldShowBottomNav.value = true
+                                OrderListScreen(navController)
                             }
                             composable<AddressList> {
-                                shouldShowButton.value = false
+                                shouldShowBottomNav.value = false
                                 AddressListScreen(navController)
                             }
                             composable<AddAddress> {
-                                shouldShowButton.value = false
+                                shouldShowBottomNav.value = false
                                 AddAddressScreen(navController)
+                            }
+                            composable<Checkout> {
+                                shouldShowBottomNav.value = false
+                                CheckoutScreen(navController)
+                            }
+                            composable<OrderSuccess> {
+                                shouldShowBottomNav.value = false
+                                val orderID = it.toRoute<OrderSuccess>().orderId
+                                OrderSuccess(orderID, navController)
+                            }
+
+                            composable<OrderDetails> {
+                                shouldShowBottomNav.value = false
+                                val orderID = it.toRoute<OrderDetails>().orderId
+                                OrderDetailScreen(
+                                    navController, orderID
+                                )
                             }
 
                         }

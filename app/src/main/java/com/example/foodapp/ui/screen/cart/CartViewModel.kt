@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
+import com.example.foodapp.ui.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +51,7 @@ class CartViewModel @Inject constructor(
 
     private fun getCart() {
         viewModelScope.launch {
+            _uiState.value = CartState.Loading
             try {
                 combine(
                     cartRepository.getCartItems(),
@@ -60,6 +62,8 @@ class CartViewModel @Inject constructor(
                     _uiState.value = state
                 }
             } catch (e: Exception) {
+                errorTitle = "Lỗi"
+                errorMessage = "Không thể tải được giỏ hàng: ${e.message}"
                 _uiState.value = CartState.Error("Không thể tải được giỏ hàng: ${e.message}")
             }
         }
@@ -128,7 +132,9 @@ class CartViewModel @Inject constructor(
 
 
     fun checkout() {
-
+        viewModelScope.launch {
+            _event.emit(CartEvents.NavigateToCheckOut)
+        }
     }
 
     fun onAddressClicked() {
@@ -154,5 +160,6 @@ class CartViewModel @Inject constructor(
         data object OnQuantityUpdateError : CartEvents()
         data object OnItemRemoveError : CartEvents()
         data object OnAddress: CartEvents()
+        data object NavigateToCheckOut : CartEvents()
     }
 }

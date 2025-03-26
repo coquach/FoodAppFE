@@ -46,7 +46,7 @@ fun SharedTransitionScope.HomeScreen(
                 onClick = {
                     navController.navigate(Cart)
                 },
-                bgColor = MaterialTheme.colorScheme.surface,
+                bgColor = MaterialTheme.colorScheme.onPrimary,
             ) {
                 Box(modifier = Modifier.size(56.dp)) {
                     Icon(
