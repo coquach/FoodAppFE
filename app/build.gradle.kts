@@ -127,6 +127,8 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging-ktx")
 
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.accompanist.systemuicontroller)
+
 
 
 }

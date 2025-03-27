@@ -1,8 +1,7 @@
-package com.se114.foodapp.ui.screen.profile
+package com.se114.foodapp.ui.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.remote.ApiResponse

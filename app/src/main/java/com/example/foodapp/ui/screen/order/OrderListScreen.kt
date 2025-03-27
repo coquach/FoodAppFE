@@ -59,6 +59,7 @@ fun OrderListScreen(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 16.dp)
+
     ) {
         val uiState = viewModel.state.collectAsStateWithLifecycle()
 

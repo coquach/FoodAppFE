@@ -1,23 +1,15 @@
 package com.se114.foodapp
 
 import android.animation.ObjectAnimator
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -31,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,11 +31,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 
 import androidx.core.animation.doOnEnd
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -89,7 +80,7 @@ import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
 import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
 
 import com.example.foodapp.ui.theme.FoodAppTheme
-import com.se114.foodapp.ui.screen.profile.SettingScreen
+import com.se114.foodapp.ui.screen.setting.SettingScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -112,13 +103,14 @@ class MainActivity : ComponentActivity() {
     sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
         data object Home : BottomNavItem(com.example.foodapp.ui.navigation.Home, R.drawable.ic_home)
         data object Favorite :
-            BottomNavItem(com.example.foodapp.ui.navigation.Favorite, R.drawable.ic_home)
+            BottomNavItem(com.example.foodapp.ui.navigation.Favorite, R.drawable.ic_favorite)
 
         data object Reservation :
             BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
 
         data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
-        data object Setting : BottomNavItem(com.example.foodapp.ui.navigation.Setting, R.drawable.ic_user_circle)
+        data object Setting :
+            BottomNavItem(com.example.foodapp.ui.navigation.Setting, R.drawable.ic_user_circle)
 
     }
 
@@ -155,12 +147,11 @@ class MainActivity : ComponentActivity() {
                 zoomX.start()
             }
         }
-        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-
+        super.onCreate(savedInstanceState)
         setContent {
-            FoodAppTheme {
+            var darkTheme by rememberSaveable { mutableStateOf(false) }
+            FoodAppTheme(darkTheme = darkTheme) {
 
                 val navItems = listOf(
                     BottomNavItem.Home,
@@ -175,7 +166,11 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(true)
                 }
 
-                var isLoggedIn by remember { mutableStateOf(!session.getRefreshToken().isNullOrEmpty()) }
+                var isLoggedIn by remember {
+                    mutableStateOf(
+                        !session.getRefreshToken().isNullOrEmpty()
+                    )
+                }
                 var showSessionExpiredDialog by remember { mutableStateOf(false) }
                 val navController = rememberNavController()
                 LaunchedEffect(Unit) {
@@ -206,6 +201,8 @@ class MainActivity : ComponentActivity() {
                         showConfirmButton = true
                     )
                 }
+
+
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -250,11 +247,11 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         FoodAppNavHost(
                             navController = navController,
-                            startDestination = if(isLoggedIn) Home else Auth,
+                            startDestination = if (isLoggedIn) Home else Auth,
                             modifier = Modifier
                                 .padding(innerPadding),
 
-                        ) {
+                            ) {
                             composable<Auth> {
                                 shouldShowBottomNav.value = false
                                 AuthScreen(navController)
@@ -269,7 +266,11 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<Home> {
                                 shouldShowBottomNav.value = true
-                                HomeScreen(navController, this, notificationViewModel = notificationViewModel)
+                                HomeScreen(
+                                    navController,
+                                    this,
+                                    notificationViewModel = notificationViewModel
+                                )
                             }
                             composable<FoodDetails>(
                                 typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
@@ -327,7 +328,12 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<Setting> {
                                 shouldShowBottomNav.value = true
-                                SettingScreen(navController)
+                                SettingScreen(
+                                    navController,
+                                    darkTheme,
+                                    onThemeUpdated = {
+                                        darkTheme = !darkTheme
+                                    })
                             }
 
                         }

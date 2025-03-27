@@ -1,6 +1,5 @@
 package com.example.foodapp.ui.screen.auth.signup
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -59,7 +58,6 @@ import com.example.foodapp.ui.GroupSocialButtons
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
-import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -73,6 +71,8 @@ fun SignUpScreen(
     val username = viewModel.username.collectAsStateWithLifecycle()
     val email = viewModel.email.collectAsStateWithLifecycle()
     val password = viewModel.password.collectAsStateWithLifecycle()
+    val fullName = viewModel.fullName.collectAsStateWithLifecycle()
+    val phoneNumber = viewModel.phoneNumber.collectAsStateWithLifecycle()
     var showPassword by remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val loading = remember { mutableStateOf(false) }
@@ -158,12 +158,24 @@ fun SignUpScreen(
             )
             Spacer(modifier = Modifier.size(20.dp))
             FoodAppTextField(
+                value = fullName.value,
+                onValueChange = { viewModel.onFullNameChanged(it) },
+                label = {
+                    Text(text = stringResource(id = R.string.full_name))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1
+            )
+            FoodAppTextField(
                 value = username.value,
                 onValueChange = { viewModel.onUsernameChanged(it) },
                 label = {
                     Text(text = stringResource(id = R.string.username))
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1
             )
             FoodAppTextField(
                 value = email.value,
@@ -171,7 +183,9 @@ fun SignUpScreen(
                 label = {
                     Text(text = stringResource(id = R.string.email))
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1
             )
             FoodAppTextField(
                 value = password.value,
@@ -191,8 +205,20 @@ fun SignUpScreen(
                             .clickable { showPassword = !showPassword}
 
                     )
-                }
+                },
+                singleLine = true,
+                maxLines = 1
 
+            )
+            FoodAppTextField(
+                value = phoneNumber.value,
+                onValueChange = { viewModel.onPhoneNumberChanged(it) },
+                label = {
+                    Text(text = stringResource(id = R.string.phone_number))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1
             )
             Spacer(modifier = Modifier.size(16.dp))
             Button(

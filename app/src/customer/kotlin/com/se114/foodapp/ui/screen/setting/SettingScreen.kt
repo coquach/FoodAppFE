@@ -1,9 +1,10 @@
-package com.se114.foodapp.ui.screen.profile
+package com.se114.foodapp.ui.screen.setting
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,24 +43,26 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.foodapp.R
+import com.example.foodapp.ui.ThemeSwitcher
 import com.example.foodapp.ui.navigation.Auth
-import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun SettingScreen(
     navController: NavController,
+    darkTheme: Boolean,
+    onThemeUpdated: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel()
 ) {
     val isDarkMode = rememberSaveable { mutableStateOf(false) }
@@ -82,23 +85,18 @@ fun SettingScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.bg_profile),
-            contentDescription = null,
-            modifier = Modifier.fillMaxWidth(),
-            contentScale = ContentScale.FillBounds
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
                     .size(100.dp)
                     .align(Alignment.CenterHorizontally),
-                contentAlignment = Alignment.BottomEnd
+                contentAlignment = Alignment.Center
             ) {
                 // Avatar tròn
                 Image(
@@ -106,26 +104,11 @@ fun SettingScreen(
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .size(100.dp)
+                        .shadow(8.dp, shape = CircleShape)
                         .clip(CircleShape)
                         .border(4.dp, Color.White, CircleShape)
                 )
 
-                // Icon camera
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .clickable { /* Thêm chức năng chọn ảnh */ },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_camera),
-                        contentDescription = "Edit Avatar",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
             }
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -147,7 +130,14 @@ fun SettingScreen(
                         SettingItem(
                             Icons.Default.BrightnessMedium,
                             "Chủ đề ",
-                            toggleState = isDarkMode
+                            customView = {
+                                ThemeSwitcher(
+                                    darkTheme = darkTheme,
+                                    size = 35.dp,
+                                    padding = 6.dp,
+                                    onClick = onThemeUpdated
+                                )
+                            }
                         )
                         SettingItem(
                             Icons.Default.Notifications,

@@ -160,7 +160,9 @@ fun LoginScreen(
                 label = {
                     Text(text = stringResource(id = R.string.username))
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1
             )
 
             FoodAppTextField(
@@ -181,7 +183,9 @@ fun LoginScreen(
                             .clickable { showPassword = !showPassword}
 
                     )
-                }
+                },
+                singleLine = true,
+                maxLines = 1
 
             )
             Spacer(modifier = Modifier.size(16.dp))

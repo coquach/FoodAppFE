@@ -37,6 +37,12 @@ class SignUpViewModel @Inject constructor(
     private val _password = MutableStateFlow("")
     val password = _password.asStateFlow()
 
+    private val _fullName = MutableStateFlow("")
+    val fullName = _fullName.asStateFlow()
+
+    private val _phoneNumber = MutableStateFlow("")
+    val phoneNumber = _phoneNumber.asStateFlow()
+
     fun onUsernameChanged(username: String) {
         _username.value = username
     }
@@ -49,6 +55,14 @@ class SignUpViewModel @Inject constructor(
         _password.value = password
     }
 
+    fun onFullNameChanged(fullName: String) {
+        _fullName.value = fullName
+    }
+
+    fun onPhoneNumberChanged(phoneNumber: String) {
+        _phoneNumber.value = phoneNumber
+    }
+
     fun onSignUpClick() {
         viewModelScope.launch {
             _uiState.value = SignUpEvent.Loading
@@ -56,9 +70,11 @@ class SignUpViewModel @Inject constructor(
                 val response = safeApiCall {
                     foodApi.signUp(
                         SignUpRequest(
+                            fullName = fullName.value,
                             username = username.value,
                             email = email.value,
-                            password = password.value
+                            password = password.value,
+                            phoneNumber = phoneNumber.value
                         )
                     )
                 }
