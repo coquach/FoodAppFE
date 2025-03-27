@@ -1,21 +1,29 @@
-package com.example.foodapp.data
+package com.example.foodapp.di
 
 import android.content.Context
-import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodapp.BuildConfig
-import com.example.foodapp.location.LocationManager
+import com.example.foodapp.data.FoodApi
+import com.example.foodapp.data.FoodAppSession
+import com.example.foodapp.token.TokenInterceptor
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
+import javax.inject.Provider
 
 
 @Module
@@ -23,22 +31,27 @@ import javax.inject.Singleton
 object NetworkModule {
 
     @Provides
-    fun provideClient(session: FoodAppSession) : OkHttpClient {
-        val client = OkHttpClient.Builder()
-        client.addInterceptor { chain ->
-            val token = session.getAccessToken()
-            val request = chain.request().newBuilder()
+    fun provideTokenInterceptor(
+        session: FoodAppSession,
+        foodApi: Provider<FoodApi>
+    ): TokenInterceptor {
+        return TokenInterceptor(session, foodApi)
+    }
 
-            if (!token.isNullOrEmpty()) {
-                request.addHeader("Authorization", "Bearer $token")
-            }
-            chain.proceed(request.build())
-        }
+
+    @Provides
+    fun provideClient(tokenInterceptor: TokenInterceptor): OkHttpClient {
+        val client = OkHttpClient.Builder()
+
+        client.addInterceptor(tokenInterceptor)
+
         client.addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
+
         return client.build()
     }
+
 
     @Provides
     fun provideRetrofit(client: OkHttpClient): Retrofit {
@@ -53,6 +66,7 @@ object NetworkModule {
     fun provideFoodApi(retrofit: Retrofit): FoodApi {
         return retrofit.create(FoodApi::class.java)
     }
+ 
 
     @Provides
     fun provideSession(@ApplicationContext context: Context): FoodAppSession {
@@ -63,4 +77,11 @@ object NetworkModule {
     fun provideLocationService(@ApplicationContext context: Context): FusedLocationProviderClient {
         return LocationServices.getFusedLocationProviderClient(context)
     }
+
+
+    @Provides
+    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return context.dataStore
+    }
 }
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")

@@ -27,8 +27,11 @@ import androidx.compose.material3.NavigationBarItem
 
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
@@ -48,6 +51,7 @@ import com.example.foodapp.R
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.ui.FoodAppDialog
 import com.example.foodapp.ui.navigation.AddAddress
 import com.example.foodapp.ui.navigation.AddressList
 
@@ -88,6 +92,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.reflect.typeOf
@@ -166,7 +171,39 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(true)
                 }
 
+                var isLoggedIn by remember { mutableStateOf(!session.getRefreshToken().isNullOrEmpty()) }
+                var showSessionExpiredDialog by remember { mutableStateOf(false) }
                 val navController = rememberNavController()
+                LaunchedEffect(Unit) {
+                    session.sessionExpiredFlow.collectLatest {
+                        isLoggedIn = false
+                        showSessionExpiredDialog = true
+                        navController.navigate(Auth) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                }
+                if (showSessionExpiredDialog) {
+                    FoodAppDialog(
+                        title = "Phiên đăng nhập hết hạn",
+                        message = "Bạn cần đăng nhập lại để tiếp tục sử dụng ứng dụng.",
+                        onDismiss = {
+
+                            showSessionExpiredDialog = false
+                        },
+                        onConfirm = {
+                            showSessionExpiredDialog = false
+                            isLoggedIn = false
+                            navController.navigate(Auth) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        confirmText = "Đăng nhập lại",
+                        dismissText = "Đóng",
+                        showConfirmButton = true
+                    )
+                }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.onPrimary,
@@ -210,9 +247,10 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         FoodAppNavHost(
                             navController = navController,
-                            startDestination = Auth,
+                            startDestination = if(isLoggedIn) Home else Auth,
                             modifier = Modifier
-                                .padding(innerPadding)
+                                .padding(innerPadding),
+
                         ) {
                             composable<Auth> {
                                 shouldShowBottomNav.value = false
@@ -228,7 +266,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable<Home> {
                                 shouldShowBottomNav.value = true
-                                HomeScreen(navController, this,  notificationViewModel = notificationViewModel)
+                                HomeScreen(navController, this, notificationViewModel = notificationViewModel)
                             }
                             composable<FoodDetails>(
                                 typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
@@ -291,32 +329,13 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-        requestNotificationPermission()
         CoroutineScope(Dispatchers.IO).launch {
             delay(3000)
             showSplashScreen = false
         }
 
     }
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                Log.d("Notification", "Người dùng đã cấp quyền!")
-            } else {
-                Log.e("Notification", "Người dùng từ chối quyền!")
-            }
-        }
 
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this, android.Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-    }
 
 }
 

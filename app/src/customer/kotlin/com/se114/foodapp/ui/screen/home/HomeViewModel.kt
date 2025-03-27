@@ -48,7 +48,7 @@ class HomeViewModel @Inject constructor(
             }
             when (response) {
                 is ApiResponse.Success -> {
-                    categories = (response.data as? List<Category>) ?: emptyList()
+                    categories = (response.body.data as? List<Category>) ?: emptyList()
                     _uiState.value = HomeState.Success
 
                 }

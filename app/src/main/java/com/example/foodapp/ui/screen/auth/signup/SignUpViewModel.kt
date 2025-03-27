@@ -71,7 +71,7 @@ class SignUpViewModel @Inject constructor(
                     }
 
                     else -> {
-                        val err = (response as? ApiResponse.Error)?.status ?: 0
+                        val err = (response as? ApiResponse.Error)?.code ?: 0
                         error = "Đăng kí thất bại"
                         errorDescription = "Không thể đăng ký tài khoản"
                         when (err) {

@@ -58,12 +58,15 @@ class LoginViewModel @Inject constructor(
                 }
                 when (response) {
                     is ApiResponse.Success -> {
+                        val tokens = response.body.data
+                        session.storeToken(tokens.accessToken, tokens.refreshToken)
                         _uiState.value = LoginEvent.Success
                         _navigationEvent.emit(LoginNavigationEvent.NavigateHome)
                     }
 
                     else -> {
-                        val err = (response as? ApiResponse.Error)?.status ?: 0
+                        val err = (response as? ApiResponse.Error)?.code ?: 0
+
                         error = "Đăng nhập thất bại"
                         errorDescription = "Không thể đăng nhập tài khoản"
                         when (err) {

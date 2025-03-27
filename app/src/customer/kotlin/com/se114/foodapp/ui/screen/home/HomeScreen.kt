@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.foodapp.R
+import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.ui.ItemCount
 import com.example.foodapp.ui.MyFloatingActionButton
 import com.example.foodapp.ui.navigation.Cart
@@ -54,6 +56,7 @@ fun SharedTransitionScope.HomeScreen(
 ) {
     val unReadCount by notificationViewModel.unreadCount.collectAsState()
     val cartSize by viewModel.cartSize.collectAsState()
+
 
     LaunchedEffect(key1 = true) {
         viewModel.navigationEvent.collectLatest {

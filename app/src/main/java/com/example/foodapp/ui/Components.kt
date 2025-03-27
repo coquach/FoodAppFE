@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -389,6 +390,35 @@ fun Retry(
         }
 
     }
+}
+
+@Composable
+fun FoodAppDialog(
+    title: String,
+    message: String,
+    onDismiss: () -> Unit,
+    onConfirm: (() -> Unit)? = null,
+    confirmText: String = "OK",
+    dismissText: String = "Cancel",
+    showConfirmButton: Boolean = true
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+        text = { Text(text = message, fontSize = 16.sp) },
+        confirmButton = {
+            if (showConfirmButton) {
+                TextButton(onClick = { onConfirm?.invoke(); onDismiss() }) {
+                    Text(confirmText)
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(dismissText)
+            }
+        }
+    )
 }
 
 
