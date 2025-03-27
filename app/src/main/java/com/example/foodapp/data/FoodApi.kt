@@ -6,12 +6,14 @@ import com.example.foodapp.data.dto.request.RefreshTokenRequest
 import com.example.foodapp.data.dto.request.SignUpRequest
 import com.example.foodapp.data.dto.response.AddToCartResponse
 import com.example.foodapp.data.dto.response.AuthResponse
+import com.example.foodapp.data.dto.response.BaseResponse
 
 import com.example.foodapp.data.dto.response.CategoriesResponse
 import com.example.foodapp.data.remote.ApiResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface FoodApi {
@@ -26,6 +28,9 @@ interface FoodApi {
 
     @POST("auth/refresh-token")
     suspend fun refreshToken(@Body refreshTokenRequest: RefreshTokenRequest): Response<AuthResponse>
+
+    @POST("auth/logout")
+    suspend fun logout(@Header("access-token") token: String): Response<BaseResponse>
 
 
 }

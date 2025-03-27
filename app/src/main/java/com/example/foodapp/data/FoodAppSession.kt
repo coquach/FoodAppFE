@@ -19,8 +19,12 @@ class FoodAppSession @Inject constructor(private val context: Context) {
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val TAG = "FoodAppSession"
     }
+
     private val _sessionExpiredFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val sessionExpiredFlow: SharedFlow<Unit> = _sessionExpiredFlow
+
+    var isManualLogout = false
+        private set
 
     fun storeToken(accessToken: String, refreshToken: String) {
         sharePres.edit()
@@ -44,7 +48,9 @@ class FoodAppSession @Inject constructor(private val context: Context) {
         }
         return null
     }
-    fun clearTokens() {
+
+    fun clearTokens(manual: Boolean = false) {
+        isManualLogout = manual
         sharePres.edit()
             .remove(KEY_ACCESS_TOKEN)
             .remove(KEY_REFRESH_TOKEN)

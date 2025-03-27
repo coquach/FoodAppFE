@@ -69,6 +69,7 @@ import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.navigation.Reservation
+import com.example.foodapp.ui.navigation.Setting
 
 import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.navigation.foodItemNavType
@@ -88,6 +89,7 @@ import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
 import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
 
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.se114.foodapp.ui.screen.profile.SettingScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -116,6 +118,7 @@ class MainActivity : ComponentActivity() {
             BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
 
         data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
+        data object Setting : BottomNavItem(com.example.foodapp.ui.navigation.Setting, R.drawable.ic_user_circle)
 
     }
 
@@ -163,7 +166,8 @@ class MainActivity : ComponentActivity() {
                     BottomNavItem.Home,
                     BottomNavItem.Favorite,
                     BottomNavItem.Reservation,
-                    BottomNavItem.Order
+                    BottomNavItem.Order,
+                    BottomNavItem.Setting
                 )
                 val notificationViewModel: NotificationViewModel = hiltViewModel()
 
@@ -177,9 +181,8 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(Unit) {
                     session.sessionExpiredFlow.collectLatest {
                         isLoggedIn = false
-                        showSessionExpiredDialog = true
-                        navController.navigate(Auth) {
-                            popUpTo(0) { inclusive = true }
+                        if (!session.isManualLogout) {
+                            showSessionExpiredDialog = true
                         }
                     }
                 }
@@ -195,7 +198,7 @@ class MainActivity : ComponentActivity() {
                             showSessionExpiredDialog = false
                             isLoggedIn = false
                             navController.navigate(Auth) {
-                                popUpTo(0) { inclusive = true }
+                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
                             }
                         },
                         confirmText = "Đăng nhập lại",
@@ -321,6 +324,10 @@ class MainActivity : ComponentActivity() {
                                 OrderDetailScreen(
                                     navController, orderID
                                 )
+                            }
+                            composable<Setting> {
+                                shouldShowBottomNav.value = true
+                                SettingScreen(navController)
                             }
 
                         }
