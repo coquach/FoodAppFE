@@ -35,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -59,6 +60,7 @@ import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.example.foodapp.utils.ValidateField
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -73,6 +75,14 @@ fun SignUpScreen(
     val password = viewModel.password.collectAsStateWithLifecycle()
     val fullName = viewModel.fullName.collectAsStateWithLifecycle()
     val phoneNumber = viewModel.phoneNumber.collectAsStateWithLifecycle()
+
+    val usernameError = viewModel.usernameError
+    val emailError = viewModel.emailError
+    val passwordError = viewModel.passwordError
+    val fullNameError = viewModel.fullNameError
+    val phoneNumberError = viewModel.phoneNumberError
+    var isTouched by remember { mutableStateOf(false) }
+
     var showPassword by remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val loading = remember { mutableStateOf(false) }
@@ -99,6 +109,7 @@ fun SignUpScreen(
                         }
                     }
                 }
+
                 is SignUpViewModel.SignUpNavigationEvent.NavigateLogin -> {
                     navController.navigate(Login) {
                         popUpTo(Auth) {
@@ -106,6 +117,7 @@ fun SignUpScreen(
                         }
                     }
                 }
+
                 else -> {
                     // Handle other navigation events
                 }
@@ -114,7 +126,7 @@ fun SignUpScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center ) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
 
         val uiState = viewModel.uiState.collectAsStateWithLifecycle()
@@ -141,7 +153,7 @@ fun SignUpScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 26.dp, horizontal = 16.dp),
+                .padding(vertical = 8.dp, horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
 
@@ -163,46 +175,105 @@ fun SignUpScreen(
                 label = {
                     Text(text = stringResource(id = R.string.full_name))
                 },
-                modifier = Modifier.fillMaxWidth(),
+                isError = fullNameError.value != null,
+                errorText = fullNameError.value,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (isTouched && !focusState.isFocused) {
+                            ValidateField(
+                                fullName.value,
+                                fullNameError,
+                                "Họ tên không được để trống"
+                            ) { it.isNotBlank() }
+                        }
+                    },
                 singleLine = true,
                 maxLines = 1
             )
             FoodAppTextField(
                 value = username.value,
-                onValueChange = { viewModel.onUsernameChanged(it) },
+                onValueChange = {
+                    viewModel.onUsernameChanged(it)
+                    if (!isTouched) isTouched = true
+                },
                 label = {
                     Text(text = stringResource(id = R.string.username))
                 },
-                modifier = Modifier.fillMaxWidth(),
+                isError = usernameError.value != null,
+                errorText = usernameError.value,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (isTouched && !focusState.isFocused) {
+                            ValidateField(
+                                username.value,
+                                usernameError,
+                                "Tên đăng nhập phải có ít nhất 4 ký tự"
+                            ) { it.length >= 4 }
+                        }
+                    },
                 singleLine = true,
                 maxLines = 1
             )
             FoodAppTextField(
                 value = email.value,
-                onValueChange = { viewModel.onEmailChanged(it) },
+                onValueChange = {
+                    viewModel.onEmailChanged(it)
+                    if (!isTouched) isTouched = true
+                },
                 label = {
                     Text(text = stringResource(id = R.string.email))
                 },
-                modifier = Modifier.fillMaxWidth(),
+                isError = emailError.value != null,
+                errorText = emailError.value,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (isTouched && !focusState.isFocused) {
+                            ValidateField(
+                                email.value,
+                                emailError,
+                                "Email không hợp lệ"
+                            ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) }
+                        }
+                    },
                 singleLine = true,
                 maxLines = 1
             )
             FoodAppTextField(
                 value = password.value,
-                onValueChange = { viewModel.onPasswordChanged(it) },
+                onValueChange = {
+                    viewModel.onPasswordChanged(it)
+                    if (!isTouched) isTouched = true
+                },
                 label = {
                     Text(text = stringResource(id = R.string.password))
                 },
-                modifier = Modifier.fillMaxWidth(),
+                isError = passwordError.value != null,
+                errorText = passwordError.value,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (isTouched && !focusState.isFocused) {
+                            ValidateField(
+                                password.value,
+                                passwordError,
+                                "Mật khẩu phải có ít nhất 6 ký tự"
+                            ) { it.length >= 6 }
+                        }
+                    },
                 visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
 
                     Image(
-                        painter = if (showPassword) painterResource(id = R.drawable.ic_eye) else painterResource(id = R.drawable.ic_slash_eye),
+                        painter = if (showPassword) painterResource(id = R.drawable.ic_eye) else painterResource(
+                            id = R.drawable.ic_slash_eye
+                        ),
                         contentDescription = null,
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable { showPassword = !showPassword}
+                            .clickable { showPassword = !showPassword }
 
                     )
                 },
@@ -212,15 +283,30 @@ fun SignUpScreen(
             )
             FoodAppTextField(
                 value = phoneNumber.value,
-                onValueChange = { viewModel.onPhoneNumberChanged(it) },
+                onValueChange = {
+                    viewModel.onPhoneNumberChanged(it)
+                    if (!isTouched) isTouched = true
+                },
                 label = {
                     Text(text = stringResource(id = R.string.phone_number))
                 },
-                modifier = Modifier.fillMaxWidth(),
+                isError = phoneNumberError.value != null,
+                errorText = phoneNumberError.value,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (isTouched && !focusState.isFocused) {
+                            ValidateField(
+                                phoneNumber.value,
+                                phoneNumberError,
+                                "Số điện thoại không hợp lệ"
+                            ) { it.matches(Regex("^(\\+84|0)[0-9]{9,10}\$")) }
+                        }
+                    },
                 singleLine = true,
                 maxLines = 1
             )
-            Spacer(modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.size(30.dp))
             Button(
                 onClick = viewModel::onSignUpClick,
                 modifier = Modifier
@@ -266,7 +352,6 @@ fun SignUpScreen(
                 textAlign = TextAlign.Center
 
             )
-            GroupSocialButtons(color = Color.Black)
 
         }
     }

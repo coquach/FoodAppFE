@@ -1,5 +1,7 @@
 package com.example.foodapp.ui.screen.auth.signup
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 
 import com.example.foodapp.data.FoodApi
@@ -8,7 +10,9 @@ import com.example.foodapp.data.dto.request.SignUpRequest
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
 import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
+import com.example.foodapp.utils.ValidateField
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -63,41 +67,92 @@ class SignUpViewModel @Inject constructor(
         _phoneNumber.value = phoneNumber
     }
 
+    var fullNameError = mutableStateOf<String?>(null)
+    var usernameError = mutableStateOf<String?>(null)
+    var emailError = mutableStateOf<String?>(null)
+    var passwordError = mutableStateOf<String?>(null)
+    var phoneNumberError = mutableStateOf<String?>(null)
+
+    fun validate(): Boolean {
+        var isValid = true
+
+        isValid = ValidateField(
+            fullName.value,
+            fullNameError,
+            "Họ tên không được để trống"
+        ) { it.isNotBlank() } && isValid
+
+        isValid = ValidateField(
+            username.value,
+            usernameError,
+            "Tên đăng nhập phải có ít nhất 4 ký tự"
+        ) { it.length >= 4 } && isValid
+
+        isValid = ValidateField(
+            email.value,
+            emailError,
+            "Email không hợp lệ"
+        ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) } && isValid
+
+        isValid = ValidateField(
+            password.value,
+            passwordError,
+            "Mật khẩu phải có ít nhất 6 ký tự"
+        ) { it.length >= 6 } && isValid
+
+        isValid = ValidateField(
+            phoneNumber.value,
+            phoneNumberError,
+            "Số điện thoại không hợp lệ"
+        ) { it.matches(Regex("^(\\+84|0)[0-9]{9,10}\$")) } && isValid
+
+        return isValid
+    }
+
+
     fun onSignUpClick() {
         viewModelScope.launch {
             _uiState.value = SignUpEvent.Loading
+            delay(300)
             try {
-                val response = safeApiCall {
-                    foodApi.signUp(
-                        SignUpRequest(
-                            fullName = fullName.value,
-                            username = username.value,
-                            email = email.value,
-                            password = password.value,
-                            phoneNumber = phoneNumber.value
+                if(validate()) {
+                    val response = safeApiCall {
+                        foodApi.signUp(
+                            SignUpRequest(
+                                fullName = fullName.value,
+                                username = username.value,
+                                email = email.value,
+                                password = password.value,
+                                phoneNumber = phoneNumber.value
+                            )
                         )
-                    )
-                }
-                when (response) {
-                    is ApiResponse.Success -> {
-
-                        _uiState.value = SignUpEvent.Success
-
-                        _navigationEvent.emit(SignUpNavigationEvent.NavigateHome)
                     }
+                    when (response) {
+                        is ApiResponse.Success -> {
 
-                    else -> {
-                        val err = (response as? ApiResponse.Error)?.code ?: 0
-                        error = "Đăng kí thất bại"
-                        errorDescription = "Không thể đăng ký tài khoản"
-                        when (err) {
-                            400 -> {
-                                error = "Thông tin không hợp lệ"
-                                errorDescription = "Vui lòng nhập thông tin chính xác."
-                            }
+                            _uiState.value = SignUpEvent.Success
+
+                            _navigationEvent.emit(SignUpNavigationEvent.NavigateHome)
                         }
-                        _uiState.value = SignUpEvent.Error
+
+                        else -> {
+                            val err = (response as? ApiResponse.Error)?.code ?: 0
+                            error = "Đăng kí thất bại"
+                            errorDescription = "Không thể đăng ký tài khoản"
+                            when (err) {
+                                400 -> {
+                                    error = "Thông tin không hợp lệ"
+                                    errorDescription = "Vui lòng nhập thông tin chính xác."
+                                }
+                            }
+                            _uiState.value = SignUpEvent.Error
+                        }
                     }
+                }
+                else {
+                    error = "Thông tin không hợp lệ"
+                    errorDescription = "Vui lòng nhập thông tin chính xác."
+                    _uiState.value = SignUpEvent.Error
                 }
 
 

@@ -173,6 +173,7 @@ fun FoodAppTextField(
     suffix: @Composable (() -> Unit)? = null,
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
+    errorText: String? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -185,7 +186,10 @@ fun FoodAppTextField(
         focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
         unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
         focusedLabelColor = MaterialTheme.colorScheme.primaryContainer,
-        unfocusedLabelColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+        unfocusedLabelColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+        errorPlaceholderColor = MaterialTheme.colorScheme.error,
+        errorIndicatorColor = MaterialTheme.colorScheme.error,
+
     )
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
@@ -209,7 +213,15 @@ fun FoodAppTextField(
             trailingIcon,
             prefix,
             suffix,
-            supportingText,
+            supportingText = {
+                if (errorText != null) {
+                    Text(
+                        text = errorText,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp
+                    )
+                }
+            },
             isError,
             visualTransformation,
             keyboardOptions,
