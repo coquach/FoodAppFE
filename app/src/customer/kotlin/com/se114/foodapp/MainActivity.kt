@@ -2,6 +2,7 @@ package com.se114.foodapp
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
@@ -10,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -42,11 +44,14 @@ import com.example.foodapp.R
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.model.FoodItem
+
 import com.example.foodapp.ui.FoodAppDialog
 import com.example.foodapp.ui.navigation.AddAddress
 import com.example.foodapp.ui.navigation.AddressList
 
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.BottomNavItem
+import com.example.foodapp.ui.navigation.BottomNavigationBar
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.Checkout
 import com.example.foodapp.ui.navigation.Favorite
@@ -100,19 +105,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var session: FoodAppSession
 
-    sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
-        data object Home : BottomNavItem(com.example.foodapp.ui.navigation.Home, R.drawable.ic_home)
-        data object Favorite :
-            BottomNavItem(com.example.foodapp.ui.navigation.Favorite, R.drawable.ic_favorite)
 
-        data object Reservation :
-            BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
-
-        data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
-        data object Setting :
-            BottomNavItem(com.example.foodapp.ui.navigation.Setting, R.drawable.ic_user_circle)
-
-    }
 
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -124,13 +117,13 @@ class MainActivity : ComponentActivity() {
                 val zoomX = ObjectAnimator.ofFloat(
                     screen.iconView,
                     View.SCALE_X,
-                    0.5f,
+                    0.8f,
                     0f
                 )
                 val zoomY = ObjectAnimator.ofFloat(
                     screen.iconView,
                     View.SCALE_Y,
-                    0.5f,
+                    0.8f,
                     0f
                 )
                 zoomX.duration = 500
@@ -150,8 +143,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            var darkTheme by rememberSaveable { mutableStateOf(false) }
-            FoodAppTheme(darkTheme = darkTheme) {
+            val darkMode = isSystemInDarkTheme()
+            var isDarkMode by remember { mutableStateOf(darkMode) }
+            FoodAppTheme(darkTheme = isDarkMode) {
 
                 val navItems = listOf(
                     BottomNavItem.Home,
@@ -206,37 +200,13 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
 
-                        val currentRoute =
-                            navController.currentBackStackEntryAsState().value?.destination
+
                         AnimatedVisibility(visible = shouldShowBottomNav.value) {
 
-                            NavigationBar(
-                                containerColor = MaterialTheme.colorScheme.onPrimary
-                            ) {
-                                navItems.forEach { item ->
-                                    val selected =
-                                        currentRoute?.hierarchy?.any { it.route == item.route::class.qualifiedName } == true
-                                    NavigationBarItem(
-                                        selected = selected,
-                                        onClick = {
-                                            navController.navigate(item.route)
-                                        },
-                                        icon = {
-                                            Icon(
-                                                painter = painterResource(id = item.icon),
-                                                contentDescription = null,
-                                                tint = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outline
-                                            )
-                                        },
-                                        colors = NavigationBarItemDefaults.colors(
-                                            indicatorColor = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent
-                                        )
-                                    )
-                                }
-                            }
+                            BottomNavigationBar(navController, navItems)
                         }
 
 
@@ -330,9 +300,9 @@ class MainActivity : ComponentActivity() {
                                 shouldShowBottomNav.value = true
                                 SettingScreen(
                                     navController,
-                                    darkTheme,
+                                    isDarkMode,
                                     onThemeUpdated = {
-                                        darkTheme = !darkTheme
+                                        isDarkMode = !isDarkMode
                                     })
                             }
 

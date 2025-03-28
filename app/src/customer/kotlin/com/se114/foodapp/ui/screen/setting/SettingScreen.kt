@@ -22,23 +22,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.BrightnessMedium
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +64,9 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.ThemeSwitcher
 import com.example.foodapp.ui.navigation.Auth
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     navController: NavController,
@@ -68,11 +77,19 @@ fun SettingScreen(
     val isDarkMode = rememberSaveable { mutableStateOf(false) }
     val isNotificationMode = rememberSaveable { mutableStateOf(false) }
 
+    val showLogoutDialog = remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val scope = rememberCoroutineScope()
+
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
-            when(it) {
-                is SettingViewModel.SettingEvents.Logout -> {
+            when (it) {
+                is SettingViewModel.SettingEvents.OnLogout -> {
+                    showLogoutDialog.value = true
+                }
+
+                is SettingViewModel.SettingEvents.NavigateToAuth -> {
                     navController.navigate(Auth) {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
 
@@ -122,7 +139,7 @@ fun SettingScreen(
             TextButton(onClick = {}) {
                 Text("Sửa thông tin", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
             }
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             SettingGroup(
                 items = listOf(
@@ -149,7 +166,16 @@ fun SettingScreen(
                     },
                 )
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+            SettingGroup(
+                items = listOf(
+                    {
+                        SettingItem(Icons.Default.LocationOn, "Địa chỉ")
+                        SettingItem(Icons.Default.CardGiftcard, "Voucher")
+                    }
+                )
+            )
+            Spacer(modifier = Modifier.height(10.dp))
             SettingGroup(
                 items = listOf(
                     {
@@ -159,16 +185,60 @@ fun SettingScreen(
                     }
                 )
             )
-            Spacer(modifier = Modifier.height(50.dp))
+
+            Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
-                    viewModel.onLogoutClicked()
+                    viewModel.onShowLogoutDialog()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),
                 contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
             ) {
                 Text(text = "Đăng xuất", style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+    if (showLogoutDialog.value) {
+        ModalBottomSheet(
+            onDismissRequest = { showLogoutDialog.value = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Bạn muốn đăng xuất?",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                Button(
+                    onClick = {
+                        showLogoutDialog.value = false
+                        viewModel.onLogoutClicked()
+                    }, modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(text = "Đăng xuất", color = MaterialTheme.colorScheme.error)
+                }
+
+                Button(
+                    onClick = {
+                        scope.launch {
+                            sheetState.hide()
+                            showLogoutDialog.value = false
+                        }
+                    }, modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(text = "Trở lại")
+                }
+
             }
         }
     }
@@ -178,8 +248,7 @@ fun SettingScreen(
 fun SettingGroup(items: List<@Composable () -> Unit>) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
@@ -212,15 +281,15 @@ fun SettingItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp)
             .then(
-            if (onClick != null) Modifier.clickable { onClick() } else Modifier
-        ),
+                if (onClick != null) Modifier.clickable { onClick() } else Modifier
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             icon,
             contentDescription = title,
             modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primaryContainer
+            tint = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -229,7 +298,8 @@ fun SettingItem(
             text = title,
             fontSize = 16.sp,
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
         )
 
         when {

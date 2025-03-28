@@ -7,9 +7,11 @@ import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,21 +24,22 @@ class SettingViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     fun onLogoutClicked() {
-        viewModelScope.launch {
+        viewModelScope.launch() {
             try {
+                _event.emit(SettingEvents.NavigateToAuth)
                 val token = foodAppSession.getAccessToken()
                 if (token.isNullOrEmpty()) {
                     return@launch
                 }
 
-                val response = safeApiCall {
-                    foodApi.logout(token)
+                val response = withContext(Dispatchers.IO) {
+                    safeApiCall { foodApi.logout(token) }
                 }
                 when (response) {
                     is ApiResponse.Success -> {
                         foodAppSession.clearTokens(manual = true)
-                        _event.emit(SettingEvents.Logout)
                     }
+
                     else -> {
 
                     }
@@ -47,8 +50,15 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    fun onShowLogoutDialog() {
+        viewModelScope.launch {
+            _event.emit(SettingEvents.OnLogout)
+        }
+    }
+
     sealed class SettingEvents {
-        data object Logout : SettingEvents()
+        data object NavigateToAuth : SettingEvents()
+        data object OnLogout : SettingEvents()
 
     }
 }

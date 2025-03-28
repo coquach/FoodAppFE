@@ -165,7 +165,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 viewModel.addToCart(foodItem = foodItem)
             },
             enabled = !isLoading.value,
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Box {
                 AnimatedContent(
@@ -238,7 +238,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(text = "OK")
+                    Text(text = "Trở lại")
                 }
 
             }

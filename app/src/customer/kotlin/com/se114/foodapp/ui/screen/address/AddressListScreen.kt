@@ -88,7 +88,7 @@ fun AddressListScreen(
             Text(
                 text = "Danh sách địa chỉ",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
             Icon(
                 imageVector = Icons.Filled.AddCircle,

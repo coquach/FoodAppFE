@@ -46,6 +46,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -72,9 +75,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.foodapp.R
+import com.example.foodapp.ui.navigation.NavRoute
+import com.example.foodapp.ui.navigation.OrderList
 
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.se114.foodapp.MainActivity
 import kotlinx.serialization.json.JsonNull.content
 
 
@@ -183,9 +192,9 @@ fun FoodAppTextField(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     shape: Shape = RoundedCornerShape(10.dp),
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors().copy(
-        focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
+        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
         unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-        focusedLabelColor = MaterialTheme.colorScheme.primaryContainer,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
         unfocusedLabelColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
         errorPlaceholderColor = MaterialTheme.colorScheme.error,
         errorIndicatorColor = MaterialTheme.colorScheme.error,
@@ -257,7 +266,7 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
             Spacer(modifier = Modifier.size(16.dp))
             Button(
                 onClick = onClick,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),
 
                 ) {
@@ -349,12 +358,12 @@ fun Loading() {
     ) {
         Spacer(modifier = Modifier.size(20.dp))
         CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = MaterialTheme.colorScheme.primary
         )
         Text(
             text = "Đang tải...",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -377,7 +386,7 @@ fun HeaderDefaultView(
                 .padding(horizontal = 16.dp)
                 .clip(CircleShape)
                 .clickable { onBack.invoke() },
-            tint = MaterialTheme.colorScheme.primaryContainer
+            tint = MaterialTheme.colorScheme.primary
         )
 
 
@@ -385,7 +394,8 @@ fun HeaderDefaultView(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .weight(1f)
                 .wrapContentWidth(Alignment.CenterHorizontally)
@@ -511,4 +521,5 @@ fun ThemeSwitcher(
         }
     }
 }
+
 

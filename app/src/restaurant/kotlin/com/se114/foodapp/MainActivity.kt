@@ -177,7 +177,7 @@ class MainActivity : ComponentActivity() {
                                             Icon(
                                                 painter = painterResource(id = item.icon),
                                                 contentDescription = null,
-                                                tint = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outline
+                                                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                                             )
                                         },
                                         colors = NavigationBarItemDefaults.colors(

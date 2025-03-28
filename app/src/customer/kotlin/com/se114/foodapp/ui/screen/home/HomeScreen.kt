@@ -84,7 +84,7 @@ fun SharedTransitionScope.HomeScreen(
                 Box(modifier = Modifier.size(56.dp)) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_cart),
-                        tint = MaterialTheme.colorScheme.primaryContainer,
+                        tint = MaterialTheme.colorScheme.primary,
                         contentDescription = null,
                         modifier = Modifier.align(Center)
                     )
@@ -122,7 +122,7 @@ fun SharedTransitionScope.HomeScreen(
                     Box(modifier = Modifier.size(50.dp)) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_nofication),
-                            tint = MaterialTheme.colorScheme.primaryContainer,
+                            tint = MaterialTheme.colorScheme.primary,
                             contentDescription = null,
                             modifier = Modifier
                                 .size(32.dp)

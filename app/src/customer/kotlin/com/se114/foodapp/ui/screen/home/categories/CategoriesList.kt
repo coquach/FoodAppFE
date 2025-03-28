@@ -78,8 +78,8 @@ fun CategoryItem(
                 .shadow(
                     elevation = 16.dp,
                     shape = CircleShape,
-                    ambientColor = MaterialTheme.colorScheme.primaryContainer,
-                    spotColor = MaterialTheme.colorScheme.primaryContainer
+                    ambientColor = MaterialTheme.colorScheme.primary,
+                    spotColor = MaterialTheme.colorScheme.primary
                 )
                 .clip(CircleShape),
             contentScale = ContentScale.Inside

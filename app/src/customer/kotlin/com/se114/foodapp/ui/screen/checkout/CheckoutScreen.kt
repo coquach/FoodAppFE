@@ -212,7 +212,7 @@ fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.LocationOn,
                 contentDescription = "Vị trí của bạn",
-                tint = MaterialTheme.colorScheme.primaryContainer,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
 
@@ -351,7 +351,7 @@ fun PaymentMethod(payment: Payment = Payment()) {
                 Icon(
                     painter = painterResource(id = payment.paymentImage),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primaryContainer,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
 

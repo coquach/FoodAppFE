@@ -193,7 +193,7 @@ fun LoginScreen(
                 onClick = viewModel::onLoginClick,
                 modifier = Modifier
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Box {
                     AnimatedContent(

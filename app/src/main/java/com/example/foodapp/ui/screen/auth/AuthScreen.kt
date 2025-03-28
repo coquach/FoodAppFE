@@ -107,7 +107,7 @@ fun AuthScreen(
             )
             Text(
                 text = stringResource(id = R.string.app_name),
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 50.sp,
                 modifier = Modifier

@@ -19,6 +19,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
@@ -85,7 +87,7 @@ fun OrderListScreen(
             Spacer(modifier = Modifier.size(48.dp))
             Text(
                 text = "Đơn hàng", style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .weight(1f)
                     .wrapContentWidth(Alignment.CenterHorizontally)
@@ -238,8 +240,8 @@ fun OrderDetailsText(order: Order) {
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                ){
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_clock),
                         contentDescription = "Clock Icon",
@@ -257,7 +259,7 @@ fun OrderDetailsText(order: Order) {
         }
         Spacer(modifier = Modifier.size(8.dp))
         val statusColor = when (order.status) {
-            "Đang chờ" -> MaterialTheme.colorScheme.primaryContainer
+            "Đang chờ" -> MaterialTheme.colorScheme.primary
             "Đã gửi" -> MaterialTheme.colorScheme.tertiaryContainer
             "Đã hủy" -> MaterialTheme.colorScheme.error
             else -> MaterialTheme.colorScheme.outline
@@ -276,23 +278,29 @@ fun OrderDetailsText(order: Order) {
 
 @Composable
 fun OrderListItem(order: Order, onClick: () -> Unit) {
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp,vertical = 4.dp)
-            .shadow(8.dp, shape = RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.onPrimary)
-            .padding(16.dp)
+            .padding(8.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
     ) {
-        OrderDetailsText(order = order)
-        Button(onClick = onClick) {
-            Text(
-                text = "Chi tiết",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-        }
+        Column(
+            modifier = Modifier
+                .padding(10.dp)
 
+        ) {
+            OrderDetailsText(order = order)
+            Button(onClick = onClick) {
+                Text(
+                    text = "Chi tiết",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+
+        }
     }
+
 }

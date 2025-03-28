@@ -96,7 +96,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     implementation(libs.google.firebase.messaging.ktx)
-    implementation(libs.firebase.firestore.ktx)
     implementation(libs.transport.api)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

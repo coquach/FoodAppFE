@@ -49,7 +49,7 @@ fun OrderSuccess(orderID: String, navController: NavController) {
         Button(onClick = {
             navController.popBackStack(route = Home, inclusive = false)
         },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp),
             contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
         ) {
