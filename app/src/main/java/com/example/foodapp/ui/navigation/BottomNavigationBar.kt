@@ -37,16 +37,22 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
                 currentRoute?.hierarchy?.any { it.route == item.route::class.qualifiedName } == true
             NavigationBarItem(
                 selected = selected,
-                onClick = { navController.navigate(item.route) },
+                onClick = {
+                    if (!selected) { // Chỉ navigate nếu chưa ở màn hiện tại
+                        navController.navigate(item.route)
+                    }
+                },
                 icon = {
                     Icon(
                         painter = painterResource(id = item.icon),
                         contentDescription = null,
-                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+//                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent
+                    unselectedIconColor = MaterialTheme.colorScheme.outline,
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                 )
             )
         }

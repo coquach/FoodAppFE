@@ -56,7 +56,14 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    fun onProfileClicked() {
+        viewModelScope.launch {
+            _event.emit(SettingEvents.NavigateToProfile)
+        }
+    }
+
     sealed class SettingEvents {
+        data object NavigateToProfile: SettingEvents()
         data object NavigateToAuth : SettingEvents()
         data object OnLogout : SettingEvents()
 

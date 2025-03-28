@@ -63,6 +63,7 @@ import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.ui.ThemeSwitcher
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.Profile
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -77,7 +78,7 @@ fun SettingScreen(
     val isDarkMode = rememberSaveable { mutableStateOf(false) }
     val isNotificationMode = rememberSaveable { mutableStateOf(false) }
 
-    val showLogoutDialog = remember { mutableStateOf(false) }
+    val showSheetLogout = remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val scope = rememberCoroutineScope()
 
@@ -86,7 +87,7 @@ fun SettingScreen(
         viewModel.event.collectLatest {
             when (it) {
                 is SettingViewModel.SettingEvents.OnLogout -> {
-                    showLogoutDialog.value = true
+                    showSheetLogout.value = true
                 }
 
                 is SettingViewModel.SettingEvents.NavigateToAuth -> {
@@ -94,6 +95,10 @@ fun SettingScreen(
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
 
                     }
+                }
+
+                is SettingViewModel.SettingEvents.NavigateToProfile -> {
+                    navController.navigate(Profile)
                 }
             }
         }
@@ -129,14 +134,16 @@ fun SettingScreen(
             }
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Tên người dùng
+
             Text(
                 "Quách Vĩnh Cơ",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-            TextButton(onClick = {}) {
+            TextButton(onClick = {
+                viewModel.onProfileClicked()
+            }) {
                 Text("Sửa thông tin", fontSize = 14.sp, color = MaterialTheme.colorScheme.outline)
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -199,9 +206,9 @@ fun SettingScreen(
             }
         }
     }
-    if (showLogoutDialog.value) {
+    if (showSheetLogout.value) {
         ModalBottomSheet(
-            onDismissRequest = { showLogoutDialog.value = false },
+            onDismissRequest = { showSheetLogout.value = false },
             sheetState = sheetState
         ) {
             Column(
@@ -212,31 +219,39 @@ fun SettingScreen(
             ) {
                 Text(
                     text = "Bạn muốn đăng xuất?",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 Button(
                     onClick = {
-                        showLogoutDialog.value = false
                         viewModel.onLogoutClicked()
-                    }, modifier = Modifier
+                        showSheetLogout.value = false
+
+                    },
+                    modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(text = "Đăng xuất", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = "Đăng xuất",
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
-
+                Spacer(modifier = Modifier.size(16.dp))
                 Button(
                     onClick = {
                         scope.launch {
                             sheetState.hide()
-                            showLogoutDialog.value = false
+                            showSheetLogout.value = false
                         }
-                    }, modifier = Modifier
+                    },
+                    modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(text = "Trở lại")
+                    Text(text = "Trở lại", color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
 
             }

@@ -103,11 +103,11 @@ fun GroupSocialButtons(
                     .weight(1f)
                     .padding(start = 8.dp),
                 thickness = 1.dp,
-                color = color
+                color = MaterialTheme.colorScheme.outline
             )
             Text(
                 text = stringResource(id = R.string.sign_in_with),
-                color = color,
+                color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.padding(8.dp)
             )
             HorizontalDivider(
@@ -115,7 +115,7 @@ fun GroupSocialButtons(
                     .weight(1f)
                     .padding(end = 8.dp),
                 thickness = 1.dp,
-                color = color
+                color = MaterialTheme.colorScheme.outline
             )
         }
 

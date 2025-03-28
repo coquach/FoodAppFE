@@ -98,7 +98,7 @@ fun AuthScreen(
         Column(modifier = Modifier.fillMaxWidth().padding(top = 110.dp).padding(16.dp)) {
             Text(
                 text = stringResource(id = R.string.welcome),
-                color = MaterialTheme.colorScheme.surface,
+                color = Color.White,
                 fontSize = 50.sp,
                 lineHeight = 50.sp,
                 fontWeight = FontWeight.Bold,
@@ -114,7 +114,7 @@ fun AuthScreen(
             )
             Text(
                 text = stringResource(id = R.string.app_description),
-                color = MaterialTheme.colorScheme.surface,
+                color = Color.White,
                 fontSize = 20.sp,
                 lineHeight = 28.sp,
                 modifier = Modifier.padding(vertical = 16.dp)

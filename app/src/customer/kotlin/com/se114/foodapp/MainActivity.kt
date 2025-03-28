@@ -64,6 +64,7 @@ import com.example.foodapp.ui.navigation.Notification
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.OrderSuccess
+import com.example.foodapp.ui.navigation.Profile
 import com.example.foodapp.ui.navigation.Reservation
 import com.example.foodapp.ui.navigation.Setting
 
@@ -86,6 +87,7 @@ import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
 
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.se114.foodapp.ui.screen.setting.SettingScreen
+import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -304,6 +306,10 @@ class MainActivity : ComponentActivity() {
                                     onThemeUpdated = {
                                         isDarkMode = !isDarkMode
                                     })
+                            }
+                            composable<Profile> {
+                                shouldShowBottomNav.value = false
+                                ProfileScreen(navController)
                             }
 
                         }

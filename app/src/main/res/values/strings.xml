@@ -16,4 +16,5 @@
     <string name="ok">Ok</string>
     <string name="full_name">Tên đầy đủ</string>
     <string name="phone_number">Số điện thoại</string>
+    <string name="save">Lưu</string>
 </resources>
