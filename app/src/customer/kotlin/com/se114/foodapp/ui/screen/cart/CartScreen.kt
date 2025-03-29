@@ -434,6 +434,7 @@ fun CartHeaderView(
             text = "Giỏ hàng",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .weight(1f)
                 .wrapContentWidth(Alignment.CenterHorizontally)

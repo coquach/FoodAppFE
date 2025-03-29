@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
     lateinit var splashViewModel: SplashViewModel
 
 
+
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
@@ -153,7 +154,8 @@ class MainActivity : ComponentActivity() {
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
 
-            val screen = splashViewModel.startDestination.value
+            val screen by splashViewModel.startDestination
+            val showSessionExpiredDialog by splashViewModel.showSessionExpiredDialog
             FoodAppTheme(darkTheme = isDarkMode) {
 
                 val navItems = listOf(
@@ -169,32 +171,19 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(true)
                 }
 
-                var isLoggedIn by remember {
-                    mutableStateOf(
-                        !session.getRefreshToken().isNullOrEmpty()
-                    )
-                }
-                var showSessionExpiredDialog by remember { mutableStateOf(false) }
+
                 val navController = rememberNavController()
-                LaunchedEffect(Unit) {
-                    session.sessionExpiredFlow.collectLatest {
-                        isLoggedIn = false
-                        if (!session.isManualLogout) {
-                            showSessionExpiredDialog = true
-                        }
-                    }
-                }
+
                 if (showSessionExpiredDialog) {
                     FoodAppDialog(
                         title = "Phiên đăng nhập hết hạn",
                         message = "Bạn cần đăng nhập lại để tiếp tục sử dụng ứng dụng.",
                         onDismiss = {
 
-                            showSessionExpiredDialog = false
+                            splashViewModel.dismissSessionExpiredDialog()
                         },
                         onConfirm = {
-                            showSessionExpiredDialog = false
-                            isLoggedIn = false
+                            splashViewModel.dismissSessionExpiredDialog()
                             navController.navigate(Auth) {
                                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
                             }

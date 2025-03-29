@@ -68,6 +68,7 @@ fun AuthScreen(
             } else {
                 Log.e("Notification", "Người dùng từ chối quyền!")
             }
+            Log.d("Notification", "Trạng thái quyền sau khi yêu cầu: $isGranted")
         }
     LaunchedEffect(Unit) {
         requestNotificationPermission(context, requestPermissionLauncher)

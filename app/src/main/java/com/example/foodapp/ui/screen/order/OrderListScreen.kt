@@ -90,7 +90,8 @@ fun OrderListScreen(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .weight(1f)
-                    .wrapContentWidth(Alignment.CenterHorizontally)
+                    .wrapContentWidth(Alignment.CenterHorizontally),
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.size(48.dp))
         }
