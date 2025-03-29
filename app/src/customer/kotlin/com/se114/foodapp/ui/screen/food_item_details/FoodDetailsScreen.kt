@@ -344,7 +344,8 @@ fun SharedTransitionScope.FoodHeader(
                 )
                 .clip(
                     RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-                ), contentScale = ContentScale.Crop
+                ),
+            contentScale = ContentScale.Crop
         )
 
 

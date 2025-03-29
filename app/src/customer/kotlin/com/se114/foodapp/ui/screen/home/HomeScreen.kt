@@ -42,6 +42,7 @@ import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.Notification
 import com.se114.foodapp.ui.screen.home.categories.CategoriesList
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
+import com.se114.foodapp.ui.screen.home.banner.Banners
 import kotlinx.coroutines.flow.collectLatest
 
 
@@ -105,57 +106,55 @@ fun SharedTransitionScope.HomeScreen(
                         end = padding.calculateEndPadding(LayoutDirection.Ltr)
                     )
                 )
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
 
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                Spacer(modifier = Modifier.weight(1f))
+                Box(modifier = Modifier.size(50.dp)) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_nofication),
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .align(Center)
+                            .clickable {
+                                viewModel.onNotificationClicked()
+                            }
+                    )
 
-                ) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    Box(modifier = Modifier.size(50.dp)) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_nofication),
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .align(Center)
-                                .clickable {
-                                    viewModel.onNotificationClicked()
-                                }
-                        )
-
-                        if (unReadCount > 0) {
-                            ItemCount(unReadCount)
-                        }
-
-                    }
-                }
-                val uiSate = viewModel.uiState.collectAsStateWithLifecycle()
-                when (uiSate.value) {
-                    is HomeViewModel.HomeState.Loading -> {
-                        CircularProgressIndicator()
+                    if (unReadCount > 0) {
+                        ItemCount(unReadCount)
                     }
 
-                    is HomeViewModel.HomeState.Empty -> {
-                        // Show empty state message
-                    }
-
-                    is HomeViewModel.HomeState.Success -> {
-                        val categories = viewModel.categories
-                        CategoriesList(categories = categories, onCategorySelected = {
-
-                        })
-                    }
                 }
             }
+            Spacer(modifier = Modifier.size(8.dp))
+            Banners()
+            val uiSate = viewModel.uiState.collectAsStateWithLifecycle()
+            when (uiSate.value) {
+                is HomeViewModel.HomeState.Loading -> {
+                    CircularProgressIndicator()
+                }
+
+                is HomeViewModel.HomeState.Empty -> {
+                    // Show empty state message
+                }
+
+                is HomeViewModel.HomeState.Success -> {
+                    val categories = viewModel.categories
+                    CategoriesList(categories = categories, onCategorySelected = {
+
+                    })
+                }
+            }
+
         }
     }
 

@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +32,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material3.AlertDialog
@@ -40,15 +40,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonElevation
+
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -61,7 +59,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -70,21 +68,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.foodapp.R
-import com.example.foodapp.ui.navigation.NavRoute
-import com.example.foodapp.ui.navigation.OrderList
 
-import com.example.foodapp.ui.theme.FoodAppTheme
-import com.se114.foodapp.MainActivity
-import kotlinx.serialization.json.JsonNull.content
+import com.example.foodapp.R
 
 
 @Composable
@@ -298,7 +287,7 @@ fun FoodItemCounter(
         )
         Spacer(modifier = Modifier.size(8.dp))
         Text(
-            text = "${count}",
+            text = "$count",
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(modifier = Modifier.size(8.dp))
@@ -339,7 +328,7 @@ fun BoxScope.ItemCount(count: Int) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = if (count > 99) "99+" else "${count}",
+            text = if (count > 99) "99+" else "$count",
             modifier = Modifier
                 .align(Alignment.Center),
             color = MaterialTheme.colorScheme.onError,
@@ -547,6 +536,8 @@ fun CustomPagerIndicator(
         }
     }
 }
+
+
 
 
 

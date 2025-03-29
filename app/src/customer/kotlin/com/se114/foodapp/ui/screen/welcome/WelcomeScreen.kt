@@ -128,7 +128,7 @@ fun FinishButton(
             Button(
                 onClick = onClick,
             ) {
-                Text(text = "Hoànn tất")
+                Text(text = "Hoàn tất")
             }
         }
     }
