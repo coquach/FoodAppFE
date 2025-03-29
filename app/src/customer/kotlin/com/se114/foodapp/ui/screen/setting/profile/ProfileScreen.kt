@@ -78,7 +78,7 @@ fun ProfileScreen(
 
         }
 
-    val isSavable = remember { mutableStateOf(false)}
+    val isSavable = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -88,7 +88,7 @@ fun ProfileScreen(
         HeaderDefaultView(
             text = "Thông tin cá nhân",
             onBack = {
-
+                navController.popBackStack()
             }
         )
         Column(
@@ -138,7 +138,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.size(20.dp))
             FoodAppTextField(
                 value = "",
-                onValueChange = {  },
+                onValueChange = { },
                 label = {
                     Text(text = stringResource(id = R.string.full_name))
                 },
@@ -149,7 +149,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.size(10.dp))
             FoodAppTextField(
                 value = "",
-                onValueChange = {  },
+                onValueChange = { },
                 label = {
                     Text(text = stringResource(id = R.string.username))
                 },
@@ -160,7 +160,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.size(10.dp))
             FoodAppTextField(
                 value = "",
-                onValueChange = {  },
+                onValueChange = { },
                 label = {
                     Text(text = stringResource(id = R.string.email))
                 },
@@ -171,7 +171,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.size(10.dp))
             FoodAppTextField(
                 value = "",
-                onValueChange = {  },
+                onValueChange = { },
                 label = {
                     Text(text = stringResource(id = R.string.password))
                 },
@@ -182,7 +182,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.size(10.dp))
             FoodAppTextField(
                 value = "",
-                onValueChange = {  },
+                onValueChange = { },
                 label = {
                     Text(text = stringResource(id = R.string.phone_number))
                 },
@@ -250,6 +250,7 @@ fun ProfileScreen(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {

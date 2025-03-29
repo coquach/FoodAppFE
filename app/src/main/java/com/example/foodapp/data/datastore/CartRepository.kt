@@ -58,24 +58,6 @@ class CartRepository @Inject constructor(
         }
     }
 
-    // 🔥 Thêm hoặc cập nhật sản phẩm trong giỏ hàng
-    suspend fun addToCart(cartItem: CartItem) {
-        getCartItems().firstOrNull()?.let { currentItems ->
-            val updatedItems = currentItems.toMutableList()
-            val existingIndex = updatedItems.indexOfFirst { it.id == cartItem.id }
-
-            if (existingIndex != -1) {
-                // Nếu đã có, cập nhật số lượng
-                val existingItem = updatedItems[existingIndex]
-                updatedItems[existingIndex] = existingItem.copy(quantity = cartItem.quantity)
-            } else {
-                // Nếu chưa có, thêm mới
-                updatedItems.add(cartItem)
-            }
-            saveCartItems(updatedItems)
-
-        }
-    }
 
     // 🔥 Xóa sản phẩm khỏi giỏ hàng
     suspend fun clearCartItems(cartItemsToRemove: List<CartItem>) {

@@ -3,14 +3,23 @@ package com.example.foodapp.data
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.dto.request.RefreshTokenRequest
 import com.example.foodapp.data.remote.ApiResponse
 import com.example.foodapp.data.remote.safeApiCall
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class FoodAppSession @Inject constructor(private val context: Context) {
+class FoodAppSession @Inject constructor(
+    private val context: Context,
+    private val cartRepository: CartRepository
+) {
     private val sharePres: SharedPreferences =
         context.getSharedPreferences("FoodApp", Context.MODE_PRIVATE)
 
@@ -27,10 +36,12 @@ class FoodAppSession @Inject constructor(private val context: Context) {
         private set
 
     fun storeToken(accessToken: String, refreshToken: String) {
-        sharePres.edit()
-            .putString(KEY_ACCESS_TOKEN, accessToken)
-            .putString(KEY_REFRESH_TOKEN, refreshToken)
-            .apply()
+        withContext(Dispatchers.IO) {
+            sharePres.edit()
+                .putString("access_token", accessToken)
+                .putString("refresh_token", refreshToken)
+                .apply()
+        }
     }
 
     fun getAccessToken(): String? {
@@ -55,6 +66,10 @@ class FoodAppSession @Inject constructor(private val context: Context) {
             .remove(KEY_ACCESS_TOKEN)
             .remove(KEY_REFRESH_TOKEN)
             .apply()
+        CoroutineScope(Dispatchers.IO).launch {
+            val allCartItems = cartRepository.getCartItems().firstOrNull() ?: emptyList()
+            cartRepository.clearCartItems(allCartItems)
+        }
         _sessionExpiredFlow.tryEmit(Unit)
     }
 
