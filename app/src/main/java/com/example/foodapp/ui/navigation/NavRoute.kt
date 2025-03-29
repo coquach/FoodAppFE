@@ -56,3 +56,6 @@ data class OrderDetails(val orderId: String) : NavRoute
 @Serializable
 object Setting : NavRoute
 
+@Serializable
+object Welcome : NavRoute
+

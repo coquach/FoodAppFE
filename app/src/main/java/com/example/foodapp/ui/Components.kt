@@ -522,4 +522,31 @@ fun ThemeSwitcher(
     }
 }
 
+@Composable
+fun CustomPagerIndicator(
+    modifier: Modifier = Modifier,
+    pageCount: Int,
+    currentPage: Int,
+    dotSize: Dp = 8.dp,
+    dotSpacing: Dp = 6.dp,
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.outline
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(dotSpacing),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(pageCount) { index ->
+            Box(
+                modifier = Modifier
+                    .size(if (index == currentPage) dotSize * 1.5f else dotSize)
+                    .clip(CircleShape)
+                    .background(if (index == currentPage) selectedColor else unselectedColor)
+            )
+        }
+    }
+}
+
+
 

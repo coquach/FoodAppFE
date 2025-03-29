@@ -69,6 +69,7 @@ import com.example.foodapp.ui.navigation.Reservation
 import com.example.foodapp.ui.navigation.Setting
 
 import com.example.foodapp.ui.navigation.SignUp
+import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.ui.navigation.foodItemNavType
 import com.se114.foodapp.ui.screen.address.AddressListScreen
 import com.se114.foodapp.ui.screen.address.addAddress.AddAddressScreen
@@ -88,6 +89,7 @@ import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.se114.foodapp.ui.screen.setting.SettingScreen
 import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
+import com.se114.foodapp.ui.screen.welcome.WelcomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,7 +101,7 @@ import kotlin.reflect.typeOf
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private var showSplashScreen = true
+
 
     @Inject
     lateinit var foodApi: FoodApi
@@ -107,13 +109,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var session: FoodAppSession
 
+    @Inject
+    lateinit var splashViewModel: SplashViewModel
 
 
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
             setKeepOnScreenCondition {
-                showSplashScreen
+                !splashViewModel.isLoading.value
             }
             setOnExitAnimationListener { screen ->
                 val zoomX = ObjectAnimator.ofFloat(
@@ -142,11 +146,14 @@ class MainActivity : ComponentActivity() {
                 zoomX.start()
             }
         }
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
+
+            val screen = splashViewModel.startDestination.value
             FoodAppTheme(darkTheme = isDarkMode) {
 
                 val navItems = listOf(
@@ -219,7 +226,7 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         FoodAppNavHost(
                             navController = navController,
-                            startDestination = if (isLoggedIn) Home else Auth,
+                            startDestination = screen,
                             modifier = Modifier
                                 .padding(innerPadding),
 
@@ -311,6 +318,10 @@ class MainActivity : ComponentActivity() {
                                 shouldShowBottomNav.value = false
                                 ProfileScreen(navController)
                             }
+                            composable<Welcome> {
+                                shouldShowBottomNav.value = false
+                                WelcomeScreen(navController)
+                            }
 
                         }
                     }
@@ -318,10 +329,7 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(3000)
-            showSplashScreen = false
-        }
+
 
     }
 

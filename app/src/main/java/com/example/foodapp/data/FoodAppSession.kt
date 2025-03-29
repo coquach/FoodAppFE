@@ -35,7 +35,7 @@ class FoodAppSession @Inject constructor(
     var isManualLogout = false
         private set
 
-    fun storeToken(accessToken: String, refreshToken: String) {
+    suspend fun storeToken(accessToken: String, refreshToken: String) {
         withContext(Dispatchers.IO) {
             sharePres.edit()
                 .putString("access_token", accessToken)

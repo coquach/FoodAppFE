@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodapp.BuildConfig
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
+import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.token.TokenInterceptor
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -69,8 +70,8 @@ object NetworkModule {
  
 
     @Provides
-    fun provideSession(@ApplicationContext context: Context): FoodAppSession {
-        return FoodAppSession(context)
+    fun provideSession(@ApplicationContext context: Context, cartRepository: CartRepository): FoodAppSession {
+        return FoodAppSession(context, cartRepository)
     }
 
     @Provides
