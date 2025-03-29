@@ -35,15 +35,17 @@ class SettingViewModel @Inject constructor(
                 val response = withContext(Dispatchers.IO) {
                     safeApiCall { foodApi.logout(token) }
                 }
+
                 when (response) {
                     is ApiResponse.Success -> {
-                        foodAppSession.clearTokens(manual = true)
+
                     }
 
                     else -> {
 
                     }
                 }
+                foodAppSession.clearTokens(manual = true)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
