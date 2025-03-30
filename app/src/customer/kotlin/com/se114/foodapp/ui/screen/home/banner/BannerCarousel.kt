@@ -78,17 +78,6 @@ fun AutoSlidingCarousel(
             state = pagerState,
             pageSpacing = 8.dp,
         ) { position ->
-            val pageOffset = ((pagerState.currentPage - position) + pagerState.currentPageOffsetFraction).absoluteValue
-
-            val height by animateDpAsState(
-                targetValue = lerp(150.dp, 180.dp, 1 - pageOffset.coerceIn(0f, 1f)),
-                animationSpec = tween(300)
-            )
-
-            val scale by animateFloatAsState(
-                targetValue = lerp(1f, 1.2f, 1 - pageOffset.coerceIn(0f, 1f)),
-                animationSpec = tween(300)
-            )
 
 
             Image(
@@ -96,13 +85,12 @@ fun AutoSlidingCarousel(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(height)
+                        .height(180.dp)
                         .clip(RoundedCornerShape(30.dp))
                         .graphicsLayer(
-                            scaleX = scale,
-                            scaleY = scale
-                        )
-                        .padding(8.dp),
+                            scaleX = 1.2f,
+                            scaleY = 1.2f
+                        ),
                     contentScale = ContentScale.Crop,
                 )
         }

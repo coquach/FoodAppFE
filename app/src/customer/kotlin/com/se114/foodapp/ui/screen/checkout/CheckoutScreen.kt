@@ -99,7 +99,7 @@ fun CheckoutScreen(
                 }
 
                 is CheckoutViewModel.CheckoutEvents.OrderSuccess -> {
-                    navController.navigate(OrderSuccess("Demo order completed"))
+                    navController.navigate(OrderSuccess("orderId"))
                 }
             }
         }

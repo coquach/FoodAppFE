@@ -19,7 +19,7 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
         BottomNavItem(com.example.foodapp.ui.navigation.Favorite, R.drawable.ic_favorite)
 
     data object Reservation :
-        BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
+        BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_meal)
 
     data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
     data object Setting :

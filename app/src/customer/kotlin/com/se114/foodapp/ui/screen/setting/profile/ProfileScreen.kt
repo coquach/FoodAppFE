@@ -82,8 +82,10 @@ fun ProfileScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+
     ) {
         HeaderDefaultView(
             text = "Thông tin cá nhân",

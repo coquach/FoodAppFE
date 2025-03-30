@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -77,10 +79,12 @@ fun AddressListScreen(
                     navController.popBackStack()
                 }
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.back),
+                Icon(
+                    imageVector = Icons.Filled.ArrowBackIosNew,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                       .size(24.dp)
+
                 )
             }
 

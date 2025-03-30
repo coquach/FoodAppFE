@@ -423,7 +423,8 @@ fun CartHeaderView(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             contentDescription = null,
             modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(end = 16.dp)
+                .size(30.dp)
                 .clip(CircleShape)
                 .clickable { onBack.invoke() },
             tint = MaterialTheme.colorScheme.primary

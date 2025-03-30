@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -70,7 +71,9 @@ class CheckoutViewModel @Inject constructor(
 
     fun onConfirmClicked() {
         viewModelScope.launch {
-            _event.emit(CheckoutEvents.OrderSuccess("12345")) //demo order
+            _event.emit(CheckoutEvents.OrderSuccess("12345"))
+            val allCartItems = cartRepository.getCartItems().firstOrNull() ?: emptyList()
+            cartRepository.clearCartItems(allCartItems)
         }
     }
 

@@ -12,6 +12,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +27,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -102,6 +106,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                     successMessage.value = "Món đã có trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
+
                 is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
                     successMessage.value = "Đã thêm món trong giỏ hàng"
                     showSuccessDialog.value = true
@@ -349,29 +354,44 @@ fun SharedTransitionScope.FoodHeader(
         )
 
 
-        Image(
-            painter = painterResource(id = R.drawable.back),
-            contentDescription = null,
+        IconButton(
+            onClick = {
+                onBackButton.invoke()
+            },
             modifier = Modifier
                 .padding(16.dp)
-                .align(Alignment.TopStart)
+                .size(50.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable {
-                    onBackButton.invoke()
-                }
+                .background(color = MaterialTheme.colorScheme.onPrimary)
+                .padding(4.dp),
 
-        )
+
+            ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBackIosNew,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(30.dp)
+            )
+        }
 
 
         IconButton(
-            onClick = onFavoriteButton,
+            onClick = { /* TODO */ },
             modifier = Modifier
                 .padding(16.dp)
                 .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
                 .align(Alignment.TopEnd)
+
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.favorite), contentDescription = null
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = "Favorite",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(28.dp)
             )
         }
     }

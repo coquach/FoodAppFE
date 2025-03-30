@@ -1,6 +1,11 @@
 package com.example.foodapp.ui
 
 
+import android.util.Log
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -26,15 +31,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Favorite
 
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,6 +54,8 @@ import androidx.compose.material3.FloatingActionButton
 
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -59,21 +72,32 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 
 import com.example.foodapp.R
+import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.ui.theme.FoodAppTheme
+import com.example.foodapp.utils.StringUtils
 
 
 @Composable
@@ -187,6 +211,8 @@ fun FoodAppTextField(
         unfocusedLabelColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
         errorPlaceholderColor = MaterialTheme.colorScheme.error,
         errorIndicatorColor = MaterialTheme.colorScheme.error,
+        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
 
     )
 ) {
@@ -269,6 +295,10 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
     }
 }
 
+
+
+
+
 @Composable
 fun FoodItemCounter(
     onCounterIncrement: () -> Unit,
@@ -278,27 +308,59 @@ fun FoodItemCounter(
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.add),
-            contentDescription = null,
+        IconButton(
+            onClick = {
+                onCounterIncrement.invoke()
+            },
             modifier = Modifier
+
+                .size(35.dp)
                 .clip(CircleShape)
-                .clickable { onCounterIncrement.invoke() }
-        )
+                .background(color = MaterialTheme.colorScheme.primary)
+                .padding(0.dp),
+
+
+            ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .size(28.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.size(8.dp))
         Text(
             text = "$count",
             style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.size(20.dp),
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.size(8.dp))
 
-        Image(
-            painter = painterResource(id = R.drawable.minus),
-            contentDescription = null,
+        IconButton(
+            onClick = {
+                onCounterDecrement.invoke()
+            },
             modifier = Modifier
+
+                .size(35.dp)
                 .clip(CircleShape)
-                .clickable { onCounterDecrement.invoke() }
-        )
+                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                .background(color = MaterialTheme.colorScheme.onPrimary)
+                .padding(0.dp),
+
+
+            ) {
+            Icon(
+                imageVector = Icons.Default.Remove,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(28.dp)
+            )
+        }
     }
 }
 
@@ -372,7 +434,8 @@ fun HeaderDefaultView(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             contentDescription = null,
             modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(end = 16.dp)
+                .size(30.dp)
                 .clip(CircleShape)
                 .clickable { onBack.invoke() },
             tint = MaterialTheme.colorScheme.primary
@@ -533,6 +596,175 @@ fun CustomPagerIndicator(
                     .clip(CircleShape)
                     .background(if (index == currentPage) selectedColor else unselectedColor)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun SharedTransitionScope.FoodItemView(
+    foodItem: FoodItem,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onClick: (FoodItem) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(162.dp)
+            .height(216.dp)
+            .shadow(
+                elevation = 16.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
+                spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
+            )
+            .background(color = MaterialTheme.colorScheme.surface)
+            .clickable { onClick.invoke(foodItem) }
+            .clip(RoundedCornerShape(16.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(147.dp)
+        ) {
+            AsyncImage(
+                model = foodItem.imageUrl, contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .sharedElement(
+                        state = rememberSharedContentState(key = "image/${foodItem.id}"),
+                        animatedVisibilityScope
+                    ),
+                contentScale = ContentScale.Crop,
+            )
+            Text(
+                text = StringUtils.formatCurrency(foodItem.price),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(color = MaterialTheme.colorScheme.outlineVariant)
+                    .padding(horizontal = 16.dp)
+                    .align(Alignment.TopStart)
+            )
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.TopEnd)
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(color = MaterialTheme.colorScheme.primary)
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    modifier = Modifier.size(25.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+
+
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(color = MaterialTheme.colorScheme.outlineVariant)
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "4.5", style = MaterialTheme.typography.titleSmall, maxLines = 1
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = Color.Yellow
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = "(21)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    maxLines = 1
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = foodItem.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                modifier = Modifier.sharedElement(
+                    state = rememberSharedContentState(key = "title/${foodItem.id}"),
+                    animatedVisibilityScope
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = foodItem.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+fun LazyListScope.gridItems(
+    count: Int,
+    nColumns: Int,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    itemContent: @Composable BoxScope.(Int) -> Unit,
+) {
+    gridItems(
+        data = List(count) { it },
+        nColumns = nColumns,
+        horizontalArrangement = horizontalArrangement,
+        itemContent = itemContent,
+    )
+}
+
+fun <T> LazyListScope.gridItems(
+    data: List<T>,
+    nColumns: Int,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    key: ((item: T) -> Any)? = null,
+    itemContent: @Composable BoxScope.(T) -> Unit,
+) {
+    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
+    items(rows) { rowIndex ->
+        Row(horizontalArrangement = horizontalArrangement) {
+            for (columnIndex in 0 until nColumns) {
+                val itemIndex = rowIndex * nColumns + columnIndex
+                if (itemIndex < data.count()) {
+                    val item = data[itemIndex]
+                    androidx.compose.runtime.key(key?.invoke(item)) {
+                        Box(
+                            modifier = Modifier.weight(1f, fill = true),
+                            propagateMinConstraints = true
+                        ) {
+                            itemContent.invoke(this, item)
+                        }
+                    }
+                } else {
+                    Spacer(Modifier.weight(1f, fill = true))
+                }
+            }
         }
     }
 }

@@ -61,7 +61,7 @@ class FoodDetailsViewModel @Inject constructor(
                     val newItem = CartItem(
                         id = UUID.randomUUID().toString(),
                         menuItemId = foodItem,
-                        quantity = 1,
+                        quantity = quantity.value,
                         userId = "user_123",
                         addedAt = System.currentTimeMillis().toString()
                     )
