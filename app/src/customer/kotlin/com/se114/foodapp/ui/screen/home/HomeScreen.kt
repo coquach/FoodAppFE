@@ -66,13 +66,14 @@ import com.example.foodapp.R
 import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.ui.FoodAppTextField
-import com.example.foodapp.ui.FoodItemView
+
 import com.example.foodapp.ui.ItemCount
 import com.example.foodapp.ui.MyFloatingActionButton
 import com.example.foodapp.ui.gridItems
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Notification
+import com.example.foodapp.ui.screen.common.FoodItemView
 import com.se114.foodapp.ui.screen.home.categories.CategoriesList
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme

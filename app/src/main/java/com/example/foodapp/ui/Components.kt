@@ -1,7 +1,9 @@
 package com.example.foodapp.ui
 
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -78,6 +80,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -296,9 +299,6 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
 }
 
 
-
-
-
 @Composable
 fun FoodItemCounter(
     onCounterIncrement: () -> Unit,
@@ -478,17 +478,27 @@ fun Retry(
 @Composable
 fun FoodAppDialog(
     title: String,
+    titleColor: Color = MaterialTheme.colorScheme.scrim,
     message: String,
+    messageColor: Color = MaterialTheme.colorScheme.onBackground,
     onDismiss: () -> Unit,
     onConfirm: (() -> Unit)? = null,
-    confirmText: String = "OK",
-    dismissText: String = "Cancel",
+    confirmText: String = "Ok",
+    dismissText: String = "Đóng",
     showConfirmButton: Boolean = true
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-        text = { Text(text = message, fontSize = 16.sp) },
+        title = {
+            Text(
+                text = title,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = titleColor
+            )
+        },
+        text = { Text(text = message, fontSize = 16.sp, color = messageColor, lineHeight = 24.sp) },
+        containerColor = MaterialTheme.colorScheme.background,
         confirmButton = {
             if (showConfirmButton) {
                 TextButton(onClick = { onConfirm?.invoke(); onDismiss() }) {
@@ -600,130 +610,7 @@ fun CustomPagerIndicator(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun SharedTransitionScope.FoodItemView(
-    foodItem: FoodItem,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    onClick: (FoodItem) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-            .width(162.dp)
-            .height(216.dp)
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(16.dp),
-                ambientColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
-                spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
-            )
-            .background(color = MaterialTheme.colorScheme.surface)
-            .clickable { onClick.invoke(foodItem) }
-            .clip(RoundedCornerShape(16.dp))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(147.dp)
-        ) {
-            AsyncImage(
-                model = foodItem.imageUrl, contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(16.dp))
-                    .sharedElement(
-                        state = rememberSharedContentState(key = "image/${foodItem.id}"),
-                        animatedVisibilityScope
-                    ),
-                contentScale = ContentScale.Crop,
-            )
-            Text(
-                text = StringUtils.formatCurrency(foodItem.price),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(color = MaterialTheme.colorScheme.outlineVariant)
-                    .padding(horizontal = 16.dp)
-                    .align(Alignment.TopStart)
-            )
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .align(Alignment.TopEnd)
-                    .size(30.dp)
-                    .clip(CircleShape)
-                    .background(color = MaterialTheme.colorScheme.primary)
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    modifier = Modifier.size(25.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
 
-
-
-
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(color = MaterialTheme.colorScheme.outlineVariant)
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "4.5", style = MaterialTheme.typography.titleSmall, maxLines = 1
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = Color.Yellow
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = "(21)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    maxLines = 1
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = foodItem.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                modifier = Modifier.sharedElement(
-                    state = rememberSharedContentState(key = "title/${foodItem.id}"),
-                    animatedVisibilityScope
-                ),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = foodItem.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
 
 fun LazyListScope.gridItems(
     count: Int,
@@ -767,6 +654,28 @@ fun <T> LazyListScope.gridItems(
             }
         }
     }
+}
+
+fun showComposeToast(context: Context, message: String) {
+    val toast = Toast(context)
+    toast.duration = Toast.LENGTH_SHORT
+
+    val composeView = ComposeView(context).apply {
+        setContent {
+            FoodAppTheme {
+                Box(
+                    modifier = Modifier
+                        .background(Color.Black, shape = RoundedCornerShape(12.dp))
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(text = message, color = Color.White, fontSize = 16.sp)
+                }
+            }
+        }
+    }
+
+    toast.view = composeView
+    toast.show()
 }
 
 

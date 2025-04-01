@@ -47,6 +47,7 @@ import com.example.foodapp.ui.Retry
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.utils.StringUtils
+import com.se114.foodapp.utils.OrdersUtils
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -69,12 +70,14 @@ fun OrderListScreen(
             viewModel.event.collectLatest {
                 when (it) {
                     is OrderListViewModel.OrderListEvent.NavigateToOrderDetailScreen -> {
-                        navController.navigate(OrderDetails(it.order.id))
+                        navController.navigate(OrderDetails(it.order))
                     }
 
-                    OrderListViewModel.OrderListEvent.NavigateBack -> {
+                    is OrderListViewModel.OrderListEvent.NavigateBack -> {
                         navController.popBackStack()
                     }
+
+                    else -> {}
                 }
             }
         }
@@ -144,7 +147,7 @@ fun OrderListScreen(
                     when (it) {
                         0 -> {
                             OrderListInternal((list
-                                ?: emptyList()).filter { order -> order.status == "Đang chờ" },
+                                ?: emptyList()).filter { order -> order.status == "PENDING_ACCEPTANCE" },
                                 onClick = { order ->
                                     viewModel.navigateToDetails(order)
                                 })
@@ -152,7 +155,7 @@ fun OrderListScreen(
 
                         1 -> {
                             OrderListInternal((list
-                                ?: emptyList()).filter { order -> order.status != "Đang chờ" },
+                                ?: emptyList()).filter { order -> order.status != "PENDING_ACCEPTANCE" },
                                 onClick = { order ->
                                     viewModel.navigateToDetails(order)
                                 })
@@ -171,6 +174,9 @@ fun OrderListScreen(
                     }
                 )
             }
+
+
+            else -> {}
         }
 
     }
@@ -259,19 +265,20 @@ fun OrderDetailsText(order: Order) {
             }
         }
         Spacer(modifier = Modifier.size(8.dp))
-        val statusColor = when (order.status) {
-            "Đang chờ" -> MaterialTheme.colorScheme.primary
-            "Đã gửi" -> MaterialTheme.colorScheme.tertiaryContainer
-            "Đã hủy" -> MaterialTheme.colorScheme.error
-            else -> MaterialTheme.colorScheme.outline
-        }
+        val orderStatus = OrdersUtils.getOrderStatusFromString(order.status)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Trạng thái:", color = Color.Gray)
             Spacer(modifier = Modifier.size(8.dp))
-            Text(text = order.status, color = statusColor, fontWeight = FontWeight.Bold)
+            Text(
+                text = OrdersUtils.getOrderStatusInVietnamese(
+                    orderStatus ?: OrdersUtils.OrderStatus.DEFAULT
+                ),
+                color = OrdersUtils.getStatusColor(orderStatus ?: OrdersUtils.OrderStatus.DEFAULT),
+                fontWeight = FontWeight.Bold
+            )
         }
         Spacer(modifier = Modifier.size(16.dp))
     }

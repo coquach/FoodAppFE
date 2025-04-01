@@ -37,7 +37,7 @@ class OrderListViewModel @Inject constructor() : ViewModel() {
                     userId = "user_123",
                     createdAt = "2025-03-23T10:00:00Z",
                     updatedAt = "2025-03-23T10:30:00Z",
-                    status = "Đang chờ",
+                    status = "PENDING_ACCEPTANCE",
                     totalAmount = 150.0f,
                     paymentMethod = "Credit Card",
                     address = Address(
@@ -62,7 +62,7 @@ class OrderListViewModel @Inject constructor() : ViewModel() {
                     userId = "user_456",
                     createdAt = "2025-03-23T11:00:00Z",
                     updatedAt = "2025-03-23T11:15:00Z",
-                    status = "Đã gửi",
+                    status = "CANCELLED",
                     totalAmount = 250.0f,
                     paymentMethod = "PayPal",
                     address = Address(
@@ -87,7 +87,7 @@ class OrderListViewModel @Inject constructor() : ViewModel() {
                     userId = "user_456",
                     createdAt = "2025-03-23T11:00:00Z",
                     updatedAt = "2025-03-23T11:15:00Z",
-                    status = "Đã hủy",
+                    status = "ACCEPTED",
                     totalAmount = 250.0f,
                     paymentMethod = "PayPal",
                     address = Address(
@@ -114,9 +114,9 @@ class OrderListViewModel @Inject constructor() : ViewModel() {
     }
 
 
-    fun navigateToDetails(order: Order) {
+    fun navigateToDetails(it: Order) {
         viewModelScope.launch {
-            _event.emit(OrderListEvent.NavigateToOrderDetailScreen(order))
+            _event.emit(OrderListEvent.NavigateToOrderDetailScreen(it))
         }
     }
 

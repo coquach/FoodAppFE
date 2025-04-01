@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.navigation.NavType
 
 import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.Order
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -34,4 +35,30 @@ val foodItemNavType = object : NavType<FoodItem>(false) {
         bundle.putString(key, serializeAsValue(value))
     }
 
+}
+
+val orderNavType = object : NavType<Order>(false) {
+    override fun get(bundle: Bundle, key: String): Order? {
+        return parseValue(bundle.getString(key).toString()).copy(
+            address = parseValue(bundle.getString(key).toString()).address,
+            createdAt = parseValue(bundle.getString(key).toString()).createdAt,
+            updatedAt = parseValue(bundle.getString(key).toString()).updatedAt
+        )
+    }
+
+    override fun parseValue(value: String): Order {
+        return Json.decodeFromString(Order.serializer(), value)
+    }
+
+    override fun serializeAsValue(value: Order): String {
+        return Json.encodeToString(Order.serializer(), value.copy(
+            address = value.address,
+            createdAt = value.createdAt,
+            updatedAt = value.updatedAt
+        ))
+    }
+
+    override fun put(bundle: Bundle, key: String, value: Order) {
+        bundle.putString(key, serializeAsValue(value))
+    }
 }

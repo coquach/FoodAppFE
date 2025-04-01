@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.foodapp.R
+import com.example.foodapp.ui.FoodAppDialog
 import com.example.foodapp.ui.ThemeSwitcher
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Profile
@@ -78,16 +79,14 @@ fun SettingScreen(
     val isDarkMode = rememberSaveable { mutableStateOf(false) }
     val isNotificationMode = rememberSaveable { mutableStateOf(false) }
 
-    val showSheetLogout = remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    val scope = rememberCoroutineScope()
+    val showDialogLogout = remember { mutableStateOf(false) }
 
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
                 is SettingViewModel.SettingEvents.OnLogout -> {
-                    showSheetLogout.value = true
+                    showDialogLogout.value = true
                 }
 
                 is SettingViewModel.SettingEvents.NavigateToAuth -> {
@@ -206,56 +205,27 @@ fun SettingScreen(
             }
         }
     }
-    if (showSheetLogout.value) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheetLogout.value = false },
-            sheetState = sheetState
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Bạn muốn đăng xuất?",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.error,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.size(16.dp))
-                Button(
-                    onClick = {
-                        viewModel.onLogoutClicked()
-                        showSheetLogout.value = false
+    if (showDialogLogout.value) {
 
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Đăng xuất",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-                Spacer(modifier = Modifier.size(16.dp))
-                Button(
-                    onClick = {
-                        scope.launch {
-                            sheetState.hide()
-                            showSheetLogout.value = false
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(text = "Trở lại", color = MaterialTheme.colorScheme.onPrimaryContainer)
-                }
+        FoodAppDialog(
+            title = "Đăng xuất",
+            titleColor = MaterialTheme.colorScheme.error,
+            message = "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không?",
+            onDismiss = {
 
-            }
-        }
+                showDialogLogout.value = false
+            },
+            onConfirm = {
+                viewModel.onLogoutClicked()
+                showDialogLogout.value = false
+
+            },
+            confirmText = "Đăng xuất",
+            dismissText = "Đóng",
+            showConfirmButton = true
+        )
+
+
     }
 }
 

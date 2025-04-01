@@ -63,6 +63,7 @@ import com.example.foodapp.ui.Loading
 import com.example.foodapp.ui.Retry
 import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.OrderSuccess
+import com.example.foodapp.ui.screen.common.ItemView
 
 import com.se114.foodapp.ui.screen.cart.CartViewModel
 import com.se114.foodapp.ui.screen.cart.CheckoutDetailsView
@@ -250,74 +251,7 @@ fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
 
 }
 
-@Composable
-fun ItemView(
-    cartItem: CartItem
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        AsyncImage(
-            model = cartItem.menuItemId.imageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .size(82.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Column(
-                horizontalAlignment = Alignment.Start
-            ) {
 
-                Text(
-                    text = cartItem.menuItemId.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = cartItem.menuItemId.description,
-                    color = MaterialTheme.colorScheme.outline,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End
-
-            ) {
-                Text(
-                    text = "SL: ${cartItem.quantity}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline,
-
-                    )
-                Text(
-                    text = StringUtils.formatCurrency(cartItem.menuItemId.price),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-
-
-        }
-    }
-
-
-}
 
 @Composable
 fun PaymentMethod(payment: Payment = Payment()) {

@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.foodapp.R
 import com.example.foodapp.ui.FoodAppTextField
 import com.example.foodapp.ui.HeaderDefaultView
@@ -109,7 +110,11 @@ fun ProfileScreen(
             ) {
 
                 Image(
-                    painter = painterResource(id = R.drawable.avatar_placeholder),
+                    painter = if (imageUri != null) {
+                        rememberAsyncImagePainter(imageUri)
+                    } else {
+                        painterResource(id = R.drawable.avatar_placeholder)
+                    },
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .size(100.dp)

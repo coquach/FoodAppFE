@@ -45,7 +45,7 @@ fun NotificationListScreen(
         viewModel.event.collectLatest {
             when (it) {
                 is NotificationViewModel.NotificationEvent.NavigateToOrderDetail -> {
-                    navController.navigate(OrderDetails(it.orderID))
+                    navController.navigate(OrderDetails(it.order))
                 }
             }
         }

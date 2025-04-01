@@ -44,6 +44,7 @@ import com.example.foodapp.R
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.Order
 
 import com.example.foodapp.ui.FoodAppDialog
 import com.example.foodapp.ui.navigation.AddAddress
@@ -71,6 +72,7 @@ import com.example.foodapp.ui.navigation.Setting
 import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.ui.navigation.foodItemNavType
+import com.example.foodapp.ui.navigation.orderNavType
 import com.se114.foodapp.ui.screen.address.AddressListScreen
 import com.se114.foodapp.ui.screen.address.addAddress.AddAddressScreen
 import com.example.foodapp.ui.screen.auth.AuthScreen
@@ -111,7 +113,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var splashViewModel: SplashViewModel
-
 
 
     @OptIn(ExperimentalSharedTransitionApi::class)
@@ -287,11 +288,13 @@ class MainActivity : ComponentActivity() {
                                 OrderSuccess(orderID, navController)
                             }
 
-                            composable<OrderDetails> {
+                            composable<OrderDetails>(
+                                typeMap = mapOf(typeOf<Order>() to orderNavType)
+                            ) {
                                 shouldShowBottomNav.value = false
-                                val orderID = it.toRoute<OrderDetails>().orderId
+                                val route = it.toRoute<OrderDetails>()
                                 OrderDetailScreen(
-                                    navController, orderID
+                                    navController, order = route.order
                                 )
                             }
                             composable<Setting> {
