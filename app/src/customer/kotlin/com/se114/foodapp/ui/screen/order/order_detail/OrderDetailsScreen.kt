@@ -1,18 +1,14 @@
 package com.example.foodapp.ui.screen.order.order_detail
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.magnifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Numbers
-import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
@@ -35,10 +31,8 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.Address
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.OrderItem
-import com.example.foodapp.ui.HeaderDefaultView
-import com.example.foodapp.ui.Loading
-import com.example.foodapp.ui.Retry
-import com.example.foodapp.ui.screen.order.OrderDetailsText
+import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.utils.OrdersUtils

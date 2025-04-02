@@ -8,7 +8,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,8 +48,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.foodapp.R
-import com.example.foodapp.ui.FoodAppTextField
-import com.example.foodapp.ui.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.FoodAppTextField
+import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.ImageUtils
 import kotlinx.coroutines.launch
@@ -146,9 +143,7 @@ fun ProfileScreen(
             FoodAppTextField(
                 value = "",
                 onValueChange = { },
-                label = {
-                    Text(text = stringResource(id = R.string.full_name))
-                },
+                labelText = stringResource(R.string.full_name),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 maxLines = 1
@@ -157,9 +152,7 @@ fun ProfileScreen(
             FoodAppTextField(
                 value = "",
                 onValueChange = { },
-                label = {
-                    Text(text = stringResource(id = R.string.username))
-                },
+                labelText = stringResource(R.string.username),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 maxLines = 1
@@ -168,9 +161,7 @@ fun ProfileScreen(
             FoodAppTextField(
                 value = "",
                 onValueChange = { },
-                label = {
-                    Text(text = stringResource(id = R.string.email))
-                },
+                labelText = stringResource(R.string.email),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 maxLines = 1
@@ -179,9 +170,7 @@ fun ProfileScreen(
             FoodAppTextField(
                 value = "",
                 onValueChange = { },
-                label = {
-                    Text(text = stringResource(id = R.string.password))
-                },
+                labelText = stringResource(R.string.password),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 maxLines = 1
@@ -190,9 +179,7 @@ fun ProfileScreen(
             FoodAppTextField(
                 value = "",
                 onValueChange = { },
-                label = {
-                    Text(text = stringResource(id = R.string.phone_number))
-                },
+                labelText = stringResource(R.string.phone_number),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 maxLines = 1

@@ -60,3 +60,15 @@ object Setting : NavRoute
 @Serializable
 object Welcome : NavRoute
 
+
+@Serializable
+object SendEmail: NavRoute
+
+@Serializable
+object SendOtp: NavRoute
+
+@Serializable
+object ChangePassword: NavRoute
+
+@Serializable
+object ResetPasswordSuccess : NavRoute

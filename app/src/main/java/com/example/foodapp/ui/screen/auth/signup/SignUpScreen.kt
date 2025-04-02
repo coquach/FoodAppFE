@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,13 +17,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -44,6 +43,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -56,9 +57,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.BasicDialog
-import com.example.foodapp.ui.FoodAppTextField
-import com.example.foodapp.ui.GroupSocialButtons
+import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
@@ -175,9 +175,7 @@ fun SignUpScreen(
             FoodAppTextField(
                 value = fullName.value,
                 onValueChange = { viewModel.onFullNameChanged(it) },
-                label = {
-                    Text(text = stringResource(id = R.string.full_name))
-                },
+                labelText = stringResource(R.string.full_name),
                 isError = fullNameError.value != null,
                 errorText = fullNameError.value,
                 modifier = Modifier
@@ -191,6 +189,10 @@ fun SignUpScreen(
                             ) { it.isNotBlank() }
                         }
                     },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
                 singleLine = true,
                 maxLines = 1
             )
@@ -200,9 +202,7 @@ fun SignUpScreen(
                     viewModel.onUsernameChanged(it)
                     if (!isTouched) isTouched = true
                 },
-                label = {
-                    Text(text = stringResource(id = R.string.username))
-                },
+                labelText = stringResource(R.string.username),
                 isError = usernameError.value != null,
                 errorText = usernameError.value,
                 modifier = Modifier
@@ -216,6 +216,9 @@ fun SignUpScreen(
                             ) { it.length >= 4 }
                         }
                     },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next
+                ),
                 singleLine = true,
                 maxLines = 1
             )
@@ -225,9 +228,7 @@ fun SignUpScreen(
                     viewModel.onEmailChanged(it)
                     if (!isTouched) isTouched = true
                 },
-                label = {
-                    Text(text = stringResource(id = R.string.email))
-                },
+                labelText = stringResource(R.string.email),
                 isError = emailError.value != null,
                 errorText = emailError.value,
                 modifier = Modifier
@@ -241,6 +242,10 @@ fun SignUpScreen(
                             ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) }
                         }
                     },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
                 singleLine = true,
                 maxLines = 1
             )
@@ -250,9 +255,7 @@ fun SignUpScreen(
                     viewModel.onPasswordChanged(it)
                     if (!isTouched) isTouched = true
                 },
-                label = {
-                    Text(text = stringResource(id = R.string.password))
-                },
+                labelText = stringResource(R.string.password),
                 isError = passwordError.value != null,
                 errorText = passwordError.value,
                 modifier = Modifier
@@ -269,17 +272,32 @@ fun SignUpScreen(
                 visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
 
-                    Image(
-                        painter = if (showPassword) painterResource(id = R.drawable.ic_eye) else painterResource(
-                            id = R.drawable.ic_slash_eye
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { showPassword = !showPassword }
-
-                    )
+                    IconButton(
+                        onClick = {
+                            showPassword = !showPassword
+                        },
+                    ) {
+                        if (!showPassword) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_eye),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_slash_eye),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
                 },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Next
+                ),
                 singleLine = true,
                 maxLines = 1
 
@@ -290,9 +308,7 @@ fun SignUpScreen(
                     viewModel.onPhoneNumberChanged(it)
                     if (!isTouched) isTouched = true
                 },
-                label = {
-                    Text(text = stringResource(id = R.string.phone_number))
-                },
+                labelText = stringResource(R.string.phone_number),
                 isError = phoneNumberError.value != null,
                 errorText = phoneNumberError.value,
                 modifier = Modifier
@@ -306,6 +322,10 @@ fun SignUpScreen(
                             ) { it.matches(Regex("^(\\+84|0)[0-9]{9,10}\$")) }
                         }
                     },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
                 singleLine = true,
                 maxLines = 1,
             )

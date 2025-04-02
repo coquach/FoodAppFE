@@ -13,8 +13,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -60,8 +59,8 @@ import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.model.FoodItem
 
-import com.example.foodapp.ui.BasicDialog
-import com.example.foodapp.ui.FoodItemCounter
+import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.utils.StringUtils
 
@@ -189,10 +188,22 @@ fun SharedTransitionScope.FoodDetailsScreen(
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.cart),
-                                contentDescription = null
-                            )
+                            Box(
+                                modifier = Modifier
+                                   .size(30.dp)
+                                   .clip(CircleShape)
+                                   .background(MaterialTheme.colorScheme.background)
+                                   .padding(4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(24.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                             Spacer(modifier = Modifier.size(8.dp))
                             Text(
                                 text = "Thêm vào giỏ hàng".uppercase(),

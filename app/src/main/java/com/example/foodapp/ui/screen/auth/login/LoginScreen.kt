@@ -8,11 +8,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,11 +21,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -53,11 +58,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.BasicDialog
-import com.example.foodapp.ui.FoodAppTextField
-import com.example.foodapp.ui.GroupSocialButtons
+import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.FoodAppTextField
+import com.example.foodapp.ui.screen.components.GroupSocialButtons
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
+import com.example.foodapp.ui.navigation.SendEmail
 
 import com.example.foodapp.ui.navigation.SignUp
 
@@ -81,6 +87,8 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
 
+    var rememberMe by remember { mutableStateOf(false) }
+
     LaunchedEffect(errorMessage.value) {
         if (errorMessage.value != null)
             scope.launch {
@@ -88,7 +96,7 @@ fun LoginScreen(
             }
     }
 
-    val context = LocalContext.current
+
     LaunchedEffect(true) {
         viewModel.navigationEvent.collectLatest { event ->
             when (event) {
@@ -99,11 +107,13 @@ fun LoginScreen(
                         }
                     }
                 }
+
                 is LoginViewModel.LoginNavigationEvent.NavigateSignUp -> {
                     navController.navigate(SignUp)
                 }
-                else -> {
-                    // Handle other navigation events
+
+                is LoginViewModel.LoginNavigationEvent.NavigateForgot -> {
+                    navController.navigate(SendEmail)
                 }
             }
 
@@ -111,7 +121,7 @@ fun LoginScreen(
     }
 
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center ) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
 
         val uiState = viewModel.uiState.collectAsStateWithLifecycle()
@@ -152,78 +162,139 @@ fun LoginScreen(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
 
-            )
+                )
             Spacer(modifier = Modifier.size(20.dp))
-            FoodAppTextField(
-                value = username.value,
-                onValueChange = { viewModel.onUsernameChanged(it) },
-                label = {
-                    Text(text = stringResource(id = R.string.username))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                maxLines = 1
-            )
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    FoodAppTextField(
+                        value = username.value,
+                        onValueChange = { viewModel.onUsernameChanged(it) },
+                        labelText = stringResource(R.string.username),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        maxLines = 1
+                    )
 
-            FoodAppTextField(
-                value = password.value,
-                onValueChange = { viewModel.onPasswordChanged(it) },
-                label = {
-                    Text(text = stringResource(id = R.string.password))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
+                    FoodAppTextField(
+                        value = password.value,
+                        onValueChange = { viewModel.onPasswordChanged(it) },
+                        labelText = stringResource(R.string.password),
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
 
-                    Image(
-                        painter = if (showPassword) painterResource(id = R.drawable.ic_eye) else painterResource(id = R.drawable.ic_slash_eye),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { showPassword = !showPassword}
+                            IconButton(
+                                onClick = {
+                                    showPassword = !showPassword
+                                },
+                            ) {
+                                if (!showPassword) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_eye),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_slash_eye),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        maxLines = 1
 
                     )
-                },
-                singleLine = true,
-                maxLines = 1
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
-            )
-            Spacer(modifier = Modifier.size(16.dp))
-            Button(
-                onClick = viewModel::onLoginClick,
-                modifier = Modifier
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Box {
-                    AnimatedContent(
-                        targetState = loading.value,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f) togetherWith
-                                    fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
-                        }
-                    ) { target ->
-                        if (target) {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier
-                                    .padding(horizontal = 32.dp)
-                                    .size(24.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { }
+                        ) {
+                            Checkbox(
+                                checked = rememberMe,
+                                onCheckedChange = { rememberMe = !it }
                             )
-                        } else {
                             Text(
-                                text = stringResource(id = R.string.log_in),
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 32.dp)
+                                text = "Nhớ mật khẩu",
+                                color = MaterialTheme.colorScheme.outline,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.ExtraBold,
                             )
+                        }
+
+
+                        TextButton(onClick = {
+                            viewModel.onForgotPasswordClick()
+                        }) {
+                            Text(
+                                text = stringResource(R.string.forgot_password),
+                                color = MaterialTheme.colorScheme.outline,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.size(16.dp))
+                    Button(
+                        onClick = viewModel::onLoginClick,
+                        modifier = Modifier
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Box {
+                            AnimatedContent(
+                                targetState = loading.value,
+                                transitionSpec = {
+                                    fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f) togetherWith
+                                            fadeOut(animationSpec = tween(300)) + scaleOut(
+                                        targetScale = 0.8f
+                                    )
+                                }
+                            ) { target ->
+                                if (target) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier
+                                            .padding(horizontal = 32.dp)
+                                            .size(24.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = stringResource(id = R.string.log_in),
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 32.dp)
+                                    )
+                                }
+
+                            }
                         }
 
                     }
                 }
-
             }
+
             Spacer(modifier = Modifier.size(16.dp))
-            if(isCustomer) {
+            if (isCustomer) {
                 Text(
                     text = stringResource(id = R.string.dont_have_account),
                     modifier = Modifier

@@ -2,7 +2,6 @@ package com.se114.foodapp
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
@@ -14,39 +13,27 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-
-import androidx.compose.ui.res.painterResource
 
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.foodapp.R
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
 
-import com.example.foodapp.ui.FoodAppDialog
+import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.navigation.AddAddress
 import com.example.foodapp.ui.navigation.AddressList
 
@@ -60,13 +47,13 @@ import com.example.foodapp.ui.navigation.FoodAppNavHost
 import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
-import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Notification
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.navigation.Profile
 import com.example.foodapp.ui.navigation.Reservation
+import com.example.foodapp.ui.navigation.SendEmail
 import com.example.foodapp.ui.navigation.Setting
 
 import com.example.foodapp.ui.navigation.SignUp
@@ -76,6 +63,7 @@ import com.example.foodapp.ui.navigation.orderNavType
 import com.se114.foodapp.ui.screen.address.AddressListScreen
 import com.se114.foodapp.ui.screen.address.addAddress.AddAddressScreen
 import com.example.foodapp.ui.screen.auth.AuthScreen
+import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
 import com.se114.foodapp.ui.screen.cart.CartScreen
@@ -93,11 +81,6 @@ import com.se114.foodapp.ui.screen.setting.SettingScreen
 import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
 import com.se114.foodapp.ui.screen.welcome.WelcomeScreen
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.reflect.typeOf
 
@@ -232,6 +215,10 @@ class MainActivity : ComponentActivity() {
                             composable<Login> {
                                 shouldShowBottomNav.value = false
                                 LoginScreen(navController)
+                            }
+                            composable<SendEmail> {
+                                shouldShowBottomNav.value = false
+                                SendEmailScreen(navController)
                             }
                             composable<Home> {
                                 shouldShowBottomNav.value = true

@@ -94,10 +94,17 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun onForgotPasswordClick() {
+        viewModelScope.launch {
+            _navigationEvent.emit(LoginNavigationEvent.NavigateForgot)
+        }
+    }
+
 
     sealed class LoginNavigationEvent {
         data object NavigateSignUp : LoginNavigationEvent()
         data object NavigateHome : LoginNavigationEvent()
+        data object NavigateForgot : LoginNavigationEvent()
     }
 
     sealed class LoginEvent {

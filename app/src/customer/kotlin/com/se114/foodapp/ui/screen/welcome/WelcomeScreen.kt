@@ -13,7 +13,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 
@@ -27,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.foodapp.ui.CustomPagerIndicator
+import com.example.foodapp.ui.screen.components.CustomPagerIndicator
 import com.example.foodapp.ui.navigation.Auth
 
 import com.se114.foodapp.ui.screen.welcome.on_boarding_page.OnBoardingPage
