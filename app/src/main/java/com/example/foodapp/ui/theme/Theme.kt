@@ -131,9 +131,6 @@ fun FoodAppTheme(
             val activity = view.context as Activity
             val window = activity.window
 
-            window.statusBarColor = colorScheme.primary.toArgb()
-
-
             val insetsController = WindowInsetsControllerCompat(window, view)
             insetsController.isAppearanceLightStatusBars = !darkTheme
         }

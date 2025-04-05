@@ -1,15 +1,12 @@
-package com.example.foodapp.data
+package com.example.foodapp.data.remote
 
-import com.example.foodapp.data.dto.request.AddToCartRequest
 import com.example.foodapp.data.dto.request.LoginRequest
 import com.example.foodapp.data.dto.request.RefreshTokenRequest
 import com.example.foodapp.data.dto.request.SignUpRequest
-import com.example.foodapp.data.dto.response.AddToCartResponse
 import com.example.foodapp.data.dto.response.AuthResponse
 import com.example.foodapp.data.dto.response.BaseResponse
 
 import com.example.foodapp.data.dto.response.CategoriesResponse
-import com.example.foodapp.data.remote.ApiResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

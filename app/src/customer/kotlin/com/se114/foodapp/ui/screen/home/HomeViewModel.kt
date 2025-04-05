@@ -2,11 +2,11 @@ package com.se114.foodapp.ui.screen.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.FoodApi
+import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.model.Category
-import com.example.foodapp.data.remote.ApiResponse
-import com.example.foodapp.data.remote.safeApiCall
+import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

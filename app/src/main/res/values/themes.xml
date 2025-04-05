@@ -4,6 +4,7 @@
 
     <style name="Theme.FoodApp" parent="android:Theme.Material.Light.NoActionBar"/>
 
+
     <style name="SplashTheme" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="postSplashScreenTheme">@style/Theme.FoodApp</item>

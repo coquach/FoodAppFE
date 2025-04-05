@@ -86,84 +86,9 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.theme.FoodAppTheme
 
 
-@Composable
-fun GroupSocialButtons(
-    color: Color = Color.White,
-) {
-
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            HorizontalDivider(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp),
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outline
-            )
-            Text(
-                text = stringResource(id = R.string.sign_in_with),
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(8.dp)
-            )
-            HorizontalDivider(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outline
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            SocialButton(
-                icon = R.drawable.ic_facebook,
-                title = R.string.sign_with_facebook,
-                onClick = { }
-            )
-            SocialButton(
-                icon = R.drawable.ic_google,
-                title = R.string.sign_with_google,
-                onClick = { }
-            )
-        }
-
-    }
-}
 
 
-@Composable
-fun SocialButton(
-    icon: Int, title: Int, onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-        shape = RoundedCornerShape(32.dp),
-    ) {
-        Row(
-            modifier = Modifier.height(38.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = icon),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = stringResource(id = title),
-                color = Color.Black
-            )
-        }
-    }
-}
+
 
 @Composable
 fun FoodAppTextField(
@@ -256,16 +181,19 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
+                .background(color = MaterialTheme.colorScheme.surface)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = title,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = description,
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.size(16.dp))
             Button(
@@ -276,7 +204,7 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
                 ) {
                 Text(
                     text = stringResource(id = R.string.ok),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.padding(horizontal = 32.dp)
                 )
             }

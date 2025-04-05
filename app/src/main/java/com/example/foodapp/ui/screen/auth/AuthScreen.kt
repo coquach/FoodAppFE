@@ -49,7 +49,6 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.screen.components.GroupSocialButtons
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -130,7 +129,6 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
            if(isCustomer) {
-               GroupSocialButtons()
                Spacer(modifier = Modifier.height(16.dp))
                Button(
                    onClick = {

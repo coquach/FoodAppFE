@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.Credential
 import androidx.hilt.navigation.compose.hiltViewModel
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,12 +61,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
-import com.example.foodapp.ui.screen.components.GroupSocialButtons
+
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.SendEmail
 
 import com.example.foodapp.ui.navigation.SignUp
+import com.example.foodapp.ui.screen.components.GoogleLoginButton
 
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.coroutines.flow.collectLatest
@@ -78,7 +80,7 @@ fun LoginScreen(
     isCustomer: Boolean = true,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val username = viewModel.username.collectAsStateWithLifecycle()
+    val email = viewModel.email.collectAsStateWithLifecycle()
     val password = viewModel.password.collectAsStateWithLifecycle()
     var showPassword by remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
@@ -127,7 +129,6 @@ fun LoginScreen(
         val uiState = viewModel.uiState.collectAsStateWithLifecycle()
         when (uiState.value) {
             is LoginViewModel.LoginEvent.Error -> {
-                // show error
                 loading.value = false
                 errorMessage.value = "Failed"
             }
@@ -177,9 +178,9 @@ fun LoginScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     FoodAppTextField(
-                        value = username.value,
-                        onValueChange = { viewModel.onUsernameChanged(it) },
-                        labelText = stringResource(R.string.username),
+                        value = email.value,
+                        onValueChange = { viewModel.onEmailChanged(it) },
+                        labelText = stringResource(R.string.email),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         maxLines = 1
@@ -306,7 +307,11 @@ fun LoginScreen(
                     textAlign = TextAlign.Center
 
                 )
-                GroupSocialButtons(color = Color.Black)
+                GoogleLoginButton(
+                    onGetCredentialResponse = { credential ->
+                        viewModel.onLoginWithGoogleClick(credential)
+                    }
+                )
 
             }
         }

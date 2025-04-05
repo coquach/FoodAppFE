@@ -1,9 +1,9 @@
 package com.example.foodapp.ui.screen.auth
 
 import androidx.lifecycle.ViewModel
-import com.example.foodapp.data.FoodApi
+import com.example.foodapp.data.remote.FoodApi
 
-abstract class BaseAuthViewModel(open val foodApi: FoodApi) : ViewModel() {
+abstract class BaseAuthViewModel() : ViewModel() {
 
 
     var error: String = ""

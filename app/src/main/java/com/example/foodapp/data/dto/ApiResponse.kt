@@ -1,4 +1,4 @@
-package com.example.foodapp.data.remote
+package com.example.foodapp.data.dto
 
 import retrofit2.Response
 

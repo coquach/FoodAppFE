@@ -28,8 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.foodapp.data.FoodApi
-import com.example.foodapp.data.FoodAppSession
+import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
 
@@ -92,9 +91,6 @@ class MainActivity : ComponentActivity() {
     lateinit var foodApi: FoodApi
 
     @Inject
-    lateinit var session: FoodAppSession
-
-    @Inject
     lateinit var splashViewModel: SplashViewModel
 
 
@@ -139,7 +135,7 @@ class MainActivity : ComponentActivity() {
             var isDarkMode by remember { mutableStateOf(darkMode) }
 
             val screen by splashViewModel.startDestination
-            val showSessionExpiredDialog by splashViewModel.showSessionExpiredDialog
+
             FoodAppTheme(darkTheme = isDarkMode) {
 
                 val navItems = listOf(
@@ -158,25 +154,7 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
-                if (showSessionExpiredDialog) {
-                    FoodAppDialog(
-                        title = "Phiên đăng nhập hết hạn",
-                        message = "Bạn cần đăng nhập lại để tiếp tục sử dụng ứng dụng.",
-                        onDismiss = {
 
-                            splashViewModel.dismissSessionExpiredDialog()
-                        },
-                        onConfirm = {
-                            splashViewModel.dismissSessionExpiredDialog()
-                            navController.navigate(Auth) {
-                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                            }
-                        },
-                        confirmText = "Đăng nhập lại",
-                        dismissText = "Đóng",
-                        showConfirmButton = true
-                    )
-                }
 
 
 

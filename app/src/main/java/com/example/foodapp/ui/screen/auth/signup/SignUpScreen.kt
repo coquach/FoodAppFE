@@ -62,6 +62,7 @@ import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
+import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.ValidateField
 import kotlinx.coroutines.flow.collectLatest
@@ -73,17 +74,16 @@ fun SignUpScreen(
     navController: NavController,
     viewModel: SignUpViewModel = hiltViewModel()
 ) {
-    val username = viewModel.username.collectAsStateWithLifecycle()
+
     val email = viewModel.email.collectAsStateWithLifecycle()
     val password = viewModel.password.collectAsStateWithLifecycle()
-    val fullName = viewModel.fullName.collectAsStateWithLifecycle()
-    val phoneNumber = viewModel.phoneNumber.collectAsStateWithLifecycle()
+    val confirmPassword = viewModel.confirmPassword.collectAsStateWithLifecycle()
 
-    val usernameError = viewModel.usernameError
+
     val emailError = viewModel.emailError
     val passwordError = viewModel.passwordError
-    val fullNameError = viewModel.fullNameError
-    val phoneNumberError = viewModel.phoneNumberError
+    val conFirmPasswordError = viewModel.confirmPasswordError
+
     var isTouched by remember { mutableStateOf(false) }
 
     var showPassword by remember { mutableStateOf(false) }
@@ -91,17 +91,19 @@ fun SignUpScreen(
     val loading = remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    var showDialog by remember { mutableStateOf(false) }
+    var showErrorSheet by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
+
 
 
     LaunchedEffect(errorMessage.value) {
         if (errorMessage.value != null)
             scope.launch {
-                showDialog = true
+                showErrorSheet = true
             }
     }
 
-    val context = LocalContext.current
     LaunchedEffect(true) {
         viewModel.navigationEvent.collectLatest { event ->
             when (event) {
@@ -120,10 +122,9 @@ fun SignUpScreen(
                         }
                     }
                 }
-
-                else -> {
-                    // Handle other navigation events
-                }
+               is SignUpViewModel.SignUpNavigationEvent.showSuccesDialog -> {
+                   showSuccessDialog = true
+               }
             }
 
         }
@@ -135,7 +136,7 @@ fun SignUpScreen(
         val uiState = viewModel.uiState.collectAsStateWithLifecycle()
         when (uiState.value) {
             is SignUpViewModel.SignUpEvent.Error -> {
-                // show error
+
                 loading.value = false
                 errorMessage.value = "Failed"
             }
@@ -172,56 +173,6 @@ fun SignUpScreen(
 
             )
             Spacer(modifier = Modifier.size(20.dp))
-            FoodAppTextField(
-                value = fullName.value,
-                onValueChange = { viewModel.onFullNameChanged(it) },
-                labelText = stringResource(R.string.full_name),
-                isError = fullNameError.value != null,
-                errorText = fullNameError.value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (isTouched && !focusState.isFocused) {
-                            ValidateField(
-                                fullName.value,
-                                fullNameError,
-                                "Họ tên không được để trống"
-                            ) { it.isNotBlank() }
-                        }
-                    },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                singleLine = true,
-                maxLines = 1
-            )
-            FoodAppTextField(
-                value = username.value,
-                onValueChange = {
-                    viewModel.onUsernameChanged(it)
-                    if (!isTouched) isTouched = true
-                },
-                labelText = stringResource(R.string.username),
-                isError = usernameError.value != null,
-                errorText = usernameError.value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (isTouched && !focusState.isFocused) {
-                            ValidateField(
-                                username.value,
-                                usernameError,
-                                "Tên đăng nhập phải có ít nhất 4 ký tự"
-                            ) { it.length >= 4 }
-                        }
-                    },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next
-                ),
-                singleLine = true,
-                maxLines = 1
-            )
             FoodAppTextField(
                 value = email.value,
                 onValueChange = {
@@ -303,32 +254,59 @@ fun SignUpScreen(
 
             )
             FoodAppTextField(
-                value = phoneNumber.value,
+                value = confirmPassword.value,
                 onValueChange = {
-                    viewModel.onPhoneNumberChanged(it)
+                    viewModel.onConfirmPasswordChanged(it)
                     if (!isTouched) isTouched = true
                 },
-                labelText = stringResource(R.string.phone_number),
-                isError = phoneNumberError.value != null,
-                errorText = phoneNumberError.value,
+                labelText = stringResource(R.string.confirm_password),
+                isError = conFirmPasswordError.value != null,
+                errorText = conFirmPasswordError.value,
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
                         if (isTouched && !focusState.isFocused) {
                             ValidateField(
-                                phoneNumber.value,
-                                phoneNumberError,
-                                "Số điện thoại không hợp lệ"
-                            ) { it.matches(Regex("^(\\+84|0)[0-9]{9,10}\$")) }
+                                confirmPassword.value,
+                                conFirmPasswordError,
+                                "Mật khẩu không trùng khớp"
+                            ) { it == password.value }
                         }
                     },
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+
+                    IconButton(
+                        onClick = {
+                            showPassword = !showPassword
+                        },
+                    ) {
+                        if (!showPassword) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_eye),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_slash_eye),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                },
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number,
+                    keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
                 ),
                 singleLine = true,
-                maxLines = 1,
+                maxLines = 1
+
             )
+
             Spacer(modifier = Modifier.size(30.dp))
             Button(
                 onClick = viewModel::onSignUpClick,
@@ -378,15 +356,38 @@ fun SignUpScreen(
 
         }
     }
-    if (showDialog) {
-        ModalBottomSheet(onDismissRequest = { showDialog = false }, sheetState = sheetState) {
+    if (showSuccessDialog) {
+
+        FoodAppDialog(
+            title = "Đăng kí thành công",
+            titleColor = Color.Green.copy(alpha = 0.8f),
+            message = "Bây giờ bạn có thể đăng nhập được rồi nha",
+            onDismiss = {
+
+                showSuccessDialog = false
+            },
+            onConfirm = {
+                viewModel.onLoginClick()
+                showSuccessDialog = false
+
+            },
+            confirmText = "Đăng nhập",
+            dismissText = "Đóng",
+            showConfirmButton = true
+        )
+
+
+    }
+
+    if (showErrorSheet) {
+        ModalBottomSheet(onDismissRequest = { showErrorSheet = false }, sheetState = sheetState) {
             BasicDialog(
                 title = viewModel.error,
                 description = viewModel.errorDescription,
                 onClick = {
                     scope.launch {
                         sheetState.hide()
-                        showDialog = false
+                        showErrorSheet = false
                     }
                 }
             )
