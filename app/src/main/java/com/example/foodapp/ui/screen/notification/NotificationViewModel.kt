@@ -3,6 +3,7 @@ package com.example.foodapp.ui.screen.notification
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.model.Notification
+import com.example.foodapp.data.model.Order
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,9 +24,9 @@ class NotificationViewModel @Inject constructor() : ViewModel() {
     private val _unreadCount = MutableStateFlow(0)
     val unreadCount = _unreadCount.asStateFlow()
 
-    fun navigateToOrderDetail(orderID: String) {
+    fun navigateToOrderDetail(it: Order) {
         viewModelScope.launch {
-            _event.emit(NotificationEvent.NavigateToOrderDetail(orderID))
+            _event.emit(NotificationEvent.NavigateToOrderDetail(it))
         }
     }
 
@@ -38,7 +39,7 @@ class NotificationViewModel @Inject constructor() : ViewModel() {
     }
 
     sealed class NotificationEvent {
-        data class NavigateToOrderDetail(val orderID: String) : NotificationEvent()
+        data class NavigateToOrderDetail(val order: Order) : NotificationEvent()
     }
 
     sealed class NotificationState {

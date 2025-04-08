@@ -1,6 +1,5 @@
 package com.se114.foodapp.ui.screen.address
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,32 +9,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.Loading
+import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.navigation.AddAddress
-import com.se114.foodapp.ui.screen.cart.CartViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -77,10 +74,12 @@ fun AddressListScreen(
                     navController.popBackStack()
                 }
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.back),
+                Icon(
+                    imageVector = Icons.Filled.ArrowBackIosNew,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                       .size(24.dp)
+
                 )
             }
 
@@ -88,7 +87,7 @@ fun AddressListScreen(
             Text(
                 text = "Danh sách địa chỉ",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
             Icon(
                 imageVector = Icons.Filled.AddCircle,
@@ -128,9 +127,11 @@ fun AddressListScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_cart),
+                            imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier
+                                .size(24.dp)
                         )
                         Text(
                             text = "Không có địa chỉ nào",

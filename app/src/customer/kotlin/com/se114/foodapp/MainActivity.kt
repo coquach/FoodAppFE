@@ -1,8 +1,7 @@
 package com.se114.foodapp
 
 import android.animation.ObjectAnimator
-import android.content.pm.PackageManager
-import android.os.Build
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,48 +9,41 @@ import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-
-import androidx.compose.ui.res.painterResource
 
 import androidx.core.animation.doOnEnd
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.foodapp.R
-import com.example.foodapp.data.FoodApi
-import com.example.foodapp.data.FoodAppSession
+import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.ResetPasswordArgs
+
+import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.navigation.AddAddress
 import com.example.foodapp.ui.navigation.AddressList
 
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.BottomNavItem
+import com.example.foodapp.ui.navigation.BottomNavigationBar
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.Checkout
 import com.example.foodapp.ui.navigation.Favorite
@@ -59,18 +51,28 @@ import com.example.foodapp.ui.navigation.FoodAppNavHost
 import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
-import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Notification
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.OrderSuccess
+import com.example.foodapp.ui.navigation.Profile
 import com.example.foodapp.ui.navigation.Reservation
+import com.example.foodapp.ui.navigation.ResetPassword
+import com.example.foodapp.ui.navigation.ResetPasswordSuccess
+import com.example.foodapp.ui.navigation.SendEmail
+import com.example.foodapp.ui.navigation.Setting
 
 import com.example.foodapp.ui.navigation.SignUp
+import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.ui.navigation.foodItemNavType
+import com.example.foodapp.ui.navigation.orderNavType
+import com.example.foodapp.ui.navigation.resetPasswordNavType
 import com.se114.foodapp.ui.screen.address.AddressListScreen
 import com.se114.foodapp.ui.screen.address.addAddress.AddAddressScreen
 import com.example.foodapp.ui.screen.auth.AuthScreen
+import com.example.foodapp.ui.screen.auth.forgot_password.change_password.ChangePasswordScreen
+import com.example.foodapp.ui.screen.auth.forgot_password.reset_success.ResetPassSuccessScreen
+import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
 import com.se114.foodapp.ui.screen.cart.CartScreen
@@ -84,53 +86,45 @@ import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
 import com.example.foodapp.ui.screen.order.order_success.OrderSuccess
 
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.se114.foodapp.ui.screen.setting.SettingScreen
+import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
+import com.se114.foodapp.ui.screen.welcome.WelcomeScreen
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import java.net.URLEncoder
 import javax.inject.Inject
 import kotlin.reflect.typeOf
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private var showSplashScreen = true
+
 
     @Inject
     lateinit var foodApi: FoodApi
 
     @Inject
-    lateinit var session: FoodAppSession
+    lateinit var splashViewModel: SplashViewModel
 
-    sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
-        data object Home : BottomNavItem(com.example.foodapp.ui.navigation.Home, R.drawable.ic_home)
-        data object Favorite :
-            BottomNavItem(com.example.foodapp.ui.navigation.Favorite, R.drawable.ic_home)
 
-        data object Reservation :
-            BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
-
-        data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
-
-    }
 
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
             setKeepOnScreenCondition {
-                showSplashScreen
+                !splashViewModel.isLoading.value
             }
             setOnExitAnimationListener { screen ->
                 val zoomX = ObjectAnimator.ofFloat(
                     screen.iconView,
                     View.SCALE_X,
-                    0.5f,
+                    0.8f,
                     0f
                 )
                 val zoomY = ObjectAnimator.ofFloat(
                     screen.iconView,
                     View.SCALE_Y,
-                    0.5f,
+                    0.8f,
                     0f
                 )
                 zoomX.duration = 500
@@ -147,18 +141,24 @@ class MainActivity : ComponentActivity() {
                 zoomX.start()
             }
         }
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
 
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
 
         setContent {
-            FoodAppTheme {
+            val darkMode = isSystemInDarkTheme()
+            var isDarkMode by remember { mutableStateOf(darkMode) }
+
+            val screen by splashViewModel.startDestination
+
+            FoodAppTheme(darkTheme = isDarkMode) {
 
                 val navItems = listOf(
                     BottomNavItem.Home,
                     BottomNavItem.Favorite,
                     BottomNavItem.Reservation,
-                    BottomNavItem.Order
+                    BottomNavItem.Order,
+                    BottomNavItem.Setting
                 )
                 val notificationViewModel: NotificationViewModel = hiltViewModel()
 
@@ -166,40 +166,34 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(true)
                 }
 
+
                 val navController = rememberNavController()
+                val deepLinkUri by splashViewModel.deepLinkUri.collectAsState()
+                intent?.data?.let { splashViewModel.setDeepLink(it) }
+                LaunchedEffect(deepLinkUri) {
+                    deepLinkUri?.let { uri ->
+                        Log.d("reset pass", "check")
+                        val oobCode = uri.getQueryParameter("oobCode")
+                        val mode = uri.getQueryParameter("mode")
+
+                        if (!oobCode.isNullOrBlank() && !mode.isNullOrBlank()) {
+                            val route = ResetPassword(ResetPasswordArgs(oobCode, mode))
+                            navController.navigate(route)
+                        }
+                    }
+                }
+
+
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
 
-                        val currentRoute =
-                            navController.currentBackStackEntryAsState().value?.destination
+
                         AnimatedVisibility(visible = shouldShowBottomNav.value) {
 
-                            NavigationBar(
-                                containerColor = MaterialTheme.colorScheme.onPrimary
-                            ) {
-                                navItems.forEach { item ->
-                                    val selected =
-                                        currentRoute?.hierarchy?.any { it.route == item.route::class.qualifiedName } == true
-                                    NavigationBarItem(
-                                        selected = selected,
-                                        onClick = {
-                                            navController.navigate(item.route)
-                                        },
-                                        icon = {
-                                            Icon(
-                                                painter = painterResource(id = item.icon),
-                                                contentDescription = null,
-                                                tint = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.outline
-                                            )
-                                        },
-                                        colors = NavigationBarItemDefaults.colors(
-                                            indicatorColor = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent
-                                        )
-                                    )
-                                }
-                            }
+                            BottomNavigationBar(navController, navItems)
                         }
 
 
@@ -210,10 +204,11 @@ class MainActivity : ComponentActivity() {
                     SharedTransitionLayout {
                         FoodAppNavHost(
                             navController = navController,
-                            startDestination = Auth,
+                            startDestination = screen,
                             modifier = Modifier
-                                .padding(innerPadding)
-                        ) {
+                                .padding(innerPadding),
+
+                            ) {
                             composable<Auth> {
                                 shouldShowBottomNav.value = false
                                 AuthScreen(navController)
@@ -226,9 +221,32 @@ class MainActivity : ComponentActivity() {
                                 shouldShowBottomNav.value = false
                                 LoginScreen(navController)
                             }
+                            composable<SendEmail> {
+                                shouldShowBottomNav.value = false
+                                SendEmailScreen(navController)
+                            }
+                            composable<ResetPassword>(
+                                typeMap = mapOf(typeOf<ResetPasswordArgs>() to resetPasswordNavType)
+                            ) {
+                                val route = it.toRoute<ResetPassword>()
+                                shouldShowBottomNav.value = false
+                                ChangePasswordScreen(
+                                    navController,
+                                    route.resetPasswordArgs.oobCode,
+                                    route.resetPasswordArgs.method
+                                )
+                            }
+                            composable<ResetPasswordSuccess> {
+                                shouldShowBottomNav.value = false
+                                ResetPassSuccessScreen(navController)
+                            }
                             composable<Home> {
                                 shouldShowBottomNav.value = true
-                                HomeScreen(navController, this,  notificationViewModel = notificationViewModel)
+                                HomeScreen(
+                                    navController,
+                                    this,
+                                    notificationViewModel = notificationViewModel
+                                )
                             }
                             composable<FoodDetails>(
                                 typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
@@ -277,12 +295,31 @@ class MainActivity : ComponentActivity() {
                                 OrderSuccess(orderID, navController)
                             }
 
-                            composable<OrderDetails> {
+                            composable<OrderDetails>(
+                                typeMap = mapOf(typeOf<Order>() to orderNavType)
+                            ) {
                                 shouldShowBottomNav.value = false
-                                val orderID = it.toRoute<OrderDetails>().orderId
+                                val route = it.toRoute<OrderDetails>()
                                 OrderDetailScreen(
-                                    navController, orderID
+                                    navController, order = route.order
                                 )
+                            }
+                            composable<Setting> {
+                                shouldShowBottomNav.value = true
+                                SettingScreen(
+                                    navController,
+                                    isDarkMode,
+                                    onThemeUpdated = {
+                                        isDarkMode = !isDarkMode
+                                    })
+                            }
+                            composable<Profile> {
+                                shouldShowBottomNav.value = false
+                                ProfileScreen(navController)
+                            }
+                            composable<Welcome> {
+                                shouldShowBottomNav.value = false
+                                WelcomeScreen(navController)
                             }
 
                         }
@@ -291,32 +328,15 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-        requestNotificationPermission()
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(3000)
-            showSplashScreen = false
-        }
+
 
     }
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                Log.d("Notification", "Người dùng đã cấp quyền!")
-            } else {
-                Log.e("Notification", "Người dùng từ chối quyền!")
-            }
-        }
 
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this, android.Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let { splashViewModel.setDeepLink(it) }
     }
+
 
 }
 

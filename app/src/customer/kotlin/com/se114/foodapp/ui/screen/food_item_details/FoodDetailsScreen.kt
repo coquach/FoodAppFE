@@ -12,7 +12,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +25,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -56,8 +59,8 @@ import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.model.FoodItem
 
-import com.example.foodapp.ui.BasicDialog
-import com.example.foodapp.ui.FoodItemCounter
+import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.utils.StringUtils
 
@@ -102,6 +105,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                     successMessage.value = "Món đã có trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
+
                 is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
                     successMessage.value = "Đã thêm món trong giỏ hàng"
                     showSuccessDialog.value = true
@@ -165,7 +169,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 viewModel.addToCart(foodItem = foodItem)
             },
             enabled = !isLoading.value,
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Box {
                 AnimatedContent(
@@ -184,10 +188,22 @@ fun SharedTransitionScope.FoodDetailsScreen(
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.cart),
-                                contentDescription = null
-                            )
+                            Box(
+                                modifier = Modifier
+                                   .size(30.dp)
+                                   .clip(CircleShape)
+                                   .background(MaterialTheme.colorScheme.background)
+                                   .padding(4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(24.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                             Spacer(modifier = Modifier.size(8.dp))
                             Text(
                                 text = "Thêm vào giỏ hàng".uppercase(),
@@ -238,7 +254,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(text = "OK")
+                    Text(text = "Trở lại")
                 }
 
             }
@@ -344,33 +360,49 @@ fun SharedTransitionScope.FoodHeader(
                 )
                 .clip(
                     RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-                ), contentScale = ContentScale.Crop
-        )
-
-
-        Image(
-            painter = painterResource(id = R.drawable.back),
-            contentDescription = null,
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.TopStart)
-                .clip(RoundedCornerShape(16.dp))
-                .clickable {
-                    onBackButton.invoke()
-                }
-
+                ),
+            contentScale = ContentScale.Crop
         )
 
 
         IconButton(
-            onClick = onFavoriteButton,
+            onClick = {
+                onBackButton.invoke()
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .size(50.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(color = MaterialTheme.colorScheme.onPrimary)
+                .padding(4.dp),
+
+
+            ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBackIosNew,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(30.dp)
+            )
+        }
+
+
+        IconButton(
+            onClick = { /* TODO */ },
             modifier = Modifier
                 .padding(16.dp)
                 .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
                 .align(Alignment.TopEnd)
+
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.favorite), contentDescription = null
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = "Favorite",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(28.dp)
             )
         }
     }

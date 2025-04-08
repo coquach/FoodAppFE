@@ -10,14 +10,14 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import java.io.IOException
+
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,24 +58,6 @@ class CartRepository @Inject constructor(
         }
     }
 
-    // 🔥 Thêm hoặc cập nhật sản phẩm trong giỏ hàng
-    suspend fun addToCart(cartItem: CartItem) {
-        getCartItems().firstOrNull()?.let { currentItems ->
-            val updatedItems = currentItems.toMutableList()
-            val existingIndex = updatedItems.indexOfFirst { it.id == cartItem.id }
-
-            if (existingIndex != -1) {
-                // Nếu đã có, cập nhật số lượng
-                val existingItem = updatedItems[existingIndex]
-                updatedItems[existingIndex] = existingItem.copy(quantity = cartItem.quantity)
-            } else {
-                // Nếu chưa có, thêm mới
-                updatedItems.add(cartItem)
-            }
-            saveCartItems(updatedItems)
-
-        }
-    }
 
     // 🔥 Xóa sản phẩm khỏi giỏ hàng
     suspend fun clearCartItems(cartItemsToRemove: List<CartItem>) {

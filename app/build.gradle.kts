@@ -23,16 +23,41 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField(
-            "String",
-            "BACKEND_URL",
-            "\"${project.findProperty("BACKEND_URL") ?: ""}\""
-        )
+
         buildConfigField(
             "String",
             "MAPS_API_KEY",
             "\"${project.findProperty("MAPS_API_KEY") ?: ""}\""
         )
+
+    }
+    buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "BACKEND_URL",
+                "\"${project.findProperty("BACKEND_URL") ?: ""}\""
+
+            )
+            buildConfigField(
+                "String",
+                "GOOGLE_WEB_CLIENT_ID",
+                "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
+            )
+
+        }
+        release {
+            buildConfigField(
+                "String",
+                "BACKEND_URL",
+                "\"${project.findProperty("BACKEND_URL") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "GOOGLE_WEB_CLIENT_ID",
+                "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
+            )
+        }
     }
 
     compileOptions {
@@ -54,7 +79,7 @@ android {
         }
         create("restaurant") {
             dimension = "environment"
-            applicationIdSuffix = ".restaurant"
+
             resValue(
                 type = "string",
                 name = "app_name",
@@ -68,7 +93,7 @@ android {
         }
         create("staff") {
             dimension = "environment"
-            applicationIdSuffix = ".staff"
+           
             resValue(
                 "string",
                 "app_description",
@@ -96,7 +121,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     implementation(libs.google.firebase.messaging.ktx)
-    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.transport.api)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -124,6 +149,15 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-auth")
+
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.accompanist.systemuicontroller)
 
 
 }
