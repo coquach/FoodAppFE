@@ -63,6 +63,7 @@ import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.screen.components.FoodAppDialog
+import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.ValidateField
 import kotlinx.coroutines.flow.collectLatest
@@ -308,39 +309,11 @@ fun SignUpScreen(
             )
 
             Spacer(modifier = Modifier.size(30.dp))
-            Button(
+            LoadingButton(
                 onClick = viewModel::onSignUpClick,
-                modifier = Modifier
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Box {
-                    AnimatedContent(
-                        targetState = loading.value,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f) togetherWith
-                                    fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
-                        }
-                    ) { target ->
-                        if (target) {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier
-                                    .padding(horizontal = 32.dp)
-                                    .size(24.dp)
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(id = R.string.sign_up),
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 32.dp)
-                            )
-                        }
-
-                    }
-                }
-
-            }
+                text = stringResource(R.string.sign_up),
+                loading = loading.value
+            )
             Spacer(modifier = Modifier.size(16.dp))
             Text(
                 text = stringResource(id = R.string.already_have_account),

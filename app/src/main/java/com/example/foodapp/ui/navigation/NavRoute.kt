@@ -2,6 +2,7 @@ package com.example.foodapp.ui.navigation
 
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.ResetPasswordArgs
 import kotlinx.serialization.Serializable
 
 interface NavRoute
@@ -72,3 +73,6 @@ object ChangePassword: NavRoute
 
 @Serializable
 object ResetPasswordSuccess : NavRoute
+
+@Serializable
+data class ResetPassword(val resetPasswordArgs: ResetPasswordArgs) : NavRoute

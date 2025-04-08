@@ -79,7 +79,7 @@ android {
         }
         create("restaurant") {
             dimension = "environment"
-            applicationIdSuffix = ".restaurant"
+
             resValue(
                 type = "string",
                 name = "app_name",
@@ -93,7 +93,7 @@ android {
         }
         create("staff") {
             dimension = "environment"
-            applicationIdSuffix = ".staff"
+           
             resValue(
                 "string",
                 "app_description",
@@ -152,9 +152,9 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
 
     implementation("com.google.android.gms:play-services-auth:21.3.0")
-    implementation("androidx.credentials:credentials:<latest version>")
-    implementation("androidx.credentials:credentials-play-services-auth:<latest version>")
-    implementation("com.google.android.libraries.identity.googleid:googleid:<latest version>")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)

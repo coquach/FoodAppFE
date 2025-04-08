@@ -1,9 +1,11 @@
 package com.example.foodapp.ui.screen.auth.forgot_password.send_email
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,16 +15,22 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +39,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.navigation.NavController
 import com.example.foodapp.R
@@ -38,16 +47,32 @@ import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.navigation.SendEmail
+import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.LoadingButton
+import com.example.foodapp.utils.ValidateField
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendEmailScreen(
     navController: NavController,
     viewModel: SendEmailViewModel = hiltViewModel()
 ) {
+    val email = viewModel.email.collectAsStateWithLifecycle()
+    val emailError = viewModel.emailError
+    var isTouched by remember { mutableStateOf(false) }
 
+    val errorMessage = remember { mutableStateOf<String?>(null) }
+    val loading = remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showErrorSheet by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
     LaunchedEffect(key1 = true) {
-        viewModel.event.collectLatest {
+        viewModel.event.collectLatest {it ->
             when (it) {
                 is SendEmailViewModel.SendEmailEvents.NavigateToLogin -> {
                     navController.popBackStack(route = Login, inclusive = false)
@@ -58,11 +83,49 @@ fun SendEmailScreen(
     }
 
 
-    var email by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+        when (uiState.value) {
+            is SendEmailViewModel.SendEmailState.Error -> {
+                loading.value = false
+                errorMessage.value = "Failed"
+            }
+
+            is SendEmailViewModel.SendEmailState.Loading -> {
+                loading.value = true
+                errorMessage.value = null
+            }
+
+            is SendEmailViewModel.SendEmailState.Success -> {
+                loading.value = false
+                errorMessage.value = null
+                Toast.makeText(
+                    context,
+                    "Email đã được gửi! Hãy kiểm tra hộp thư của bạn nhé 📬",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            is SendEmailViewModel.SendEmailState.AlreadySent -> {
+                loading.value = false
+                errorMessage.value = null
+                Toast.makeText(context, "Bạn đã gửi email rồi! 📩 Kiểm tra hộp thư trước khi gửi lại nha.", Toast.LENGTH_SHORT).show()
+            }
+            is SendEmailViewModel.SendEmailState.TooFast -> {
+                loading.value = false
+                errorMessage.value = null
+                Toast.makeText(context, "Đừng spam nha bro 😅 Chờ tí rồi gửi lại!", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                loading.value = false
+                errorMessage.value = null
+            }
+        }
         Text(
             text = stringResource(R.string.forgot_password),
             style = MaterialTheme.typography.headlineLarge,
@@ -102,37 +165,36 @@ fun SendEmailScreen(
 
                     )
                 FoodAppTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    value = email.value,
+                    onValueChange = {
+                        viewModel.onEmailChanged(it)
+                        if (!isTouched) isTouched = true
+                    },
+                    labelText = stringResource(R.string.email),
+                    isError = emailError.value != null,
+                    errorText = emailError.value,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (isTouched && !focusState.isFocused) {
+                                ValidateField(
+                                    email.value,
+                                    emailError,
+                                    "Email không hợp lệ"
+                                ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) }
+                            }
+                        },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Done
-                    )
+                    ),
                 )
-
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 20.dp),
-                    contentPadding = PaddingValues(vertical = 14.dp),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 2.dp
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = "Gửi email xác nhận",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Spacer(modifier = Modifier.size(20.dp))
+                LoadingButton(
+                    onClick = viewModel::onSendEmailClick,
+                    text = "Gửi email khôi phục",
+                    loading = loading.value
+                )
 
 
             }
@@ -149,5 +211,19 @@ fun SendEmailScreen(
             textAlign = TextAlign.Center
         )
 
+    }
+    if (showErrorSheet) {
+        ModalBottomSheet(onDismissRequest = { showErrorSheet = false }, sheetState = sheetState) {
+            BasicDialog(
+                title = viewModel.error,
+                description = viewModel.errorDescription,
+                onClick = {
+                    scope.launch {
+                        sheetState.hide()
+                        showErrorSheet = false
+                    }
+                }
+            )
+        }
     }
 }

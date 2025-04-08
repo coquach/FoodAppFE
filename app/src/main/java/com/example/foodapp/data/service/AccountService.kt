@@ -20,6 +20,7 @@ interface AccountService {
     suspend fun signInWithGoogle(idToken: String)
     suspend fun signInWithEmail(email: String, password: String)
     suspend fun forgetPassword(email: String)
+    suspend fun resetPassword(obb : String, newPassword: String)
     suspend fun signOut()
     suspend fun deleteAccount()
     suspend fun getUserRole(): String?

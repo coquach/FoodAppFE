@@ -1,7 +1,9 @@
 package com.se114.foodapp
 
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
@@ -16,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +35,7 @@ import androidx.navigation.toRoute
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.ResetPasswordArgs
 
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.navigation.AddAddress
@@ -52,6 +57,8 @@ import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.navigation.Profile
 import com.example.foodapp.ui.navigation.Reservation
+import com.example.foodapp.ui.navigation.ResetPassword
+import com.example.foodapp.ui.navigation.ResetPasswordSuccess
 import com.example.foodapp.ui.navigation.SendEmail
 import com.example.foodapp.ui.navigation.Setting
 
@@ -59,9 +66,12 @@ import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.ui.navigation.foodItemNavType
 import com.example.foodapp.ui.navigation.orderNavType
+import com.example.foodapp.ui.navigation.resetPasswordNavType
 import com.se114.foodapp.ui.screen.address.AddressListScreen
 import com.se114.foodapp.ui.screen.address.addAddress.AddAddressScreen
 import com.example.foodapp.ui.screen.auth.AuthScreen
+import com.example.foodapp.ui.screen.auth.forgot_password.change_password.ChangePasswordScreen
+import com.example.foodapp.ui.screen.auth.forgot_password.reset_success.ResetPassSuccessScreen
 import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
@@ -80,6 +90,9 @@ import com.se114.foodapp.ui.screen.setting.SettingScreen
 import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
 import com.se114.foodapp.ui.screen.welcome.WelcomeScreen
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.serialization.json.Json
+import java.net.URLEncoder
 import javax.inject.Inject
 import kotlin.reflect.typeOf
 
@@ -92,6 +105,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var splashViewModel: SplashViewModel
+
 
 
     @OptIn(ExperimentalSharedTransitionApi::class)
@@ -130,6 +144,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
         setContent {
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
@@ -153,8 +168,20 @@ class MainActivity : ComponentActivity() {
 
 
                 val navController = rememberNavController()
+                val deepLinkUri by splashViewModel.deepLinkUri.collectAsState()
+                intent?.data?.let { splashViewModel.setDeepLink(it) }
+                LaunchedEffect(deepLinkUri) {
+                    deepLinkUri?.let { uri ->
+                        Log.d("reset pass", "check")
+                        val oobCode = uri.getQueryParameter("oobCode")
+                        val mode = uri.getQueryParameter("mode")
 
-
+                        if (!oobCode.isNullOrBlank() && !mode.isNullOrBlank()) {
+                            val route = ResetPassword(ResetPasswordArgs(oobCode, mode))
+                            navController.navigate(route)
+                        }
+                    }
+                }
 
 
 
@@ -197,6 +224,21 @@ class MainActivity : ComponentActivity() {
                             composable<SendEmail> {
                                 shouldShowBottomNav.value = false
                                 SendEmailScreen(navController)
+                            }
+                            composable<ResetPassword>(
+                                typeMap = mapOf(typeOf<ResetPasswordArgs>() to resetPasswordNavType)
+                            ) {
+                                val route = it.toRoute<ResetPassword>()
+                                shouldShowBottomNav.value = false
+                                ChangePasswordScreen(
+                                    navController,
+                                    route.resetPasswordArgs.oobCode,
+                                    route.resetPasswordArgs.method
+                                )
+                            }
+                            composable<ResetPasswordSuccess> {
+                                shouldShowBottomNav.value = false
+                                ResetPassSuccessScreen(navController)
                             }
                             composable<Home> {
                                 shouldShowBottomNav.value = true
@@ -288,6 +330,11 @@ class MainActivity : ComponentActivity() {
         }
 
 
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let { splashViewModel.setDeepLink(it) }
     }
 
 
