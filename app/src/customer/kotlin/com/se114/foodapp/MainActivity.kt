@@ -32,6 +32,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.foodapp.BaseFoodAppActivity
+import com.example.foodapp.HomeViewModel
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
@@ -91,13 +93,14 @@ import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
 import com.se114.foodapp.ui.screen.welcome.WelcomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.Json
 import java.net.URLEncoder
 import javax.inject.Inject
 import kotlin.reflect.typeOf
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : BaseFoodAppActivity() {
 
 
     @Inject
@@ -105,7 +108,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var splashViewModel: SplashViewModel
-
 
 
     @OptIn(ExperimentalSharedTransitionApi::class)
@@ -168,8 +170,7 @@ class MainActivity : ComponentActivity() {
 
 
                 val navController = rememberNavController()
-                val deepLinkUri by splashViewModel.deepLinkUri.collectAsState()
-                intent?.data?.let { splashViewModel.setDeepLink(it) }
+                val deepLinkUri by viewModel.deepLinkUri.collectAsState()
                 LaunchedEffect(deepLinkUri) {
                     deepLinkUri?.let { uri ->
                         Log.d("reset pass", "check")
@@ -179,6 +180,19 @@ class MainActivity : ComponentActivity() {
                         if (!oobCode.isNullOrBlank() && !mode.isNullOrBlank()) {
                             val route = ResetPassword(ResetPasswordArgs(oobCode, mode))
                             navController.navigate(route)
+                        }
+                    }
+                }
+                LaunchedEffect(key1 = true) {
+                    viewModel.event.collectLatest {
+                        when (it) {
+                            is HomeViewModel.HomeEvent.NavigateToOrderDetail -> {
+                                navController.navigate(
+                                    OrderDetails(
+                                        it.order
+                                    )
+                                )
+                            }
                         }
                     }
                 }
@@ -330,11 +344,6 @@ class MainActivity : ComponentActivity() {
         }
 
 
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        intent.data?.let { splashViewModel.setDeepLink(it) }
     }
 
 

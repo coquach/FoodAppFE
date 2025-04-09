@@ -3,9 +3,11 @@ package com.example.foodapp.nofication
 import android.app.PendingIntent
 import android.content.Intent
 import android.util.Log
+import com.example.foodapp.data.model.Order
 import com.se114.foodapp.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -37,8 +39,9 @@ class FoodAppMessagingService : FirebaseMessagingService() {
         val type = data["type"] ?: "general"
 
         if (type == "order") {
-            val orderID = data[ORDER_ID]
-            intent.putExtra(ORDER_ID, orderID)
+            val gson = Gson()
+            val orderJson = gson.toJson(Order)
+            intent.putExtra("order_data", orderJson)
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
