@@ -45,6 +45,7 @@ android {
                 "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
             )
 
+
         }
         release {
             buildConfigField(
@@ -57,6 +58,7 @@ android {
                 "GOOGLE_WEB_CLIENT_ID",
                 "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
             )
+            
         }
     }
 
@@ -76,9 +78,12 @@ android {
     productFlavors {
         create("customer") {
             dimension = "environment"
+            buildConfigField("String", "APP_VARIANT", "\"customer\"")
         }
         create("restaurant") {
             dimension = "environment"
+            buildConfigField("String", "APP_VARIANT", "\"admin\"")
+
 
             resValue(
                 type = "string",
@@ -93,7 +98,8 @@ android {
         }
         create("staff") {
             dimension = "environment"
-           
+
+            buildConfigField("String", "APP_VARIANT", "\"staff\"")
             resValue(
                 "string",
                 "app_description",

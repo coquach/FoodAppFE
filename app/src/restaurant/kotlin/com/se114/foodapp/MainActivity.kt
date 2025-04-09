@@ -15,6 +15,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.isSystemInDarkTheme
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,8 +26,10 @@ import androidx.compose.material3.NavigationBarItem
 
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
@@ -45,9 +48,11 @@ import androidx.navigation.toRoute
 import com.example.foodapp.R
 import com.example.foodapp.data.FoodApi
 import com.example.foodapp.data.FoodAppSession
+import com.example.foodapp.data.remote.FoodApi
 
 
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.BottomNavItem
 
 import com.example.foodapp.ui.navigation.FoodAppNavHost
 
@@ -68,8 +73,7 @@ import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
 
 import com.example.foodapp.ui.screen.notification.NotificationListScreen
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
-import com.example.foodapp.ui.screen.order.OrderListScreen
-import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
+
 
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.se114.foodapp.ui.screen.home.HomeScreen
@@ -88,18 +92,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var foodApi: FoodApi
 
-    @Inject
-    lateinit var session: FoodAppSession
 
-    sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
-        data object Home : BottomNavItem(com.example.foodapp.ui.navigation.Home, R.drawable.ic_home)
-
-        data object Reservation :
-            BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_home)
-
-        data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
-
-    }
 
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -139,54 +132,25 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
-            FoodAppTheme {
+            val darkMode = isSystemInDarkTheme()
+            var isDarkMode by remember { mutableStateOf(darkMode) }
 
-                val navItems = listOf(
-                    BottomNavItem.Home,
-                    BottomNavItem.Reservation,
-                    BottomNavItem.Order
-                )
-                val notificationViewModel: NotificationViewModel = hiltViewModel()
-
-                val shouldShowBottomNav = remember {
-                    mutableStateOf(true)
-                }
+            FoodAppTheme(darkTheme = isDarkMode) {
 
                 val navController = rememberNavController()
+                val navItems = listOf(
+                    BottomNavItem.Home,
+                    BottomNavItem.Favorite,
+                    BottomNavItem.Reservation,
+                    BottomNavItem.Order,
+                    BottomNavItem.Setting
+                )
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.onPrimary,
                     bottomBar = {
 
-                        val currentRoute =
-                            navController.currentBackStackEntryAsState().value?.destination
-                        AnimatedVisibility(visible = shouldShowBottomNav.value) {
 
-                            NavigationBar(
-                                containerColor = MaterialTheme.colorScheme.onPrimary
-                            ) {
-                                navItems.forEach { item ->
-                                    val selected =
-                                        currentRoute?.hierarchy?.any { it.route == item.route::class.qualifiedName } == true
-                                    NavigationBarItem(
-                                        selected = selected,
-                                        onClick = {
-                                            navController.navigate(item.route)
-                                        },
-                                        icon = {
-                                            Icon(
-                                                painter = painterResource(id = item.icon),
-                                                contentDescription = null,
-                                                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                                            )
-                                        },
-                                        colors = NavigationBarItemDefaults.colors(
-                                            indicatorColor = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent
-                                        )
-                                    )
-                                }
-                            }
-                        }
 
 
                     }
@@ -220,18 +184,7 @@ class MainActivity : ComponentActivity() {
                             composable<Reservation> {
                                 shouldShowBottomNav.value = true
                             }
-                            composable<OrderList> {
-                                shouldShowBottomNav.value = true
-                                OrderListScreen(navController)
-                            }
 
-                            composable<OrderDetails> {
-                                shouldShowBottomNav.value = false
-                                val orderID = it.toRoute<OrderDetails>().orderId
-                                OrderDetailScreen(
-                                    navController, orderID
-                                )
-                            }
 
                         }
                     }
@@ -239,32 +192,14 @@ class MainActivity : ComponentActivity() {
             }
 
         }
-        requestNotificationPermission()
+
         CoroutineScope(Dispatchers.IO).launch {
             delay(3000)
             showSplashScreen = false
         }
 
     }
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                Log.d("Notification", "Người dùng đã cấp quyền!")
-            } else {
-                Log.e("Notification", "Người dùng từ chối quyền!")
-            }
-        }
 
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this, android.Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-    }
 
 }
 

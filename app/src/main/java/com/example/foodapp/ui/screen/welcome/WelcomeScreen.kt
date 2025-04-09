@@ -1,4 +1,4 @@
-package com.se114.foodapp.ui.screen.welcome
+package com.example.foodapp.ui.screen.welcome
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -29,7 +29,7 @@ import androidx.navigation.NavController
 import com.example.foodapp.ui.screen.components.CustomPagerIndicator
 import com.example.foodapp.ui.navigation.Auth
 
-import com.se114.foodapp.ui.screen.welcome.on_boarding_page.OnBoardingPage
+import com.example.foodapp.ui.screen.welcome.on_boarding_page.OnBoardingPage
 
 @Composable
 fun WelcomeScreen(

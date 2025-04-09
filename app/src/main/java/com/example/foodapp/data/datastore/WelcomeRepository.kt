@@ -1,4 +1,4 @@
-package com.se114.foodapp.data_store
+package com.example.foodapp.data.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
-import javax.inject.Singleton
 
 
 class WelcomeRepository @Inject constructor(

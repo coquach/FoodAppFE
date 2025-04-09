@@ -1,8 +1,8 @@
-package com.se114.foodapp.ui.screen.welcome
+package com.example.foodapp.ui.screen.welcome
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.se114.foodapp.data_store.WelcomeRepository
+import com.example.foodapp.data.datastore.WelcomeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

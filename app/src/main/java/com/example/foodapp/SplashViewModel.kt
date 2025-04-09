@@ -1,6 +1,5 @@
-package com.se114.foodapp
+package com.example.foodapp
 
-import android.net.Uri
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -11,10 +10,7 @@ import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Welcome
-import com.se114.foodapp.data_store.WelcomeRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import com.example.foodapp.data.datastore.WelcomeRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,9 +27,17 @@ class SplashViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            // Nếu variant là admin thì bỏ qua welcome page
+            if (BuildConfig.APP_VARIANT == "admin" || BuildConfig.APP_VARIANT == "staff") {
+                accountService.currentUser.collect { user ->
+                    _startDestination.value = if (user == null) Auth else Home
+                    _isLoading.value = false
+                }
+            }
+
+            // Ngược lại nếu là customer thì check welcome
             welcomeRepository.readOnBoardingState().collect { completed ->
                 if (completed) {
-
                     accountService.currentUser.collect { user ->
                         _startDestination.value = if (user == null) Auth else Home
                         _isLoading.value = false
@@ -42,9 +46,7 @@ class SplashViewModel @Inject constructor(
                     _startDestination.value = Welcome
                     _isLoading.value = false
                 }
-
             }
-
         }
 
 
