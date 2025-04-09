@@ -29,17 +29,6 @@ class SplashViewModel @Inject constructor(
     private val _startDestination: MutableState<NavRoute> = mutableStateOf(Welcome)
     val startDestination: State<NavRoute> = _startDestination
 
-    private val _deepLinkUri = MutableStateFlow<Uri?>(null)
-    val deepLinkUri: StateFlow<Uri?> = _deepLinkUri
-
-    fun setDeepLink(uri: Uri) {
-        _deepLinkUri.value = uri
-    }
-
-    fun clearDeepLink() {
-        _deepLinkUri.value = null
-    }
-
     init {
         viewModelScope.launch {
             welcomeRepository.readOnBoardingState().collect { completed ->
