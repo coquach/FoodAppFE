@@ -50,6 +50,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.ImageUtils
 import kotlinx.coroutines.launch
@@ -62,8 +63,6 @@ fun ProfileScreen(
 ) {
 
     val showSheetImage = remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    val scope = rememberCoroutineScope()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val context = LocalContext.current
@@ -84,7 +83,7 @@ fun ProfileScreen(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
 
-    ) {
+        ) {
         HeaderDefaultView(
             text = "Thông tin cá nhân",
             onBack = {
@@ -94,7 +93,7 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
                 .verticalScroll(rememberScrollState())
 
 
@@ -198,51 +197,13 @@ fun ProfileScreen(
 
     }
     if (showSheetImage.value) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheetImage.value = false },
-            sheetState = sheetState
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Chọn ảnh", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Button(
-                    onClick = {
-                        launcher.launch("image/*")
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Chọn ảnh từ thư viện", color = MaterialTheme.colorScheme.onPrimary)
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Button(
-                    onClick = {
-                        scope.launch {
-                            sheetState.hide()
-                            showSheetImage.value = false
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Trở lại", color = MaterialTheme.colorScheme.onPrimaryContainer)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        }
+        ImagePickerBottomSheet(
+            showSheet = showSheetImage.value,
+            onDismiss = { showSheetImage.value = false },
+            onImageSelected = { uri -> imageUri = uri })
     }
+
+
 }
 
 @Preview(showBackground = true)

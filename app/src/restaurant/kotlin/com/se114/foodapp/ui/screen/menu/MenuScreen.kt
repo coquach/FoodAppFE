@@ -1,102 +1,73 @@
-package com.se114.foodapp.ui.screen.home
+package com.se114.foodapp.ui.screen.menu
+
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 
+
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.foodapp.R
 import com.example.foodapp.data.model.FoodItem
-import com.example.foodapp.ui.screen.components.FoodAppTextField
-
-import com.example.foodapp.ui.screen.components.ItemCount
-import com.example.foodapp.ui.screen.components.MyFloatingActionButton
-import com.example.foodapp.ui.screen.components.gridItems
-import com.example.foodapp.ui.navigation.Cart
-import com.example.foodapp.ui.navigation.FoodDetails
-import com.example.foodapp.ui.navigation.Notification
+import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.UpdateMenuItem
 import com.example.foodapp.ui.screen.common.FoodItemView
+import com.example.foodapp.ui.screen.components.DeleteBar
+import com.example.foodapp.ui.screen.components.FoodAppDialog
+import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
-import com.example.foodapp.ui.screen.notification.NotificationViewModel
-import com.se114.foodapp.ui.screen.home.banner.Banners
+import com.example.foodapp.ui.screen.components.gridItems
+import com.example.foodapp.ui.theme.FoodAppTheme
+import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemScreen
 import kotlinx.coroutines.flow.collectLatest
-
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.HomeScreen(
+fun SharedTransitionScope.MenuScreen(
     navController: NavController,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    viewModel: HomeViewModel = hiltViewModel(),
-    notificationViewModel: NotificationViewModel
-
+    viewModel: MenuViewModel = hiltViewModel()
 ) {
-    val unReadCount by notificationViewModel.unreadCount.collectAsState()
-    val cartSize by viewModel.cartSize.collectAsState()
+    var search by remember { mutableStateOf("") }
 
-    var searchInput by remember { mutableStateOf("") }
-    LaunchedEffect(key1 = true) {
-        viewModel.navigationEvent.collectLatest {
-            when (it) {
-                HomeViewModel.HomeNavigationEvents.NavigateToDetail -> {
-
-                }
-
-                HomeViewModel.HomeNavigationEvents.NavigateToNotification -> {
-                    navController.navigate(Notification)
-                }
-
-            }
-        }
-    }
+    var isInSelectionMode by rememberSaveable { mutableStateOf(false) }
+    var isSelectAll by rememberSaveable { mutableStateOf(false) }
 
     val foodItems = listOf(
         FoodItem(
@@ -181,28 +152,40 @@ fun SharedTransitionScope.HomeScreen(
         )
     )
 
+    val showDialogDelete = remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.event.collectLatest {
+            when (it) {
+                MenuViewModel.MenuEvents.NavigateToDetail -> {
+
+                }
+
+                MenuViewModel.MenuEvents.ShowDeleteDialog -> {
+                    showDialogDelete.value = true
+                }
+            }
+        }
+    }
+
     Scaffold(
         floatingActionButton =
         {
             MyFloatingActionButton(
                 onClick = {
-                    navController.navigate(Cart)
+                    navController.navigate(AddMenuItem)
                 },
                 bgColor = MaterialTheme.colorScheme.onPrimary,
             ) {
                 Box(modifier = Modifier.size(56.dp)) {
                     Icon(
-                        imageVector = Icons.Default.ShoppingCart,
+                        imageVector = Icons.Default.Add,
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = null,
                         modifier = Modifier
                             .align(Center)
-                            .size(24.dp)
+                            .size(35.dp)
                     )
-
-                    if (cartSize > 0) {
-                        ItemCount(cartSize)
-                    }
                 }
             }
         }
@@ -219,88 +202,104 @@ fun SharedTransitionScope.HomeScreen(
                 .padding(horizontal = 16.dp)
 
         ) {
-
             Box(
-                modifier = Modifier.fillMaxWidth()
-                    .height(400.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = !isInSelectionMode,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        Box(modifier = Modifier.size(50.dp)) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_nofication),
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .align(Center)
-                                    .clickable {
-                                        viewModel.onNotificationClicked()
-                                    }
-                            )
-
-                            if (unReadCount > 0) {
-                                ItemCount(unReadCount)
-                            }
-
-                        }
+                        HeaderDefaultView(
+                            text = "Danh sách món ăn"
+                        )
+                        SearchField(
+                            searchInput = search,
+                            searchChange = { search = it }
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
                     }
-                    Spacer(modifier = Modifier.size(8.dp))
-                    SearchField(
-                        searchInput = searchInput,
-                        searchChange = { searchInput = it }
+                }
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isInSelectionMode,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                ) {
+                    DeleteBar(
+                        onSelectAll = {
+                            isSelectAll = !isSelectAll
+                            viewModel.selectAllItems(foodItems, isSelectAll)
+                        },
+                        onDeleteSelected = { viewModel.onRemoveClicked() }
                     )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Banners()
                 }
             }
-
-
-//            val uiSate = viewModel.uiState.collectAsStateWithLifecycle()
-//            when (uiSate.value) {
-//                is HomeViewModel.HomeState.Loading -> {
-//                    CircularProgressIndicator()
-//                }
-//
-//                is HomeViewModel.HomeState.Empty -> {
-//                    // Show empty state message
-//                }
-//
-//                is HomeViewModel.HomeState.Success -> {
-//                    val categories = viewModel.categories
-//                    CategoriesList(categories = categories, onCategorySelected = {
-//
-//                    })
-
-
-
 
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+
             ) {
                 gridItems(foodItems, 2) { foodItem ->
                     FoodItemView(
                         foodItem = foodItem,
                         animatedVisibilityScope = animatedVisibilityScope,
+                        isInSelectionMode = isInSelectionMode,
+                        isSelected = viewModel.selectedItems.contains(foodItem),
+                        onCheckedChange = { foodItem ->
+                            viewModel.toggleSelection(foodItem)
+                        },
                         onClick = {
-                            navController.navigate(FoodDetails(foodItem))
-                        })
+                            navController.navigate(UpdateMenuItem(foodItem))
+                        },
+                        onLongClick = {
+                            isInSelectionMode = !isInSelectionMode
+                        },
+                        isCustomer = false
+                    )
                 }
             }
-
-
         }
+    }
+    if (showDialogDelete.value) {
+
+        FoodAppDialog(
+            title = "Xóa món ăn",
+            titleColor = MaterialTheme.colorScheme.error,
+            message = "Bạn có chắc chắn muốn xóa món đã chọn khỏi danh sách không?",
+            onDismiss = {
+
+                showDialogDelete.value = false
+            },
+            onConfirm = {
+                viewModel.removeItem()
+                showDialogDelete.value = false
+                isInSelectionMode = false
+
+            },
+            confirmText = "Xóa",
+            dismissText = "Đóng",
+            showConfirmButton = true
+        )
 
 
     }
 }
 
 
+@Preview(showBackground = true)
+@Composable
+fun Previewmenu() {
+
+    FoodAppTheme {
+
+    }
+
+}

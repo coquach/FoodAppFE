@@ -66,14 +66,29 @@ object Welcome : NavRoute
 @Serializable
 object SendEmail: NavRoute
 
-@Serializable
-object SendOtp: NavRoute
-
-@Serializable
-object ChangePassword: NavRoute
 
 @Serializable
 object ResetPasswordSuccess : NavRoute
 
 @Serializable
 data class ResetPassword(val resetPasswordArgs: ResetPasswordArgs) : NavRoute
+
+@Serializable
+object Statistics : NavRoute
+
+@Serializable
+object Warehouse : NavRoute
+
+@Serializable
+object Employee : NavRoute
+
+@Serializable
+object Menu : NavRoute
+
+@Serializable
+data class UpdateMenuItem(val foodItem: FoodItem) : NavRoute
+
+@Serializable
+object AddMenuItem : NavRoute
+
+

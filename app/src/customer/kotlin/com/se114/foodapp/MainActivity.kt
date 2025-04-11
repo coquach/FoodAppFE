@@ -130,6 +130,7 @@ class MainActivity : BaseFoodAppActivity() {
                             val route = ResetPassword(ResetPasswordArgs(oobCode, mode))
                             navController.navigate(route)
                         }
+                        viewModel.clearDeepLink()
                     }
                 }
                 LaunchedEffect(key1 = true) {
@@ -150,10 +151,7 @@ class MainActivity : BaseFoodAppActivity() {
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
-
-
                         AnimatedVisibility(visible = shouldShowBottomNav.value) {
-
                             BottomNavigationBar(navController, navItems)
                         }
 

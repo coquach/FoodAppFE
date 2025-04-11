@@ -11,6 +11,7 @@ import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.data.datastore.WelcomeRepository
+import com.example.foodapp.ui.navigation.Statistics
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,26 +28,26 @@ class SplashViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            // Nếu variant là admin thì bỏ qua welcome page
+
             if (BuildConfig.APP_VARIANT == "admin" || BuildConfig.APP_VARIANT == "staff") {
                 accountService.currentUser.collect { user ->
-                    _startDestination.value = if (user == null) Auth else Home
-                    _isLoading.value = false
+                    _startDestination.value = if (user == null) Auth else Statistics
                 }
             }
+            else {
+                welcomeRepository.readOnBoardingState().collect { completed ->
+                    if (completed) {
+                        accountService.currentUser.collect { user ->
+                            _startDestination.value = if (user == null) Auth else Home
 
-            // Ngược lại nếu là customer thì check welcome
-            welcomeRepository.readOnBoardingState().collect { completed ->
-                if (completed) {
-                    accountService.currentUser.collect { user ->
-                        _startDestination.value = if (user == null) Auth else Home
-                        _isLoading.value = false
+                        }
+                    } else {
+                        _startDestination.value = Welcome
+
                     }
-                } else {
-                    _startDestination.value = Welcome
-                    _isLoading.value = false
                 }
             }
+            _isLoading.value = false
         }
 
 

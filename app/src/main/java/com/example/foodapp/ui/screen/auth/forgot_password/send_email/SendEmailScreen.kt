@@ -68,11 +68,19 @@ fun SendEmailScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showErrorSheet by remember { mutableStateOf(false) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+
+    LaunchedEffect(errorMessage.value) {
+        if (errorMessage.value != null)
+            scope.launch {
+                showErrorSheet = true
+            }
+    }
+
     LaunchedEffect(key1 = true) {
-        viewModel.event.collectLatest {it ->
+        viewModel.event.collectLatest {
             when (it) {
                 is SendEmailViewModel.SendEmailEvents.NavigateToLogin -> {
                     navController.popBackStack(route = Login, inclusive = false)

@@ -335,27 +335,25 @@ fun Loading() {
 
 @Composable
 fun HeaderDefaultView(
-    onBack: () -> Unit,
     text: String,
+    onBack: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-            contentDescription = null,
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .size(30.dp)
-                .clip(CircleShape)
-                .clickable { onBack.invoke() },
-            tint = MaterialTheme.colorScheme.primary
-        )
-
-
+        onBack?.let {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .clickable { onBack() },
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
 
         Text(
             text = text,
@@ -366,7 +364,8 @@ fun HeaderDefaultView(
                 .weight(1f)
                 .wrapContentWidth(Alignment.CenterHorizontally)
         )
-        Spacer(modifier = Modifier.size(50.dp))
+
+        Spacer(modifier = Modifier.size(30.dp))
     }
 }
 

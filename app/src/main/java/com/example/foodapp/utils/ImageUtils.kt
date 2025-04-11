@@ -1,7 +1,9 @@
 package com.example.foodapp.utils
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.provider.MediaStore
 import java.io.File
 
 object ImageUtils {
@@ -9,15 +11,27 @@ object ImageUtils {
     /**
      * Chuyển Uri thành File
      */
-    fun getFileFromUri(context: Context, uri: Uri): File? {
-        return try {
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val file = File(context.cacheDir, "selected_image.jpg")
-            file.outputStream().use { output -> inputStream.copyTo(output) }
-            file
+    fun getFileFromUri(context: Context, uri: Uri): File {
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+                ?: throw IllegalArgumentException("Unable to open input stream from URI.")
+
+            val file = File.createTempFile(
+                "temp-${System.currentTimeMillis()}-foodapp",
+                ".jpg",
+                context.cacheDir
+            )
+
+            inputStream.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            return file
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            throw RuntimeException("Failed to create file from URI", e)
         }
     }
 
@@ -32,5 +46,18 @@ object ImageUtils {
             e.printStackTrace()
             null
         }
+    }
+
+    fun createImageUri(context: Context): Uri? {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM/Camera")
+        }
+
+        return context.contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        )
     }
 }

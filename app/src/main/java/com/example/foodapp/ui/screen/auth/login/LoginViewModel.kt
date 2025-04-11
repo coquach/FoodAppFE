@@ -56,9 +56,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = LoginEvent.Loading
             try {
-                val result = accountService.signInWithEmail(email.value, password.value)
-
-
+                accountService.signInWithEmail(email.value, password.value)
                 _uiState.value = LoginEvent.Success
                 _navigationEvent.emit(LoginNavigationEvent.NavigateHome)
 

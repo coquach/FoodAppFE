@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,6 +47,7 @@ import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
+import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.utils.OrdersUtils
 import kotlinx.coroutines.flow.collectLatest
@@ -185,18 +188,10 @@ fun OrderListScreen(
 @Composable
 fun OrderListInternal(list: List<Order>, onClick: (Order) -> Unit) {
     if (list.isEmpty()) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_empty_box),
-                contentDescription = null,
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(text = "Không có đơn hàng nào")
-        }
+        com.example.foodapp.ui.screen.components.Nothing(
+            icon = Icons.Default.Inventory2,
+            text = "Không có đơn hàng nào"
+        )
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

@@ -12,6 +12,7 @@ import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.navigation.orderNavType
 import com.example.foodapp.ui.screen.order.OrderListScreen
 import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
+import com.example.foodapp.ui.screen.order.order_success.OrderSuccessScreen
 import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.orderGraph(
@@ -25,7 +26,7 @@ fun NavGraphBuilder.orderGraph(
     composable<OrderSuccess> {
         val orderID = it.toRoute<OrderSuccess>().orderId
         shouldShowBottomNav.value = false
-        OrderSuccess(orderID)
+        OrderSuccessScreen(orderID, navController)
     }
     composable<OrderDetails>(
         typeMap = mapOf(typeOf<Order>() to orderNavType)

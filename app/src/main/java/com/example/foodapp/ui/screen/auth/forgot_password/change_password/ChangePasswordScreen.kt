@@ -32,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +54,7 @@ import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.OTPTextFields
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.example.foodapp.utils.ValidateField
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -79,15 +81,22 @@ fun ChangePasswordScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showErrorSheet by remember { mutableStateOf(false) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
 
+
+
+    LaunchedEffect(errorMessage.value) {
+        if (errorMessage.value != null)
+            scope.launch {
+                showErrorSheet = true
+            }
+    }
     LaunchedEffect(oobCode, method) {
         viewModel.setResetPasswordArgs(oobCode, method)
     }
-    
+
     LaunchedEffect(key1 = true) {
         viewModel.event.collectLatest {
-            when(it) {
+            when (it) {
                 ChangePasswordViewModel.ChangePasswordEvents.NavigateToSuccess -> {
                     navController.navigate(ResetPasswordSuccess)
                 }
@@ -149,9 +158,21 @@ fun ChangePasswordScreen(
                     value = password.value,
                     onValueChange = {
                         viewModel.onPasswordChanged(it)
+                        if (!isTouched) isTouched = true
                     },
+                    isError = passwordError.value != null,
+                    errorText = passwordError.value,
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (isTouched && !focusState.isFocused) {
+                                ValidateField(
+                                    password.value,
+                                    passwordError,
+                                    "Mật khẩu phải có ít nhất 6 ký tự"
+                                ) { it.length >= 6 }
+                            }
+                        },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
 
@@ -186,10 +207,22 @@ fun ChangePasswordScreen(
                 FoodAppTextField(
                     labelText = "Xác nhận mật khẩu",
                     value = confirmPassword.value,
+                    isError = conFirmPasswordError.value != null,
+                    errorText = conFirmPasswordError.value,
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (isTouched && !focusState.isFocused) {
+                                ValidateField(
+                                    confirmPassword.value,
+                                    conFirmPasswordError,
+                                    "Mật khẩu không trùng khớp"
+                                ) { it == password.value }
+                            }
+                        },
                     onValueChange = {
                         viewModel.onConfirmPasswordChanged(it)
+                        if (!isTouched) isTouched = true
                     },
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {

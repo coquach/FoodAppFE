@@ -83,7 +83,7 @@ class SendEmailViewModel @Inject constructor(
                     _uiState.value = SendEmailState.Error
                 }
 
-
+                _uiState.value = SendEmailState.Nothing
             }catch (e: FirebaseAuthInvalidUserException) {
                 error = "Email chưa được đăng ký."
                 errorDescription = "Vui lòng nhập email khác"

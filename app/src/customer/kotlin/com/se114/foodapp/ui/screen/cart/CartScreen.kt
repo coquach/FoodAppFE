@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.Row
@@ -74,6 +75,8 @@ import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.Checkout
+import com.example.foodapp.ui.screen.components.DeleteBar
+import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.utils.StringUtils
 import kotlinx.coroutines.flow.collectLatest
 
@@ -169,55 +172,48 @@ fun CartScreen(
                         }
 
                     }
-                    AnimatedVisibility(
-                        visible = isEditing,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                    Spacer(modifier = Modifier.weight(1f))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+
                     ) {
-                        CartBottomBar(
-                            onSelectAll = {
-                                isSelectAll = !isSelectAll
-                                viewModel.selectAllItems(cartItems, isSelectAll)
-                            },
-                            onDeleteSelected = { viewModel.removeItem() }
-                        )
-                    }
-                    AnimatedVisibility(
-                        visible = !isEditing,
-                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                    ) {
-                        Column {
-                            CheckoutDetailsView(checkoutDetails = checkoutDetails)
-                            Button(
-                                onClick = { viewModel.checkout() },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(text = "Thanh toán")
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = isEditing,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                        ) {
+                            DeleteBar(
+                                onSelectAll = {
+                                    isSelectAll = !isSelectAll
+                                    viewModel.selectAllItems(cartItems, isSelectAll)
+                                },
+                                onDeleteSelected = { viewModel.removeItem() }
+                            )
+                        }
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = !isEditing,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                        ) {
+                            Column {
+                                CheckoutDetailsView(checkoutDetails = checkoutDetails)
+                                Button(
+                                    onClick = { viewModel.checkout() },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(text = "Thanh toán")
+                                }
                             }
                         }
                     }
 
+
                 } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ShoppingCart,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier
-                                .size(24.dp)
-                        )
-                        Text(
-                            text = "Không có món nào trong giỏ",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
+                    com.example.foodapp.ui.screen.components.Nothing(
+                        icon = Icons.Default.ShoppingCart,
+                        text = "Không có món nào trong giỏ hàng"
+                    )
                 }
 
             }
@@ -369,40 +365,6 @@ fun CartItemView(
     }
 }
 
-
-
-
-@Composable
-fun CartBottomBar(
-    onSelectAll: () -> Unit,
-    onDeleteSelected: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(onClick = onSelectAll) {
-                Text(text = "Chọn tất cả", color = MaterialTheme.colorScheme.primary)
-            }
-            Button(
-                onClick = onDeleteSelected,
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text(text = "XÓA", color = MaterialTheme.colorScheme.onError)
-            }
-        }
-    }
-}
 
 @Composable
 fun CartHeaderView(

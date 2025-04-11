@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -123,9 +125,10 @@ fun SignUpScreen(
                         }
                     }
                 }
-               is SignUpViewModel.SignUpNavigationEvent.showSuccesDialog -> {
-                   showSuccessDialog = true
-               }
+
+                is SignUpViewModel.SignUpNavigationEvent.showSuccesDialog -> {
+                    showSuccessDialog = true
+                }
             }
 
         }
@@ -174,139 +177,154 @@ fun SignUpScreen(
 
             )
             Spacer(modifier = Modifier.size(20.dp))
-            FoodAppTextField(
-                value = email.value,
-                onValueChange = {
-                    viewModel.onEmailChanged(it)
-                    if (!isTouched) isTouched = true
-                },
-                labelText = stringResource(R.string.email),
-                isError = emailError.value != null,
-                errorText = emailError.value,
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (isTouched && !focusState.isFocused) {
-                            ValidateField(
-                                email.value,
-                                emailError,
-                                "Email không hợp lệ"
-                            ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) }
-                        }
-                    },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                singleLine = true,
-                maxLines = 1
-            )
-            FoodAppTextField(
-                value = password.value,
-                onValueChange = {
-                    viewModel.onPasswordChanged(it)
-                    if (!isTouched) isTouched = true
-                },
-                labelText = stringResource(R.string.password),
-                isError = passwordError.value != null,
-                errorText = passwordError.value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (isTouched && !focusState.isFocused) {
-                            ValidateField(
-                                password.value,
-                                passwordError,
-                                "Mật khẩu phải có ít nhất 6 ký tự"
-                            ) { it.length >= 6 }
-                        }
-                    },
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-
-                    IconButton(
-                        onClick = {
-                            showPassword = !showPassword
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    FoodAppTextField(
+                        value = email.value,
+                        onValueChange = {
+                            viewModel.onEmailChanged(it)
+                            if (!isTouched) isTouched = true
                         },
-                    ) {
-                        if (!showPassword) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        } else {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_slash_eye),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Next
-                ),
-                singleLine = true,
-                maxLines = 1
-
-            )
-            FoodAppTextField(
-                value = confirmPassword.value,
-                onValueChange = {
-                    viewModel.onConfirmPasswordChanged(it)
-                    if (!isTouched) isTouched = true
-                },
-                labelText = stringResource(R.string.confirm_password),
-                isError = conFirmPasswordError.value != null,
-                errorText = conFirmPasswordError.value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onFocusChanged { focusState ->
-                        if (isTouched && !focusState.isFocused) {
-                            ValidateField(
-                                confirmPassword.value,
-                                conFirmPasswordError,
-                                "Mật khẩu không trùng khớp"
-                            ) { it == password.value }
-                        }
-                    },
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-
-                    IconButton(
-                        onClick = {
-                            showPassword = !showPassword
+                        labelText = stringResource(R.string.email),
+                        isError = emailError.value != null,
+                        errorText = emailError.value,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (isTouched && !focusState.isFocused) {
+                                    ValidateField(
+                                        email.value,
+                                        emailError,
+                                        "Email không hợp lệ"
+                                    ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) }
+                                }
+                            },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        singleLine = true,
+                        maxLines = 1
+                    )
+                    FoodAppTextField(
+                        value = password.value,
+                        onValueChange = {
+                            viewModel.onPasswordChanged(it)
+                            if (!isTouched) isTouched = true
                         },
-                    ) {
-                        if (!showPassword) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        } else {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_slash_eye),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                singleLine = true,
-                maxLines = 1
+                        labelText = stringResource(R.string.password),
+                        isError = passwordError.value != null,
+                        errorText = passwordError.value,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (isTouched && !focusState.isFocused) {
+                                    ValidateField(
+                                        password.value,
+                                        passwordError,
+                                        "Mật khẩu phải có ít nhất 6 ký tự"
+                                    ) { it.length >= 6 }
+                                }
+                            },
+                        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
 
-            )
+                            IconButton(
+                                onClick = {
+                                    showPassword = !showPassword
+                                },
+                            ) {
+                                if (!showPassword) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_eye),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_slash_eye),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
+                        singleLine = true,
+                        maxLines = 1
+
+                    )
+                    FoodAppTextField(
+                        value = confirmPassword.value,
+                        onValueChange = {
+                            viewModel.onConfirmPasswordChanged(it)
+                            if (!isTouched) isTouched = true
+                        },
+                        labelText = stringResource(R.string.confirm_password),
+                        isError = conFirmPasswordError.value != null,
+                        errorText = conFirmPasswordError.value,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (isTouched && !focusState.isFocused) {
+                                    ValidateField(
+                                        confirmPassword.value,
+                                        conFirmPasswordError,
+                                        "Mật khẩu không trùng khớp"
+                                    ) { it == password.value }
+                                }
+                            },
+                        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+
+                            IconButton(
+                                onClick = {
+                                    showPassword = !showPassword
+                                },
+                            ) {
+                                if (!showPassword) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_eye),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_slash_eye),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        singleLine = true,
+                        maxLines = 1
+
+                    )
+                }
+            }
+
 
             Spacer(modifier = Modifier.size(30.dp))
             LoadingButton(
