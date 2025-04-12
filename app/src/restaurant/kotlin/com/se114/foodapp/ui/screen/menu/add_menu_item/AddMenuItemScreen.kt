@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -33,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,10 +90,6 @@ fun AddMenuItemScreen(
 
                 }
 
-                is AddMenuItemViewModel.AddMenuItemEvent.AddNewImage -> {
-
-                }
-
                 is AddMenuItemViewModel.AddMenuItemEvent.ShowErrorMessage -> {
                     Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
@@ -134,10 +133,8 @@ fun AddMenuItemScreen(
                     .size(200.dp)
                     .clip(shape = RoundedCornerShape(8.dp))
                     .border(4.dp, Color.White, RoundedCornerShape(8.dp))
-                    .background(LightGray)
-                    .clickable {
-                        viewModel.onImageClicked()
-                    },
+                    .background(LightGray),
+
                 contentScale = ContentScale.Crop
             )
             Box(
@@ -158,18 +155,32 @@ fun AddMenuItemScreen(
             }
         }
 
-        FoodAppTextField(value = name.value, onValueChange = {
-            viewModel.onNameChange(it)
-        }, modifier = Modifier.fillMaxWidth(), labelText = "Tên")
+        FoodAppTextField(
+            value = name.value,
+            onValueChange = {
+                viewModel.onNameChange(it)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            labelText = "Tên"
+        )
         FoodAppTextField(
             value = description.value, onValueChange = {
                 viewModel.onDescriptionChange(it)
             },
             modifier = Modifier.fillMaxWidth(), labelText = "Mô tả"
         )
-        FoodAppTextField(value = price.value, onValueChange = {
-            viewModel.onPriceChange(it)
-        }, modifier = Modifier.fillMaxWidth(), labelText = "Giá")
+        FoodAppTextField(
+            value = price.value,
+            onValueChange = {
+                viewModel.onPriceChange(it)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Decimal,
+                imeAction = ImeAction.Done
+            ),
+            labelText = "Giá"
+        )
 
         Button(
             onClick = {
@@ -177,9 +188,13 @@ fun AddMenuItemScreen(
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp),
-            contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
+            contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = if (isUpdating) "Cập nhật" else "Tạo", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = if (isUpdating) "Cập nhật" else "Tạo",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
 
     }

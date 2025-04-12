@@ -54,6 +54,7 @@ import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.ImageUtils
 import kotlinx.coroutines.launch
+import java.lang.reflect.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,10 +91,10 @@ fun ProfileScreen(
                 navController.popBackStack()
             }
         )
+        Spacer(modifier = Modifier.size(20.dp))
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
                 .verticalScroll(rememberScrollState())
 
 

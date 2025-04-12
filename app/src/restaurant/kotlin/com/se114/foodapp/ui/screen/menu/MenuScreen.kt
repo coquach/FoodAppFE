@@ -175,12 +175,12 @@ fun SharedTransitionScope.MenuScreen(
                 onClick = {
                     navController.navigate(AddMenuItem)
                 },
-                bgColor = MaterialTheme.colorScheme.onPrimary,
+                bgColor = MaterialTheme.colorScheme.primary,
             ) {
                 Box(modifier = Modifier.size(56.dp)) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         contentDescription = null,
                         modifier = Modifier
                             .align(Center)

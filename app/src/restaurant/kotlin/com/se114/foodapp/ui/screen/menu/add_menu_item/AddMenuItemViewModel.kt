@@ -142,12 +142,6 @@ class AddMenuItemViewModel @Inject constructor(
 //        }
 //    }
 
-    fun onImageClicked() {
-        viewModelScope.launch {
-            _addMenuItemEvent.emit(AddMenuItemEvent.AddNewImage)
-        }
-    }
-
 
     sealed class AddMenuItemState {
         object Nothing : AddMenuItemState()
@@ -158,7 +152,6 @@ class AddMenuItemViewModel @Inject constructor(
 
     sealed class AddMenuItemEvent {
         data class ShowErrorMessage(val message: String) : AddMenuItemEvent()
-        object AddNewImage : AddMenuItemEvent()
         object GoBack : AddMenuItemEvent()
     }
 }

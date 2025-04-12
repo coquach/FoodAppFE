@@ -37,7 +37,7 @@ fun NavGraphBuilder.menuGraph(
             typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
         ) {
             shouldShowBottomNav.value = false
-            val route = it.toRoute<FoodDetails>()
+            val route = it.toRoute<UpdateMenuItem>()
             AddMenuItemScreen(navController, isUpdating = true, foodItem = route.foodItem)
         }
     }
