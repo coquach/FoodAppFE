@@ -304,7 +304,8 @@ fun LoginScreen(
                             viewModel.onSignUpClick()
                         }
                         .fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.ExtraBold
 
                 )
                 GoogleLoginButton(

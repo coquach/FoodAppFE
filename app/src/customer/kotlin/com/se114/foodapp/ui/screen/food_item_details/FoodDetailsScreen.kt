@@ -126,7 +126,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         FoodHeader(
-            imageUrl = foodItem.imageUrl,
+            imageUrl = foodItem.imageUrl?: "",
             foodID = foodItem.id ?: "default id",
             onBackButton = {
                 navController.popBackStack()
