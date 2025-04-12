@@ -239,7 +239,7 @@ fun LoginScreen(
                                 text = "Nhớ mật khẩu",
                                 color = MaterialTheme.colorScheme.outline,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
 
@@ -249,9 +249,9 @@ fun LoginScreen(
                         }) {
                             Text(
                                 text = stringResource(R.string.forgot_password),
-                                color = MaterialTheme.colorScheme.outline,
+                                color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     }
@@ -305,7 +305,7 @@ fun LoginScreen(
                         }
                         .fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.ExtraBold
+                    fontWeight = FontWeight.Bold
 
                 )
                 GoogleLoginButton(

@@ -85,7 +85,7 @@ fun SettingScreen(
 
                 is SettingViewModel.SettingEvents.NavigateToAuth -> {
                     navController.navigate(Auth) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        popUpTo(navController.graph.startDestinationId)
 
                     }
                 }

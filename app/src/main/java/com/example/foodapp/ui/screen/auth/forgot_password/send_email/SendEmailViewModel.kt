@@ -60,13 +60,15 @@ class SendEmailViewModel @Inject constructor(
 
 
             if (isEmailSent.value) {
-                _uiState.value = SendEmailState.AlreadySent
+                _uiState.value = SendEmailState.Nothing
+                _event.emit(SendEmailEvents.ShowAlreadySent)
                 return@launch
             }
 
             // Tránh spam: cooldown 3s
             if (System.currentTimeMillis() - lastClickTime < 3000) {
-                _uiState.value = SendEmailState.TooFast
+                _uiState.value = SendEmailState.Nothing
+                _event.emit(SendEmailEvents.ShowTooFast)
                 return@launch
             }
             lastClickTime = System.currentTimeMillis()
@@ -77,6 +79,7 @@ class SendEmailViewModel @Inject constructor(
                     accountService.forgetPassword(email.value)
                     isEmailSent.value = true
                     _uiState.value = SendEmailState.Success
+                    _event.emit(SendEmailEvents.ShowSuccess)
                 }else {
                     error = "Email không hợp lệ"
                     errorDescription = "Vui lòng nhập email chính xác."
@@ -113,11 +116,13 @@ class SendEmailViewModel @Inject constructor(
         data object Success : SendEmailState()
         data object Error : SendEmailState()
         data object Loading : SendEmailState()
-        data object AlreadySent: SendEmailState()
-        data object  TooFast : SendEmailState()
     }
 
     sealed class SendEmailEvents{
-        object NavigateToLogin : SendEmailEvents()
+        data object NavigateToLogin : SendEmailEvents()
+        data object ShowSuccess : SendEmailEvents()
+        data object ShowAlreadySent: SendEmailEvents()
+        data object  ShowTooFast : SendEmailEvents()
+        data object  ShowError : SendEmailEvents()
     }
 }
