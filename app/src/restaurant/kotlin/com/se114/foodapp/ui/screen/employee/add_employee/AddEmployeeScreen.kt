@@ -59,6 +59,7 @@ import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
+import com.example.foodapp.ui.screen.components.charts.DonutChatSample
 import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -245,6 +246,7 @@ fun AddEmployeeScreen(
                 ),
                 labelText = "Lương cơ bản"
             )
+            DonutChatSample()
             Button(
                 onClick = {
 

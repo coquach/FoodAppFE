@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.foodapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -171,6 +171,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)
 
+    implementation("co.yml:ycharts:2.1.0")
 
 
 }
