@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import java.math.BigDecimal
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,10 +31,10 @@ class CartRepository @Inject constructor(
     }
 
     private object PreferencesKeys {
-        val KEY_SUBTOTAL = floatPreferencesKey("key_subtotal")
-        val KEY_TAX = floatPreferencesKey("key_tax")
-        val KEY_DELIVERY_FEE = floatPreferencesKey("key_delivery_fee")
-        val KEY_TOTAL_AMOUNT = floatPreferencesKey("key_total_amount")
+        val KEY_SUBTOTAL = stringPreferencesKey("key_subtotal")
+        val KEY_TAX = stringPreferencesKey("key_tax")
+        val KEY_DELIVERY_FEE = stringPreferencesKey("key_delivery_fee")
+        val KEY_TOTAL_AMOUNT = stringPreferencesKey("key_total_amount")
     }
 
     // Lấy danh sách CartItem từ DataStore dưới dạng Flow
@@ -98,10 +99,10 @@ class CartRepository @Inject constructor(
     fun getCheckoutDetails(): Flow<CheckoutDetails> {
         return dataStore.data.map { preferences ->
             CheckoutDetails(
-                subTotal = preferences[PreferencesKeys.KEY_SUBTOTAL] ?: 0f,
-                tax = preferences[PreferencesKeys.KEY_TAX] ?: 0f,
-                deliveryFee = preferences[PreferencesKeys.KEY_DELIVERY_FEE] ?: 0f,
-                totalAmount = preferences[PreferencesKeys.KEY_TOTAL_AMOUNT] ?: 0f
+                subTotal = preferences[PreferencesKeys.KEY_SUBTOTAL]?.toBigDecimalOrNull() ?: BigDecimal.ZERO,
+                tax = preferences[PreferencesKeys.KEY_TAX]?.toBigDecimalOrNull() ?: BigDecimal.ZERO,
+                deliveryFee = preferences[PreferencesKeys.KEY_DELIVERY_FEE]?.toBigDecimalOrNull() ?: BigDecimal.ZERO,
+                totalAmount = preferences[PreferencesKeys.KEY_TOTAL_AMOUNT]?.toBigDecimalOrNull() ?: BigDecimal.ZERO
             )
         }
     }
@@ -110,10 +111,10 @@ class CartRepository @Inject constructor(
     private suspend fun saveCheckoutDetails(checkoutDetails: CheckoutDetails) {
         try {
             dataStore.edit {
-                it[PreferencesKeys.KEY_SUBTOTAL] = checkoutDetails.subTotal
-                it[PreferencesKeys.KEY_TAX] = checkoutDetails.tax
-                it[PreferencesKeys.KEY_DELIVERY_FEE] = checkoutDetails.deliveryFee
-                it[PreferencesKeys.KEY_TOTAL_AMOUNT] = checkoutDetails.totalAmount
+                it[PreferencesKeys.KEY_SUBTOTAL] = checkoutDetails.subTotal.toPlainString()
+                it[PreferencesKeys.KEY_TAX] = checkoutDetails.tax.toPlainString()
+                it[PreferencesKeys.KEY_DELIVERY_FEE] = checkoutDetails.deliveryFee.toPlainString()
+                it[PreferencesKeys.KEY_TOTAL_AMOUNT] = checkoutDetails.totalAmount.toPlainString()
             }
         } catch (e: Exception) {
             Log.e("CartRepository", "Lỗi khi lưu chi tiết thanh toán: ${e.localizedMessage}")
@@ -122,11 +123,21 @@ class CartRepository @Inject constructor(
 
     // Cập nhật lại chi tiết thanh toán dựa trên giỏ hàng hiện tại
     private suspend fun updateCheckoutDetails(cartItems: List<CartItem>) {
-        val subTotal = cartItems.sumOf { it.quantity * it.menuItemId.price.toDouble() }.toFloat()
-        val tax = subTotal * 0.1f // Giả sử thuế là 10%
-        val deliveryFee = if (subTotal >= 500000f) 0f else 15000f
+        val subTotal = cartItems.fold(BigDecimal.ZERO) { acc, item ->
+            acc + item.menuItemId.price.multiply(BigDecimal(item.quantity))
+        }
+
+        val tax = subTotal.multiply(BigDecimal("0.1")) // 10% thuế
+        val deliveryFee = if (subTotal >= BigDecimal("500000")) BigDecimal.ZERO else BigDecimal("15000")
         val totalAmount = subTotal + tax + deliveryFee
 
-        saveCheckoutDetails(CheckoutDetails(subTotal = subTotal, tax = tax, deliveryFee = deliveryFee, totalAmount = totalAmount))
+        saveCheckoutDetails(
+            CheckoutDetails(
+                subTotal = subTotal,
+                tax = tax,
+                deliveryFee = deliveryFee,
+                totalAmount = totalAmount
+            )
+        )
     }
 }

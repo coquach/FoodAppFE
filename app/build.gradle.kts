@@ -78,12 +78,12 @@ android {
     productFlavors {
         create("customer") {
             dimension = "environment"
-            buildConfigField("String", "APP_VARIANT", "\"customer\"")
+
         }
         create("restaurant") {
             dimension = "environment"
             applicationIdSuffix= ".restaurant"
-            buildConfigField("String", "APP_VARIANT", "\"admin\"")
+
 
 
             resValue(
@@ -100,7 +100,7 @@ android {
         create("staff") {
             dimension = "environment"
             applicationIdSuffix=  ".staff"
-            buildConfigField("String", "APP_VARIANT", "\"staff\"")
+            
             resValue(
                 type = "string",
                 name = "app_name",

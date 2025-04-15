@@ -29,7 +29,7 @@ class SplashViewModel @Inject constructor(
     init {
         viewModelScope.launch {
 
-            if (BuildConfig.APP_VARIANT == "admin" || BuildConfig.APP_VARIANT == "staff") {
+            if (BuildConfig.FLAVOR == "restaurant" || BuildConfig.FLAVOR == "staff") {
                 accountService.currentUser.collect { user ->
                     _startDestination.value = if (user == null) Auth else Statistics
                 }

@@ -1,6 +1,5 @@
 package com.example.foodapp.ui.navigation
 
-import androidx.navigation.NavHostController
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs

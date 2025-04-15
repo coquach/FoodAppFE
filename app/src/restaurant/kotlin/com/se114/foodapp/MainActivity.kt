@@ -57,6 +57,7 @@ import javax.inject.Inject
 class MainActivity : BaseFoodAppActivity() {
     @Inject
     lateinit var foodApi: FoodApi
+
     @Inject
     lateinit var splashViewModel: SplashViewModel
 
@@ -146,20 +147,20 @@ class MainActivity : BaseFoodAppActivity() {
                     }
 
                 ) { innerPadding ->
-    SharedTransitionLayout {
-        AppNavGraph(
-            navController = navController,
-            innerPadding = innerPadding,
-            shouldShowBottomNav = shouldShowBottomNav,
-            notificationViewModel = notificationViewModel,
-            startDestination = Statistics,
-            isDarkMode = isDarkMode,
-            onThemeUpdated = {
-                isDarkMode = !isDarkMode
-            },
-            sharedTransitionScope = this
-        )
-    }
+                    SharedTransitionLayout {
+                        AppNavGraph(
+                            navController = navController,
+                            innerPadding = innerPadding,
+                            shouldShowBottomNav = shouldShowBottomNav,
+                            notificationViewModel = notificationViewModel,
+                            startDestination = screen,
+                            isDarkMode = isDarkMode,
+                            onThemeUpdated = {
+                                isDarkMode = !isDarkMode
+                            },
+                            sharedTransitionScope = this
+                        )
+                    }
 
 
                 }

@@ -26,11 +26,11 @@ class SignUpViewModel @Inject constructor(
    private val accountService: AccountService
 ) : BaseAuthViewModel() {
 
-    private val _uiState = MutableStateFlow<SignUpEvent>(SignUpEvent.Nothing)
+    private val _uiState = MutableStateFlow<SignUpState>(SignUpState.Nothing)
     val uiState = _uiState.asStateFlow()
 
-    private val _navigationEvent = MutableSharedFlow<SignUpNavigationEvent>()
-    val navigationEvent = _navigationEvent.asSharedFlow()
+    private val _event = MutableSharedFlow<SignUpEvent>()
+    val event = _event.asSharedFlow()
 
 
 
@@ -89,35 +89,35 @@ class SignUpViewModel @Inject constructor(
 
     fun onSignUpClick() {
         viewModelScope.launch {
-            _uiState.value = SignUpEvent.Loading
+            _uiState.value = SignUpState.Loading
             try {
                 if (validate()) {
                     accountService.createAccountWithEmail(email.value, password.value)
-                    _navigationEvent.emit(SignUpNavigationEvent.showSuccesDialog)
-                    _uiState.value = SignUpEvent.Success
+                    _event.emit(SignUpEvent.ShowSuccessDialog)
+                    _uiState.value = SignUpState.Success
                 } else {
                     error = "Thông tin không hợp lệ"
                     errorDescription = "Vui lòng nhập thông tin chính xác."
-                    _uiState.value = SignUpEvent.Error
+                    _uiState.value = SignUpState.Error
                 }
 
             } catch (e: FirebaseAuthUserCollisionException) {
                 // Email đã tồn tại
                 error = "Tài khoản đã tồn tại"
                 errorDescription = "Email đã được đăng ký, vui lòng đăng kí bằng email khác."
-                _uiState.value = SignUpEvent.Error
+                _uiState.value = SignUpState.Error
 
             } catch (e: FirebaseAuthException) {
                 // Các lỗi xác thực khác
                 error = "Lỗi xác thực"
                 errorDescription = e.localizedMessage ?: "Không thể tạo tài khoản."
-                _uiState.value = SignUpEvent.Error
+                _uiState.value = SignUpState.Error
 
             } catch (e: Exception) {
                 e.printStackTrace()
                 error = "Lỗi không xác định"
                 errorDescription = e.localizedMessage ?: "Vui lòng thử lại sau."
-                _uiState.value = SignUpEvent.Error
+                _uiState.value = SignUpState.Error
             }
 
         }
@@ -126,21 +126,22 @@ class SignUpViewModel @Inject constructor(
 
     fun onLoginClick() {
         viewModelScope.launch {
-            _navigationEvent.emit(SignUpNavigationEvent.NavigateLogin)
+            _event.emit(SignUpEvent.NavigateLogin)
         }
     }
 
 
-    sealed class SignUpNavigationEvent {
-        data object NavigateLogin : SignUpNavigationEvent()
-        data object NavigateHome : SignUpNavigationEvent()
-        data object showSuccesDialog: SignUpNavigationEvent()
+    sealed class SignUpEvent {
+        data object NavigateLogin : SignUpEvent()
+        data object NavigateHome : SignUpEvent()
+        data object ShowSuccessDialog: SignUpEvent()
+        data object ShowError : SignUpEvent()
     }
 
-    sealed class SignUpEvent {
-        data object Nothing : SignUpEvent()
-        data object Success : SignUpEvent()
-        data object Error : SignUpEvent()
-        data object Loading : SignUpEvent()
+    sealed class SignUpState {
+        data object Nothing : SignUpState()
+        data object Success : SignUpState()
+        data object Error : SignUpState()
+        data object Loading : SignUpState()
     }
 }

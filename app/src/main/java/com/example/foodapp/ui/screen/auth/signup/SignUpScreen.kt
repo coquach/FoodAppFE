@@ -90,7 +90,6 @@ fun SignUpScreen(
     var isTouched by remember { mutableStateOf(false) }
 
     var showPassword by remember { mutableStateOf(false) }
-    val errorMessage = remember { mutableStateOf<String?>(null) }
     val loading = remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -100,17 +99,12 @@ fun SignUpScreen(
 
 
 
-    LaunchedEffect(errorMessage.value) {
-        if (errorMessage.value != null)
-            scope.launch {
-                showErrorSheet = true
-            }
-    }
+
 
     LaunchedEffect(true) {
-        viewModel.navigationEvent.collectLatest { event ->
+        viewModel.event.collectLatest { event ->
             when (event) {
-                is SignUpViewModel.SignUpNavigationEvent.NavigateHome -> {
+                is SignUpViewModel.SignUpEvent.NavigateHome -> {
                     navController.navigate(Home) {
                         popUpTo(Auth) {
                             inclusive = true
@@ -118,7 +112,7 @@ fun SignUpScreen(
                     }
                 }
 
-                is SignUpViewModel.SignUpNavigationEvent.NavigateLogin -> {
+                is SignUpViewModel.SignUpEvent.NavigateLogin -> {
                     navController.navigate(Login) {
                         popUpTo(Auth) {
                             inclusive = true
@@ -126,8 +120,12 @@ fun SignUpScreen(
                     }
                 }
 
-                is SignUpViewModel.SignUpNavigationEvent.showSuccesDialog -> {
+                is SignUpViewModel.SignUpEvent.ShowSuccessDialog -> {
                     showSuccessDialog = true
+                }
+
+                SignUpViewModel.SignUpEvent.ShowError -> {
+                    showErrorSheet = true
                 }
             }
 
@@ -139,20 +137,15 @@ fun SignUpScreen(
 
         val uiState = viewModel.uiState.collectAsStateWithLifecycle()
         when (uiState.value) {
-            is SignUpViewModel.SignUpEvent.Error -> {
 
-                loading.value = false
-                errorMessage.value = "Failed"
-            }
 
-            is SignUpViewModel.SignUpEvent.Loading -> {
+            is SignUpViewModel.SignUpState.Loading -> {
                 loading.value = true
-                errorMessage.value = null
             }
 
             else -> {
                 loading.value = false
-                errorMessage.value = null
+
             }
         }
 

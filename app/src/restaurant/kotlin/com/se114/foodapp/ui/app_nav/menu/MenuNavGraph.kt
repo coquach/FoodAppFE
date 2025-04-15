@@ -9,7 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.ui.navigation.AddMenuItem
-import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Menu
 import com.example.foodapp.ui.navigation.UpdateMenuItem
 import com.example.foodapp.ui.navigation.foodItemNavType

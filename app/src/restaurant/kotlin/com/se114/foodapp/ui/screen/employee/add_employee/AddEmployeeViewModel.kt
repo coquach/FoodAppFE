@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Staff
 
 import com.example.foodapp.data.remote.FoodApi

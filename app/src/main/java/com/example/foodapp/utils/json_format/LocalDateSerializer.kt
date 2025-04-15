@@ -1,4 +1,4 @@
-package com.example.foodapp.utils
+package com.example.foodapp.utils.json_format
 
 import android.os.Build
 import androidx.annotation.RequiresApi

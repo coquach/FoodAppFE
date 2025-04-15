@@ -3,8 +3,6 @@ package com.se114.foodapp.ui.screen.employee
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -29,7 +27,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -45,26 +42,19 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.ui.navigation.AddEmployee
 
-import com.example.foodapp.ui.navigation.AddMenuItem
 import com.example.foodapp.ui.navigation.UpdateEmployee
-import com.example.foodapp.ui.navigation.UpdateMenuItem
-import com.example.foodapp.ui.screen.common.FoodItemView
 import com.example.foodapp.ui.screen.components.CustomCheckbox
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -72,8 +62,6 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.gridItems
-import com.example.foodapp.ui.theme.FoodAppTheme
-import com.example.foodapp.utils.StringUtils
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -174,7 +162,7 @@ fun EmployeeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(120.dp)
             ) {
                 androidx.compose.animation.AnimatedVisibility(
                     visible = !isInSelectionMode,
@@ -260,6 +248,7 @@ fun EmployeeScreen(
 
     }
 }
+
 
 
 @OptIn(ExperimentalFoundationApi::class)

@@ -1,5 +1,6 @@
 package com.example.foodapp.utils
 
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -7,10 +8,12 @@ import java.util.TimeZone
 
 object StringUtils {
 
-    fun formatCurrency(value: Float): String {
-        val currencyFormatter = java.text.NumberFormat.getCurrencyInstance()
-        currencyFormatter.currency = java.util.Currency.getInstance("VND")
-        currencyFormatter.maximumFractionDigits = 0
+    fun formatCurrency(value: BigDecimal): String {
+        val vietnamLocale = java.util.Locale("vi", "VN")
+        val currencyFormatter = java.text.NumberFormat.getCurrencyInstance(vietnamLocale).apply {
+            currency = java.util.Currency.getInstance("VND")
+            maximumFractionDigits = 0
+        }
         return currencyFormatter.format(value)
     }
     private val vietnamTimeZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh")

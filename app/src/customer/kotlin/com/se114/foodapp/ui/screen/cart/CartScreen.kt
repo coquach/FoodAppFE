@@ -79,6 +79,7 @@ import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.utils.StringUtils
 import kotlinx.coroutines.flow.collectLatest
+import java.math.BigDecimal
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -267,7 +268,7 @@ fun CheckoutDetailsView(
 }
 
 @Composable
-fun CheckoutRowItem(title: String, value: Float, fontWeight: FontWeight = FontWeight.Normal) {
+fun CheckoutRowItem(title: String, value: BigDecimal, fontWeight: FontWeight = FontWeight.Normal) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

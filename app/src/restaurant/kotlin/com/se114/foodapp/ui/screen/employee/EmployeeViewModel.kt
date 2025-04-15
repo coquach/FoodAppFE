@@ -3,7 +3,6 @@ package com.se114.foodapp.ui.screen.employee
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Staff
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow

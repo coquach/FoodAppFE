@@ -1,7 +1,7 @@
 package com.example.foodapp.data.model
 
 
-import com.example.foodapp.utils.LocalDateSerializer
+import com.example.foodapp.utils.json_format.LocalDateSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 

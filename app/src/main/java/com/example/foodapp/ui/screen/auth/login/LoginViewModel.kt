@@ -6,7 +6,6 @@ import androidx.credentials.CustomCredential
 import androidx.lifecycle.viewModelScope
 
 import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.dto.request.LoginRequest
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.service.AccountService
@@ -58,7 +57,7 @@ class LoginViewModel @Inject constructor(
             try {
                 accountService.signInWithEmail(email.value, password.value)
                 _uiState.value = LoginEvent.Success
-                _navigationEvent.emit(LoginNavigationEvent.NavigateHome)
+                _navigationEvent.emit(LoginNavigationEvent.NavigateAfterLogin)
 
 
             } catch (e: FirebaseAuthInvalidUserException) {
@@ -105,7 +104,7 @@ class LoginViewModel @Inject constructor(
                     val googleIdTokenCredential =
                         GoogleIdTokenCredential.createFrom(credential.data)
                     accountService.signInWithGoogle(googleIdTokenCredential.idToken)
-                    _navigationEvent.emit(LoginNavigationEvent.NavigateHome)
+                    _navigationEvent.emit(LoginNavigationEvent.NavigateAfterLogin)
 
                 } else throw IllegalArgumentException("Thông tin không hợp lệ")
             } catch (e: ApiException) {
@@ -136,7 +135,7 @@ class LoginViewModel @Inject constructor(
 
     sealed class LoginNavigationEvent {
         data object NavigateSignUp : LoginNavigationEvent()
-        data object NavigateHome : LoginNavigationEvent()
+        data object NavigateAfterLogin  : LoginNavigationEvent()
         data object NavigateForgot : LoginNavigationEvent()
     }
 

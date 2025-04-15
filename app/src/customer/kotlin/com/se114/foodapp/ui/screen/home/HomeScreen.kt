@@ -68,6 +68,7 @@ import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.ui.screen.home.banner.Banners
 import kotlinx.coroutines.flow.collectLatest
+import java.math.BigDecimal
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -105,7 +106,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "1",
             imageUrl = "https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg",
             name = "Burger Bò Phô Mai",
-            price = 146755f
+            price = BigDecimal("120000")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:05:00Z",
@@ -113,7 +114,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "2",
             imageUrl = "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg",
             name = "Pizza Margherita",
-            price = 207705f
+            price =  BigDecimal("15000")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:10:00Z",
@@ -121,7 +122,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "3",
             imageUrl = "https://images.pexels.com/photos/2271101/pexels-photo-2271101.jpeg",
             name = "Gà Rán Cay",
-            price = 171255f
+            price =  BigDecimal("14578")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:15:00Z",
@@ -129,7 +130,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "4",
             imageUrl = "https://images.pexels.com/photos/2871752/pexels-photo-2871752.jpeg",
             name = "Mì Ramen",
-            price = 195655f
+            price =  BigDecimal("145678")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:20:00Z",
@@ -137,7 +138,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "5",
             imageUrl = "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg",
             name = "Sushi Cá Hồi",
-            price = 244755f
+            price =  BigDecimal("1234567")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:25:00Z",
@@ -145,7 +146,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "6",
             imageUrl = "https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg",
             name = "Pancake Dâu",
-            price = 122255f
+            price =  BigDecimal("52144")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:30:00Z",
@@ -153,7 +154,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "7",
             imageUrl = "https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg",
             name = "Cappuccino",
-            price = 97755f
+            price =  BigDecimal("123456")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:35:00Z",
@@ -161,7 +162,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "8",
             imageUrl = "https://images.pexels.com/photos/140831/pexels-photo-140831.jpeg",
             name = "Sinh Tố Bơ",
-            price = 110025f
+            price =  BigDecimal("245334")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:40:00Z",
@@ -169,7 +170,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "9",
             imageUrl = "https://images.pexels.com/photos/1028429/pexels-photo-1028429.jpeg",
             name = "Kem Dâu",
-            price = 73255f
+            price =  BigDecimal("78942")
         ),
         FoodItem(
             createdAt = "2025-03-29T10:45:00Z",
@@ -177,7 +178,7 @@ fun SharedTransitionScope.HomeScreen(
             id = "10",
             imageUrl = "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg",
             name = "Nước Chanh",
-            price = 61155f
+            price =  BigDecimal("124635")
         )
     )
 

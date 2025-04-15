@@ -1,6 +1,9 @@
 package com.example.foodapp.data.model
 
+import com.example.foodapp.utils.json_format.BigDecimalSerializer
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
+
 
 @Serializable
 data class FoodItem(
@@ -9,5 +12,7 @@ data class FoodItem(
     val id: String? = null,
     val imageUrl: String? = null,
     val name: String,
-    val price: Float
+
+    @Serializable(with = BigDecimalSerializer::class)
+    val price: BigDecimal,
 )
