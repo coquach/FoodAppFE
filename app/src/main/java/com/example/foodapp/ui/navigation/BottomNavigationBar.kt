@@ -11,6 +11,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.foodapp.BuildConfig
 import com.example.foodapp.R
 
 sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
@@ -23,9 +24,9 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
 
     data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
     data object Setting :
-        BottomNavItem(com.example.foodapp.ui.navigation.Setting, R.drawable.ic_user_circle)
+        BottomNavItem(com.example.foodapp.ui.navigation.Setting, if(BuildConfig.FLAVOR == "restaurant") R.drawable.ic_setting else R.drawable.ic_user_circle)
     data object  Statistics :
-            BottomNavItem(com.example.foodapp.ui.navigation.Statistics, R.drawable.ic_chart)
+        BottomNavItem(com.example.foodapp.ui.navigation.Statistics, R.drawable.ic_chart)
     data object  Warehouse :
         BottomNavItem(com.example.foodapp.ui.navigation.Warehouse, R.drawable.ic_warehouse)
     data object  Employee :

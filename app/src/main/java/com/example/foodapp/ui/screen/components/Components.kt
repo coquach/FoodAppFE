@@ -360,7 +360,7 @@ fun HeaderDefaultView(
 
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier

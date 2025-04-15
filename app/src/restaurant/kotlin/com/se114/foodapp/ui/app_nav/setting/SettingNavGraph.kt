@@ -16,6 +16,6 @@ fun NavGraphBuilder.settingGraph(
 ) {
     composable<Setting> {
         shouldShowBottomNav.value = true
-        SettingScreen(navController)
+        SettingScreen(navController, isDarkMode, onThemeUpdated)
     }
 }
