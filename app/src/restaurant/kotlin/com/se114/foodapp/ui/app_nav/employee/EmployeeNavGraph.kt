@@ -7,7 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.foodapp.data.model.Staff
+import com.se114.foodapp.data.model.Staff
 import com.example.foodapp.ui.navigation.AddEmployee
 import com.example.foodapp.ui.navigation.Employee
 import com.example.foodapp.ui.navigation.UpdateEmployee

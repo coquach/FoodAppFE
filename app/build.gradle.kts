@@ -58,7 +58,7 @@ android {
                 "GOOGLE_WEB_CLIENT_ID",
                 "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
             )
-            
+
         }
     }
 
@@ -82,7 +82,7 @@ android {
         }
         create("restaurant") {
             dimension = "environment"
-            applicationIdSuffix= ".restaurant"
+            applicationIdSuffix = ".restaurant"
 
 
 
@@ -99,8 +99,8 @@ android {
         }
         create("staff") {
             dimension = "environment"
-            applicationIdSuffix=  ".staff"
-            
+            applicationIdSuffix = ".staff"
+
             resValue(
                 type = "string",
                 name = "app_name",
@@ -141,37 +141,64 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
     implementation(libs.core.splashscreen)
+
+    //Dagger - Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+    //Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
+
+    //Navigation
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.navigation.compose)
+
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    //Kotlin Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    //Coil
     implementation(libs.coil.compose)
+
+    //Data Store
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore)
-    implementation(libs.play.services.maps)
 
+    implementation(libs.play.services.maps)
     implementation(libs.maps.compose)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.play.services.location)
+
+    //Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-auth")
 
+    //Google Auth
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation("androidx.credentials:credentials:1.5.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
+    //Material Icon
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)
 
+    //YChart
     implementation("co.yml:ycharts:2.1.0")
+
+    // Room components
+    implementation("androidx.room:room-runtime:2.7.0")
+    kapt("androidx.room:room-compiler:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    implementation("androidx.room:room-paging:2.7.0")
+
+    //Paging
+    implementation("androidx.paging:paging-compose:3.3.6")
 
 
 }

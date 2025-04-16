@@ -6,7 +6,7 @@ import androidx.navigation.NavType
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs
-import com.example.foodapp.data.model.Staff
+import com.se114.foodapp.data.model.Staff
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder

@@ -124,9 +124,7 @@ fun SignUpScreen(
                     showSuccessDialog = true
                 }
 
-                SignUpViewModel.SignUpEvent.ShowError -> {
-                    showErrorSheet = true
-                }
+
             }
 
         }
@@ -143,9 +141,12 @@ fun SignUpScreen(
                 loading.value = true
             }
 
+            is SignUpViewModel.SignUpState.Error -> {
+                loading.value = false
+                showErrorSheet = true
+            }
             else -> {
                 loading.value = false
-
             }
         }
 

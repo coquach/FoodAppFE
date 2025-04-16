@@ -1,6 +1,7 @@
 package com.example.foodapp.di
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -41,16 +42,25 @@ object NetworkModule {
         account: AccountService,
         @ApplicationContext context: Context
     ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val originalRequest = chain.request()
+        val client = OkHttpClient.Builder()
+        client.addInterceptor  { chain ->
+            val originalRequest = chain.request()
+            val requestUrl = originalRequest.url.toString()
+
+            if (requestUrl.contains("auth/register")) {
+                return@addInterceptor chain.proceed(originalRequest)
+            }
                 val token = runBlocking { account.getUserToken() }
+            Log.d("Firebase Token: ", token.toString())
                 val requestWithAuth = originalRequest.newBuilder()
                     .header("Authorization", "Bearer $token")
                     .build()
                 chain.proceed(requestWithAuth)
             }
-            .build()
+        client.addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        })
+        return client.build()
     }
 
 
@@ -58,10 +68,13 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
         return Retrofit.Builder()
             .client(client)
             .baseUrl(BuildConfig.BACKEND_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
            .build()
     }
 

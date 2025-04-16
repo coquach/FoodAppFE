@@ -241,31 +241,31 @@ fun SharedTransitionScope.MenuScreen(
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-
-            ) {
-                gridItems(foodItems, 2) { foodItem ->
-                    FoodItemView(
-                        foodItem = foodItem,
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        isInSelectionMode = isInSelectionMode,
-                        isSelected = viewModel.selectedItems.contains(foodItem),
-                        onCheckedChange = { foodItem ->
-                            viewModel.toggleSelection(foodItem)
-                        },
-                        onClick = {
-                            navController.navigate(UpdateMenuItem(foodItem))
-                        },
-                        onLongClick = {
-                            isInSelectionMode = !isInSelectionMode
-                        },
-                        isCustomer = false
-                    )
-                }
-            }
+//            LazyColumn(
+//                modifier = Modifier
+//                    .weight(1f)
+//                    .fillMaxWidth()
+//
+//            ) {
+//                gridItems(foodItems, 2) { foodItem ->
+//                    FoodItemView(
+//                        foodItem = foodItem,
+//                        animatedVisibilityScope = animatedVisibilityScope,
+//                        isInSelectionMode = isInSelectionMode,
+//                        isSelected = viewModel.selectedItems.contains(foodItem),
+//                        onCheckedChange = { foodItem ->
+//                            viewModel.toggleSelection(foodItem)
+//                        },
+//                        onClick = {
+//                            navController.navigate(UpdateMenuItem(foodItem))
+//                        },
+//                        onLongClick = {
+//                            isInSelectionMode = !isInSelectionMode
+//                        },
+//                        isCustomer = false
+//                    )
+//                }
+//            }
         }
     }
     if (showDialogDelete.value) {

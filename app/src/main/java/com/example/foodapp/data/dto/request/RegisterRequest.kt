@@ -1,6 +1,6 @@
 package com.example.foodapp.data.dto.request
 
-data class SignUpRequest(
+data class RegisterRequest(
     val email: String,
     val password: String,
 )

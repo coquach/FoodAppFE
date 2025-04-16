@@ -1,6 +1,8 @@
 package com.se114.foodapp.ui.screen.employee
 
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -27,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -44,14 +47,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
-import com.example.foodapp.data.model.Staff
+import com.example.foodapp.R
+import com.se114.foodapp.data.model.Staff
 import com.example.foodapp.ui.navigation.AddEmployee
 
 import com.example.foodapp.ui.navigation.UpdateEmployee
@@ -59,10 +66,11 @@ import com.example.foodapp.ui.screen.components.CustomCheckbox
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
+import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.gridItems
-import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -77,53 +85,27 @@ fun EmployeeScreen(
 
     val showDialogDelete = remember { mutableStateOf(false) }
 
-    val staffList = listOf(
-        Staff(
-            id = 1L,
-            fullName = "Nguyễn Văn An",
-            position = "Quản lý",
-            phone = "0901234567",
-            gender = "Nam",
-            address = "123 Lê Lợi, Q.1, TP.HCM",
-            imageUrl = "https://randomuser.me/api/portraits/men/75.jpg",
-            birthDate = LocalDate.of(1985, 6, 12),
-            startDate = LocalDate.of(2015, 3, 1),
-            endDate = null,
-            basicSalary = 15000000.0,
-            isDeleted = false,
-            salaryHistories = emptyList()
-        ),
-        Staff(
-            id = 2L,
-            fullName = "Trần Thị Mai",
-            position = "Kế toán",
-            phone = "0912345678",
-            gender = "Nữ",
-            address = "456 Trần Hưng Đạo, Q.5, TP.HCM",
-            imageUrl = "https://randomuser.me/api/portraits/women/65.jpg",
-            birthDate = LocalDate.of(1992, 9, 23),
-            startDate = LocalDate.of(2018, 7, 15),
-            endDate = null,
-            basicSalary = 12000000.0,
-            isDeleted = false,
-            salaryHistories = emptyList()
-        ),
-        Staff(
-            id = 3L,
-            fullName = "Lê Quang Huy",
-            position = "Nhân viên bán hàng",
-            phone = "0938765432",
-            gender = "Nam",
-            address = "789 Nguyễn Trãi, Q.10, TP.HCM",
-            imageUrl = "https://randomuser.me/api/portraits/men/62.jpg",
-            birthDate = LocalDate.of(1998, 12, 5),
-            startDate = LocalDate.of(2022, 1, 5),
-            endDate = null,
-            basicSalary = 9000000.0,
-            isDeleted = false,
-            salaryHistories = emptyList()
-        )
-    )
+    val staffs = viewModel.getAllStaffs.collectAsLazyPagingItems()
+
+    when (val state = staffs.loadState.refresh) {
+        is LoadState.Loading -> {
+            Loading()
+        }
+
+        is LoadState.Error -> {
+            Toast.makeText(
+                LocalContext.current,
+                "Không thể tải thêm dữ liệu: ${state.error.message}",
+                Toast.LENGTH_LONG
+            ).show()
+            state.error.message?.let { Log.d("Paging", it) }
+        }
+
+        is LoadState.NotLoading -> {
+
+        }
+    }
+
     Scaffold(
         floatingActionButton =
         {
@@ -191,36 +173,51 @@ fun EmployeeScreen(
                     DeleteBar(
                         onSelectAll = {
                             isSelectAll = !isSelectAll
-                            viewModel.selectAllItems(staffList, isSelectAll)
+                            viewModel.selectAllItems(
+                                staffList = staffs.itemSnapshotList.items,
+                                isSelectAll = isSelectAll
+                            )
                         },
                         onDeleteSelected = { viewModel.onRemoveClicked() }
                     )
                 }
             }
+            if (staffs.itemSnapshotList.items.isEmpty() && staffs.loadState.refresh !is LoadState.Loading) {
 
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                com.example.foodapp.ui.screen.components.Nothing(
+                    text = "Không có nhân viên nào",
+                    icon = Icons.Default.Groups
+                )
+            }
+            else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
 
-            ) {
-                gridItems(staffList, 2) { staff ->
-                    EmployeeItemView(
-                        staff = staff,
-                        isInSelectionMode = isInSelectionMode,
-                        isSelected = viewModel.selectedItems.contains(staff),
-                        onCheckedChange = { staff ->
-                            viewModel.toggleSelection(staff)
-                        },
-                        onClick = {
-                            navController.navigate(UpdateEmployee(staff))
-                        },
-                        onLongClick = {
-                            isInSelectionMode = !isInSelectionMode
-                        },
-                    )
+                ) {
+                    gridItems(staffs, 2, key = { staff -> staff.id.toString() }) { staff ->
+                        staff?.let {
+                            EmployeeItemView(
+                                staff = it,
+                                isInSelectionMode = isInSelectionMode,
+                                isSelected = viewModel.selectedItems.contains(it),
+                                onCheckedChange = { staff ->
+                                    viewModel.toggleSelection(staff)
+                                },
+                                onClick = {
+                                    navController.navigate(UpdateEmployee(it))
+                                },
+                                onLongClick = {
+                                    isInSelectionMode = !isInSelectionMode
+                                },
+                            )
+                        }
+
+                    }
                 }
             }
+
         }
     }
 
@@ -248,7 +245,6 @@ fun EmployeeScreen(
 
     }
 }
-
 
 
 @OptIn(ExperimentalFoundationApi::class)

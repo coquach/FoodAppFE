@@ -62,6 +62,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,6 +83,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.compose.LazyPagingItems
 
 import com.example.foodapp.R
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -544,44 +546,32 @@ fun CustomPagerIndicator(
 }
 
 
-fun LazyListScope.gridItems(
-    count: Int,
-    nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    itemContent: @Composable BoxScope.(Int) -> Unit,
-) {
-    gridItems(
-        data = List(count) { it },
-        nColumns = nColumns,
-        horizontalArrangement = horizontalArrangement,
-        itemContent = itemContent,
-    )
-}
 
-fun <T> LazyListScope.gridItems(
-    data: List<T>,
+
+fun <T : Any> LazyListScope.gridItems(
+    data: LazyPagingItems<T>,
     nColumns: Int,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     key: ((item: T) -> Any)? = null,
-    itemContent: @Composable BoxScope.(T) -> Unit,
+    itemContent: @Composable BoxScope.(T?) -> Unit,
 ) {
-    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
-    items(rows) { rowIndex ->
+    val rowCount = if (data.itemCount == 0) 0 else (data.itemCount + nColumns - 1) / nColumns
+    items(rowCount) { rowIndex ->
         Row(horizontalArrangement = horizontalArrangement) {
             for (columnIndex in 0 until nColumns) {
                 val itemIndex = rowIndex * nColumns + columnIndex
-                if (itemIndex < data.count()) {
+                if (itemIndex < data.itemCount) {
                     val item = data[itemIndex]
-                    androidx.compose.runtime.key(key?.invoke(item)) {
+                    key(key?.invoke(item!!)) {
                         Box(
                             modifier = Modifier.weight(1f, fill = true),
                             propagateMinConstraints = true
                         ) {
-                            itemContent.invoke(this, item)
+                            itemContent(this, item)
                         }
                     }
                 } else {
-                    Spacer(Modifier.weight(1f, fill = true))
+                    Spacer(modifier = Modifier.weight(1f, fill = true))
                 }
             }
         }

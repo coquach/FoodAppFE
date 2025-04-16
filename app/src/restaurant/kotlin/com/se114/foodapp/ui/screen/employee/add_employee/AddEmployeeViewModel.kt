@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.model.Staff
+import com.se114.foodapp.data.model.Staff
 
 import com.example.foodapp.data.remote.FoodApi
 import dagger.hilt.android.lifecycle.HiltViewModel

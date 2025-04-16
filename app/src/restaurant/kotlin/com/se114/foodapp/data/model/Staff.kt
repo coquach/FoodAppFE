@@ -1,12 +1,19 @@
-package com.example.foodapp.data.model
+package com.se114.foodapp.data.model
 
 
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.example.foodapp.data.model.SalaryHistory
 import com.example.foodapp.utils.json_format.LocalDateSerializer
+import com.se114.foodapp.utils.Constants.STAFF_TABLE
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 @Serializable
+@Entity(tableName = STAFF_TABLE)
 data class Staff(
+    @PrimaryKey(autoGenerate = false)
     val id: Long? = null,
     val fullName: String? = null,
     val position: String? = null,
@@ -28,7 +35,5 @@ data class Staff(
 
     val isDeleted: Boolean = false,
 
-
-    val salaryHistories: List<SalaryHistory> = emptyList()
 
 )
