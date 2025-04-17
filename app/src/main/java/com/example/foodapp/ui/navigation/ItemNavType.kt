@@ -86,12 +86,12 @@ val resetPasswordNavType = object : NavType<ResetPasswordArgs>(false) {
 }
 
 val staffNavType = object : NavType<Staff>(false) {
-    override fun get(bundle: Bundle, key: String): Staff? {
-        return parseValue(bundle.getString(key).toString()).copy(
-            imageUrl = URLDecoder.decode(
-                parseValue(bundle.getString(key).toString()).imageUrl,
-                "UTF-8"
-            )
+    override fun get(bundle: Bundle, key: String): Staff {
+        val staffJson = bundle.getString(key).toString()
+
+        val staff = parseValue(staffJson)
+        return staff.copy(
+            imageUrl = staff.imageUrl?.let { URLDecoder.decode(it, "UTF-8") }
         )
     }
 
@@ -102,7 +102,7 @@ val staffNavType = object : NavType<Staff>(false) {
     override fun serializeAsValue(value: Staff): String {
         return Json.encodeToString(
             Staff.serializer(), value.copy(
-                imageUrl = URLEncoder.encode(value.imageUrl, "UTF-8"),
+                imageUrl = value.imageUrl?.let { URLEncoder.encode(it, "UTF-8") }
             )
         )
     }

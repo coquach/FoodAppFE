@@ -3,8 +3,10 @@ package com.example.foodapp.ui.screen.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,6 +24,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -40,7 +43,10 @@ fun TabWithPager(
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = 0)
 
-    Column {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             modifier = Modifier
@@ -79,7 +85,13 @@ fun TabWithPager(
         }
 
         HorizontalPager(state = pagerState) { page ->
-            pages[page].invoke()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                pages[page].invoke()
+            }
         }
     }
 }

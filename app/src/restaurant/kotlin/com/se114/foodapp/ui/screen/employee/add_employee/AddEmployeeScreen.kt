@@ -1,6 +1,7 @@
 package com.se114.foodapp.ui.screen.employee.add_employee
 
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
+import com.example.foodapp.data.model.enums.Gender
 import com.se114.foodapp.data.model.Staff
 
 
@@ -78,8 +80,11 @@ fun AddEmployeeScreen(
     val gender by viewModel.gender.collectAsStateWithLifecycle()
     val birthDate by viewModel.birthDate.collectAsStateWithLifecycle()
     val basicSalary by viewModel.basicSalary.collectAsStateWithLifecycle()
+    val address by viewModel.address.collectAsStateWithLifecycle()
+    val startDate by viewModel.startDate.collectAsStateWithLifecycle()
+    val endDate by viewModel.endDate.collectAsStateWithLifecycle()
 
-    val uiState = viewModel.addEmployeeState.collectAsStateWithLifecycle()
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val isLoading = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = isUpdating) {
@@ -88,24 +93,36 @@ fun AddEmployeeScreen(
     }
 
     LaunchedEffect(key1 = true) {
-        viewModel.addEmployeeEvent.collectLatest {
+        viewModel.event.collectLatest {
             when (it) {
                 is AddEmployeeViewModel.AddEmployeeEvents.GoBack -> {
-                    Toast.makeText(
-                        navController.context, "Đã thêm nhân viên thành công", Toast.LENGTH_SHORT
-                    ).show()
-                    navController.previousBackStackEntry?.savedStateHandle?.set("added", true)
+                    if (isUpdating) {
+                        Toast.makeText(
+                            navController.context,
+                            "Cập nhật nhân viên thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.previousBackStackEntry?.savedStateHandle?.set("updated", true)
+                    } else {
+                        Toast.makeText(
+                            navController.context,
+                            "Thêm nhân viên thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.previousBackStackEntry?.savedStateHandle?.set("added", true)
+                    }
+
                     navController.popBackStack()
 
                 }
 
 
                 is AddEmployeeViewModel.AddEmployeeEvents.ShowErrorMessage -> {
-                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(navController.context, it.message, Toast.LENGTH_LONG).show()
                 }
 
+            }
         }
-    }
     }
     when (uiState.value) {
         is AddEmployeeViewModel.AddEmployeeState.Error -> {}
@@ -134,7 +151,7 @@ fun AddEmployeeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
 
 
-        ) {
+            ) {
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -143,7 +160,7 @@ fun AddEmployeeScreen(
             ) {
 
                 AsyncImage(
-                    model = imageUri.value?: R.drawable.avatar_placeholder,
+                    model = imageUri.value ?: R.drawable.avatar_placeholder,
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .size(100.dp)
@@ -188,16 +205,17 @@ fun AddEmployeeScreen(
             )
             RadioGroupWrap(
                 text = "Giới tính",
-                options = listOf("Nam", "Nữ", "Khác"),
-                selectedOption = gender?: "",
+                options = Gender.entries.map { it.display },
+                selectedOption = gender ?: "",
                 onOptionSelected = {
+                    Log.d("GenderSelect", "Selected: $it")
                     viewModel.onGenderChange(it)
                 }
             )
             FoodAppTextField(
                 value = phone,
                 onValueChange = {
-                    viewModel.onBasicSalaryChange(it)
+                    viewModel.onPhoneChange(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -223,10 +241,24 @@ fun AddEmployeeScreen(
             )
 
             DateRangePickerSample(
-                onDateRangeSelected = {start, end ->
+                startDate = startDate,
+                endDate = endDate,
+                onDateRangeSelected = { start, end ->
                     viewModel.onStartDateChange(start)
                     viewModel.onEndDateChange(end)
                 }
+            )
+            FoodAppTextField(
+                value = address,
+                onValueChange = {
+                    viewModel.onAddressChange(it)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+                labelText = "Địa chỉ"
             )
             FoodAppTextField(
                 value = basicSalary.toString(),
@@ -240,10 +272,15 @@ fun AddEmployeeScreen(
                 ),
                 labelText = "Lương cơ bản"
             )
-            DonutChatSample()
             Button(
                 onClick = {
+                    if (isUpdating && staff != null) {
 
+                            viewModel.updateStaff(staff.id!!)
+
+                    } else {
+                        viewModel.addStaff()
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),

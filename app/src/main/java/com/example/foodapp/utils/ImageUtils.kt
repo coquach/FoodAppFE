@@ -4,6 +4,9 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
 object ImageUtils {
@@ -34,6 +37,11 @@ object ImageUtils {
             throw RuntimeException("Failed to create file from URI", e)
         }
     }
+    fun File.toMultipartBodyPart(partName: String = "imageUrl"): MultipartBody.Part {
+        val requestFile = this.asRequestBody("image/*".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData(partName, this.name, requestFile)
+    }
+
 
     /**
      * Chuyển Uri thành ByteArray (nếu muốn upload dưới dạng dữ liệu nhị phân)

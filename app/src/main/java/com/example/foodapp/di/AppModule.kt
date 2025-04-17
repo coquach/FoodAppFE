@@ -9,6 +9,7 @@ import com.example.foodapp.BuildConfig
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.service.AccountService
+import com.example.foodapp.utils.gson.LocalDateDeserializer
 
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -26,6 +27,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.time.Instant
+import java.time.LocalDate
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -69,6 +71,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         val gson = GsonBuilder()
+            .registerTypeAdapter(LocalDate::class.java, LocalDateDeserializer())
             .setLenient()
             .create()
         return Retrofit.Builder()

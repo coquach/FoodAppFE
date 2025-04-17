@@ -12,6 +12,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,11 @@ fun ComboBoxSample(
     options: List<String> = listOf("staff", "admin", "seller")
 ) {
     var expanded by remember { mutableStateOf(false) }
+    LaunchedEffect(selected, options) {
+        if (selected == null && options.isNotEmpty()) {
+            onPositionSelected(options.first())
+        }
+    }
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded }

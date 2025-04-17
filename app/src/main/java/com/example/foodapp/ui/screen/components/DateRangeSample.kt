@@ -43,22 +43,21 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangePickerSample(
+    startDate: LocalDate?,
+    endDate: LocalDate?,
     modifier: Modifier = Modifier,
-    onDateRangeSelected: (LocalDate?, LocalDate?) -> Unit // Callback để trả lại ngày đã chọn
+    onDateRangeSelected: (LocalDate?, LocalDate?) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val dateRangePickerState = rememberDateRangePickerState()
 
-    // State lưu trữ ngày bắt đầu và ngày kết thúc
-    var selectedStartDate by remember { mutableStateOf<LocalDate?>(null) }
-    var selectedEndDate by remember { mutableStateOf<LocalDate?>(null) }
 
 
-    LaunchedEffect(Unit) {
-        val today = LocalDate.now()
-        selectedStartDate = selectedStartDate ?: today
-        selectedEndDate = selectedEndDate ?: today
-    }
+
+
+
+
+
 
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -77,7 +76,7 @@ fun DateRangePickerSample(
     ) {
         // TextField cho ngày bắt đầu
         FoodAppTextField(
-            value = selectedStartDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
+            value = startDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
             onValueChange = {},
             readOnly = true,
             labelText = "Ngày bắt đầu",
@@ -92,7 +91,7 @@ fun DateRangePickerSample(
 
         // TextField cho ngày kết thúc
         FoodAppTextField(
-            value = selectedEndDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
+            value = endDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
             onValueChange = {},
             readOnly = true,
             labelText = "Ngày kết thúc",
@@ -114,19 +113,15 @@ fun DateRangePickerSample(
                 TextButton(
                     onClick = {
 
-                        val startDate = dateRangePickerState.selectedStartDateMillis?.let {
+                        val pickedStartDate = dateRangePickerState.selectedStartDateMillis?.let {
                             Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                         }
-                        val endDate = dateRangePickerState.selectedEndDateMillis?.let {
+                        val pickedEndDate = dateRangePickerState.selectedEndDateMillis?.let {
                             Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                         }
 
 
-                        selectedStartDate = startDate
-                        selectedEndDate = endDate
-
-
-                        onDateRangeSelected(startDate, endDate)
+                        onDateRangeSelected(pickedStartDate, pickedEndDate)
 
 
                         showDialog = false

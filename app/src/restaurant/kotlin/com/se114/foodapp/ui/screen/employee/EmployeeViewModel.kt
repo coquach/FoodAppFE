@@ -1,15 +1,19 @@
 package com.se114.foodapp.ui.screen.employee
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.safeApiCall
 import com.se114.foodapp.data.model.Staff
 import com.example.foodapp.data.remote.FoodApi
 import com.se114.foodapp.data.repository.StaffRepository
+import com.se114.foodapp.ui.screen.employee.add_employee.AddEmployeeViewModel.AddEmployeeEvents
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,40 +28,38 @@ import javax.inject.Inject
 @OptIn(ExperimentalPagingApi::class)
 class EmployeeViewModel
 @Inject constructor(
-   private val repository: StaffRepository
+    private val foodApi: FoodApi,
+    private val repository: StaffRepository
 ) : ViewModel() {
 
-    val getAllStaffs = repository.getAllStaffs()
+    val getAllStaffs = repository.getAllStaffs().cachedIn(viewModelScope)
+
 
     private val _event = MutableSharedFlow<EmployeeEvents>()
     val event = _event.asSharedFlow()
 
 
-
-
-
-    private val _selectedItems = mutableStateListOf<Staff>()
-    val selectedItems: List<Staff> get() = _selectedItems
-
-    fun toggleSelection(staff: Staff) {
-        if (_selectedItems.contains(staff)) {
-            _selectedItems.remove(staff)
-        } else {
-            _selectedItems.add(staff)
-        }
-    }
-
-    fun selectAllItems(staffList: List<Staff>, isSelectAll: Boolean) {
-        _selectedItems.clear()
-        if (isSelectAll) _selectedItems.addAll(staffList)
-    }
-
-    fun removeItem() {
+    fun removeItem(staffId: Long) {
         viewModelScope.launch {
             try {
 
+                val response = safeApiCall { foodApi.deleteStaff(staffId) }
+                when (response) {
+                    is ApiResponse.Success -> {
+                        _event.emit(EmployeeEvents.ShowSuccessToast("Xóa nhân viên thành công"))
+                    }
+                    is ApiResponse.Error -> {
+                        _event.emit(EmployeeEvents.ShowErrorMessage("Xóa nhân viên thất bại: ${response.message}"))
+                    }
+                    else -> {
+                        _event.emit(EmployeeEvents.ShowErrorMessage("Có lỗi xảy ra"))
+                    }
+                }
+
             } catch (e: Exception) {
                 e.printStackTrace()
+                Log.d("Api error: ", "${e.message}")
+                _event.emit(EmployeeEvents.ShowErrorMessage("Có lỗi xảy ra: ${e.message}"))
             }
         }
     }
@@ -70,9 +72,9 @@ class EmployeeViewModel
 
 
 
-
     sealed class EmployeeEvents {
-        data object NavigateToDetail : EmployeeEvents()
+        data class ShowSuccessToast(val message: String): EmployeeEvents()
         data object ShowDeleteDialog : EmployeeEvents()
+        data class ShowErrorMessage(val message: String) : EmployeeEvents()
     }
 }

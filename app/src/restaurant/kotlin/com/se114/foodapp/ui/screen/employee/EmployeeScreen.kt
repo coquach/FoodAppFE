@@ -35,6 +35,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,9 +55,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.log
 import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.se114.foodapp.data.model.Staff
@@ -70,26 +75,28 @@ import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
+import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.screen.components.gridItems
+import kotlinx.coroutines.flow.collectLatest
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EmployeeScreen(
     navController: NavController,
     viewModel: EmployeeViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     var search by remember { mutableStateOf("") }
 
-    var isInSelectionMode by rememberSaveable { mutableStateOf(false) }
-    var isSelectAll by rememberSaveable { mutableStateOf(false) }
+    var selectedItemId by remember { mutableStateOf<Long?>(null) }
+    var isInSelectionMode by remember { mutableStateOf(false) }
 
     val showDialogDelete = remember { mutableStateOf(false) }
 
     val staffs = viewModel.getAllStaffs.collectAsLazyPagingItems()
+    var shouldRefresh by remember { mutableStateOf(false) }
 
     when (val state = staffs.loadState.refresh) {
         is LoadState.Loading -> {
-            Loading()
         }
 
         is LoadState.Error -> {
@@ -105,6 +112,49 @@ fun EmployeeScreen(
 
         }
     }
+    val isItemAdded = navController.currentBackStackEntry?.savedStateHandle
+        ?.getStateFlow<Boolean>("added", false)
+        ?.collectAsState()
+
+    val isItemUpdated = navController.currentBackStackEntry?.savedStateHandle
+        ?.getStateFlow<Boolean>("updated", false)
+        ?.collectAsState()
+
+    LaunchedEffect(isItemAdded?.value, isItemUpdated?.value) {
+        if (isItemAdded?.value == true || isItemUpdated?.value == true) {
+            shouldRefresh = true
+            navController.currentBackStackEntry?.savedStateHandle?.apply {
+                set("added", false)
+                set("updated", false)
+            }
+        }
+
+    }
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            staffs.refresh()
+            shouldRefresh = false
+        }
+    }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.event.collectLatest {
+            when (it) {
+                EmployeeViewModel.EmployeeEvents.ShowDeleteDialog -> {
+                    showDialogDelete.value = true
+                }
+
+                is EmployeeViewModel.EmployeeEvents.ShowErrorMessage -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
+                }
+
+                is EmployeeViewModel.EmployeeEvents.ShowSuccessToast -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
 
     Scaffold(
         floatingActionButton =
@@ -141,55 +191,72 @@ fun EmployeeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = !isInSelectionMode,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        HeaderDefaultView(
-                            text = "Danh sách nhân viên"
-                        )
-                        SearchField(
-                            searchInput = search,
-                            searchChange = { search = it }
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                    }
-                }
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = isInSelectionMode,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                ) {
-                    DeleteBar(
-                        onSelectAll = {
-                            isSelectAll = !isSelectAll
-                            viewModel.selectAllItems(
-                                staffList = staffs.itemSnapshotList.items,
-                                isSelectAll = isSelectAll
-                            )
-                        },
-                        onDeleteSelected = { viewModel.onRemoveClicked() }
-                    )
-                }
+                HeaderDefaultView(
+                    text = "Danh sách nhân viên"
+                )
+                SearchField(
+                    searchInput = search,
+                    searchChange = { search = it }
+                )
+                Spacer(modifier = Modifier.size(8.dp))
             }
+//            TabWithPager(
+//                tabs = listOf("Đang làm việc", "Đã nghỉ"),
+//                pages = listOf(
+//                    {
+//                        EmployeeListSection(
+//                            staffs = staffs,
+//                            selectedItemId = selectedItemId,
+//                            isInSelectionMode = isInSelectionMode,
+//                            onRemoveClicked = { viewModel.onRemoveClicked() },
+//                            onItemClick = {
+//                                if (!isInSelectionMode) {
+//                                    navController.navigate(UpdateEmployee(it))
+//                                }
+//                            },
+//                            onItemLongClick = {
+//                                if (isInSelectionMode) {
+//                                    selectedItemId = null
+//                                } else selectedItemId = it.id
+//                                isInSelectionMode = !isInSelectionMode
+//                            }
+//                        )
+//
+//                    },
+//                    {
+//                        EmployeeListSection(
+//                            staffs = staffs,
+//                            selectedItemId = selectedItemId,
+//                            isInSelectionMode = isInSelectionMode,
+//                            onRemoveClicked = { viewModel.onRemoveClicked() },
+//                            onItemClick = {
+//                                if (!isInSelectionMode) {
+//                                    navController.navigate(UpdateEmployee(it))
+//                                }
+//                            },
+//                            onItemLongClick = {
+//                                if (isInSelectionMode) {
+//                                    selectedItemId = null
+//                                } else selectedItemId = it.id
+//                                isInSelectionMode = !isInSelectionMode
+//                            }
+//                        )
+//
+//                    }
+//                ))
+
             if (staffs.itemSnapshotList.items.isEmpty() && staffs.loadState.refresh !is LoadState.Loading) {
 
                 com.example.foodapp.ui.screen.components.Nothing(
                     text = "Không có nhân viên nào",
                     icon = Icons.Default.Groups
                 )
-            }
-            else {
+            } else {
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
@@ -197,18 +264,23 @@ fun EmployeeScreen(
 
                 ) {
                     gridItems(staffs, 2, key = { staff -> staff.id.toString() }) { staff ->
-                        staff?.let {
+                        staff?.let { it ->
+
                             EmployeeItemView(
                                 staff = it,
-                                isInSelectionMode = isInSelectionMode,
-                                isSelected = viewModel.selectedItems.contains(it),
-                                onCheckedChange = { staff ->
-                                    viewModel.toggleSelection(staff)
+                                isSelected = selectedItemId == it.id,
+                                onCheckedChange = {
+                                    viewModel.onRemoveClicked()
                                 },
                                 onClick = {
-                                    navController.navigate(UpdateEmployee(it))
+                                    if (!isInSelectionMode) {
+                                        navController.navigate(UpdateEmployee(it))
+                                    }
                                 },
                                 onLongClick = {
+                                    if (isInSelectionMode) {
+                                        selectedItemId = null
+                                    } else selectedItemId = it.id
                                     isInSelectionMode = !isInSelectionMode
                                 },
                             )
@@ -221,7 +293,7 @@ fun EmployeeScreen(
         }
     }
 
-    if (showDialogDelete.value) {
+    if (showDialogDelete.value && selectedItemId != null) {
 
         FoodAppDialog(
             title = "Xóa nhân viên",
@@ -232,9 +304,12 @@ fun EmployeeScreen(
                 showDialogDelete.value = false
             },
             onConfirm = {
-                viewModel.removeItem()
+                Log.d("staffId: ", selectedItemId.toString())
+                viewModel.removeItem(selectedItemId!!)
                 showDialogDelete.value = false
+                selectedItemId = null
                 isInSelectionMode = false
+                shouldRefresh = true
 
             },
             confirmText = "Xóa",
@@ -247,25 +322,59 @@ fun EmployeeScreen(
 }
 
 
+@Composable
+fun EmployeeListSection(
+    staffs: LazyPagingItems<Staff>,
+    selectedItemId: Long?,
+    isInSelectionMode: Boolean,
+    onRemoveClicked: () -> Unit,
+    onItemClick: (Staff) -> Unit,
+    onItemLongClick: (Staff) -> Unit
+) {
+    if (staffs.itemSnapshotList.items.isEmpty() && staffs.loadState.refresh !is LoadState.Loading) {
+        com.example.foodapp.ui.screen.components.Nothing(
+            text = "Không có nhân viên nào",
+            icon = Icons.Default.Groups
+        )
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            gridItems(staffs, 2, key = { staff -> staff.id.toString() }) { staff ->
+                staff?.let {
+                    EmployeeItemView(
+                        staff = it,
+                        isSelected = selectedItemId == it.id,
+                        onCheckedChange = onRemoveClicked,
+                        onClick = { onItemClick(it) },
+                        onLongClick = { onItemLongClick(it) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EmployeeItemView(
     staff: Staff,
     onClick: (Staff) -> Unit,
-    onLongClick: ((Boolean) -> Unit)? = null,
-    isInSelectionMode: Boolean = false,
+    onLongClick: ((Staff) -> Unit)? = null,
     isSelected: Boolean = false,
-    onCheckedChange: ((Staff) -> Unit)? = null,
+    onCheckedChange: (() -> Unit)? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        AnimatedVisibility(visible = isInSelectionMode) {
+        AnimatedVisibility(visible = isSelected) {
             CustomCheckbox(
                 checked = isSelected,
-                onCheckedChange = { onCheckedChange?.invoke(staff) },
+                onCheckedChange = { onCheckedChange?.invoke() },
             )
         }
         Column(
@@ -274,7 +383,7 @@ fun EmployeeItemView(
                 .width(162.dp)
                 .height(216.dp)
                 .graphicsLayer {
-                    alpha = if (isSelected && isInSelectionMode) 0.7f else 1f
+                    alpha = if (isSelected) 0.7f else 1f
                 }
                 .shadow(
                     elevation = 16.dp,
@@ -286,7 +395,7 @@ fun EmployeeItemView(
                 .combinedClickable(
                     onClick = { onClick.invoke(staff) },
                     onLongClick = {
-                        onLongClick?.invoke(true)
+                        onLongClick?.invoke(staff)
                     }
                 )
                 .clip(RoundedCornerShape(16.dp))

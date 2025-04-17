@@ -28,7 +28,7 @@ class StaffRemoteMediator(
             val currentPage = when (loadType) {
                 LoadType.REFRESH -> {
                     val remoteKeys = getRemoteKeyClosestToCurrentPosition(state)
-                    remoteKeys?.nextPage?.minus(1) ?: 1
+                    remoteKeys?.nextPage?.minus(1) ?: 0
                 }
                 LoadType.PREPEND -> {
                     val remoteKeys = getRemoteKeyForFirstItem(state)
@@ -52,7 +52,7 @@ class StaffRemoteMediator(
             val items = response.content
             val endOfPaginationReached = items.isEmpty()
 
-            val prevPage = if (currentPage == 1) null else currentPage - 1
+            val prevPage = if (currentPage == 0) null else currentPage - 1
             val nextPage = if (endOfPaginationReached) null else currentPage + 1
 
             adminDatabase.withTransaction {

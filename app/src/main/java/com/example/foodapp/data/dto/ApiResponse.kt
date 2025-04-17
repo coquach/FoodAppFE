@@ -1,5 +1,6 @@
 package com.example.foodapp.data.dto
 
+import android.util.Log
 import retrofit2.Response
 
 sealed class ApiResponse<out T> {
@@ -13,15 +14,19 @@ sealed class ApiResponse<out T> {
     data class Exception(val exception: kotlin.Exception) : ApiResponse<Nothing>()
 }
 
-suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): ApiResponse<T> {
+suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): ApiResponse<T?> {
     return try {
         val res = apiCall.invoke()
         if (res.isSuccessful) {
-            ApiResponse.Success(res.body()!!)
+
+                ApiResponse.Success(res.body())
+
         } else {
             ApiResponse.Error(res.code(), res.errorBody()?.string() ?: "Unknown Error")
         }
     } catch (e: Exception) {
+        Log.d("Api Exception: ", e.toString())
         ApiResponse.Exception(e)
+
     }
 }

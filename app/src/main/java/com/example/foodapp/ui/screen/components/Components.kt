@@ -551,7 +551,7 @@ fun CustomPagerIndicator(
 fun <T : Any> LazyListScope.gridItems(
     data: LazyPagingItems<T>,
     nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable BoxScope.(T?) -> Unit,
 ) {

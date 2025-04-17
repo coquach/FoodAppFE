@@ -12,18 +12,19 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object LocalDateSerializer : KSerializer<LocalDate> {
-    @RequiresApi(Build.VERSION_CODES.O)
-    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE
 
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LocalDate", PrimitiveKind.STRING)
+    private val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("LocalDate", PrimitiveKind.STRING)
+
     override fun serialize(encoder: Encoder, value: LocalDate) {
-        encoder.encodeString(value.format(formatter))
+        val string = value.format(formatter)
+        encoder.encodeString(string)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun deserialize(decoder: Decoder): LocalDate {
-        return LocalDate.parse(decoder.decodeString(), formatter)
+        val string = decoder.decodeString()
+        return LocalDate.parse(string, formatter)
     }
 }

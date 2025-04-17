@@ -7,9 +7,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.safeApiCall
+import com.example.foodapp.data.model.enums.Gender
 import com.se114.foodapp.data.model.Staff
 
 import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.utils.ImageUtils.getFileFromUri
+import com.example.foodapp.utils.ImageUtils.toMultipartBodyPart
+import com.se114.foodapp.data.dto.request.StaffMultipartRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,13 +35,13 @@ class AddEmployeeViewModel @Inject constructor(
     private val _fullName = MutableStateFlow("")
     val fullName = _fullName.asStateFlow()
 
-    private val _position = MutableStateFlow("")
+    private val _position = MutableStateFlow<String?>(null)
     val position = _position.asStateFlow()
 
     private val _phone = MutableStateFlow("")
     val phone = _phone.asStateFlow()
 
-    private val _gender = MutableStateFlow<String?>(null)
+    private val _gender = MutableStateFlow<String>("")
     val gender = _gender.asStateFlow()
 
     private val _address = MutableStateFlow("")
@@ -54,16 +60,15 @@ class AddEmployeeViewModel @Inject constructor(
     val endDate = _endDate.asStateFlow()
 
 
-
     private val _basicSalary = MutableStateFlow(0.0)
     val basicSalary = _basicSalary.asStateFlow()
 
 
-    private val _addEmployeeState = MutableStateFlow<AddEmployeeState>(AddEmployeeState.Nothing)
-    val addEmployeeState = _addEmployeeState.asStateFlow()
+    private val _uiState = MutableStateFlow<AddEmployeeState>(AddEmployeeState.Nothing)
+    val uiState = _uiState.asStateFlow()
 
-    private val _addEmployeeEvent = MutableSharedFlow<AddEmployeeEvents>()
-    val addEmployeeEvent = _addEmployeeEvent.asSharedFlow()
+    private val _event = MutableSharedFlow<AddEmployeeEvents>()
+    val event = _event.asSharedFlow()
 
     private var isUpdating by mutableStateOf(false)
 
@@ -74,23 +79,25 @@ class AddEmployeeViewModel @Inject constructor(
             loadStaffItem(item)
         }
     }
+
     private fun loadStaffItem(item: Staff) {
-        _fullName.value = item.fullName?: ""
-        _position.value = item.position?: ""
-        _phone.value = item.phone?: ""
-        _gender.value = item.gender
-        _address.value = item.address?: ""
+        _fullName.value = item.fullName ?: ""
+        _position.value = item.position ?: ""
+        _phone.value = item.phone ?: ""
+        _gender.value = Gender.fromName(item.gender!!)?.display ?: ""
+        _address.value = item.address ?: ""
         _imageUrl.value = item.imageUrl?.let { Uri.parse(it) }
         _birthDate.value = item.birthDate
         _startDate.value = item.startDate
         _endDate.value = item.endDate
         _basicSalary.value = item.basicSalary
     }
+
     fun onFullNameChange(value: String) {
         _fullName.value = value
     }
 
-    fun onPositionChange(value: String) {
+    fun onPositionChange(value: String?) {
         _position.value = value
     }
 
@@ -98,7 +105,7 @@ class AddEmployeeViewModel @Inject constructor(
         _phone.value = value
     }
 
-    fun onGenderChange(value: String?) {
+    fun onGenderChange(value: String) {
         _gender.value = value
     }
 
@@ -126,79 +133,120 @@ class AddEmployeeViewModel @Inject constructor(
         _basicSalary.value = value.toDoubleOrNull() ?: 0.0
     }
 
-    fun addMenuItem() {
-//        val name = name.value
-//        val description = description.value
-//        val price = price.value.toFloatOrNull() ?: 0.0f
-//
-//        if (name.isEmpty() || description.isEmpty() || price == 0.0f || imageUrl.value == null) {
-//            _addEmployeeEvent.tryEmit(AddEmployeeEvents.ShowErrorMessage("Please fill all fields"))
-//            return
-//        }
+    fun addStaff() {
+
         viewModelScope.launch {
-//            _addMenuItemState.value = AddMenuItemState.Loading
-//            val imageUrl = uploadImage(imageUri = imageUrl.value!!)
-//            if (imageUrl == null) {
-//                _addMenuItemState.value = AddMenuItemState.Error("Failed to upload image")
-//                return@launch
-//            }
-//            val response = safeApiCall {
-//                foodApi.addRestaurantMenu(
-//                    restaurantId,
-//                    FoodItem(
-//                        name = name,
-//                        description = description,
-//                        price = price,
-//                        imageUrl = imageUrl,
-//                        restaurantId = restaurantId
-//                    )
-//                )
-//            }
-//            when (response) {
-//                is ApiResponse.Success -> {
-//                    _addMenuItemState.value = AddMenuItemState.Success("Item added successfully")
-//                    _addMenuItemEvent.emit(AddMenuItemEvent.GoBack)
-//                }
-//
-//                is ApiResponse.Error -> {
-//                    _addMenuItemState.value = AddMenuItemState.Error(response.message)
-//                }
-//
-//                is ApiResponse.Exception -> {
-//                    _addMenuItemState.value = AddMenuItemState.Error("Network Error")
-//                }
-//            }
+            _uiState.value = AddEmployeeState.Loading
+            try {
+                val imageFile = _imageUrl.value?.let { getFileFromUri(context, it) }
+                val imagePart = imageFile?.toMultipartBodyPart()
+                val request = StaffMultipartRequest(
+                    fullName = _fullName.value,
+                    position = _position.value!!,
+                    phone = _phone.value,
+                    gender = Gender.fromDisplay(gender.value)!!.name,
+                    address = _address.value,
+                    birthDate = _birthDate.value.toString(),
+                    startDate = _startDate.value.toString(),
+                    endDate = _endDate.value.toString(),
+                    basicSalary = _basicSalary.value
+                )
+                val partMap = request.toPartMap()
+
+                val response = safeApiCall { foodApi.createStaff(partMap, imagePart) }
+
+                when (response) {
+                    is ApiResponse.Success -> {
+                        _uiState.value = AddEmployeeState.Success
+                        _event.emit(AddEmployeeEvents.GoBack)
+                    }
+
+                    is ApiResponse.Error -> {
+                        _uiState.value = AddEmployeeState.Error
+                        _event.emit(AddEmployeeEvents.ShowErrorMessage("Tạo nhân viên thất bại: ${response.message}"))
+                    }
+
+                    else -> {
+                        _uiState.value = AddEmployeeState.Error
+                        _event.emit(AddEmployeeEvents.ShowErrorMessage("Có lỗi xảy ra khi tạo"))
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                _uiState.value = AddEmployeeState.Error
+                _event.emit(AddEmployeeEvents.ShowErrorMessage("Có lỗi xảy ra khi tạo: ${e.message}"))
+            }
+
+
         }
     }
 
-//    suspend fun uploadImage(imageUri: Uri): String? {
-//        val file = ImageUtils.getFileFromUri(context, imageUri)
-//        val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
-//        val multipartBody = MultipartBody.Part.createFormData("image", file.name, requestBody)
-//        val response = safeApiCall { foodApi.uploadImage(multipartBody) }
-//        when (response) {
-//            is ApiResponse.Success -> {
-//                return response.data.url
-//            }
-//
-//            else -> {
-//                return null
-//            }
-//        }
-//    }
+    fun updateStaff(staffId: Long) {
+
+        viewModelScope.launch {
+            _uiState.value = AddEmployeeState.Loading
+            try {
+
+                val imageFile = _imageUrl.value?.let { getFileFromUri(context, it) }
+                val imagePart = imageFile?.toMultipartBodyPart()
 
 
+                val request = StaffMultipartRequest(
+                    fullName = _fullName.value,
+                    position = _position.value!!,
+                    phone = _phone.value,
+                    gender = Gender.fromDisplay(gender.value)!!.name,
+                    address = _address.value,
+                    birthDate = _birthDate.value.toString(),
+                    startDate = _startDate.value.toString(),
+                    endDate = _endDate.value.toString(),
+                    basicSalary = _basicSalary.value
+                )
+
+                val partMap = request.toPartMap()
 
 
-    sealed class AddEmployeeState {
-        object Nothing : AddEmployeeState()
-        object Loading : AddEmployeeState()
-        data class Success(val message: String) : AddEmployeeState()
-        data class Error(val message: String) : AddEmployeeState()
+                val response = safeApiCall { foodApi.updateStaff(staffId, partMap, imagePart) }
+
+
+                when (response) {
+                    is ApiResponse.Success -> {
+                        _uiState.value = AddEmployeeState.Success
+                        _event.emit(AddEmployeeEvents.GoBack)
+                    }
+
+                    is ApiResponse.Error -> {
+                        _uiState.value = AddEmployeeState.Error
+                        _event.emit(AddEmployeeEvents.ShowErrorMessage("Cập nhật nhân viên thất bại: ${response.message}"))
+                    }
+
+                    else -> {
+                        _uiState.value = AddEmployeeState.Error
+                        _event.emit(AddEmployeeEvents.ShowErrorMessage("Có lỗi xảy ra khi cập nhật"))
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                _uiState.value = AddEmployeeState.Error
+                _event.emit(AddEmployeeEvents.ShowErrorMessage("Có lỗi xảy ra khi cập nhật: ${e.message}"))
+            }
+        }
     }
 
-    sealed class AddEmployeeEvents {
-        data class ShowErrorMessage(val message: String) : AddEmployeeEvents()
-        object GoBack : AddEmployeeEvents()
-    }
+
+
+
+sealed class AddEmployeeState {
+    object Nothing : AddEmployeeState()
+    object Loading : AddEmployeeState()
+    object Success : AddEmployeeState()
+    object Error : AddEmployeeState()
+}
+
+sealed class AddEmployeeEvents {
+    data class ShowErrorMessage(val message: String) : AddEmployeeEvents()
+    object GoBack : AddEmployeeEvents()
+}
 }

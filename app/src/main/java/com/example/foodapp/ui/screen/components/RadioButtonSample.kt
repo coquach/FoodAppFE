@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,6 +34,11 @@ fun RadioGroupWrap(
     selectedOption: String,
     onOptionSelected: (String) -> Unit
 ) {
+    LaunchedEffect(options, selectedOption) {
+        if (options.isNotEmpty() && selectedOption == "") {
+            onOptionSelected(options.first())
+        }
+    }
     Column(
         modifier= Modifier.fillMaxWidth()
     ) {
