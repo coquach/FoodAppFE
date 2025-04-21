@@ -52,7 +52,7 @@ import com.example.foodapp.ui.screen.components.GenericListContent
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.utils.StringUtils
-import com.se114.foodapp.utils.OrdersUtils
+
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -103,159 +103,43 @@ fun OrderListScreen(
             )
             Spacer(modifier = Modifier.size(48.dp))
         }
-        when (uiState.value) {
-            is OrderListViewModel.OrderListState.Loading -> {
-                Loading()
-            }
 
-            is OrderListViewModel.OrderListState.Success -> {
-                val list = (uiState.value as OrderListViewModel.OrderListState.Success).orderList
 
-                TabWithPager(
-                    tabs = listOf("Sắp tới", "Lịch sử"),
-                    pages = listOf(
-                        {
-                            GenericListContent(
-                                list = list.filter { it.status == "PENDING_ACCEPTANCE" },
-                                iconEmpty = Icons.Default.Inventory2,
-                                textEmpty = "Không có đơn hàng nào",
-                                itemContent = {order ->
-                                    OrderListItem(order = order, onClick = { viewModel.navigateToDetails(order) })
-                                },
-                            )
+
+
+
+        TabWithPager(
+            tabs = listOf("Sắp tới", "Lịch sử"),
+            pages = listOf(
+                {
+                    GenericListContent(
+                        list = list.filter { it.status == "PENDING_ACCEPTANCE" },
+                        iconEmpty = Icons.Default.Inventory2,
+                        textEmpty = "Không có đơn hàng nào",
+                        itemContent = { order ->
+                            OrderListItem(
+                                order = order,
+                                onClick = { viewModel.navigateToDetails(order) })
                         },
-                        {
-                            GenericListContent(
-                                list = list.filter { it.status != "PENDING_ACCEPTANCE" },
-                                iconEmpty = Icons.Default.Inventory2,
-                                textEmpty = "Không có đơn hàng nào",
-                                itemContent = {order ->
-                                    OrderListItem(order = order, onClick = { viewModel.navigateToDetails(order) })
-                                },
-                            )
-                        }
                     )
-                )
-
-            }
-
-            is OrderListViewModel.OrderListState.Error -> {
-                val message = (uiState.value as OrderListViewModel.OrderListState.Error).message
-                Retry(
-                    message,
-                    onClicked = {
-                        viewModel.getOrders()
-                    }
-                )
-            }
-
-
-            else -> {}
-        }
-
-    }
-}
-
-
-@Composable
-fun OrderDetailsText(order: Order) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom,
-
-            ) {
-
-            Image(
-                painter = painterResource(id = R.drawable.receipt),
-                contentDescription = null,
-                modifier = Modifier.size(50.dp)
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalAlignment = Alignment.Start
-
-            ) {
-                Text(
-                    text = "Mã đơn hàng: ${order.id}",
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1
-                )
-                Text(
-                    text = "Số lượng món: ${order.items.size.toString()}",
-                    color = MaterialTheme.colorScheme.outline
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_clock),
-                        contentDescription = "Clock Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = StringUtils.formatDateTime(order.createdAt),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Black
+                },
+                {
+                    GenericListContent(
+                        list = list.filter { it.status != "PENDING_ACCEPTANCE" },
+                        iconEmpty = Icons.Default.Inventory2,
+                        textEmpty = "Không có đơn hàng nào",
+                        itemContent = { order ->
+                            OrderListItem(
+                                order = order,
+                                onClick = { viewModel.navigateToDetails(order) })
+                        },
                     )
                 }
-            }
-        }
-        Spacer(modifier = Modifier.size(8.dp))
-        val orderStatus = OrdersUtils.getOrderStatusFromString(order.status)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "Trạng thái:", color = Color.Gray)
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = OrdersUtils.getOrderStatusInVietnamese(
-                    orderStatus ?: OrdersUtils.OrderStatus.DEFAULT
-                ),
-                color = OrdersUtils.getStatusColor(orderStatus ?: OrdersUtils.OrderStatus.DEFAULT),
-                fontWeight = FontWeight.Bold
             )
-        }
-        Spacer(modifier = Modifier.size(16.dp))
+        )
+
+
     }
 }
 
-@Composable
-fun OrderListItem(order: Order, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(10.dp)
 
-        ) {
-            OrderDetailsText(order = order)
-            Button(onClick = onClick) {
-                Text(
-                    text = "Chi tiết",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
-
-        }
-    }
-
-}

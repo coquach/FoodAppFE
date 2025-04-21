@@ -59,12 +59,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.BuildConfig
+
 import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
+import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.SendEmail
 
 import com.example.foodapp.ui.navigation.SignUp
@@ -108,7 +110,7 @@ fun LoginScreen(
                 is LoginViewModel.LoginNavigationEvent.NavigateAfterLogin -> {
                     when (BuildConfig.FLAVOR) {
                         "customer" -> navController.navigate(Home)
-                        "staff" -> navController.navigate(Home)
+                        "staff" -> navController.navigate(OrderList)
                         "restaurant" -> navController.navigate(Statistics)
                     }
                 }

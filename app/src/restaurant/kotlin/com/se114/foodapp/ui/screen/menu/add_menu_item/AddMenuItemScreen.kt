@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
@@ -52,7 +52,7 @@ fun AddMenuItemScreen(
     navController: NavController,
     viewModel: AddMenuItemViewModel = hiltViewModel(),
     isUpdating: Boolean = false,
-    foodItem: FoodItem? = null
+    menuItem: MenuItem? = null
 ) {
 
     val name = viewModel.name.collectAsStateWithLifecycle()
@@ -71,7 +71,7 @@ fun AddMenuItemScreen(
 
     LaunchedEffect(key1 = isUpdating) {
         delay(100)
-        viewModel.setMode(isUpdating, foodItem)
+        viewModel.setMode(isUpdating, menuItem)
     }
 
 

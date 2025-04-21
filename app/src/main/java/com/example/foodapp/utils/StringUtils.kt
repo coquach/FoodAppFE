@@ -2,6 +2,8 @@ package com.example.foodapp.utils
 
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -33,10 +35,32 @@ object StringUtils {
         }
     }
 
+    fun formatLocalDate(date: LocalDate?, pattern: String = "dd/MM/yyyy"): String? {
+        return if (date == null) {
+            null
+        } else {
+            try {
+                val formatter = DateTimeFormatter.ofPattern(pattern)
+                date.format(formatter)
+            } catch (e: Exception) {
+                "Ngày không hợp lệ!"
+            }
+        }
+    }
+
     fun getCurrentDateTime(outputPattern: String = "dd/MM/yyyy HH:mm"): String {
         val dateFormat = SimpleDateFormat(outputPattern, Locale("vi", "VN"))
         dateFormat.timeZone = vietnamTimeZone
         return dateFormat.format(Date())
+    }
+
+    fun parseLocalDate(input: String): LocalDate? {
+        return try {
+            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            LocalDate.parse(input, formatter)
+        } catch (e: Exception) {
+            null
+        }
     }
 }
 

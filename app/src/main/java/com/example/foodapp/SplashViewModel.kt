@@ -11,6 +11,7 @@ import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.data.datastore.WelcomeRepository
+import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.Statistics
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,9 +30,14 @@ class SplashViewModel @Inject constructor(
     init {
         viewModelScope.launch {
 
-            if (BuildConfig.FLAVOR == "restaurant" || BuildConfig.FLAVOR == "staff") {
+            if (BuildConfig.FLAVOR == "restaurant") {
                 accountService.currentUser.collect { user ->
                     _startDestination.value = if (user == null) Auth else Statistics
+                }
+            }
+            if( BuildConfig.FLAVOR == "staff") {
+                accountService.currentUser.collect { user ->
+                    _startDestination.value = if (user == null) Auth else OrderList
                 }
             }
             else {

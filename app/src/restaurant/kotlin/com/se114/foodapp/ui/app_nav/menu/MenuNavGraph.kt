@@ -7,11 +7,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.ui.navigation.AddMenuItem
 import com.example.foodapp.ui.navigation.Menu
 import com.example.foodapp.ui.navigation.UpdateMenuItem
-import com.example.foodapp.ui.navigation.foodItemNavType
+import com.example.foodapp.ui.navigation.menuItemNavType
 import com.se114.foodapp.ui.screen.menu.MenuScreen
 import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemScreen
 import kotlin.reflect.typeOf
@@ -33,11 +33,11 @@ fun NavGraphBuilder.menuGraph(
         }
 
         composable<UpdateMenuItem>(
-            typeMap = mapOf(typeOf<FoodItem>() to foodItemNavType)
+            typeMap = mapOf(typeOf<MenuItem>() to menuItemNavType)
         ) {
             shouldShowBottomNav.value = false
             val route = it.toRoute<UpdateMenuItem>()
-            AddMenuItemScreen(navController, isUpdating = true, foodItem = route.foodItem)
+            AddMenuItemScreen(navController, isUpdating = true, menuItem = route.menuItem)
         }
     }
 

@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.remote.FoodApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -45,14 +45,14 @@ class AddMenuItemViewModel @Inject constructor(
 
     private var isUpdating by mutableStateOf(false)
 
-    fun setMode(mode: Boolean, item: FoodItem?) {
+    fun setMode(mode: Boolean, item: MenuItem?) {
         isUpdating = mode
 
         if (isUpdating && item != null) {
             loadMenuItem(item)
         }
     }
-    private fun loadMenuItem(item: FoodItem) {
+    private fun loadMenuItem(item: MenuItem) {
         _name.value = item.name
         _description.value = item.description
         _price.value = item.price.toString()

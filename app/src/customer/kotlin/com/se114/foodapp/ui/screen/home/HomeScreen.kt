@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -54,8 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.foodapp.R
-import com.example.foodapp.data.model.FoodItem
-import com.example.foodapp.ui.screen.components.FoodAppTextField
+
+import com.example.foodapp.data.model.Menu
+import com.example.foodapp.data.model.MenuItem
+
 
 import com.example.foodapp.ui.screen.components.ItemCount
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
@@ -63,12 +68,14 @@ import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Notification
-import com.example.foodapp.ui.screen.common.FoodItemView
+
+import com.example.foodapp.ui.screen.common.MenuItemView
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.ui.screen.home.banner.Banners
 import kotlinx.coroutines.flow.collectLatest
 import java.math.BigDecimal
+import java.time.LocalTime
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -99,86 +106,51 @@ fun SharedTransitionScope.HomeScreen(
         }
     }
 
-    val foodItems = listOf(
-        FoodItem(
-            createdAt = "2025-03-29T10:00:00Z",
-            description = "Burger bò phô mai thơm ngon với thịt bò tươi và phô mai tan chảy.",
-            id = "1",
-            imageUrl = "https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg",
-            name = "Burger Bò Phô Mai",
-            price = BigDecimal("120000")
+    val sampleMenuItems = listOf(
+        MenuItem(
+            createdAt = LocalTime.of(11, 0),  // Giờ tạo item, ví dụ 11:00 AM
+            description = "A freshly made Margherita pizza with mozzarella cheese, tomatoes, and basil.",
+            id = 1L,
+            menu = Menu(id = 201L, name = "Pizza Menu"),
+            imageUrl = "https://example.com/images/margherita_pizza.jpg",
+            name = "Margherita Pizza",
+            price = BigDecimal("12.99")
         ),
-        FoodItem(
-            createdAt = "2025-03-29T10:05:00Z",
-            description = "Pizza Margherita với lớp phô mai Mozzarella và sốt cà chua truyền thống.",
-            id = "2",
-            imageUrl = "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg",
-            name = "Pizza Margherita",
-            price =  BigDecimal("15000")
+        MenuItem(
+            createdAt = LocalTime.of(12, 30),  // Giờ tạo item, ví dụ 12:30 PM
+            description = "A juicy cheeseburger with fresh lettuce, tomato, and cheddar cheese.",
+            id = 2L,
+            menu = Menu(id = 202L, name = "Burger Menu"),
+            imageUrl = "https://example.com/images/cheeseburger.jpg",
+            name = "Cheeseburger",
+            price = BigDecimal("8.99")
         ),
-        FoodItem(
-            createdAt = "2025-03-29T10:10:00Z",
-            description = "Gà rán giòn tan, vị cay nồng hấp dẫn, thích hợp cho bữa ăn nhanh.",
-            id = "3",
-            imageUrl = "https://images.pexels.com/photos/2271101/pexels-photo-2271101.jpeg",
-            name = "Gà Rán Cay",
-            price =  BigDecimal("14578")
+        MenuItem(
+            createdAt = LocalTime.of(13, 15),  // Giờ tạo item, ví dụ 1:15 PM
+            description = "Crispy fried chicken served with a side of mashed potatoes and gravy.",
+            id = 3L,
+            menu = Menu(id = 203L, name = "Chicken Menu"),
+            imageUrl = "https://example.com/images/fried_chicken.jpg",
+            name = "Fried Chicken",
+            price = BigDecimal("10.49")
         ),
-        FoodItem(
-            createdAt = "2025-03-29T10:15:00Z",
-            description = "Mì ramen Nhật Bản với nước dùng đậm đà và thịt heo Chashu mềm mại.",
-            id = "4",
-            imageUrl = "https://images.pexels.com/photos/2871752/pexels-photo-2871752.jpeg",
-            name = "Mì Ramen",
-            price =  BigDecimal("145678")
+        MenuItem(
+            createdAt = LocalTime.of(14, 0),  // Giờ tạo item, ví dụ 2:00 PM
+            description = "A fresh salmon fillet grilled to perfection, served with steamed vegetables.",
+            id = 4L,
+            menu = Menu(id = 204L, name = "Seafood Menu"),
+            imageUrl = "https://example.com/images/grilled_salmon.jpg",
+            name = "Grilled Salmon",
+            price = BigDecimal("15.99")
         ),
-        FoodItem(
-            createdAt = "2025-03-29T10:20:00Z",
-            description = "Sushi cá hồi tươi ngon, được làm từ cá hồi chất lượng cao.",
-            id = "5",
-            imageUrl = "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg",
-            name = "Sushi Cá Hồi",
-            price =  BigDecimal("1234567")
-        ),
-        FoodItem(
-            createdAt = "2025-03-29T10:25:00Z",
-            description = "Bánh Pancake mềm mịn với sốt dâu tây và kem tươi.",
-            id = "6",
-            imageUrl = "https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg",
-            name = "Pancake Dâu",
-            price =  BigDecimal("52144")
-        ),
-        FoodItem(
-            createdAt = "2025-03-29T10:30:00Z",
-            description = "Ly cà phê cappuccino thơm béo với lớp bọt sữa mịn.",
-            id = "7",
-            imageUrl = "https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg",
-            name = "Cappuccino",
-            price =  BigDecimal("123456")
-        ),
-        FoodItem(
-            createdAt = "2025-03-29T10:35:00Z",
-            description = "Sinh tố bơ thơm ngon, giàu chất dinh dưỡng.",
-            id = "8",
-            imageUrl = "https://images.pexels.com/photos/140831/pexels-photo-140831.jpeg",
-            name = "Sinh Tố Bơ",
-            price =  BigDecimal("245334")
-        ),
-        FoodItem(
-            createdAt = "2025-03-29T10:40:00Z",
-            description = "Kem dâu tây tươi mát, tan ngay trong miệng.",
-            id = "9",
-            imageUrl = "https://images.pexels.com/photos/1028429/pexels-photo-1028429.jpeg",
-            name = "Kem Dâu",
-            price =  BigDecimal("78942")
-        ),
-        FoodItem(
-            createdAt = "2025-03-29T10:45:00Z",
-            description = "Ly nước chanh mát lạnh giúp giải nhiệt mùa hè.",
-            id = "10",
-            imageUrl = "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg",
-            name = "Nước Chanh",
-            price =  BigDecimal("124635")
+        MenuItem(
+            createdAt = LocalTime.of(16, 45),  // Giờ tạo item, ví dụ 4:45 PM
+            description = "A creamy pasta dish with shrimp and a white wine garlic sauce.",
+            id = 5L,
+            menu = Menu(id = 205L, name = "Pasta Menu"),
+            imageUrl = "https://example.com/images/shrimp_pasta.jpg",
+            name = "Shrimp Pasta",
+            price = BigDecimal("13.49")
         )
     )
 
@@ -287,12 +259,12 @@ fun SharedTransitionScope.HomeScreen(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                gridItems(foodItems, 2) { foodItem ->
-                    FoodItemView(
-                        foodItem = foodItem,
+                gridItems(sampleMenuItems, 2) { menuItem ->
+                    MenuItemView(
+                        menuItem = menuItem,
                         animatedVisibilityScope = animatedVisibilityScope,
                         onClick = {
-                            navController.navigate(FoodDetails(foodItem))
+                            navController.navigate(FoodDetails(menuItem))
                         })
                 }
             }
@@ -303,5 +275,49 @@ fun SharedTransitionScope.HomeScreen(
 
     }
 }
+fun LazyListScope.gridItems(
+    count: Int,
+    nColumns: Int,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    itemContent: @Composable BoxScope.(Int) -> Unit,
+) {
+    gridItems(
+        data = List(count) { it },
+        nColumns = nColumns,
+        horizontalArrangement = horizontalArrangement,
+        itemContent = itemContent,
+    )
+}
+
+fun <T> LazyListScope.gridItems(
+    data: List<T>,
+    nColumns: Int,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    key: ((item: T) -> Any)? = null,
+    itemContent: @Composable BoxScope.(T) -> Unit,
+) {
+    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
+    items(rows) { rowIndex ->
+        Row(horizontalArrangement = horizontalArrangement) {
+            for (columnIndex in 0 until nColumns) {
+                val itemIndex = rowIndex * nColumns + columnIndex
+                if (itemIndex < data.count()) {
+                    val item = data[itemIndex]
+                    androidx.compose.runtime.key(key?.invoke(item)) {
+                        Box(
+                            modifier = Modifier.weight(1f, fill = true),
+                            propagateMinConstraints = true
+                        ) {
+                            itemContent.invoke(this, item)
+                        }
+                    }
+                } else {
+                    Spacer(Modifier.weight(1f, fill = true))
+                }
+            }
+        }
+    }
+}
+
 
 

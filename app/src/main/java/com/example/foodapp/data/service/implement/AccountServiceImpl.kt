@@ -6,6 +6,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.FirebaseUserMetadata
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
@@ -16,7 +17,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class AccountServiceImpl @Inject constructor() : AccountService {
+class AccountServiceImpl @Inject constructor() : AccountService{
     override val currentUser: Flow<Account?>
         get() = callbackFlow {
             val listener =
@@ -98,7 +99,7 @@ class AccountServiceImpl @Inject constructor() : AccountService {
         Firebase.auth.currentUser?.delete()?.await()
     }
 
-    override suspend fun getUserRole(): String? { // TODO: move to enum return type
+    override suspend fun getUserRole(): String? {
         val currentUser = Firebase.auth.currentUser ?: return null
         return currentUser.getIdToken(false).await().claims["role"] as String?
     }

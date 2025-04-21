@@ -35,20 +35,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.ui.screen.components.CustomCheckbox
 import com.example.foodapp.utils.StringUtils
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun SharedTransitionScope.FoodItemView(
-    foodItem: FoodItem,
+fun SharedTransitionScope.MenuItemView(
+    menuItem: MenuItem,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    onClick: (FoodItem) -> Unit,
+    onClick: (MenuItem) -> Unit,
     onLongClick: ((Boolean) -> Unit)? = null,
     isInSelectionMode: Boolean = false,
     isSelected: Boolean = false,
-    onCheckedChange: ((FoodItem) -> Unit)? = null,
+    onCheckedChange: ((MenuItem) -> Unit)? = null,
     isCustomer: Boolean = true
 ) {
     Row(
@@ -59,7 +59,7 @@ fun SharedTransitionScope.FoodItemView(
         AnimatedVisibility(visible = isInSelectionMode) {
         CustomCheckbox(
             checked = isSelected,
-            onCheckedChange = { onCheckedChange?.invoke(foodItem) },
+            onCheckedChange = { onCheckedChange?.invoke(menuItem) },
         )
     }
         Column(
@@ -78,7 +78,7 @@ fun SharedTransitionScope.FoodItemView(
                 )
                 .background(color = MaterialTheme.colorScheme.surface)
                 .combinedClickable(
-                    onClick = { onClick.invoke(foodItem) },
+                    onClick = { onClick.invoke(menuItem) },
                     onLongClick = {
                         onLongClick?.invoke(true)
                     }
@@ -91,18 +91,18 @@ fun SharedTransitionScope.FoodItemView(
                     .height(147.dp)
             ) {
                 AsyncImage(
-                    model = foodItem.imageUrl, contentDescription = null,
+                    model = menuItem.imageUrl, contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(16.dp))
                         .sharedElement(
-                            state = rememberSharedContentState(key = "image/${foodItem.id}"),
+                            state = rememberSharedContentState(key = "image/${menuItem.id}"),
                             animatedVisibilityScope
                         ),
                     contentScale = ContentScale.Crop,
                 )
                 Text(
-                    text = StringUtils.formatCurrency(foodItem.price),
+                    text = StringUtils.formatCurrency(menuItem.price),
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .padding(8.dp)
@@ -170,18 +170,18 @@ fun SharedTransitionScope.FoodItemView(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = foodItem.name,
+                    text = menuItem.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     modifier = Modifier.sharedElement(
-                        state = rememberSharedContentState(key = "title/${foodItem.id}"),
+                        state = rememberSharedContentState(key = "title/${menuItem.id}"),
                         animatedVisibilityScope
                     ),
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = foodItem.description,
+                    text = menuItem.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     maxLines = 1,

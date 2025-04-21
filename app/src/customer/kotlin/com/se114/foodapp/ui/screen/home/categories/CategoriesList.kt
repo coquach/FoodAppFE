@@ -31,68 +31,68 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-import com.example.foodapp.data.model.Category
 
 
-@Composable
-fun CategoriesList(
-    categories: List<Category>,
-    onCategorySelected: (Category) -> Unit
-) {
-    LazyRow {
-        items(categories) {
-            CategoryItem(category = it, onCategorySelected = onCategorySelected)
-        }
-    }
-}
 
-@Composable
-fun CategoryItem(
-    category: Category,
-    onCategorySelected: (Category) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-            .height(90.dp)
-            .width(60.dp)
-            .clickable { onCategorySelected(category) }
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(45.dp),
-                ambientColor = Color.Gray.copy(alpha = 0.8f),
-                spotColor = Color.Gray.copy(alpha = 0.8f)
-            )
-            .background(color = MaterialTheme.colorScheme.onPrimary)
-            .clip(RoundedCornerShape(45.dp))
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-
-    ) {
-        AsyncImage(
-            model = category.imageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .size(40.dp)
-                .shadow(
-                    elevation = 16.dp,
-                    shape = CircleShape,
-                    ambientColor = MaterialTheme.colorScheme.primary,
-                    spotColor = MaterialTheme.colorScheme.primary
-                )
-                .clip(CircleShape),
-            contentScale = ContentScale.Inside
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            text = category.name,
-            color = MaterialTheme.colorScheme.primary,
-            style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
-
-    }
-}
+//@Composable
+//fun CategoriesList(
+//    categories: List<Category>,
+//    onCategorySelected: (Category) -> Unit
+//) {
+//    LazyRow {
+//        items(categories) {
+//            CategoryItem(category = it, onCategorySelected = onCategorySelected)
+//        }
+//    }
+//}
+//
+//@Composable
+//fun CategoryItem(
+//    category: Category,
+//    onCategorySelected: (Category) -> Unit
+//) {
+//    Column(
+//        modifier = Modifier
+//            .padding(8.dp)
+//            .height(90.dp)
+//            .width(60.dp)
+//            .clickable { onCategorySelected(category) }
+//            .shadow(
+//                elevation = 16.dp,
+//                shape = RoundedCornerShape(45.dp),
+//                ambientColor = Color.Gray.copy(alpha = 0.8f),
+//                spotColor = Color.Gray.copy(alpha = 0.8f)
+//            )
+//            .background(color = MaterialTheme.colorScheme.onPrimary)
+//            .clip(RoundedCornerShape(45.dp))
+//            .padding(8.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//
+//    ) {
+//        AsyncImage(
+//            model = category.imageUrl,
+//            contentDescription = null,
+//            modifier = Modifier
+//                .size(40.dp)
+//                .shadow(
+//                    elevation = 16.dp,
+//                    shape = CircleShape,
+//                    ambientColor = MaterialTheme.colorScheme.primary,
+//                    spotColor = MaterialTheme.colorScheme.primary
+//                )
+//                .clip(CircleShape),
+//            contentScale = ContentScale.Inside
+//        )
+//        Spacer(modifier = Modifier.size(8.dp))
+//        Text(
+//            text = category.name,
+//            color = MaterialTheme.colorScheme.primary,
+//            style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+//            textAlign = TextAlign.Center,
+//            maxLines = 1
+//        )
+//
+//    }
+//}
 

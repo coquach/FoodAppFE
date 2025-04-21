@@ -2,11 +2,12 @@ package com.se114.foodapp.ui.screen.checkout
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
-import com.se114.foodapp.ui.screen.cart.CartViewModel.CartEvents
-import com.se114.foodapp.ui.screen.cart.CartViewModel.CartState
+import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
+import com.se114.foodapp.data.repository.CartRepository
+
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,9 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
     private val cartRepository: CartRepository
-) : ViewModel() {
-    var errorTitle: String = ""
-    var errorMessage: String = ""
+) : BaseAuthViewModel() {
+
 
     private val _uiState = MutableStateFlow<CheckoutState>(CheckoutState.Nothing)
     val uiState = _uiState.asStateFlow()
@@ -34,34 +34,34 @@ class CheckoutViewModel @Inject constructor(
     private val _event = MutableSharedFlow<CheckoutEvents>()
     val event = _event.asSharedFlow()
 
-    private val checkoutDetails = cartRepository.getCheckoutDetails().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = CheckoutDetails(BigDecimal(0), BigDecimal(0), BigDecimal(0), BigDecimal(0))
-    )
+//    private val checkoutDetails = cartRepository.getCheckoutDetails().stateIn(
+//        scope = viewModelScope,
+//        started = SharingStarted.WhileSubscribed(5000),
+//        initialValue = CheckoutDetails(BigDecimal(0), BigDecimal(0), BigDecimal(0), BigDecimal(0))
+//    )
 
-    init {
-        getCart()
-    }
-
-    private fun getCart() {
-        viewModelScope.launch {
-            try {
-                combine(
-                    cartRepository.getCartItems(),
-                    checkoutDetails
-                ) { cartItems, checkout ->
-                    CheckoutState.Success(cartItems, checkout)
-                }.collectLatest { state ->
-                    _uiState.value = state
-                }
-            } catch (e: Exception) {
-                errorTitle = "Lỗi"
-                errorMessage = "Không thể tải hàng: ${e.message}"
-                _uiState.value = CheckoutState.Error("Không thể tải hàng: ${e.message}")
-            }
-        }
-    }
+//    init {
+//        getCart()
+//    }
+//
+//    private fun getCart() {
+//        viewModelScope.launch {
+//            try {
+//                combine(
+//                    cartRepository.getCartItems(),
+//                    checkoutDetails
+//                ) { cartItems, checkout ->
+//                    CheckoutState.Success(cartItems, checkout)
+//                }.collectLatest { state ->
+//                    _uiState.value = state
+//                }
+//            } catch (e: Exception) {
+//                error = "Lỗi"
+//                errorDescription = "Không thể tải hàng: ${e.message}"
+//                _uiState.value = CheckoutState.Error("Không thể tải hàng: ${e.message}")
+//            }
+//        }
+//    }
 
     fun onAddressClicked() {
         viewModelScope.launch {

@@ -3,13 +3,14 @@ package com.se114.foodapp.ui.screen.cart
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
+import com.se114.foodapp.data.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -28,58 +29,33 @@ class CartViewModel @Inject constructor(
     var errorTitle: String = ""
     var errorMessage: String = ""
 
-    private val _uiState = MutableStateFlow<CartState>(CartState.Nothing)
-    val uiState = _uiState.asStateFlow()
+
 
     private val _event = MutableSharedFlow<CartEvents>()
     val event = _event.asSharedFlow()
 
-    private val checkoutDetails = cartRepository.getCheckoutDetails().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = CheckoutDetails(BigDecimal(0), BigDecimal(0), BigDecimal(0), BigDecimal(0))
-    )
+
+    private val _cartItems = cartRepository.getCartItems()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    val cartItems: StateFlow<List<CartItem>> = _cartItems
 
     private val _selectedItems = mutableStateListOf<CartItem>()
     val selectedItems: List<CartItem> get() = _selectedItems
 
+    private val _quantityMap = MutableStateFlow<Map<Long, Int>>(emptyMap())
+    val quantityMap = _quantityMap.asStateFlow()
 
-
-    init {
-        getCart()
+    fun increment(cartItem: CartItem) {
+        val current = _quantityMap.value[cartItem.id] ?: cartItem.quantity
+        val newQty = current + 1
+        updateQuantity(cartItem, newQty)
     }
 
-    private fun getCart() {
-        viewModelScope.launch {
-            _uiState.value = CartState.Loading
-            try {
-                combine(
-                    cartRepository.getCartItems(),
-                    checkoutDetails
-                ) { cartItems, checkout ->
-                    CartState.Success(cartItems, checkout)
-                }.collectLatest { state ->
-                    _uiState.value = state
-                }
-            } catch (e: Exception) {
-                errorTitle = "Lỗi"
-                errorMessage = "Không thể tải được giỏ hàng: ${e.message}"
-                _uiState.value = CartState.Error("Không thể tải được giỏ hàng: ${e.message}")
-            }
-        }
-    }
-
-    fun incrementQuantity(cartItem: CartItem) {
-        if (cartItem.quantity == 10) // VD số lượng tối đa
-            return
-        updateItemQuantity(cartItem, cartItem.quantity + 1)
-    }
-
-    fun decrementQuantity(cartItem: CartItem) {
-        if (cartItem.quantity == 1)
-            return
-        updateItemQuantity(cartItem, cartItem.quantity - 1)
-
+    fun decrement(cartItem: CartItem) {
+        val current = _quantityMap.value[cartItem.id] ?: cartItem.quantity
+        if (current <= 1) return
+        val newQty = current - 1
+        updateQuantity(cartItem, newQty)
     }
 
     fun removeItem() {
@@ -87,7 +63,6 @@ class CartViewModel @Inject constructor(
                 try {
                     cartRepository.clearCartItems(_selectedItems)
                     _selectedItems.clear()
-                    getCart()
                 } catch (e: Exception) {
                     errorTitle = "Không thể xóa"
                     errorMessage = "Đã xảy ra lỗi khi xóa mặt hàng"
@@ -97,22 +72,24 @@ class CartViewModel @Inject constructor(
     }
 
 
-    private fun updateItemQuantity(cartItem: CartItem, quantity: Int) {
-        viewModelScope.launch {
-            try {
-                val currentItems = cartRepository.getCartItems().first().toMutableList()
-                val index = currentItems.indexOfFirst { it.id == cartItem.id }
+    private fun updateQuantity(cartItem: CartItem, newQuantity: Int) {
+        // Cập nhật StateFlow để UI phản ứng liền
+        _quantityMap.value = _quantityMap.value.toMutableMap().apply {
+            put(cartItem.id!!, newQuantity)
+        }
 
-                if (index != -1) {
-                    val updatedItem = cartItem.copy(quantity = quantity)
-                    currentItems[index] = updatedItem
-                    cartRepository.saveCartItems(currentItems) // ✅ Lưu danh sách mới
-                    getCart()
+        // Cập nhật database ngầm
+        viewModelScope.launch {
+            _quantityMap.value = _quantityMap.value.toMutableMap().apply {
+                put(cartItem.id!!, newQuantity)
+            }
+
+            viewModelScope.launch {
+                try {
+                    cartRepository.updateItemQuantity(cartItem.id!!, newQuantity)
+                } catch (e: Exception) {
+                    // emit error nếu cần
                 }
-            } catch (e: Exception) {
-                errorTitle = "Không thể cập nhật số lượng"
-                errorMessage = "Đã xảy ra lỗi khi cập nhật số lượng của mặt hàng"
-                _event.emit(CartEvents.OnQuantityUpdateError)
             }
         }
     }
@@ -144,15 +121,7 @@ class CartViewModel @Inject constructor(
 
     }
 
-    sealed class CartState {
-        data object Nothing : CartState()
-        data object Loading : CartState()
-        data class Success(val cartItems: List<CartItem>, val checkoutDetails: CheckoutDetails) :
-            CartState()
 
-        data class Error(val message: String) : CartState()
-
-    }
 
     sealed class CartEvents {
         data object ShowErrorDialog : CartEvents()

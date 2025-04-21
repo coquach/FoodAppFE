@@ -1,12 +1,18 @@
 package com.example.foodapp.data.model
 
+
+import com.example.foodapp.utils.json_format.BigDecimalSerializer
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
+
 
 @Serializable
 data class CartItem(
-    val addedAt: String,
-    val id: String,
-    val menuItemId: FoodItem,
+    val id: Long? = null,
+    val name: String,
     val quantity: Int,
-    val userId: String
+    val menuName: String,
+    val imageUrl: String?= null,
+    @Serializable(with = BigDecimalSerializer::class)
+    val price: BigDecimal
 )

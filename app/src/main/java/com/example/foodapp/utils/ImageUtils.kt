@@ -37,11 +37,12 @@ object ImageUtils {
             throw RuntimeException("Failed to create file from URI", e)
         }
     }
-    fun File.toMultipartBodyPart(partName: String = "imageUrl"): MultipartBody.Part {
-        val requestFile = this.asRequestBody("image/*".toMediaTypeOrNull())
-        return MultipartBody.Part.createFormData(partName, this.name, requestFile)
+    fun File?.toMultipartBodyPartOrNull(partName: String = "imageUrl"): MultipartBody.Part? {
+        return this?.let {
+            val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData(partName, it.name, requestFile)
+        }
     }
-
 
     /**
      * Chuyển Uri thành ByteArray (nếu muốn upload dưới dạng dữ liệu nhị phân)

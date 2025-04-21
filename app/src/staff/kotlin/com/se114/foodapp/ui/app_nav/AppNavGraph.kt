@@ -13,7 +13,7 @@ import com.example.foodapp.ui.navigation.FoodAppNavHost
 import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.app_nav.auth.authGraph
-
+import com.se114.foodapp.ui.app_nav.order.orderGraph
 
 
 @Composable
@@ -32,6 +32,7 @@ fun AppNavGraph(
         modifier = Modifier.padding(innerPadding)
     ) {
         authGraph(navController, shouldShowBottomNav)
+        orderGraph(navController, shouldShowBottomNav)
 
     }
 

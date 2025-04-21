@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,8 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.foodapp.R
 import com.example.foodapp.data.model.Address
-import com.example.foodapp.data.model.Payment
+import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.Loading
@@ -46,6 +50,7 @@ import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.screen.common.ItemView
+import com.example.foodapp.ui.screen.components.RadioGroupWrap
 
 import com.se114.foodapp.ui.screen.cart.CartViewModel
 import com.se114.foodapp.ui.screen.cart.CheckoutDetailsView
@@ -107,70 +112,70 @@ fun CheckoutScreen(
         )
         Spacer(modifier = Modifier.size(8.dp))
 
-        when (uiState.value) {
-            is CheckoutViewModel.CheckoutState.Loading -> {
-                Spacer(modifier = Modifier.size(16.dp))
-                Loading()
-            }
-
-            is CheckoutViewModel.CheckoutState.Success -> {
-                val cartItems = (uiState.value as CheckoutViewModel.CheckoutState.Success).cartItems
-                val checkoutDetails =
-                    (uiState.value as CheckoutViewModel.CheckoutState.Success).checkoutDetails
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        items(cartItems, key = { it.id }) { item ->
-                            ItemView(
-                                cartItem = item
-                            )
-                        }
-
-                    }
-                }
-                Spacer(modifier = Modifier.size(8.dp))
-                PaymentMethod()
-                Spacer(modifier = Modifier.size(8.dp))
-                CheckoutDetailsView(checkoutDetails = checkoutDetails)
-                Button(
-                    onClick = {
-                        viewModel.onConfirmClicked()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Đặt món")
-                }
-
-
-            }
-
-
-            is CheckoutViewModel.CheckoutState.Error -> {
-                val message = (uiState.value as CartViewModel.CartState.Error).message
-                Retry(
-                    message,
-                    onClicked = {}
-                )
-            }
-
-            is CheckoutViewModel.CheckoutState.Nothing -> {}
-
-        }
+//        when (uiState.value) {
+//            is CheckoutViewModel.CheckoutState.Loading -> {
+//                Spacer(modifier = Modifier.size(16.dp))
+//                Loading()
+//            }
+//
+//            is CheckoutViewModel.CheckoutState.Success -> {
+//                val cartItems = (uiState.value as CheckoutViewModel.CheckoutState.Success).cartItems
+//                val checkoutDetails =
+//                    (uiState.value as CheckoutViewModel.CheckoutState.Success).checkoutDetails
+//                Surface(
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .fillMaxWidth(),
+//
+//                    shape = RoundedCornerShape(16.dp),
+//                    color = MaterialTheme.colorScheme.surface,
+//                ) {
+//                    LazyColumn(
+//                        modifier = Modifier
+//                            .padding(8.dp)
+//                            .weight(1f)
+//                            .fillMaxWidth()
+//                    ) {
+//                        items(cartItems, key = { it.id!! }) { item ->
+//                            ItemView(
+//                                cartItem = item
+//                            )
+//                        }
+//
+//                    }
+//                }
+//                Spacer(modifier = Modifier.size(8.dp))
+//                Payment()
+//                Spacer(modifier = Modifier.size(8.dp))
+//                CheckoutDetailsView(checkoutDetails = checkoutDetails)
+//                Button(
+//                    onClick = {
+//                        viewModel.onConfirmClicked()
+//                    },
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text(text = "Đặt món")
+//                }
+//
+//
+//            }
+//
+//
+//            is CheckoutViewModel.CheckoutState.Error -> {
+//                val message = (uiState.value as CartViewModel.CartState.Error).message
+//                Retry(
+//                    message,
+//                    onClicked = {}
+//                )
+//            }
+//
+//            is CheckoutViewModel.CheckoutState.Nothing -> {}
+//
+//        }
     }
     if (showErrorDialog.value) {
         ModalBottomSheet(onDismissRequest = { showErrorDialog.value = false }) {
-            BasicDialog(title = viewModel.errorTitle, description = viewModel.errorMessage) {
+            BasicDialog(title = viewModel.error, description = viewModel.errorDescription) {
                 showErrorDialog.value = false
             }
         }
@@ -234,59 +239,24 @@ fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
 
 
 
-@Composable
-fun PaymentMethod(payment: Payment = Payment()) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Phương thức thanh toán",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clickable { /*TODO*/ },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    painter = painterResource(id = payment.paymentImage),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-
-                Spacer(modifier = Modifier.size(8.dp))
-
-                Text(
-                    text = payment.paymentMethod,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.outline
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Next",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-
-        }
-    }
-}
+//@Composable
+//fun Payment(menuItem: MenuItem) {
+//    Surface(
+//        modifier = Modifier
+//            .fillMaxWidth(),
+//        shape = RoundedCornerShape(16.dp),
+//        color = MaterialTheme.colorScheme.surface
+//    ) {
+//
+//        RadioGroupWrap(
+//            text = "Phương thức thanh toán",
+//            options = PaymentMethod.entries.map { it.display },
+//            selectedOption = ,
+//            onOptionSelected = TODO(),
+//            optionIcons = listOf(Icons.Default.Money, Icons.Default.Payment),
+//            isFlowLayout = TODO()
+//        )
+//
+//
+//    }
+//}

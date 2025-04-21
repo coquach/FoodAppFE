@@ -1,14 +1,8 @@
 package com.se114.foodapp.ui.screen.employee
 
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -40,7 +34,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
@@ -55,28 +48,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.log
 import coil.compose.AsyncImage
-import com.example.foodapp.R
-import com.se114.foodapp.data.model.Staff
+
 import com.example.foodapp.ui.navigation.AddEmployee
 
 import com.example.foodapp.ui.navigation.UpdateEmployee
 import com.example.foodapp.ui.screen.components.CustomCheckbox
-import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
-import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
-import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.screen.components.gridItems
+
+import com.example.foodapp.data.model.Staff
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -102,7 +90,7 @@ fun EmployeeScreen(
         is LoadState.Error -> {
             Toast.makeText(
                 LocalContext.current,
-                "Không thể tải thêm dữ liệu: ${state.error.message}",
+                "Không thể tải dữ liệu: ${state.error.message}",
                 Toast.LENGTH_LONG
             ).show()
             state.error.message?.let { Log.d("Paging", it) }

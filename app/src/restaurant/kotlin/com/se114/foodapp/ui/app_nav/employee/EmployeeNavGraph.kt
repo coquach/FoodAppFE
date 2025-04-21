@@ -7,16 +7,16 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.se114.foodapp.data.model.Staff
 import com.example.foodapp.ui.navigation.AddEmployee
 import com.example.foodapp.ui.navigation.Employee
 import com.example.foodapp.ui.navigation.UpdateEmployee
 import com.example.foodapp.ui.navigation.staffNavType
+import com.example.foodapp.data.model.Staff
 import com.se114.foodapp.ui.screen.employee.EmployeeScreen
 import com.se114.foodapp.ui.screen.employee.add_employee.AddEmployeeScreen
 import kotlin.reflect.typeOf
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 fun NavGraphBuilder.employeeGraph(
     navController: NavHostController,
     shouldShowBottomNav: MutableState<Boolean>

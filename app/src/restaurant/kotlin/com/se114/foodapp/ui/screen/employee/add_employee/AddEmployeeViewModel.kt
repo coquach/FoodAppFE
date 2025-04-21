@@ -9,13 +9,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.safeApiCall
+
 import com.example.foodapp.data.model.enums.Gender
-import com.se114.foodapp.data.model.Staff
+
 
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.ImageUtils.getFileFromUri
-import com.example.foodapp.utils.ImageUtils.toMultipartBodyPart
 import com.se114.foodapp.data.dto.request.StaffMultipartRequest
+import com.example.foodapp.data.model.Staff
+import com.example.foodapp.utils.ImageUtils.toMultipartBodyPartOrNull
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -139,7 +141,7 @@ class AddEmployeeViewModel @Inject constructor(
             _uiState.value = AddEmployeeState.Loading
             try {
                 val imageFile = _imageUrl.value?.let { getFileFromUri(context, it) }
-                val imagePart = imageFile?.toMultipartBodyPart()
+                val imagePart = imageFile?.toMultipartBodyPartOrNull()
                 val request = StaffMultipartRequest(
                     fullName = _fullName.value,
                     position = _position.value!!,
@@ -188,8 +190,11 @@ class AddEmployeeViewModel @Inject constructor(
             _uiState.value = AddEmployeeState.Loading
             try {
 
-                val imageFile = _imageUrl.value?.let { getFileFromUri(context, it) }
-                val imagePart = imageFile?.toMultipartBodyPart()
+                val imageFile = if (_imageUrl.value != null && !_imageUrl.value.toString().startsWith("https")) {
+                    getFileFromUri(context, _imageUrl.value!!)
+                } else null
+
+                val imagePart = imageFile.toMultipartBodyPartOrNull()
 
 
                 val request = StaffMultipartRequest(

@@ -29,87 +29,10 @@ class OrderListViewModel @Inject constructor() : ViewModel() {
 
     fun getOrders() {
         viewModelScope.launch {
-            delay(1000) // Giả lập thời gian tải dữ liệu
-//            val  sampleOrders = emptyList<Order>()
-            val sampleOrders = listOf(
-                Order(
-                    id = "1",
-                    userId = "user_123",
-                    createdAt = "2025-03-23T10:00:00Z",
-                    updatedAt = "2025-03-23T10:30:00Z",
-                    status = "PENDING_ACCEPTANCE",
-                    totalAmount = 150.0f,
-                    paymentMethod = "Credit Card",
-                    address = Address(
-                        addressLine1 = "123 Main St",
-                        city = "New York",
-                        state = "NY",
-                        zipCode = "10001",
-                        country = "USA"
-                    ),
-                    items = listOf(
-                        OrderItem(
-                            id = "item_1",
-                            menuItemId = "menu_123",
-                            orderId = "1",
-                            quantity = 2,
-                            menuItemName = "Espresso"
-                        )
-                    )
-                ),
-                Order(
-                    id = "2",
-                    userId = "user_456",
-                    createdAt = "2025-03-23T11:00:00Z",
-                    updatedAt = "2025-03-23T11:15:00Z",
-                    status = "CANCELLED",
-                    totalAmount = 250.0f,
-                    paymentMethod = "PayPal",
-                    address = Address(
-                        addressLine1 = "456 Elm St",
-                        city = "Los Angeles",
-                        state = "CA",
-                        zipCode = "90001",
-                        country = "USA"
-                    ),
-                    items = listOf(
-                        OrderItem(
-                            id = "item_2",
-                            menuItemId = "menu_456",
-                            orderId = "2",
-                            quantity = 1,
-                            menuItemName = "Cappuccino"
-                        )
-                    )
-                ),
-                Order(
-                    id = "2",
-                    userId = "user_456",
-                    createdAt = "2025-03-23T11:00:00Z",
-                    updatedAt = "2025-03-23T11:15:00Z",
-                    status = "ACCEPTED",
-                    totalAmount = 250.0f,
-                    paymentMethod = "PayPal",
-                    address = Address(
-                        addressLine1 = "456 Elm St",
-                        city = "Los Angeles",
-                        state = "CA",
-                        zipCode = "90001",
-                        country = "USA"
-                    ),
-                    items = listOf(
-                        OrderItem(
-                            id = "item_2",
-                            menuItemId = "menu_456",
-                            orderId = "2",
-                            quantity = 1,
-                            menuItemName = "Cappuccino"
-                        )
-                    )
-                )
-            )
 
-            _state.value = OrderListState.Success(sampleOrders)
+
+
+            _state.value = OrderListState.Success
         }
     }
 
@@ -127,7 +50,7 @@ class OrderListViewModel @Inject constructor() : ViewModel() {
 
     sealed class OrderListState {
         data object Loading : OrderListState()
-        data class Success(val orderList: List<Order>) : OrderListState()
+        data object Success : OrderListState()
         data class Error(val message: String) : OrderListState()
     }
 }

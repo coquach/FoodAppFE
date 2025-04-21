@@ -1,4 +1,4 @@
-package com.se114.foodapp.ui.screen.food_item_details
+package com.se114.foodapp.ui.screen.menu_item_details
 
 
 import androidx.compose.animation.AnimatedContent
@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,14 +49,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.foodapp.R
-import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.MenuItem
 
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodItemCounter
@@ -69,11 +66,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SharedTransitionScope.FoodDetailsScreen(
+fun SharedTransitionScope.MenuDetailsScreen(
     navController: NavController,
-    foodItem: FoodItem,
+    menuItem: MenuItem,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    viewModel: FoodDetailsViewModel = hiltViewModel()
+    viewModel: MenuDetailsViewModel = hiltViewModel()
 ) {
     val count = viewModel.quantity.collectAsStateWithLifecycle()
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
@@ -90,7 +87,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
 
     when (uiState.value) {
-        FoodDetailsViewModel.FoodDetailsState.Loading -> {
+        MenuDetailsViewModel.FoodDetailsState.Loading -> {
             isLoading.value = true
         }
 
@@ -101,21 +98,21 @@ fun SharedTransitionScope.FoodDetailsScreen(
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
-                is FoodDetailsViewModel.FoodDetailsEvent.OnItemAlreadyInCart -> {
+                is MenuDetailsViewModel.FoodDetailsEvent.OnItemAlreadyInCart -> {
                     successMessage.value = "Món đã có trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
 
-                is FoodDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
+                is MenuDetailsViewModel.FoodDetailsEvent.OnAddToCart -> {
                     successMessage.value = "Đã thêm món trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
 
-                is FoodDetailsViewModel.FoodDetailsEvent.ShowErrorDialog -> {
+                is MenuDetailsViewModel.FoodDetailsEvent.ShowErrorDialog -> {
                     showErrorDialog.value = true
                 }
 
-                is FoodDetailsViewModel.FoodDetailsEvent.GoToCart -> {
+                is MenuDetailsViewModel.FoodDetailsEvent.GoToCart -> {
                     navController.navigate(Cart)
                 }
             }
@@ -125,9 +122,9 @@ fun SharedTransitionScope.FoodDetailsScreen(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        FoodHeader(
-            imageUrl = foodItem.imageUrl?: "",
-            foodID = foodItem.id ?: "default id",
+        MenuHeader(
+            imageUrl = menuItem.imageUrl?: "",
+            menuId = (menuItem.id ?: "default id").toString(),
             onBackButton = {
                 navController.popBackStack()
             },
@@ -135,9 +132,9 @@ fun SharedTransitionScope.FoodDetailsScreen(
             animatedVisibilityScope = animatedVisibilityScope
         )
         FoodDetail(
-            title = foodItem.name,
-            description = foodItem.description,
-            foodID = foodItem.id ?: "default id",
+            title = menuItem.name,
+            description = menuItem.description,
+            foodID = (menuItem.id ?: "default id").toString(),
             animatedVisibilityScope = animatedVisibilityScope
         )
         Row(
@@ -147,7 +144,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
         ) {
             Text(
-                text = StringUtils.formatCurrency(foodItem.price),
+                text = StringUtils.formatCurrency(menuItem.price),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.headlineLarge
             )
@@ -166,7 +163,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                viewModel.addToCart(foodItem = foodItem)
+                viewModel.addToCart(menuItem = menuItem)
             },
             enabled = !isLoading.value,
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -267,7 +264,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
         ) {
             BasicDialog(
                 title = "Lỗi",
-                description = (uiState.value as? FoodDetailsViewModel.FoodDetailsState.Error)?.message
+                description = (uiState.value as? MenuDetailsViewModel.FoodDetailsState.Error)?.message
                     ?: "Không thể thêm vào giỏ hàng"
             ) {
                 scope.launch {
@@ -342,9 +339,9 @@ fun SharedTransitionScope.FoodDetail(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.FoodHeader(
+fun SharedTransitionScope.MenuHeader(
     imageUrl: String,
-    foodID: String,
+    menuId: String,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onBackButton: () -> Unit,
     onFavoriteButton: () -> Unit
@@ -355,7 +352,7 @@ fun SharedTransitionScope.FoodHeader(
                 .fillMaxWidth()
                 .height(200.dp)
                 .sharedElement(
-                    state = rememberSharedContentState(key = "image/${foodID}"),
+                    state = rememberSharedContentState(key = "image/${menuId}"),
                     animatedVisibilityScope
                 )
                 .clip(

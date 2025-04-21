@@ -1,22 +1,25 @@
-package com.se114.foodapp.ui.screen.food_item_details
+package com.se114.foodapp.ui.screen.menu_item_details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.model.CartItem
-import com.example.foodapp.data.model.FoodItem
+
+import com.example.foodapp.data.model.MenuItem
+import com.se114.foodapp.data.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.util.UUID
+
 import javax.inject.Inject
 
 @HiltViewModel
-class FoodDetailsViewModel @Inject constructor(
+class MenuDetailsViewModel @Inject constructor(
     private val cartRepository: CartRepository
 ) : ViewModel() {
 
@@ -26,11 +29,13 @@ class FoodDetailsViewModel @Inject constructor(
     private val _event = MutableSharedFlow<FoodDetailsEvent>()
     val event = _event.asSharedFlow()
 
+    private val cartItems = cartRepository.getCartItems()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+
     private val _quantity = MutableStateFlow<Int>(1)
     val quantity = _quantity.asStateFlow()
 
     fun incrementQuantity() {
-        if (quantity.value == 10) return
         _quantity.value += 1
     }
 
@@ -39,33 +44,31 @@ class FoodDetailsViewModel @Inject constructor(
         _quantity.value -= 1
     }
 
-    fun addToCart(foodItem: FoodItem) {
+    fun addToCart(menuItem: MenuItem) {
         viewModelScope.launch {
             _uiState.value = FoodDetailsState.Loading
             try {
-                val currentItems = cartRepository.getCartItems().first().toMutableList()
-                val existingItemIndex = currentItems.indexOfFirst { it.menuItemId.id == foodItem.id }
+                val current = cartItems.value.toMutableList()
+                val index = current.indexOfFirst { it.id == menuItem.id }
 
-                if (existingItemIndex != -1) {
-                    val updatedItem = currentItems[existingItemIndex].copy(
+                if (index != -1) {
+                    val updatedItem = current[index].copy(
                         quantity = quantity.value
                     )
-                    currentItems[existingItemIndex] = updatedItem
-                    cartRepository.saveCartItems(currentItems)
+                    current[index] = updatedItem
                     _event.emit(FoodDetailsEvent.OnItemAlreadyInCart)
                 } else {
                     val newItem = CartItem(
-                        id = UUID.randomUUID().toString(),
-                        menuItemId = foodItem,
+                        id = menuItem.id,
+                        name = menuItem.name,
+                        menuName = menuItem.menuName!!,
                         quantity = quantity.value,
-                        userId = "user_123",
-                        addedAt = System.currentTimeMillis().toString()
                     )
-                    currentItems.add(newItem)
-                    cartRepository.saveCartItems(currentItems)
+                    current.add(newItem)
+
                     _event.emit(FoodDetailsEvent.OnAddToCart)
                 }
-
+                cartRepository.saveCartItems(current)
                 _uiState.value = FoodDetailsState.Nothing
 
             } catch (e: Exception) {

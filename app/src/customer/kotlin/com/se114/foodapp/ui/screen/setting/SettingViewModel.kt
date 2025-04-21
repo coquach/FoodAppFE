@@ -2,7 +2,6 @@ package com.se114.foodapp.ui.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.safeApiCall
@@ -19,7 +18,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingViewModel @Inject constructor(
-    private val cartRepository: CartRepository,
     private val accountService: AccountService
 
 ) : ViewModel() {
@@ -32,8 +30,7 @@ class SettingViewModel @Inject constructor(
             try {
                 _event.emit(SettingEvents.NavigateToAuth)
                 val result = accountService.signOut()
-                val allCartItems = cartRepository.getCartItems().firstOrNull() ?: emptyList()
-                cartRepository.clearCartItems(allCartItems)
+
 
             } catch (e: Exception) {
             e.printStackTrace()

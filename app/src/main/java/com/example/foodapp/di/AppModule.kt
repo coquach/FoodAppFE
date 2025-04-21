@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodapp.BuildConfig
 import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.datastore.CartRepository
 import com.example.foodapp.data.service.AccountService
 import com.example.foodapp.utils.gson.LocalDateDeserializer
 

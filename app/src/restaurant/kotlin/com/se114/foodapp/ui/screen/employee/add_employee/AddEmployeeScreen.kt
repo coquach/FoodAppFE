@@ -47,7 +47,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.model.enums.Gender
-import com.se114.foodapp.data.model.Staff
+
 
 
 import com.example.foodapp.ui.screen.components.ComboBoxSample
@@ -57,11 +57,11 @@ import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
-import com.example.foodapp.ui.screen.components.charts.DonutChatSample
+import com.example.foodapp.data.model.Staff
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun AddEmployeeScreen(
     navController: NavController,

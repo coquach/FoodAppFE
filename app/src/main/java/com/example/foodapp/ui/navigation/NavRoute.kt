@@ -1,9 +1,10 @@
 package com.example.foodapp.ui.navigation
 
-import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs
-import com.se114.foodapp.data.model.Staff
+import com.example.foodapp.data.model.Staff
+
 import kotlinx.serialization.Serializable
 
 interface NavRoute
@@ -21,7 +22,7 @@ object Login : NavRoute
 object Home : NavRoute
 
 @Serializable
-data class FoodDetails(val foodItem: FoodItem) : NavRoute
+data class FoodDetails(val menuItem: MenuItem) : NavRoute
 
 @Serializable
 object Cart : NavRoute
@@ -92,7 +93,7 @@ object AddEmployee : NavRoute
 object Menu : NavRoute
 
 @Serializable
-data class UpdateMenuItem(val foodItem: FoodItem) : NavRoute
+data class UpdateMenuItem(val menuItem: MenuItem) : NavRoute
 
 @Serializable
 object AddMenuItem : NavRoute

@@ -18,7 +18,6 @@ suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): ApiResponse<T?>
     return try {
         val res = apiCall.invoke()
         if (res.isSuccessful) {
-
                 ApiResponse.Success(res.body())
 
         } else {

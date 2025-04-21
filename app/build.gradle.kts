@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
@@ -146,7 +146,7 @@ dependencies {
 
     //Dagger - Hilt
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
     //Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
@@ -178,6 +178,8 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-auth")
 
+
+
     //Google Auth
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation("androidx.credentials:credentials:1.5.0")
@@ -193,7 +195,7 @@ dependencies {
 
     // Room components
     implementation("androidx.room:room-runtime:2.7.0")
-    kapt("androidx.room:room-compiler:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
     implementation("androidx.room:room-ktx:2.7.0")
     implementation("androidx.room:room-paging:2.7.0")
 
@@ -201,8 +203,5 @@ dependencies {
     implementation("androidx.paging:paging-compose:3.3.6")
 
 
-}
-kapt {
-    correctErrorTypes = true
 }
 

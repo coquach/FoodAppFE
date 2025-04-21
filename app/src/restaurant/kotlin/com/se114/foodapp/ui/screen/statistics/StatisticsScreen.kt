@@ -36,7 +36,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Address
-import com.example.foodapp.data.model.Payment
 import com.example.foodapp.ui.navigation.Notification
 import com.example.foodapp.ui.screen.components.ItemCount
 import com.example.foodapp.ui.screen.components.TabWithPager

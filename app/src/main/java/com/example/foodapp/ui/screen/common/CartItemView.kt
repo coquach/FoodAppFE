@@ -33,7 +33,7 @@ fun ItemView(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         AsyncImage(
-            model = cartItem.menuItemId.imageUrl,
+            model = cartItem.imageUrl,
             contentDescription = null,
             modifier = Modifier
                 .size(82.dp)
@@ -49,14 +49,14 @@ fun ItemView(
             ) {
 
                 Text(
-                    text = cartItem.menuItemId.name,
+                    text = cartItem.name,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = cartItem.menuItemId.description,
+                    text = cartItem.menuName,
                     color = MaterialTheme.colorScheme.outline,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
@@ -78,7 +78,7 @@ fun ItemView(
 
                     )
                 Text(
-                    text = StringUtils.formatCurrency(cartItem.menuItemId.price),
+                    text = StringUtils.formatCurrency(cartItem.price),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline,
                 )

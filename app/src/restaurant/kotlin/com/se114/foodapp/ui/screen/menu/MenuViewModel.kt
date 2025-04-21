@@ -3,7 +3,7 @@ package com.se114.foodapp.ui.screen.menu
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.model.FoodItem
+import com.example.foodapp.data.model.MenuItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,20 +21,20 @@ class MenuViewModel @Inject constructor() : ViewModel() {
     private val _event = MutableSharedFlow<MenuEvents>()
     val event = _event.asSharedFlow()
 
-    private val _selectedItems = mutableStateListOf<FoodItem>()
-    val selectedItems: List<FoodItem> get() = _selectedItems
+    private val _selectedItems = mutableStateListOf<MenuItem>()
+    val selectedItems: List<MenuItem> get() = _selectedItems
 
-    fun toggleSelection(foodItem: FoodItem) {
-        if (_selectedItems.contains(foodItem)) {
-            _selectedItems.remove(foodItem)
+    fun toggleSelection(menuItem: MenuItem) {
+        if (_selectedItems.contains(menuItem)) {
+            _selectedItems.remove(menuItem)
         } else {
-            _selectedItems.add(foodItem)
+            _selectedItems.add(menuItem)
         }
     }
 
-    fun selectAllItems(foodItems: List<FoodItem>, isSelectAll: Boolean) {
+    fun selectAllItems(menuItems: List<MenuItem>, isSelectAll: Boolean) {
         _selectedItems.clear()
-        if (isSelectAll) _selectedItems.addAll(foodItems)
+        if (isSelectAll) _selectedItems.addAll(menuItems)
     }
 
     fun removeItem() {
@@ -55,7 +55,7 @@ class MenuViewModel @Inject constructor() : ViewModel() {
     sealed class MenuState {
         data object Nothing : MenuState()
         data object Loading : MenuState()
-        data class Success(val cartItems: List<FoodItem>) :
+        data class Success(val cartItems: List<MenuItem>) :
             MenuState()
 
         data class Error(val message: String) : MenuState()

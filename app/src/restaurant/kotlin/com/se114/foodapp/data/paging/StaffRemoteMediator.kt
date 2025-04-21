@@ -7,9 +7,11 @@ import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.example.foodapp.data.remote.FoodApi
 import com.se114.foodapp.data.local.AdminDatabase
-import com.se114.foodapp.data.model.Staff
+import com.example.foodapp.data.model.Staff
+import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
+
 import com.se114.foodapp.data.model.StaffRemoteKeys
-import com.se114.foodapp.utils.Constants.ITEMS_PER_PAGE
+
 
 @OptIn(ExperimentalPagingApi::class)
 class StaffRemoteMediator(

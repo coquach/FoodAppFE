@@ -89,7 +89,8 @@ fun CartScreen(
     viewModel: CartViewModel = hiltViewModel()
 ) {
 
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val cartItems by viewModel.cartItems.collectAsStateWithLifecycle()
+    val quantityMap by viewModel.quantityMap.collectAsStateWithLifecycle()
 
     val showErrorDialog = remember {
         mutableStateOf(
@@ -139,35 +140,31 @@ fun CartScreen(
         )
         Spacer(modifier = Modifier.size(16.dp))
 
-        when (uiState.value) {
-            is CartViewModel.CartState.Loading -> {
-                Spacer(modifier = Modifier.size(16.dp))
-                Loading()
-            }
 
-            is CartViewModel.CartState.Success -> {
-                val cartItems = (uiState.value as CartViewModel.CartState.Success).cartItems
-                val checkoutDetails =
-                    (uiState.value as CartViewModel.CartState.Success).checkoutDetails
+
+
+
                 if (cartItems.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
                     ) {
-                        items(cartItems, key = { it.id }) { item ->
+                        items(cartItems, key = { it.id!! }) { item ->
+                            val quantity = quantityMap[item.id] ?: item.quantity
                             CartItemView(
                                 cartItem = item,
                                 isEditMode = isEditing,
+                                quantity = quantity,
                                 isChecked = viewModel.selectedItems.contains(item),
                                 onCheckedChange = { cartItem ->
                                     viewModel.toggleSelection(cartItem)
                                 },
-                                onIncrement = { item, _ ->
-                                    viewModel.incrementQuantity(item)
+                                onIncrement = { item ->
+                                    viewModel.increment(item)
                                 },
-                                onDecrement = { item, _ ->
-                                    viewModel.decrementQuantity(item)
+                                onDecrement = { item->
+                                    viewModel.decrement(item)
                                 }
                             )
                         }
@@ -198,7 +195,6 @@ fun CartScreen(
                             exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
                         ) {
                             Column {
-                                CheckoutDetailsView(checkoutDetails = checkoutDetails)
                                 Button(
                                     onClick = { viewModel.checkout() },
                                     modifier = Modifier.fillMaxWidth()
@@ -217,19 +213,11 @@ fun CartScreen(
                     )
                 }
 
-            }
 
-            is CartViewModel.CartState.Error -> {
-                val message = (uiState.value as CartViewModel.CartState.Error).message
-                Retry(
-                    message = message,
-                    onClicked = {}
-                )
-            }
 
-            CartViewModel.CartState.Nothing -> {}
 
-        }
+
+
 
 
     }
@@ -295,11 +283,12 @@ fun CheckoutRowItem(title: String, value: BigDecimal, fontWeight: FontWeight = F
 @Composable
 fun CartItemView(
     cartItem: CartItem,
+    quantity: Int,
     isEditMode: Boolean = false,
     isChecked: Boolean,
     onCheckedChange: (CartItem) -> Unit,
-    onIncrement: (CartItem, Int) -> Unit,
-    onDecrement: (CartItem, Int) -> Unit,
+    onIncrement: (CartItem) -> Unit,
+    onDecrement: (CartItem) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -320,7 +309,7 @@ fun CartItemView(
             )
         }
         AsyncImage(
-            model = cartItem.menuItemId.imageUrl,
+            model = cartItem.menuItem.imageUrl,
             contentDescription = null,
             modifier = Modifier
                 .size(82.dp)
@@ -333,13 +322,13 @@ fun CartItemView(
         ) {
 
             Text(
-                text = cartItem.menuItemId.name,
+                text = cartItem.menuItem.name,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = cartItem.menuItemId.description,
+                text = cartItem.menuItem.description,
                 color = MaterialTheme.colorScheme.outline,
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
@@ -351,15 +340,15 @@ fun CartItemView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = StringUtils.formatCurrency(cartItem.menuItemId.price),
+                    text = StringUtils.formatCurrency(cartItem.menuItem.price),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 FoodItemCounter(
-                    count = cartItem.quantity,
-                    onCounterIncrement = { onIncrement.invoke(cartItem, cartItem.quantity) },
-                    onCounterDecrement = { onDecrement.invoke(cartItem, cartItem.quantity) },
+                    count = quantity,
+                    onCounterIncrement = { onIncrement.invoke(cartItem) },
+                    onCounterDecrement = { onDecrement.invoke(cartItem) },
                 )
             }
         }
