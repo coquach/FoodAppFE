@@ -24,7 +24,7 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.navigation.Home
 
 @Composable
-fun OrderSuccess(orderID: String, navController: NavController) {
+fun OrderSuccessScreen(orderID: String, navController: NavController) {
     BackHandler {
         navController.popBackStack(route = Home, inclusive = false)
     }

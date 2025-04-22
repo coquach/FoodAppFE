@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.navigation.NavController
 import com.example.foodapp.R
+import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.navigation.Login
@@ -63,20 +64,43 @@ fun SendEmailScreen(
     val emailError = viewModel.emailError
     var isTouched by remember { mutableStateOf(false) }
 
-    val errorMessage = remember { mutableStateOf<String?>(null) }
     val loading = remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showErrorSheet by remember { mutableStateOf(false) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+
+
+
     LaunchedEffect(key1 = true) {
-        viewModel.event.collectLatest {it ->
+        viewModel.event.collectLatest {
             when (it) {
                 is SendEmailViewModel.SendEmailEvents.NavigateToLogin -> {
                     navController.popBackStack(route = Login, inclusive = false)
 
+                }
+
+                is SendEmailViewModel.SendEmailEvents.ShowAlreadySent -> {
+                    Toast.makeText(context, "Bạn đã gửi email rồi! 📩 Kiểm tra hộp thư trước khi gửi lại nha.", Toast.LENGTH_LONG).show()
+                }
+                is SendEmailViewModel.SendEmailEvents.ShowError -> {
+                    showErrorSheet = true
+                }
+                is SendEmailViewModel.SendEmailEvents.ShowSuccess -> {
+                    Toast.makeText(
+                        context,
+                        "Email đã được gửi! Hãy kiểm tra hộp thư của bạn nhé 📬",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    navController.navigate(Auth) {
+                        popUpTo(navController.graph.startDestinationId)
+
+                    }
+                }
+                is SendEmailViewModel.SendEmailEvents.ShowTooFast -> {
+                    Toast.makeText(context, "Đừng spam nha bro 😅 Chờ tí rồi gửi lại!", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -91,40 +115,15 @@ fun SendEmailScreen(
 
         val uiState = viewModel.uiState.collectAsStateWithLifecycle()
         when (uiState.value) {
-            is SendEmailViewModel.SendEmailState.Error -> {
-                loading.value = false
-                errorMessage.value = "Failed"
-            }
+
 
             is SendEmailViewModel.SendEmailState.Loading -> {
                 loading.value = true
-                errorMessage.value = null
             }
 
-            is SendEmailViewModel.SendEmailState.Success -> {
-                loading.value = false
-                errorMessage.value = null
-                Toast.makeText(
-                    context,
-                    "Email đã được gửi! Hãy kiểm tra hộp thư của bạn nhé 📬",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            is SendEmailViewModel.SendEmailState.AlreadySent -> {
-                loading.value = false
-                errorMessage.value = null
-                Toast.makeText(context, "Bạn đã gửi email rồi! 📩 Kiểm tra hộp thư trước khi gửi lại nha.", Toast.LENGTH_SHORT).show()
-            }
-            is SendEmailViewModel.SendEmailState.TooFast -> {
-                loading.value = false
-                errorMessage.value = null
-                Toast.makeText(context, "Đừng spam nha bro 😅 Chờ tí rồi gửi lại!", Toast.LENGTH_SHORT).show()
-            }
-            else -> {
-                loading.value = false
-                errorMessage.value = null
-            }
+           else -> {
+               loading.value = false
+           }
         }
         Text(
             text = stringResource(R.string.forgot_password),

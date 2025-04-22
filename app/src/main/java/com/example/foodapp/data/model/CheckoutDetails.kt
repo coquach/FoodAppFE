@@ -1,8 +1,10 @@
 package com.example.foodapp.data.model
 
+import java.math.BigDecimal
+
 data class CheckoutDetails(
-    val deliveryFee: Float,
-    val subTotal: Float,
-    val tax: Float,
-    val totalAmount: Float
+    val deliveryFee: BigDecimal,
+    val subTotal: BigDecimal,
+    val tax: BigDecimal,
+    val totalAmount: BigDecimal
 )

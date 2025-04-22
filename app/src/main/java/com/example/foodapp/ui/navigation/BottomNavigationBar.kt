@@ -11,6 +11,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.foodapp.BuildConfig
 import com.example.foodapp.R
 
 sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
@@ -19,11 +20,20 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
         BottomNavItem(com.example.foodapp.ui.navigation.Favorite, R.drawable.ic_favorite)
 
     data object Reservation :
-        BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_meal)
+        BottomNavItem(com.example.foodapp.ui.navigation.Reservation, R.drawable.ic_book)
 
     data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
     data object Setting :
-        BottomNavItem(com.example.foodapp.ui.navigation.Setting, R.drawable.ic_user_circle)
+        BottomNavItem(com.example.foodapp.ui.navigation.Setting, if(BuildConfig.FLAVOR == "restaurant") R.drawable.ic_setting else R.drawable.ic_user_circle)
+    data object  Statistics :
+        BottomNavItem(com.example.foodapp.ui.navigation.Statistics, R.drawable.ic_chart)
+    data object  Warehouse :
+        BottomNavItem(com.example.foodapp.ui.navigation.Warehouse, R.drawable.ic_warehouse)
+    data object  Employee :
+        BottomNavItem(com.example.foodapp.ui.navigation.Employee, R.drawable.ic_employee)
+    data object  Menu :
+        BottomNavItem(com.example.foodapp.ui.navigation.Menu, R.drawable.ic_meal)
+
 
 }
 
@@ -46,7 +56,7 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
                     Icon(
                         painter = painterResource(id = item.icon),
                         contentDescription = null,
-//                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+//
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(

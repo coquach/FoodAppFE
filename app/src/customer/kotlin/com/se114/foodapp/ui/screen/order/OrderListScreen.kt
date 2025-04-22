@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,6 +48,9 @@ import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
+import com.example.foodapp.ui.screen.components.GenericListContent
+import com.example.foodapp.ui.screen.components.Nothing
+import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.utils.OrdersUtils
 import kotlinx.coroutines.flow.collectLatest
@@ -105,62 +111,31 @@ fun OrderListScreen(
             is OrderListViewModel.OrderListState.Success -> {
                 val list = (uiState.value as OrderListViewModel.OrderListState.Success).orderList
 
-                val listOfTabs = listOf("Sắp tới", "Lịch sử")
-                val coroutineScope = rememberCoroutineScope()
-                val pagerState =
-                    rememberPagerState(pageCount = { listOfTabs.size }, initialPage = 0)
-                TabRow(selectedTabIndex = pagerState.currentPage,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .clip(RoundedCornerShape(32.dp))
-                        .border(
-                            width = 1.dp,
-                            color = Color.LightGray,
-                            shape = RoundedCornerShape(32.dp)
-                        )
-                        .padding(4.dp),
-                    indicator = {},
-                    divider = {}) {
-                    listOfTabs.forEachIndexed { index, title ->
-                        Tab(text = {
-                            Text(
-                                text = title,
-                                color = if (pagerState.currentPage == index) Color.White else Color.Gray
+                TabWithPager(
+                    tabs = listOf("Sắp tới", "Lịch sử"),
+                    pages = listOf(
+                        {
+                            GenericListContent(
+                                list = list.filter { it.status == "PENDING_ACCEPTANCE" },
+                                iconEmpty = Icons.Default.Inventory2,
+                                textEmpty = "Không có đơn hàng nào",
+                                itemContent = {order ->
+                                    OrderListItem(order = order, onClick = { viewModel.navigateToDetails(order) })
+                                },
                             )
-                        }, selected = pagerState.currentPage == index, onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(index)
-                            }
-                        }, modifier = Modifier
-                            .clip(
-                                RoundedCornerShape(32.dp)
+                        },
+                        {
+                            GenericListContent(
+                                list = list.filter { it.status != "PENDING_ACCEPTANCE" },
+                                iconEmpty = Icons.Default.Inventory2,
+                                textEmpty = "Không có đơn hàng nào",
+                                itemContent = {order ->
+                                    OrderListItem(order = order, onClick = { viewModel.navigateToDetails(order) })
+                                },
                             )
-                            .background(
-                                color = if (pagerState.currentPage == index) MaterialTheme.colorScheme.primary else Color.White
-                            )
-                        )
-                    }
-                }
-
-                HorizontalPager(state = pagerState) {
-                    when (it) {
-                        0 -> {
-                            OrderListInternal((list
-                                ?: emptyList()).filter { order -> order.status == "PENDING_ACCEPTANCE" },
-                                onClick = { order ->
-                                    viewModel.navigateToDetails(order)
-                                })
                         }
-
-                        1 -> {
-                            OrderListInternal((list
-                                ?: emptyList()).filter { order -> order.status != "PENDING_ACCEPTANCE" },
-                                onClick = { order ->
-                                    viewModel.navigateToDetails(order)
-                                })
-                        }
-                    }
-                }
+                    )
+                )
 
             }
 
@@ -181,33 +156,6 @@ fun OrderListScreen(
     }
 }
 
-
-@Composable
-fun OrderListInternal(list: List<Order>, onClick: (Order) -> Unit) {
-    if (list.isEmpty()) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_empty_box),
-                contentDescription = null,
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(text = "Không có đơn hàng nào")
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top
-        ) {
-            items(list) { order ->
-                OrderListItem(order = order, onClick = { onClick(order) })
-            }
-        }
-    }
-}
 
 @Composable
 fun OrderDetailsText(order: Order) {
@@ -233,7 +181,7 @@ fun OrderDetailsText(order: Order) {
             ) {
                 Text(
                     text = "Mã đơn hàng: ${order.id}",
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                    textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium,
@@ -303,7 +251,7 @@ fun OrderListItem(order: Order, onClick: () -> Unit) {
                 Text(
                     text = "Chi tiết",
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center
                 )
             }
 

@@ -32,13 +32,11 @@ class HomeViewModel @Inject constructor(
     val navigationEvent = _navigationEvent.asSharedFlow()
 
     var categories = emptyList<Category>()
-
     val cartSize: StateFlow<Int> = cartRepository.getCartSize()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     init {
         getCategories()
-        getPopularRestaurants()
     }
 
     private fun getCategories() {
@@ -64,9 +62,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun getPopularRestaurants() {
 
-    }
 
     fun onNotificationClicked() {
         viewModelScope.launch {

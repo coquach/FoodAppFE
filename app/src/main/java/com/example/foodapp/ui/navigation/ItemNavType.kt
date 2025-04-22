@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import com.example.foodapp.data.model.FoodItem
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs
+import com.example.foodapp.data.model.Staff
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -82,4 +83,32 @@ val resetPasswordNavType = object : NavType<ResetPasswordArgs>(false) {
     override fun serializeAsValue(value: ResetPasswordArgs): String {
         return URLEncoder.encode(Json.encodeToString(value), "UTF-8")
     }
+}
+
+val staffNavType = object : NavType<Staff>(false) {
+    override fun get(bundle: Bundle, key: String): Staff? {
+        return parseValue(bundle.getString(key).toString()).copy(
+            imageUrl = URLDecoder.decode(
+                parseValue(bundle.getString(key).toString()).imageUrl,
+                "UTF-8"
+            )
+        )
+    }
+
+    override fun parseValue(value: String): Staff {
+        return Json.decodeFromString(Staff.serializer(), value)
+    }
+
+    override fun serializeAsValue(value: Staff): String {
+        return Json.encodeToString(
+            Staff.serializer(), value.copy(
+                imageUrl = URLEncoder.encode(value.imageUrl, "UTF-8"),
+            )
+        )
+    }
+
+    override fun put(bundle: Bundle, key: String, value: Staff) {
+        bundle.putString(key, serializeAsValue(value))
+    }
+
 }

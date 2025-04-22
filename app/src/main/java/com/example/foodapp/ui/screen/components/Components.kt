@@ -70,6 +70,7 @@ import androidx.compose.ui.draw.clip
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -84,10 +85,6 @@ import androidx.compose.ui.unit.sp
 
 import com.example.foodapp.R
 import com.example.foodapp.ui.theme.FoodAppTheme
-
-
-
-
 
 
 @Composable
@@ -335,39 +332,61 @@ fun Loading() {
 
 @Composable
 fun HeaderDefaultView(
-    onBack: () -> Unit,
     text: String,
-) {
+    onBack: (() -> Unit)? = null,
+    icon: ImageVector? = null,
+    iconClick: (() -> Unit)? = null,
+    tintIcon: Color = MaterialTheme.colorScheme.primary
+
+    ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-            contentDescription = null,
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .size(30.dp)
-                .clip(CircleShape)
-                .clickable { onBack.invoke() },
-            tint = MaterialTheme.colorScheme.primary
-        )
-
-
+        if(onBack != null){
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .clickable { onBack() },
+                tint = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            Spacer(modifier = Modifier.weight(0.2f))
+        }
 
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier
-                .weight(1f)
-                .wrapContentWidth(Alignment.CenterHorizontally)
+                .weight(1f),
+            textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.size(50.dp))
+
+        if(icon != null){
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable {
+                        iconClick?.invoke()
+                    },
+                tint = tintIcon
+
+            )
+        } else {
+            Spacer(modifier = Modifier.weight(0.2f))
+        }
+
     }
+
+
 }
 
 @Composable

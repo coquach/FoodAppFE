@@ -58,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.foodapp.BuildConfig
 import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
@@ -67,6 +68,7 @@ import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.SendEmail
 
 import com.example.foodapp.ui.navigation.SignUp
+import com.example.foodapp.ui.navigation.Statistics
 import com.example.foodapp.ui.screen.components.GoogleLoginButton
 
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -102,11 +104,12 @@ fun LoginScreen(
     LaunchedEffect(true) {
         viewModel.navigationEvent.collectLatest { event ->
             when (event) {
-                is LoginViewModel.LoginNavigationEvent.NavigateHome -> {
-                    navController.navigate(Home) {
-                        popUpTo(Auth) {
-                            inclusive = true
-                        }
+                // Test chuyển hướng view trong variant khi nào có role thì sửa lại code
+                is LoginViewModel.LoginNavigationEvent.NavigateAfterLogin -> {
+                    when (BuildConfig.FLAVOR) {
+                        "customer" -> navController.navigate(Home)
+                        "staff" -> navController.navigate(Home)
+                        "restaurant" -> navController.navigate(Statistics)
                     }
                 }
 
@@ -239,7 +242,7 @@ fun LoginScreen(
                                 text = "Nhớ mật khẩu",
                                 color = MaterialTheme.colorScheme.outline,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
 
@@ -249,9 +252,9 @@ fun LoginScreen(
                         }) {
                             Text(
                                 text = stringResource(R.string.forgot_password),
-                                color = MaterialTheme.colorScheme.outline,
+                                color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     }
@@ -304,7 +307,8 @@ fun LoginScreen(
                             viewModel.onSignUpClick()
                         }
                         .fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
 
                 )
                 GoogleLoginButton(

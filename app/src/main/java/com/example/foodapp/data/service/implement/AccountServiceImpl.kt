@@ -64,7 +64,7 @@ class AccountServiceImpl @Inject constructor() : AccountService {
     }
 
     override suspend fun forgetPassword(email: String) {
-        Firebase.auth.sendPasswordResetEmail(email)
+        Firebase.auth.sendPasswordResetEmail(email).await()
     }
 
     override suspend fun resetPassword(obb: String, newPassword: String) {

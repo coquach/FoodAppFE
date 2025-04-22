@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.foodapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -45,6 +45,7 @@ android {
                 "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
             )
 
+
         }
         release {
             buildConfigField(
@@ -57,6 +58,7 @@ android {
                 "GOOGLE_WEB_CLIENT_ID",
                 "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
             )
+            
         }
     }
 
@@ -76,9 +78,13 @@ android {
     productFlavors {
         create("customer") {
             dimension = "environment"
+
         }
         create("restaurant") {
             dimension = "environment"
+            applicationIdSuffix= ".restaurant"
+
+
 
             resValue(
                 type = "string",
@@ -93,7 +99,13 @@ android {
         }
         create("staff") {
             dimension = "environment"
-           
+            applicationIdSuffix=  ".staff"
+            
+            resValue(
+                type = "string",
+                name = "app_name",
+                value = "FA Staff"
+            )
             resValue(
                 "string",
                 "app_description",
@@ -158,6 +170,8 @@ dependencies {
 
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)
+
+    implementation("co.yml:ycharts:2.1.0")
 
 
 }
