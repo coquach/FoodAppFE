@@ -7,7 +7,7 @@ import com.example.foodapp.utils.Constants.MENU_ITEM_REMOTE_KEYS_TABLE
 @Entity(tableName = MENU_ITEM_REMOTE_KEYS_TABLE)
 data class MenuItemRemoteKeys(
     @PrimaryKey(autoGenerate = false)
-    val id: String,
+    val id: Long,
     val prevPage: Int?,
     val nextPage: Int?
 )

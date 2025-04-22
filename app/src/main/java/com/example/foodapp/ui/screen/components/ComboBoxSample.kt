@@ -27,6 +27,7 @@ import com.example.foodapp.ui.theme.FoodAppTheme
 @Composable
 fun ComboBoxSample(
     title:  String,
+    textPlaceholder: String,
     selected: String?,
     onPositionSelected: (String?) -> Unit,
     options: List<String> = listOf("staff", "admin", "seller")
@@ -68,7 +69,7 @@ fun ComboBoxSample(
         ) {
             // Thêm mục rỗng
             DropdownMenuItem(
-                text = { Text("Chọn chức vụ...") },
+                text = { Text(textPlaceholder) },
                 onClick = {
                     onPositionSelected(null)
                     expanded = false
@@ -88,17 +89,4 @@ fun ComboBoxSample(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun Preview() {
-    FoodAppTheme {
-        var position by remember { mutableStateOf<String?>("Staff") }
 
-        ComboBoxSample(
-            title = "Chức vụ",
-            selected = position,
-            onPositionSelected = { position = it }
-        )
-
-    }
-}

@@ -10,6 +10,15 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
 object ImageUtils {
+    fun getImagePart(context: Context, imageUrl: Uri?): MultipartBody.Part? {
+        val imageFile = if (imageUrl != null && !imageUrl.toString().startsWith("https")) {
+            getFileFromUri(context, imageUrl)
+        } else {
+            null
+        }
+
+        return imageFile?.toMultipartBodyPartOrNull()
+    }
 
     /**
      * Chuyển Uri thành File

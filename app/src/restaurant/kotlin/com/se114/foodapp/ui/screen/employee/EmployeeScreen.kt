@@ -72,7 +72,7 @@ fun EmployeeScreen(
     navController: NavController,
     viewModel: EmployeeViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
+
     var search by remember { mutableStateOf("") }
 
     var selectedItemId by remember { mutableStateOf<Long?>(null) }
@@ -83,46 +83,45 @@ fun EmployeeScreen(
     val staffs = viewModel.getAllStaffs.collectAsLazyPagingItems()
     var shouldRefresh by remember { mutableStateOf(false) }
 
-    when (val state = staffs.loadState.refresh) {
-        is LoadState.Loading -> {
-        }
+    val loadState = staffs.loadState.refresh
+    val context = LocalContext.current
 
-        is LoadState.Error -> {
-            Toast.makeText(
-                LocalContext.current,
-                "Không thể tải dữ liệu: ${state.error.message}",
-                Toast.LENGTH_LONG
-            ).show()
-            state.error.message?.let { Log.d("Paging", it) }
-        }
+    LaunchedEffect(loadState) {
+        when (loadState) {
+            is LoadState.Loading -> {
+                Log.d("Staffs", "Loading staffs")
+            }
 
-        is LoadState.NotLoading -> {
+            is LoadState.Error -> {
+                Toast.makeText(
+                    context,
+                    "Không thể tải dữ liệu: ${loadState.error.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+                loadState.error.message?.let { Log.d("Paging", it) }
+            }
 
-        }
-    }
-    val isItemAdded = navController.currentBackStackEntry?.savedStateHandle
-        ?.getStateFlow<Boolean>("added", false)
-        ?.collectAsState()
-
-    val isItemUpdated = navController.currentBackStackEntry?.savedStateHandle
-        ?.getStateFlow<Boolean>("updated", false)
-        ?.collectAsState()
-
-    LaunchedEffect(isItemAdded?.value, isItemUpdated?.value) {
-        if (isItemAdded?.value == true || isItemUpdated?.value == true) {
-            shouldRefresh = true
-            navController.currentBackStackEntry?.savedStateHandle?.apply {
-                set("added", false)
-                set("updated", false)
+            is LoadState.NotLoading -> {
+                Log.d("Staffs", "Done staffs")
             }
         }
-
+    }
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        val condition = handle?.get<Boolean>("added") == true ||
+                handle?.get<Boolean>("updated") == true
+        if (condition) {
+            shouldRefresh = true
+            handle?.set("added", false)
+            handle?.set("updated", false)
+        }
     }
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh) {
             staffs.refresh()
             shouldRefresh = false
         }
+
     }
 
     LaunchedEffect(key1 = true) {
@@ -428,4 +427,28 @@ fun EmployeeItemView(
         }
     }
 
+}
+
+@Composable
+fun <T : Any> ObserveLoadState(
+    lazyPagingItems: LazyPagingItems<T>,
+    statusName: String
+) {
+
+    // Lắng nghe và xử lý trạng thái loadState
+    LaunchedEffect(lazyPagingItems.loadState.refresh) {
+        when (val state = lazyPagingItems.loadState.refresh) {
+            is LoadState.Loading -> {
+                Log.d("Staffs", "Loading $statusName Staffs")
+            }
+
+            is LoadState.Error -> {
+                Log.d("Staffs", "Error loading $statusName Orders: ${state.error.message}")
+            }
+
+            else -> {
+                Log.d("Staffs", "$statusName Staffs loaded")
+            }
+        }
+    }
 }

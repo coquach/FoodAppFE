@@ -12,7 +12,7 @@ import java.time.LocalDate
 @Entity(tableName = STAFF_TABLE)
 data class Staff(
     @PrimaryKey(autoGenerate = false)
-    val id: Long? = null,
+    val id: Long,
     val fullName: String? = null,
     val position: String? = null,
     val phone: String? = null,

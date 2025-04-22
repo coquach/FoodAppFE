@@ -70,9 +70,8 @@ fun AddEmployeeScreen(
     staff: Staff? = null
 ) {
 
-    val imageUri = viewModel.imageUrl.collectAsState()
+    val imageUri = viewModel.imageUrl.collectAsStateWithLifecycle()
     val showSheetImage = remember { mutableStateOf(false) }
-    val selectedImage = viewModel.imageUrl.collectAsStateWithLifecycle()
 
     val fullName by viewModel.fullName.collectAsStateWithLifecycle()
     val phone by viewModel.phone.collectAsStateWithLifecycle()
@@ -232,6 +231,7 @@ fun AddEmployeeScreen(
                         viewModel.onPositionChange(it)
                     }
                 },
+                textPlaceholder = "Chọn chức vụ...",
                 options = listOf("Bán hàng", "Giao Hàng", "Quản lí kho")
             )
             DatePickerSample(
@@ -276,7 +276,7 @@ fun AddEmployeeScreen(
                 onClick = {
                     if (isUpdating && staff != null) {
 
-                            viewModel.updateStaff(staff.id!!)
+                            viewModel.updateStaff(staff.id)
 
                     } else {
                         viewModel.addStaff()

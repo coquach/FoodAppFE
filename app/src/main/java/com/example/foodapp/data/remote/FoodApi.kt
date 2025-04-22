@@ -6,10 +6,13 @@ import com.example.foodapp.data.dto.request.OrderRequest
 import com.example.foodapp.data.dto.request.RegisterRequest
 import com.example.foodapp.data.dto.response.PageResponse
 import com.example.foodapp.data.dto.response.RegisterResponse
+import com.example.foodapp.data.model.Menu
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
 
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.model.enums.OrderStatus
+import com.se114.foodapp.data.dto.request.MenuRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -68,6 +71,65 @@ interface FoodApi {
 
 
     //admin
+
+    //menu
+
+    @GET("menus/available")
+    suspend fun getAvailableMenus(): Response<List<Menu>>
+
+    @GET("menus/deleted")
+    suspend fun getDeletedMenus(): Response<List<Menu>>
+
+    @POST("menus")
+    suspend fun createMenu(@Body request: MenuRequest): Response<Menu>
+
+    @PUT("menus/{id}")
+    suspend fun updateMenu(
+        @Path("id") id: Long,
+        @Body request: MenuRequest
+    ): Response<Menu>
+
+    @DELETE("menus/{id}")
+    suspend fun deleteMenu(@Path("id") id: Long): Response<Void>
+
+    //menu-items
+    @GET("menu-items")
+    suspend fun getMenuItems(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "id",
+        @Query("order") order: String = "asc",
+        @Query("id") id: Long? = null,
+        @Query("isAvailable") isAvailable: Boolean? = null,
+
+    ): PageResponse<MenuItem>
+
+    @GET("menu-items/{id}")
+    suspend fun getMenuItemDetailById(
+        @Path("id") id: Long
+    ): Response<MenuItem>
+
+    @Multipart
+    @POST("menu-items")
+    suspend fun createMenuItem(
+        @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
+        @Part image: MultipartBody.Part? = null
+    ): Response<MenuItem>
+
+    @Multipart
+    @PUT("menu-items/{id}")
+    suspend fun updateMenuItem(
+        @Path("id") id: Long,
+        @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
+        @Part image: MultipartBody.Part? = null
+    ): Response<MenuItem>
+
+    @DELETE("menu-items/{id}")
+    suspend fun deleteMenuItem(
+        @Path("id") id: Long
+    ): Response<Unit>
+
+    //staffs
     @GET("staffs")
     suspend fun getStaffs(
         @Query("page") page: Int,

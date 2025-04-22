@@ -30,14 +30,15 @@ object Converters {
     }
 
     @TypeConverter
-    fun fromBigDecimal(value: BigDecimal?): String? {
-        return value?.toPlainString()
+    fun fromBigDecimal(value: BigDecimal?): Double? {
+        return value?.toDouble()
     }
 
     @TypeConverter
-    fun toBigDecimal(value: String?): BigDecimal? {
-        return value?.toBigDecimalOrNull()
+    fun toBigDecimal(value: Double?): BigDecimal? {
+        return value?.let { BigDecimal.valueOf(it) }
     }
+
     private val zoneId = ZoneId.systemDefault()
 
     @TypeConverter

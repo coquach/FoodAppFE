@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.components
+package com.example.foodapp.ui.screen.common
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,8 +29,9 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.ui.screen.components.Nothing
+import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
 
 @Composable
@@ -150,7 +150,7 @@ fun OrderListSection(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            gridItems(orders, 2, key = { order -> order.id.toString() }) { order ->
+            gridItems(orders, 2, key = { order -> order.id}) { order ->
                 order?.let {
                     OrderItemView(
                         order = order,

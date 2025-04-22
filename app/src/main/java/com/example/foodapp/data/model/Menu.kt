@@ -7,12 +7,8 @@ import java.time.LocalTime
 
 @Serializable
 data class Menu(
-    @Serializable(with = LocalTimeSerializer::class)
-    val createdAt: LocalTime? = null,
-    val id: Long?,
+    val id: Long,
     val name: String,
-    val menuItems: List<MenuItem> = emptyList(),
-
     @SerialName("isDeleted")
-    val isDeleted: Boolean? =  null
+    val isDeleted: Boolean= false
 )

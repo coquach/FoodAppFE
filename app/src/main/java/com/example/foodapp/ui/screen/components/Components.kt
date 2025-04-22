@@ -128,15 +128,19 @@ fun FoodAppTextField(
 ) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         labelText?.let {
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.outline,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-            )
+            Column {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.outline,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+            }
+
         }
-        Spacer(modifier = Modifier.size(8.dp))
+
         OutlinedTextField(
             value = value,
             onValueChange,

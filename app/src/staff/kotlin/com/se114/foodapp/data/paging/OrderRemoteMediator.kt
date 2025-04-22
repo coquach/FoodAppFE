@@ -64,7 +64,8 @@ class OrderRemoteMediator(
 
             Log.d("Api get orders", "START CALL")
             val response = foodApi.getOrders(
-                page = currentPage, size = ITEMS_PER_PAGE,
+                page = currentPage,
+                size = ITEMS_PER_PAGE,
                 status = filter.status,
                 paymentMethod = filter.paymentMethod,
                 startDate = StringUtils.formatLocalDate(filter.startDate),
@@ -115,8 +116,8 @@ class OrderRemoteMediator(
         state: PagingState<Int, OrderEntity>
     ): OrderRemoteKeys? {
         return state.pages.firstOrNull { it.data.isNotEmpty() }?.data?.firstOrNull()
-            ?.let { staff ->
-                orderRemoteKeysDao.getRemoteKeys(id = staff.id.toString())
+            ?.let { order ->
+                orderRemoteKeysDao.getRemoteKeys(id = order.id.toString())
             }
     }
 
@@ -124,8 +125,8 @@ class OrderRemoteMediator(
         state: PagingState<Int, OrderEntity>
     ): OrderRemoteKeys? {
         return state.pages.lastOrNull { it.data.isNotEmpty() }?.data?.lastOrNull()
-            ?.let { staff ->
-                orderRemoteKeysDao.getRemoteKeys(id = staff.id.toString())
+            ?.let { order ->
+                orderRemoteKeysDao.getRemoteKeys(id = order.id.toString())
             }
     }
 }

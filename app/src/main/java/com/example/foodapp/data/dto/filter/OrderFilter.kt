@@ -1,5 +1,6 @@
 package com.example.foodapp.data.dto.filter
 
+import com.example.foodapp.utils.StringUtils
 import java.time.LocalDate
 import java.time.LocalTime
 

@@ -2,6 +2,7 @@ package com.se114.foodapp.ui.screen.employee.add_employee
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +18,7 @@ import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.ImageUtils.getFileFromUri
 import com.se114.foodapp.data.dto.request.StaffMultipartRequest
 import com.example.foodapp.data.model.Staff
+import com.example.foodapp.utils.ImageUtils
 import com.example.foodapp.utils.ImageUtils.toMultipartBodyPartOrNull
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -140,8 +142,7 @@ class AddEmployeeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AddEmployeeState.Loading
             try {
-                val imageFile = _imageUrl.value?.let { getFileFromUri(context, it) }
-                val imagePart = imageFile?.toMultipartBodyPartOrNull()
+                val imagePart = ImageUtils.getImagePart(context, imageUrl.value)
                 val request = StaffMultipartRequest(
                     fullName = _fullName.value,
                     position = _position.value!!,
@@ -159,6 +160,7 @@ class AddEmployeeViewModel @Inject constructor(
 
                 when (response) {
                     is ApiResponse.Success -> {
+                        Log.d("Add staff ", "Done")
                         _uiState.value = AddEmployeeState.Success
                         _event.emit(AddEmployeeEvents.GoBack)
                     }
@@ -190,11 +192,9 @@ class AddEmployeeViewModel @Inject constructor(
             _uiState.value = AddEmployeeState.Loading
             try {
 
-                val imageFile = if (_imageUrl.value != null && !_imageUrl.value.toString().startsWith("https")) {
-                    getFileFromUri(context, _imageUrl.value!!)
-                } else null
 
-                val imagePart = imageFile.toMultipartBodyPartOrNull()
+
+                val imagePart = ImageUtils.getImagePart(context, imageUrl.value)
 
 
                 val request = StaffMultipartRequest(
@@ -217,6 +217,7 @@ class AddEmployeeViewModel @Inject constructor(
 
                 when (response) {
                     is ApiResponse.Success -> {
+                        Log.d("Update staff ", "Done")
                         _uiState.value = AddEmployeeState.Success
                         _event.emit(AddEmployeeEvents.GoBack)
                     }

@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.navigation.Profile
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -120,7 +121,10 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(Icons.Default.Category, "Danh mục món ăn")
+                        SettingItem(
+                            Icons.Default.Category,
+                            "Danh mục món ăn",
+                            onClick = { navController.navigate(Category) })
                         SettingItem(Icons.Default.CardGiftcard, "Voucher & Khuyến mãi")
                         SettingItem(Icons.Default.LocalShipping, "Nhà cung cấp")
                     }

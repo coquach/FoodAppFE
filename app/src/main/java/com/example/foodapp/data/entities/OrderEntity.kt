@@ -20,7 +20,7 @@ import java.time.LocalTime
 @Entity(tableName = ORDER_TABLE)
 data class OrderEntity(
     @PrimaryKey(autoGenerate = false)
-    val id: Long? = null,
+    val id: Long,
 
     val customerId: String? = null,
     val tableNumber: Int? = null,

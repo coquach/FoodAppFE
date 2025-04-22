@@ -1,30 +1,37 @@
 package com.se114.foodapp.data.paging
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.example.foodapp.data.remote.FoodApi
-import com.se114.foodapp.data.local.AdminDatabase
+import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.OrderFilter
+import com.example.foodapp.data.entities.MenuItemRemoteKeys
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Staff
+import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.mapper.OrderMapper.toEntity
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
+import com.example.foodapp.utils.buil_sql.BuildMenuItemQuery
 
-import com.se114.foodapp.data.model.StaffRemoteKeys
+import com.se114.foodapp.data.local.AdminDatabase
 
 
 @OptIn(ExperimentalPagingApi::class)
-class StaffRemoteMediator(
+class MenuItemRemoteMediator(
     private val foodApi: FoodApi,
-    private val adminDatabase: AdminDatabase
-) : RemoteMediator<Int, Staff>() {
+    private val adminDatabase: AdminDatabase,
+    private val filter: MenuItemFilter,
+) : RemoteMediator<Int, MenuItem>() {
 
-    private val staffDao = adminDatabase.staffDao()
-    private val staffRemoteKeysDao = adminDatabase.staffRemoteKeysDao()
+    private val menuItemDao = adminDatabase.menuItemDao()
+    private val menuItemRemoteKeysDao = adminDatabase.menuItemRemoteKeysDao()
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Int, Staff>
+        state: PagingState<Int, MenuItem>
     ): MediatorResult {
         return try {
             val currentPage = when (loadType) {
@@ -36,7 +43,7 @@ class StaffRemoteMediator(
                     val remoteKeys = getRemoteKeyForFirstItem(state)
                     val prevPage = remoteKeys?.prevPage
                         ?: return MediatorResult.Success(
-                            endOfPaginationReached =  remoteKeys != null
+                            endOfPaginationReached = remoteKeys != null
                         )
                     prevPage
                 }
@@ -50,8 +57,8 @@ class StaffRemoteMediator(
                 }
             }
 
-            val response = foodApi.getStaffs(page = currentPage, size = ITEMS_PER_PAGE)
-            val items = response.content
+            val response = foodApi.getMenuItems(page = currentPage, size = ITEMS_PER_PAGE, isAvailable = filter.isAvailable)
+            val items = response.content.map { item -> item.copy(isAvailable = filter.isAvailable)}
             val endOfPaginationReached = items.isEmpty() || items.size < ITEMS_PER_PAGE
 
             val prevPage = if (currentPage == 0) null else currentPage - 1
@@ -59,18 +66,22 @@ class StaffRemoteMediator(
 
             adminDatabase.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    staffDao.deleteAllStaffs()
-                    staffRemoteKeysDao.deleteAllRemoteKeys()
+                    val deleteQuery = BuildMenuItemQuery.buildMenuItemQuery(filter, true)
+                    val deletedRows = menuItemDao.deleteMenuItemsByFilter(deleteQuery)
+                    Log.d("Api get menuItems", "Deleted $deletedRows rows from database")
+                    menuItemRemoteKeysDao.deleteAllRemoteKeys()
                 }
-                val keys = items.map { staff ->
-                    StaffRemoteKeys(
-                        id = staff.id.toString(),
+                val keys = items.map { menuItem ->
+                    MenuItemRemoteKeys(
+                        id = menuItem.id,
                         prevPage = prevPage,
                         nextPage = nextPage
                     )
                 }
-                staffRemoteKeysDao.addAllRemoteKeys(remoteKeys = keys)
-                staffDao.addStaffs(staffs = items)
+                Log.d("Api get menuItems", "Inserting ${keys.size} remote keys and ${items.size} menuItems to Room")
+                menuItemRemoteKeysDao.addAllRemoteKeys(remoteKeys = keys)
+                menuItemDao.addMenuItems(menuItems = items)
+                Log.d("Api get menuItems", "Finished insert menu items.")
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (e: Exception) {
@@ -79,30 +90,30 @@ class StaffRemoteMediator(
     }
 
     private suspend fun getRemoteKeyClosestToCurrentPosition(
-        state: PagingState<Int, Staff>
-    ): StaffRemoteKeys? {
+        state: PagingState<Int, MenuItem>
+    ): MenuItemRemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { id ->
-                staffRemoteKeysDao.getRemoteKeys(id = id.toString())
+                menuItemRemoteKeysDao.getRemoteKeys(id = id.toString())
             }
         }
     }
 
     private suspend fun getRemoteKeyForFirstItem(
-        state: PagingState<Int, Staff>
-    ): StaffRemoteKeys? {
+        state: PagingState<Int, MenuItem>
+    ): MenuItemRemoteKeys? {
         return state.pages.firstOrNull { it.data.isNotEmpty() }?.data?.firstOrNull()
-            ?.let { staff ->
-                staffRemoteKeysDao.getRemoteKeys(id = staff.id.toString())
+            ?.let { menuItem ->
+                menuItemRemoteKeysDao.getRemoteKeys(id = menuItem.id.toString())
             }
     }
 
     private suspend fun getRemoteKeyForLastItem(
-        state: PagingState<Int, Staff>
-    ): StaffRemoteKeys? {
+        state: PagingState<Int, MenuItem>
+    ): MenuItemRemoteKeys? {
         return state.pages.lastOrNull { it.data.isNotEmpty() }?.data?.lastOrNull()
-            ?.let { staff ->
-                staffRemoteKeysDao.getRemoteKeys(id = staff.id.toString())
+            ?.let { menuItem ->
+                menuItemRemoteKeysDao.getRemoteKeys(id = menuItem.id.toString())
             }
     }
 

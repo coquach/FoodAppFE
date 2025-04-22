@@ -1,6 +1,8 @@
 package com.se114.foodapp.ui.screen.menu
 
 
+import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -29,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,14 +45,20 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.UpdateMenuItem
+import com.example.foodapp.ui.screen.common.MenuItemList
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
+import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.coroutines.flow.collectLatest
 import java.math.BigDecimal
@@ -66,54 +75,13 @@ fun SharedTransitionScope.MenuScreen(
 
     var isInSelectionMode by rememberSaveable { mutableStateOf(false) }
     var isSelectAll by rememberSaveable { mutableStateOf(false) }
+    var shouldRefresh by remember { mutableStateOf(false) }
 
-    val sampleMenuItems = listOf(
-        MenuItem(
-            createdAt = LocalTime.of(11, 0),  // Giờ tạo item, ví dụ 11:00 AM
-            description = "A freshly made Margherita pizza with mozzarella cheese, tomatoes, and basil.",
-            id = 1L,
-            menuName = "Pizza Menu",
-            imageUrl = "https://example.com/images/margherita_pizza.jpg",
-            name = "Margherita Pizza",
-            price = BigDecimal("12.99")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(12, 30),  // Giờ tạo item, ví dụ 12:30 PM
-            description = "A juicy cheeseburger with fresh lettuce, tomato, and cheddar cheese.",
-            id = 2L,
-            menuName = "Burger Menu",
-            imageUrl = "https://example.com/images/cheeseburger.jpg",
-            name = "Cheeseburger",
-            price = BigDecimal("8.99")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(13, 15),  // Giờ tạo item, ví dụ 1:15 PM
-            description = "Crispy fried chicken served with a side of mashed potatoes and gravy.",
-            id = 3L,
-            menuName = "Chicken Menu",
-            imageUrl = "https://example.com/images/fried_chicken.jpg",
-            name = "Fried Chicken",
-            price = BigDecimal("10.49")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(14, 0),  // Giờ tạo item, ví dụ 2:00 PM
-            description = "A fresh salmon fillet grilled to perfection, served with steamed vegetables.",
-            id = 4L,
-            menuName =  "Seafood Menu",
-            imageUrl = "https://example.com/images/grilled_salmon.jpg",
-            name = "Grilled Salmon",
-            price = BigDecimal("15.99")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(16, 45),  // Giờ tạo item, ví dụ 4:45 PM
-            description = "A creamy pasta dish with shrimp and a white wine garlic sauce.",
-            id = 5L,
-            menuName = "Pasta Menu",
-            imageUrl = "https://example.com/images/shrimp_pasta.jpg",
-            name = "Shrimp Pasta",
-            price = BigDecimal("13.49")
-        )
-    )
+
+    val menuItemsAvailable = viewModel.menuItemsAvailable.collectAsLazyPagingItems()
+    val menuItemsHidden = viewModel.menuItemsHidden.collectAsLazyPagingItems()
+
+
 
     val showDialogDelete = remember { mutableStateOf(false) }
 
@@ -128,6 +96,24 @@ fun SharedTransitionScope.MenuScreen(
                     showDialogDelete.value = true
                 }
             }
+        }
+    }
+
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        val condition = handle?.get<Boolean>("added") == true ||
+                handle?.get<Boolean>("updated") == true
+        if (condition) {
+            shouldRefresh = true
+            handle?.set("added", false)
+            handle?.set("updated", false)
+        }
+    }
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            menuItemsAvailable.refresh()
+            menuItemsHidden.refresh()
+            shouldRefresh = false
         }
     }
 
@@ -189,46 +175,55 @@ fun SharedTransitionScope.MenuScreen(
                         Spacer(modifier = Modifier.size(8.dp))
                     }
                 }
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = isInSelectionMode,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                ) {
-                    DeleteBar(
-                        onSelectAll = {
-                            isSelectAll = !isSelectAll
-                            viewModel.selectAllItems(sampleMenuItems, isSelectAll)
-                        },
-                        onDeleteSelected = { viewModel.onRemoveClicked() }
-                    )
-                }
-            }
-
-//            LazyColumn(
-//                modifier = Modifier
-//                    .weight(1f)
-//                    .fillMaxWidth()
-//
-//            ) {
-//                gridItems(foodItems, 2) { foodItem ->
-//                    FoodItemView(
-//                        foodItem = foodItem,
-//                        animatedVisibilityScope = animatedVisibilityScope,
-//                        isInSelectionMode = isInSelectionMode,
-//                        isSelected = viewModel.selectedItems.contains(foodItem),
-//                        onCheckedChange = { foodItem ->
-//                            viewModel.toggleSelection(foodItem)
+//                androidx.compose.animation.AnimatedVisibility(
+//                    visible = isInSelectionMode,
+//                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+//                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+//                ) {
+//                    DeleteBar(
+//                        onSelectAll = {
+//                            isSelectAll = !isSelectAll
+//                            viewModel.selectAllItems(menuItemsAvailable, isSelectAll)
 //                        },
-//                        onClick = {
-//                            navController.navigate(UpdateMenuItem(foodItem))
-//                        },
-//                        onLongClick = {
-//                            isInSelectionMode = !isInSelectionMode
-//                        },
-//                        isCustomer = false
+//                        onDeleteSelected = { viewModel.onRemoveClicked() }
 //                    )
 //                }
-//            }
+            }
+
+            TabWithPager(
+                tabs = listOf("Đang hiển thị", "Đã ẩn"),
+                pages = listOf(
+                    {
+                        MenuItemList(
+                            menuItems = menuItemsAvailable,
+                            isInSelectionMode = isInSelectionMode,
+                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
+                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            onItemClick = {
+                                navController.navigate(UpdateMenuItem(it))
+                            },
+                            onLongClick = {
+                                isInSelectionMode = !isInSelectionMode
+                            },
+                        )
+
+
+                    },
+                    {
+                        MenuItemList(
+                            menuItems = menuItemsHidden,
+                            isInSelectionMode = isInSelectionMode,
+                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
+                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            onItemClick = {},
+                            onLongClick = {
+                                isInSelectionMode = !isInSelectionMode
+                            },
+                        )
+                    })
+            )
         }
     }
     if (showDialogDelete.value) {
@@ -256,6 +251,29 @@ fun SharedTransitionScope.MenuScreen(
     }
 }
 
+@Composable
+fun <T : Any> ObserveLoadState(
+    lazyPagingItems: LazyPagingItems<T>,
+    statusName: String
+) {
+
+    // Lắng nghe và xử lý trạng thái loadState
+    LaunchedEffect(lazyPagingItems.loadState.refresh) {
+        when (val state = lazyPagingItems.loadState.refresh) {
+            is LoadState.Loading -> {
+                Log.d("MenuItemScreen", "Loading $statusName MenuItems")
+            }
+
+            is LoadState.Error -> {
+                Log.d("MenuItemScreen", "Error loading $statusName Orders: ${state.error.message}")
+            }
+
+            else -> {
+                Log.d("MenuItemScreen", "$statusName MenuItems loaded")
+            }
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

@@ -17,8 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.NoMeals
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,9 +37,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import coil.compose.AsyncImage
 import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Order
 import com.example.foodapp.ui.screen.components.CustomCheckbox
+import com.example.foodapp.ui.screen.components.Nothing
+import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
@@ -191,4 +199,44 @@ fun SharedTransitionScope.MenuItemView(
         }
     }
 
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun SharedTransitionScope.MenuItemList(
+    menuItems: LazyPagingItems<MenuItem>,
+    isInSelectionMode :Boolean,
+    isSelected: (MenuItem) -> Boolean,
+    onCheckedChange: (MenuItem) -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onItemClick: (MenuItem) -> Unit,
+    onLongClick: ((Boolean) -> Unit)? = null,
+    isCustomer: Boolean = false
+) {
+    if (menuItems.itemSnapshotList.items.isEmpty() && menuItems.loadState.refresh !is LoadState.Loading ) {
+        Nothing(
+            text = "Không có món ăn nào",
+            icon = Icons.Default.NoMeals
+        )
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            gridItems(menuItems, 2, key = { menuItem -> menuItem.id }) { menuItem ->
+                menuItem?.let {
+                    MenuItemView(
+                        menuItem = menuItem,
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        isInSelectionMode = isInSelectionMode,
+                        isSelected = isSelected(menuItem),
+                        onCheckedChange = onCheckedChange,
+                        onClick = { onItemClick(menuItem) },
+                        onLongClick = onLongClick,
+                        isCustomer = isCustomer
+                    )
+                }
+            }
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.menu.add_menu_item
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,9 +44,12 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.enums.Gender
+import com.example.foodapp.ui.screen.components.ComboBoxSample
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
+import com.example.foodapp.ui.screen.components.RadioGroupWrap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -58,15 +64,17 @@ fun AddMenuItemScreen(
     val name = viewModel.name.collectAsStateWithLifecycle()
     val description = viewModel.description.collectAsStateWithLifecycle()
     val price = viewModel.price.collectAsStateWithLifecycle()
-    val uiState = viewModel.addMenuItemState.collectAsStateWithLifecycle()
+
+    val menuName = viewModel.menuName.collectAsStateWithLifecycle()
+    val menusAvailable = viewModel.menusAvailable.collectAsStateWithLifecycle()
+
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val isLoading = remember { mutableStateOf(false) }
 
+    val imageUri = viewModel.imageUrl.collectAsStateWithLifecycle()
     val showSheetImage = remember { mutableStateOf(false) }
-    val selectedImage = viewModel.imageUrl.collectAsStateWithLifecycle()
 
-//    val imageUri =
-//        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<Uri?>("imageUri", null)
-//            ?.collectAsStateWithLifecycle()
+
 
 
     LaunchedEffect(key1 = isUpdating) {
@@ -75,14 +83,26 @@ fun AddMenuItemScreen(
     }
 
 
-    LaunchedEffect(key1 = true) {
-        viewModel.addMenuItemEvent.collectLatest {
+    LaunchedEffect(Unit) {
+        viewModel.event.collectLatest {
             when (it) {
                 is AddMenuItemViewModel.AddMenuItemEvent.GoBack -> {
-                    Toast.makeText(
-                        navController.context, "Đã thêm món thành công", Toast.LENGTH_SHORT
-                    ).show()
-                    navController.previousBackStackEntry?.savedStateHandle?.set("added", true)
+                    Log.d("MenuItem goback", "Done")
+                    if (isUpdating) {
+                        Toast.makeText(
+                            navController.context,
+                            "Cập nhật món ăn thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.previousBackStackEntry?.savedStateHandle?.set("updated", true)
+                    } else {
+                        Toast.makeText(
+                            navController.context,
+                            "Tạo món ăn thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.previousBackStackEntry?.savedStateHandle?.set("added", true)
+                    }
                     navController.popBackStack()
 
                 }
@@ -96,7 +116,6 @@ fun AddMenuItemScreen(
     when (uiState.value) {
         is AddMenuItemViewModel.AddMenuItemState.Error -> {}
         is AddMenuItemViewModel.AddMenuItemState.Loading -> {
-            isLoading.value = true
         }
 
         is AddMenuItemViewModel.AddMenuItemState.Nothing -> {}
@@ -117,82 +136,108 @@ fun AddMenuItemScreen(
             text = "Thông tin món ăn"
         )
         Spacer(modifier = Modifier.size(20.dp))
-        Box(
+        Column(
             modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.CenterHorizontally),
-            contentAlignment = Alignment.BottomEnd
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
         ) {
-            AsyncImage(
-                model = selectedImage.value,
-                contentDescription = "Food Image",
-                modifier = Modifier
-                    .size(200.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .border(4.dp, Color.White, RoundedCornerShape(8.dp))
-                    .background(LightGray),
-
-                contentScale = ContentScale.Crop
-            )
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .shadow(8.dp, shape = CircleShape)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .clickable { showSheetImage.value = true },
-                contentAlignment = Alignment.Center
+                    .size(200.dp)
+                    .align(Alignment.CenterHorizontally),
+                contentAlignment = Alignment.BottomEnd
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_camera),
-                    contentDescription = "Edit Avatar",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(18.dp)
+                AsyncImage(
+                    model = imageUri.value?: R.drawable.ic_placeholder,
+                    contentDescription = "Food Image",
+                    modifier = Modifier
+                        .size(200.dp)
+                        .clip(shape = RoundedCornerShape(8.dp))
+                        .border(4.dp, Color.White, RoundedCornerShape(8.dp)),
+
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.ic_placeholder),
+                    error = painterResource(id = R.drawable.ic_placeholder)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .shadow(8.dp, shape = CircleShape)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable { showSheetImage.value = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_camera),
+                        contentDescription = "Edit Avatar",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            FoodAppTextField(
+                value = name.value,
+                onValueChange = {
+                    viewModel.onNameChange(it)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                labelText = "Tên"
+            )
+            ComboBoxSample(
+                title = "Danh mục",
+                selected = menuName.value,
+                onPositionSelected = { selectedName ->
+                    val selectedMenu = menusAvailable.value.find { it.name == selectedName }
+                    selectedMenu?.let {
+                        viewModel.onMenuIdChange(it.id)
+                        viewModel.onMenuNameChange(it.name)
+                    }
+                },
+                textPlaceholder = "Chọn danh mục...",
+                options = menusAvailable.value.map { it.name }
+            )
+            FoodAppTextField(
+                value = description.value, onValueChange = {
+                    viewModel.onDescriptionChange(it)
+                },
+                modifier = Modifier.fillMaxWidth(), labelText = "Mô tả"
+            )
+            FoodAppTextField(
+                value = price.value.toPlainString(),
+                onValueChange = {
+                    viewModel.onPriceChange(it)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+                labelText = "Giá"
+            )
+
+            Button(
+                onClick = {
+                    if (isUpdating && menuItem != null) {
+
+                        viewModel.updateMenuItem(menuItem.id)
+
+                    } else {
+                        viewModel.addMenuItem()
+                    }},
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = if (isUpdating) "Cập nhật" else "Tạo",
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
 
-        FoodAppTextField(
-            value = name.value,
-            onValueChange = {
-                viewModel.onNameChange(it)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            labelText = "Tên"
-        )
-        FoodAppTextField(
-            value = description.value, onValueChange = {
-                viewModel.onDescriptionChange(it)
-            },
-            modifier = Modifier.fillMaxWidth(), labelText = "Mô tả"
-        )
-        FoodAppTextField(
-            value = price.value,
-            onValueChange = {
-                viewModel.onPriceChange(it)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Decimal,
-                imeAction = ImeAction.Done
-            ),
-            labelText = "Giá"
-        )
-
-        Button(
-            onClick = {
-
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            shape = RoundedCornerShape(16.dp),
-            contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = if (isUpdating) "Cập nhật" else "Tạo",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
 
     }
     if (showSheetImage.value) {

@@ -98,5 +98,8 @@ data class UpdateMenuItem(val menuItem: MenuItem) : NavRoute
 @Serializable
 object AddMenuItem : NavRoute
 
+@Serializable
+object Category: NavRoute
+
 
 

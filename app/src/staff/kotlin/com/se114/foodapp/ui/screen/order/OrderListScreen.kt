@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,15 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
+import com.example.foodapp.ui.screen.common.OrderListSection
 
-import com.example.foodapp.ui.screen.components.OrderListSection
+
 import com.example.foodapp.ui.screen.components.TabWithPager
 import kotlinx.coroutines.flow.collectLatest
 
@@ -43,8 +42,8 @@ fun OrderListScreen(
         navController.popBackStack(route = Home, inclusive = false)
     }
 
-    val pendingOrders = viewModel.pendingOrders.collectAsLazyPagingItems()
-    val confirmedOrders = viewModel.confirmedOrders.collectAsLazyPagingItems()
+    val pendingOrders = remember { viewModel.pendingOrders }.collectAsLazyPagingItems()}
+    val confirmedOrders = rem viewModel.confirmedOrders.collectAsLazyPagingItems(
     val deliveredOrders = viewModel.deliveredOrders.collectAsLazyPagingItems()
     val completedOrders = viewModel.completedOrders.collectAsLazyPagingItems()
     val cancelledOrders = viewModel.cancelledOrders.collectAsLazyPagingItems()
