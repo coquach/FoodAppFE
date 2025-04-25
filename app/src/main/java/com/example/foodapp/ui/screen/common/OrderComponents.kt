@@ -150,14 +150,20 @@ fun OrderListSection(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            gridItems(orders, 2, key = { order -> order.id}) { order ->
-                order?.let {
-                    OrderItemView(
-                        order = order,
-                        onClick = { onItemClick.invoke(order) }
-                    )
-                }
-            }
+            gridItems(
+                orders, 2, key = { order -> order.id },
+
+                itemContent = { order ->
+                    order?.let {
+                        OrderItemView(
+                            order = order,
+                            onClick = { onItemClick(order) }
+                        )
+
+                    } },
+
+            )  
+            
         }
     }
 }

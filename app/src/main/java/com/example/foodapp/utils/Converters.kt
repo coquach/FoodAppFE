@@ -10,6 +10,23 @@ import java.time.format.DateTimeFormatter
 
 object Converters {
     @TypeConverter
+    fun fromBoolean(value: Boolean?): Int? {
+        return when (value) {
+            true -> 1
+            false -> 0
+            null -> null
+        }
+    }
+
+    @TypeConverter
+    fun toBoolean(value: Int?): Boolean? {
+        return when (value) {
+            1 -> true
+            0 -> false
+            else -> null
+        }
+    }
+    @TypeConverter
     fun fromLocalTime(time: LocalTime?): String? {
         return time?.toString()
     }

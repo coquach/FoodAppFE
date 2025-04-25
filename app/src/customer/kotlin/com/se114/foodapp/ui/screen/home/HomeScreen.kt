@@ -3,7 +3,6 @@ package com.se114.foodapp.ui.screen.home
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,64 +17,48 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-
-
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
+
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.R
-
-import com.example.foodapp.data.model.Menu
-import com.example.foodapp.data.model.MenuItem
-
-
 import com.example.foodapp.ui.screen.components.ItemCount
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
-import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.navigation.Cart
-import com.example.foodapp.ui.navigation.FoodDetails
+import com.example.foodapp.ui.navigation.MenuItemDetails
 import com.example.foodapp.ui.navigation.Notification
+import com.example.foodapp.ui.screen.common.MenuItemList
 
 import com.example.foodapp.ui.screen.common.MenuItemView
 import com.example.foodapp.ui.screen.components.SearchField
+import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.ui.screen.home.banner.Banners
 import kotlinx.coroutines.flow.collectLatest
-import java.math.BigDecimal
-import java.time.LocalTime
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -89,6 +72,7 @@ fun SharedTransitionScope.HomeScreen(
 ) {
     val unReadCount by notificationViewModel.unreadCount.collectAsState()
     val cartSize by viewModel.cartSize.collectAsState()
+    val menuItems = viewModel.menuItems.collectAsLazyPagingItems()
 
     var searchInput by remember { mutableStateOf("") }
     LaunchedEffect(key1 = true) {
@@ -105,54 +89,6 @@ fun SharedTransitionScope.HomeScreen(
             }
         }
     }
-
-    val sampleMenuItems = listOf(
-        MenuItem(
-            createdAt = LocalTime.of(11, 0),  // Giờ tạo item, ví dụ 11:00 AM
-            description = "A freshly made Margherita pizza with mozzarella cheese, tomatoes, and basil.",
-            id = 1L,
-            menu = Menu(id = 201L, name = "Pizza Menu"),
-            imageUrl = "https://example.com/images/margherita_pizza.jpg",
-            name = "Margherita Pizza",
-            price = BigDecimal("12.99")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(12, 30),  // Giờ tạo item, ví dụ 12:30 PM
-            description = "A juicy cheeseburger with fresh lettuce, tomato, and cheddar cheese.",
-            id = 2L,
-            menu = Menu(id = 202L, name = "Burger Menu"),
-            imageUrl = "https://example.com/images/cheeseburger.jpg",
-            name = "Cheeseburger",
-            price = BigDecimal("8.99")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(13, 15),  // Giờ tạo item, ví dụ 1:15 PM
-            description = "Crispy fried chicken served with a side of mashed potatoes and gravy.",
-            id = 3L,
-            menu = Menu(id = 203L, name = "Chicken Menu"),
-            imageUrl = "https://example.com/images/fried_chicken.jpg",
-            name = "Fried Chicken",
-            price = BigDecimal("10.49")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(14, 0),  // Giờ tạo item, ví dụ 2:00 PM
-            description = "A fresh salmon fillet grilled to perfection, served with steamed vegetables.",
-            id = 4L,
-            menu = Menu(id = 204L, name = "Seafood Menu"),
-            imageUrl = "https://example.com/images/grilled_salmon.jpg",
-            name = "Grilled Salmon",
-            price = BigDecimal("15.99")
-        ),
-        MenuItem(
-            createdAt = LocalTime.of(16, 45),  // Giờ tạo item, ví dụ 4:45 PM
-            description = "A creamy pasta dish with shrimp and a white wine garlic sauce.",
-            id = 5L,
-            menu = Menu(id = 205L, name = "Pasta Menu"),
-            imageUrl = "https://example.com/images/shrimp_pasta.jpg",
-            name = "Shrimp Pasta",
-            price = BigDecimal("13.49")
-        )
-    )
 
     Scaffold(
         floatingActionButton =
@@ -194,7 +130,8 @@ fun SharedTransitionScope.HomeScreen(
         ) {
 
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .height(400.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -252,22 +189,20 @@ fun SharedTransitionScope.HomeScreen(
 //                    })
 
 
-
-
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                gridItems(sampleMenuItems, 2) { menuItem ->
-                    MenuItemView(
-                        menuItem = menuItem,
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        onClick = {
-                            navController.navigate(FoodDetails(menuItem))
-                        })
-                }
-            }
+            MenuItemList(
+                menuItems = menuItems,
+                animatedVisibilityScope = animatedVisibilityScope,
+                onItemClick = {
+                    navController.navigate(
+                        MenuItemDetails(
+                            menuItem = it
+                        )
+                    )
+                },
+                isCustomer = true,
+                onLongClick = {},
+                onCheckedChange = {},
+            )
 
 
         }
@@ -275,49 +210,49 @@ fun SharedTransitionScope.HomeScreen(
 
     }
 }
-fun LazyListScope.gridItems(
-    count: Int,
-    nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    itemContent: @Composable BoxScope.(Int) -> Unit,
-) {
-    gridItems(
-        data = List(count) { it },
-        nColumns = nColumns,
-        horizontalArrangement = horizontalArrangement,
-        itemContent = itemContent,
-    )
-}
-
-fun <T> LazyListScope.gridItems(
-    data: List<T>,
-    nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    key: ((item: T) -> Any)? = null,
-    itemContent: @Composable BoxScope.(T) -> Unit,
-) {
-    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
-    items(rows) { rowIndex ->
-        Row(horizontalArrangement = horizontalArrangement) {
-            for (columnIndex in 0 until nColumns) {
-                val itemIndex = rowIndex * nColumns + columnIndex
-                if (itemIndex < data.count()) {
-                    val item = data[itemIndex]
-                    androidx.compose.runtime.key(key?.invoke(item)) {
-                        Box(
-                            modifier = Modifier.weight(1f, fill = true),
-                            propagateMinConstraints = true
-                        ) {
-                            itemContent.invoke(this, item)
-                        }
-                    }
-                } else {
-                    Spacer(Modifier.weight(1f, fill = true))
-                }
-            }
-        }
-    }
-}
-
-
-
+//fun LazyListScope.gridItems(
+//    count: Int,
+//    nColumns: Int,
+//    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+//    itemContent: @Composable BoxScope.(Int) -> Unit,
+//) {
+//    gridItems(
+//        data = List(count) { it },
+//        nColumns = nColumns,
+//        horizontalArrangement = horizontalArrangement,
+//        itemContent = itemContent,
+//    )
+//}
+//
+//fun <T> LazyListScope.gridItems(
+//    data: List<T>,
+//    nColumns: Int,
+//    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+//    key: ((item: T) -> Any)? = null,
+//    itemContent: @Composable BoxScope.(T) -> Unit,
+//) {
+//    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
+//    items(rows) { rowIndex ->
+//        Row(horizontalArrangement = horizontalArrangement) {
+//            for (columnIndex in 0 until nColumns) {
+//                val itemIndex = rowIndex * nColumns + columnIndex
+//                if (itemIndex < data.count()) {
+//                    val item = data[itemIndex]
+//                    androidx.compose.runtime.key(key?.invoke(item)) {
+//                        Box(
+//                            modifier = Modifier.weight(1f, fill = true),
+//                            propagateMinConstraints = true
+//                        ) {
+//                            itemContent.invoke(this, item)
+//                        }
+//                    }
+//                } else {
+//                    Spacer(Modifier.weight(1f, fill = true))
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//
+//

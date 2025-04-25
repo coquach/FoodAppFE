@@ -35,9 +35,15 @@ class CartViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
 
-    private val _cartItems = cartRepository.getCartItems()
+    private val _cartItems = cartRepository.cartItemsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     val cartItems: StateFlow<List<CartItem>> = _cartItems
+    private val _checkoutDetails = cartRepository.checkoutDetailsFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = CheckoutDetails(BigDecimal(0), BigDecimal(0), BigDecimal(0), BigDecimal(0))
+    )
+    val checkoutDetails: StateFlow<CheckoutDetails> = _checkoutDetails
 
     private val _selectedItems = mutableStateListOf<CartItem>()
     val selectedItems: List<CartItem> get() = _selectedItems
@@ -73,23 +79,17 @@ class CartViewModel @Inject constructor(
 
 
     private fun updateQuantity(cartItem: CartItem, newQuantity: Int) {
-        // Cập nhật StateFlow để UI phản ứng liền
+        // Cập nhật StateFlow để UI phản ứng ngay
         _quantityMap.value = _quantityMap.value.toMutableMap().apply {
             put(cartItem.id!!, newQuantity)
         }
 
-        // Cập nhật database ngầm
+        // Cập nhật database
         viewModelScope.launch {
-            _quantityMap.value = _quantityMap.value.toMutableMap().apply {
-                put(cartItem.id!!, newQuantity)
-            }
+            try {
+                cartRepository.updateItemQuantity(cartItem.id!!, newQuantity)
+            } catch (_: Exception) {
 
-            viewModelScope.launch {
-                try {
-                    cartRepository.updateItemQuantity(cartItem.id!!, newQuantity)
-                } catch (e: Exception) {
-                    // emit error nếu cần
-                }
             }
         }
     }

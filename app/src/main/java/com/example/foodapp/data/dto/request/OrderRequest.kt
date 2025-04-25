@@ -24,13 +24,13 @@ data class OrderRequest(
     val paymentMethod: String,
 
     @SerializedName("orderDate")
-    val orderDate: LocalDate,
+    val orderDate: String,
 
     @SerializedName("createAt")
-    val createAt: LocalTime,
+    val createAt: String,
 
     @SerializedName("paymentAt")
-    val paymentAt: LocalTime,
+    val paymentAt: String,
 
     @SerializedName("note")
     val note: String? = null,

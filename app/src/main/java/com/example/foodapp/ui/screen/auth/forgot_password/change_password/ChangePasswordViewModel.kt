@@ -2,10 +2,8 @@ package com.example.foodapp.ui.screen.auth.forgot_password.change_password
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
-import com.example.foodapp.ui.screen.auth.signup.SignUpViewModel.SignUpEvent
+import com.example.foodapp.BaseViewModel
 import com.example.foodapp.utils.ValidateField
 import com.google.firebase.auth.FirebaseAuthException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChangePasswordViewModel @Inject constructor(
     private val accountService: AccountService
-) : BaseAuthViewModel() {
+) : BaseViewModel() {
     private val _uiState = MutableStateFlow<ChangePasswordState>(ChangePasswordState.Nothing)
     val uiState = _uiState.asStateFlow()
 

@@ -2,7 +2,8 @@ package com.se114.foodapp.ui.screen.menu
 
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
+import android.widget.Toast
+
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -31,7 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,29 +41,33 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.model.Menu
 import com.example.foodapp.data.model.MenuItem
+
 import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.Menu
 import com.example.foodapp.ui.navigation.UpdateMenuItem
 import com.example.foodapp.ui.screen.common.MenuItemList
 import com.example.foodapp.ui.screen.components.DeleteBar
+
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.theme.FoodAppTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import java.math.BigDecimal
-import java.time.LocalTime
+
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -75,12 +80,19 @@ fun SharedTransitionScope.MenuScreen(
 
     var isInSelectionMode by rememberSaveable { mutableStateOf(false) }
     var isSelectAll by rememberSaveable { mutableStateOf(false) }
-    var shouldRefresh by remember { mutableStateOf(false) }
 
 
-    val menuItemsAvailable = viewModel.menuItemsAvailable.collectAsLazyPagingItems()
+
+    val menuItemsAvailable =  viewModel.menuItemsAvailable.collectAsLazyPagingItems()
     val menuItemsHidden = viewModel.menuItemsHidden.collectAsLazyPagingItems()
-
+    ObserveLoadState(
+        lazyPagingItems = menuItemsAvailable,
+        statusName = "menuItemsAvailable"
+    )
+//    ObserveLoadState(
+//        lazyPagingItems = menuItemsHidden,
+//        statusName = "menuItemsHidden"
+//    )
 
 
     val showDialogDelete = remember { mutableStateOf(false) }
@@ -88,12 +100,13 @@ fun SharedTransitionScope.MenuScreen(
     LaunchedEffect(key1 = true) {
         viewModel.event.collectLatest {
             when (it) {
-                MenuViewModel.MenuEvents.NavigateToDetail -> {
-
-                }
 
                 MenuViewModel.MenuEvents.ShowDeleteDialog -> {
                     showDialogDelete.value = true
+                }
+
+                is MenuViewModel.MenuEvents.ShowErrorMessage -> {
+
                 }
             }
         }
@@ -104,18 +117,12 @@ fun SharedTransitionScope.MenuScreen(
         val condition = handle?.get<Boolean>("added") == true ||
                 handle?.get<Boolean>("updated") == true
         if (condition) {
-            shouldRefresh = true
             handle?.set("added", false)
             handle?.set("updated", false)
+            viewModel.refreshMenus()
         }
     }
-    LaunchedEffect(shouldRefresh) {
-        if (shouldRefresh) {
-            menuItemsAvailable.refresh()
-            menuItemsHidden.refresh()
-            shouldRefresh = false
-        }
-    }
+
 
     Scaffold(
         floatingActionButton =
@@ -175,55 +182,57 @@ fun SharedTransitionScope.MenuScreen(
                         Spacer(modifier = Modifier.size(8.dp))
                     }
                 }
-//                androidx.compose.animation.AnimatedVisibility(
-//                    visible = isInSelectionMode,
-//                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-//                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-//                ) {
-//                    DeleteBar(
-//                        onSelectAll = {
-//                            isSelectAll = !isSelectAll
-//                            viewModel.selectAllItems(menuItemsAvailable, isSelectAll)
-//                        },
-//                        onDeleteSelected = { viewModel.onRemoveClicked() }
-//                    )
-//                }
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isInSelectionMode,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                ) {
+                    DeleteBar(
+                        onSelectAll = {
+                            isSelectAll = !isSelectAll
+                            viewModel.selectAllItems(emptyList(), isSelectAll)
+                        },
+                        onDeleteSelected = { viewModel.onRemoveClicked() }
+                    )
+                }
             }
 
-            TabWithPager(
-                tabs = listOf("Đang hiển thị", "Đã ẩn"),
-                pages = listOf(
-                    {
-                        MenuItemList(
-                            menuItems = menuItemsAvailable,
-                            isInSelectionMode = isInSelectionMode,
-                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
-                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            onItemClick = {
-                                navController.navigate(UpdateMenuItem(it))
-                            },
-                            onLongClick = {
-                                isInSelectionMode = !isInSelectionMode
-                            },
-                        )
+                TabWithPager(
+                    tabs = listOf("Đang hiển thị", "Đã ẩn"),
+                    pages = listOf(
+                        {
+                            MenuItemList(
+                                menuItems = menuItemsAvailable,
+                                isInSelectionMode = isInSelectionMode,
+                                isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
+                                onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                onItemClick = {
+                                    navController.navigate(UpdateMenuItem(it))
+                                },
+                                onLongClick = {
+                                    isInSelectionMode = !isInSelectionMode
+                                },
+                            )
 
 
-                    },
-                    {
-                        MenuItemList(
-                            menuItems = menuItemsHidden,
-                            isInSelectionMode = isInSelectionMode,
-                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
-                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            onItemClick = {},
-                            onLongClick = {
-                                isInSelectionMode = !isInSelectionMode
-                            },
-                        )
-                    })
-            )
+                        },
+                        {
+                            MenuItemList(
+                                menuItems = menuItemsHidden,
+                                isInSelectionMode = isInSelectionMode,
+                                isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
+                                onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                onItemClick = {},
+                                onLongClick = {
+                                    isInSelectionMode = !isInSelectionMode
+                                },
+                            )
+                        })
+                )
+
+
         }
     }
     if (showDialogDelete.value) {
@@ -254,9 +263,10 @@ fun SharedTransitionScope.MenuScreen(
 @Composable
 fun <T : Any> ObserveLoadState(
     lazyPagingItems: LazyPagingItems<T>,
-    statusName: String
-) {
+    statusName: String,
 
+    ) {
+    val context = LocalContext.current
     // Lắng nghe và xử lý trạng thái loadState
     LaunchedEffect(lazyPagingItems.loadState.refresh) {
         when (val state = lazyPagingItems.loadState.refresh) {
@@ -265,22 +275,23 @@ fun <T : Any> ObserveLoadState(
             }
 
             is LoadState.Error -> {
-                Log.d("MenuItemScreen", "Error loading $statusName Orders: ${state.error.message}")
+                Log.d(
+                    "MenuItemScreen",
+                    "Error loading $statusName MenuItems: ${state.error.message}"
+                )
+                Toast.makeText(
+                    context,
+                    "Không thể tải dữ liệu: ${state.error.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
 
             else -> {
                 Log.d("MenuItemScreen", "$statusName MenuItems loaded")
+                Log.d("MenuItemScreen", "${lazyPagingItems.itemCount} size")
+
             }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun Previewmenu() {
-
-    FoodAppTheme {
-
-    }
-
-}

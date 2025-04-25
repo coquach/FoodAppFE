@@ -13,12 +13,12 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 val menuItemNavType = object : NavType<MenuItem>(false) {
-    override fun get(bundle: Bundle, key: String): MenuItem? {
-        return parseValue(bundle.getString(key).toString()).copy(
-            imageUrl = URLDecoder.decode(
-                parseValue(bundle.getString(key).toString()).imageUrl,
-                "UTF-8"
-            )
+    override fun get(bundle: Bundle, key: String): MenuItem {
+        val menuItemJson = bundle.getString(key).toString()
+
+        val menuItem = parseValue(menuItemJson)
+        return menuItem.copy(
+            imageUrl = menuItem.imageUrl?.let { URLDecoder.decode(it, "UTF-8") }
         )
     }
 
@@ -29,7 +29,7 @@ val menuItemNavType = object : NavType<MenuItem>(false) {
     override fun serializeAsValue(value: MenuItem): String {
         return Json.encodeToString(
             MenuItem.serializer(), value.copy(
-                imageUrl = URLEncoder.encode(value.imageUrl, "UTF-8"),
+                imageUrl = value.imageUrl?.let { URLEncoder.encode(it, "UTF-8") }
             )
         )
     }

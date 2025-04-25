@@ -29,7 +29,7 @@ class MenuDetailsViewModel @Inject constructor(
     private val _event = MutableSharedFlow<FoodDetailsEvent>()
     val event = _event.asSharedFlow()
 
-    private val cartItems = cartRepository.getCartItems()
+    private val cartItems = cartRepository.cartItemsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private val _quantity = MutableStateFlow<Int>(1)
@@ -61,8 +61,10 @@ class MenuDetailsViewModel @Inject constructor(
                     val newItem = CartItem(
                         id = menuItem.id,
                         name = menuItem.name,
-                        menuName = menuItem.menuName!!,
+                        menuName = menuItem.menuName,
                         quantity = quantity.value,
+                        price = menuItem.price,
+                        menuId = menuItem.menuId,
                     )
                     current.add(newItem)
 

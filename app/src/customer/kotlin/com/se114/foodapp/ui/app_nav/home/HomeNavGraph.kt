@@ -11,8 +11,9 @@ import com.example.foodapp.data.model.MenuItem
 
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.Checkout
-import com.example.foodapp.ui.navigation.FoodDetails
+
 import com.example.foodapp.ui.navigation.Home
+import com.example.foodapp.ui.navigation.MenuItemDetails
 import com.example.foodapp.ui.navigation.Notification
 import com.example.foodapp.ui.navigation.menuItemNavType
 
@@ -40,10 +41,10 @@ fun NavGraphBuilder.homeGraph(
                 notificationViewModel = notificationViewModel
             )
         }
-        composable<FoodDetails>(
+        composable<MenuItemDetails>(
             typeMap = mapOf(typeOf<MenuItem>() to menuItemNavType)
         ) {
-            val route = it.toRoute<FoodDetails>()
+            val route = it.toRoute<MenuItemDetails>()
             shouldShowBottomNav.value = false
             MenuDetailsScreen(navController, route.menuItem, this)
         }

@@ -1,15 +1,11 @@
 package com.example.foodapp.ui.screen.auth.login
 
-import android.util.Log
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
 import androidx.lifecycle.viewModelScope
 
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
+import com.example.foodapp.BaseViewModel
 import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
@@ -27,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val accountService: AccountService
-) : BaseAuthViewModel() {
+) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow<LoginEvent>(LoginEvent.Nothing)
     val uiState = _uiState.asStateFlow()

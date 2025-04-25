@@ -5,7 +5,9 @@ enum class Gender(val display: String) {
     FEMALE("Nữ");
 
 
-    override fun toString(): String = display
+    fun getDisplayName(): String = display
+
+    override fun toString(): String = name
 
     companion object {
         fun fromDisplay(display: String): Gender? {

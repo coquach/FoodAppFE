@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -558,20 +559,36 @@ fun <T : Any> LazyListScope.gridItems(
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable BoxScope.(T?) -> Unit,
+    placeholderContent: @Composable BoxScope.() -> Unit = {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+        )
+    }
 ) {
-    val rowCount = if (data.itemCount == 0) 0 else (data.itemCount + nColumns - 1) / nColumns
+    val rowCount = if (data.itemCount == 0) 0 else (data.itemCount + nColumns  - 1) / nColumns
     items(rowCount) { rowIndex ->
         Row(horizontalArrangement = horizontalArrangement) {
             for (columnIndex in 0 until nColumns) {
                 val itemIndex = rowIndex * nColumns + columnIndex
                 if (itemIndex < data.itemCount) {
                     val item = data[itemIndex]
-                    key(key?.invoke(item!!)) {
-                        Box(
-                            modifier = Modifier.weight(1f, fill = true),
-                            propagateMinConstraints = true
-                        ) {
-                            itemContent(this, item)
+                    Box(
+                        modifier = Modifier.weight(1f, fill = true),
+                        propagateMinConstraints = true
+                    ) {
+                        if (item != null) {
+                            if (key != null) {
+                                key(key(item)) {
+                                    itemContent(this, item)
+                                }
+                            } else {
+                                itemContent(this, item)
+                            }
+                        } else {
+                            placeholderContent()
                         }
                     }
                 } else {

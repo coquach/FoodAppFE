@@ -12,11 +12,10 @@ import java.time.LocalTime
 
 
 @Serializable
-@Entity(tableName = MENU_ITEM_TABLE)
 data class MenuItem(
-    @PrimaryKey(autoGenerate = false)
     val id: Long,
     val description: String,
+    val menuId: Long=1,
     val menuName: String,
     val imageUrl: String? = null,
     val name: String,

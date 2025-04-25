@@ -31,11 +31,12 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.Address
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.OrderItem
+import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.StringUtils
-import com.se114.foodapp.utils.OrdersUtils
+
 
 @Composable
 fun OrderDetailScreen(
@@ -45,6 +46,7 @@ fun OrderDetailScreen(
 
 ) {
     val uiState = viewModel.state.collectAsStateWithLifecycle()
+
     Column(Modifier.padding(horizontal = 16.dp)) {
         HeaderDefaultView(
             onBack = {
@@ -79,7 +81,7 @@ fun OrderDetailScreen(
             else -> {}
         }
         Spacer(modifier = Modifier.size(16.dp))
-        if (order.status == "PENDING_ACCEPTANCE") {
+        if (order.status == OrderStatus.PENDING.toString()) {
             Button(
                 onClick = {},
                 colors = ButtonDefaults.buttonColors(
@@ -102,6 +104,7 @@ fun OrderDetailScreen(
 
 @Composable
 fun OrderDetails(order: Order) {
+    val orderStatus = OrderStatus.valueOf(order.status)
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -140,7 +143,7 @@ fun OrderDetails(order: Order) {
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = "Số lượng món: ${order.items.size.toString()}",
+                text = "Số lượng món: ${order.orderItems.size}",
                 color = MaterialTheme.colorScheme.outline
             )
         }
@@ -157,7 +160,7 @@ fun OrderDetails(order: Order) {
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = "Thời gian tạo: ${StringUtils.formatDateTime(order.createdAt)}",
+                text = "Thời gian tạo: ${order.createAt}",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.Black
             )
@@ -175,7 +178,7 @@ fun OrderDetails(order: Order) {
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = "Địa chỉ: ${order.address.addressLine1}",
+                text = "Địa chỉ: ${order.address}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.outline
             )
@@ -201,62 +204,22 @@ fun OrderDetails(order: Order) {
     }
 
     Spacer(modifier = Modifier.size(16.dp))
-    val orderStatus = OrdersUtils.getOrderStatusFromString(order.status)
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "Trạng thái:", color = Color.Gray)
+        Icon(
+            imageVector = orderStatus.icon,
+            contentDescription = orderStatus.toString(),
+            tint = orderStatus.color
+        )
         Spacer(modifier = Modifier.size(8.dp))
         Text(
-            text = OrdersUtils.getOrderStatusInVietnamese(
-                orderStatus ?: OrdersUtils.OrderStatus.DEFAULT
-            ),
-            color = OrdersUtils.getStatusColor(orderStatus ?: OrdersUtils.OrderStatus.DEFAULT),
+            text = orderStatus.display,
+            color = orderStatus.color,
             fontWeight = FontWeight.Bold
         )
     }
     Spacer(modifier = Modifier.size(16.dp))
 }
-
-@Preview(showBackground = true)
-@Composable
-fun OrderDetailScreenPreview() {
-    FoodAppTheme {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OrderDetails(
-                Order(
-                    id = "2",
-                    userId = "user_456",
-                    createdAt = "2025-03-23T11:00:00Z",
-                    updatedAt = "2025-03-23T11:15:00Z",
-                    status = "ACCEPTED",
-                    totalAmount = 250.0f,
-                    paymentMethod = "PayPal",
-                    address = Address(
-                        addressLine1 = "456 Elm St",
-                        city = "Los Angeles",
-                        state = "CA",
-                        zipCode = "90001",
-                        country = "USA"
-                    ),
-                    items = listOf(
-                        OrderItem(
-                            id = "item_2",
-                            menuItemId = "menu_456",
-                            orderId = "2",
-                            quantity = 1,
-                            menuItemName = "Cappuccino"
-                        )
-                    )
-                )
-            )
-        }
-
-    }
-}
-
-
 

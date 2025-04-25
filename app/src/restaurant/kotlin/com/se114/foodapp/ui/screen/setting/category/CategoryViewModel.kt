@@ -113,6 +113,44 @@ class CategoryViewModel @Inject constructor(
             }
         }
     }
+    fun updateCategory(menuId: Long) {
+        viewModelScope.launch {
+            _uiState.value = CategoryState.Loading
+            try {
+                val request = MenuRequest(
+                    name = _categoryName.value
+                )
+
+                val response = safeApiCall { foodApi.updateMenu(menuId,request) }
+                when (response) {
+                    is ApiResponse.Success -> {
+                        val updatedCategory = response.body
+
+                            _categoryList.update { oldList ->
+                                oldList.map { (if (it.id == menuId) updatedCategory else it)!! }
+                            }
+                            _categoryName.value = ""
+                        _uiState.value = CategoryState.Success
+                        loadCategories()
+                    }
+                    is ApiResponse.Error -> {
+                        _uiState.value = CategoryState.Error
+                        _event.emit(CategoryEvents.ShowErrorMessage("Sửa danh mục thất bại"))
+                        Log.d("Add menu", response.message)
+                    }
+                    else -> {
+                        _uiState.value = CategoryState.Error
+                        _event.emit(CategoryEvents.ShowErrorMessage("Lỗi không xác định khi sửa"))
+
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _event.emit(CategoryEvents.ShowErrorMessage("Lỗi không xác định"))
+                Log.d("error add menu", e.message.toString())
+            }
+        }
+    }
 
 
     sealed class CategoryState {

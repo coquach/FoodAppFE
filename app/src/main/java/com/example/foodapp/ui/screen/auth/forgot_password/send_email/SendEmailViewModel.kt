@@ -1,11 +1,9 @@
 package com.example.foodapp.ui.screen.auth.forgot_password.send_email
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
-import com.example.foodapp.ui.screen.auth.signup.SignUpViewModel.SignUpEvent
+import com.example.foodapp.BaseViewModel
 import com.example.foodapp.utils.ValidateField
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SendEmailViewModel @Inject constructor(
     private val accountService: AccountService
-) : BaseAuthViewModel() {
+) : BaseViewModel() {
     private val _uiState = MutableStateFlow<SendEmailState>(SendEmailState.Nothing)
     val uiState = _uiState.asStateFlow()
 

@@ -11,7 +11,7 @@ import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.mapper.OrderMapper.toOrder
-import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
+import com.example.foodapp.ui.screen.auth.BaseViewModel
 import com.se114.foodapp.data.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +28,7 @@ import javax.inject.Inject
 class OrderListViewModel
 @Inject constructor(
     private val orderRepository: OrderRepository
-) : BaseAuthViewModel() {
+) : BaseViewModel() {
 
     private val _state = MutableStateFlow<OrderListState>(OrderListState.Loading)
     val state get() = _state.asStateFlow()

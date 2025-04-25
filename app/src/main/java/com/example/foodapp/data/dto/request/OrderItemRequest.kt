@@ -7,5 +7,5 @@ data class OrderItemRequest(
     val menuItemId: Long,
     val quantity: Int,
     @SerializedName("isDeleted")
-    val isDeleted: Boolean
+    val isDeleted: Boolean = false
 )

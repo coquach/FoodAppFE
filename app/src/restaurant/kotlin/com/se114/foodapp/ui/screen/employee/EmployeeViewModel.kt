@@ -3,14 +3,18 @@ package com.se114.foodapp.ui.screen.employee
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.ExperimentalPagingApi
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.safeApiCall
+import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.remote.FoodApi
 import com.se114.foodapp.data.repository.StaffRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,10 +24,23 @@ import javax.inject.Inject
 class EmployeeViewModel
 @Inject constructor(
     private val foodApi: FoodApi,
-    private val repository: StaffRepository
+    private val staffRepository: StaffRepository
 ) : ViewModel() {
 
-    val getAllStaffs = repository.getAllStaffs().cachedIn(viewModelScope)
+    private val _staffList = MutableStateFlow<PagingData<Staff>>(PagingData.empty())
+    val staffList = _staffList
+
+    init {
+        refreshStaff()
+    }
+
+    fun refreshStaff() {
+        viewModelScope.launch {
+            staffRepository.getAllStaffs().cachedIn(viewModelScope).collect{
+                _staffList.value = it
+            }
+        }
+    }
 
 
     private val _event = MutableSharedFlow<EmployeeEvents>()

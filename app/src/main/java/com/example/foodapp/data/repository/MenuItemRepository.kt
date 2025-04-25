@@ -1,36 +1,39 @@
-package com.se114.foodapp.data.repository
+package com.example.foodapp.data.repository
 
-import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.data.dto.filter.MenuItemFilter
 
-import com.example.foodapp.data.model.Staff
+import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
-import com.se114.foodapp.data.paging.StaffPagingSource
+
+import com.se114.foodapp.data.paging.MenuItemPagingSource
+
+
 
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@ExperimentalPagingApi
+
 @Singleton
-class StaffRepository @Inject constructor(
+class MenuItemRepository @Inject constructor(
     private val foodApi: FoodApi,
+
 ) {
 
-    fun getAllStaffs(): Flow<PagingData<Staff>> {
+    fun getMenuItemsByFilter(filter: MenuItemFilter): Flow<PagingData<MenuItem>> {
+
         return Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
                 enablePlaceholders = false),
             pagingSourceFactory = {
-                StaffPagingSource(foodApi = foodApi)
+                MenuItemPagingSource(foodApi = foodApi, filter = filter)
             }
         ).flow
     }
-
-
 }

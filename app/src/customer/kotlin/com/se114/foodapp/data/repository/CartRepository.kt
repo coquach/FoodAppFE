@@ -2,11 +2,15 @@ package com.se114.foodapp.data.repository
 
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
+import com.se114.foodapp.data.local.CustomerDatabase
+
+import com.se114.foodapp.data.local.dao.CartDao
 import com.se114.foodapp.mapper.CartMapper.toCartItem
 import com.se114.foodapp.mapper.CartMapper.toEntity
-import com.se114.foodapp.data.local.dao.CartDao
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import java.math.RoundingMode
 import javax.inject.Inject
@@ -15,13 +19,11 @@ import javax.inject.Singleton
 
 @Singleton
 class CartRepository @Inject constructor(
-    private val cartDao: CartDao
+    private val customerDatabase: CustomerDatabase
 ) {
-
-    fun getCartItems(): Flow<List<CartItem>> {
-        return cartDao.getCartItems()
-            .map { list -> list.map { it.toCartItem() } }
-    }
+    private val cartDao = customerDatabase.cartDao()
+    val cartItemsFlow: Flow<List<CartItem>> = cartDao.getCartItems()
+        .map { list -> list.map { it.toCartItem() } }
 
     suspend fun saveCartItems(cartItems: List<CartItem>) {
         cartDao.insertCartItems(cartItems.map { it.toEntity() })
@@ -32,7 +34,7 @@ class CartRepository @Inject constructor(
     }
 
     fun getCartSize(): Flow<Int> {
-        return getCartItems().map { it.size }
+        return cartItemsFlow.map { it.size }
     }
 
     suspend fun updateItemQuantity(id: Long, quantity: Int) {
@@ -42,8 +44,8 @@ class CartRepository @Inject constructor(
     suspend fun clearAll() {
         cartDao.clearAll()
     }
-    fun getCheckoutDetails(): Flow<CheckoutDetails> {
-        return getCartItems().map { cartItems ->
+    val checkoutDetailsFlow: Flow<CheckoutDetails> = cartItemsFlow
+        .map { cartItems ->
             val subTotal = cartItems.fold(BigDecimal.ZERO) { acc, item ->
                 acc + (item.price.multiply(BigDecimal(item.quantity)))
             }
@@ -66,8 +68,6 @@ class CartRepository @Inject constructor(
                 totalAmount = totalAmount
             )
         }
-    }
-
 
 
 }

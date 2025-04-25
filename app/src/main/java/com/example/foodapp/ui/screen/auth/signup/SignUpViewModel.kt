@@ -7,11 +7,8 @@ import com.example.foodapp.data.dto.request.RegisterRequest
 import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.remote.FoodApi
 
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
+import com.example.foodapp.BaseViewModel
 import com.example.foodapp.utils.ValidateField
-import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
     private val foodApi: FoodApi
-) : BaseAuthViewModel() {
+) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow<SignUpState>(SignUpState.Nothing)
     val uiState = _uiState.asStateFlow()

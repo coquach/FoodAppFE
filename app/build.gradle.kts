@@ -202,6 +202,9 @@ dependencies {
     //Paging
     implementation("androidx.paging:paging-compose:3.3.6")
 
+    //Swipe Action
+    implementation("me.saket.swipe:swipe:1.3.0")
+
 
 }
 

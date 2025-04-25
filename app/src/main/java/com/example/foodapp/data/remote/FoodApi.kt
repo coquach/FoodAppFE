@@ -11,8 +11,7 @@ import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
 
 import com.example.foodapp.data.model.Staff
-import com.example.foodapp.data.model.enums.OrderStatus
-import com.se114.foodapp.data.dto.request.MenuRequest
+import com.example.foodapp.data.dto.request.MenuRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -48,26 +47,26 @@ interface FoodApi {
         @Query("paymentMethod") paymentMethod: String? = null,
         @Query("startDate") startDate: String? = null,      
         @Query("endDate") endDate: String? = null,
-    ): PageResponse<Order>
+    ): Response<PageResponse<Order>>
 
     @POST("orders")
-    fun createOrder(@Body orderRequest: OrderRequest): Response<Order>
+    suspend fun createOrder(@Body orderRequest: OrderRequest): Response<Order>
 
     @PUT("orders/{id}")
-    fun updateOrder(
+    suspend fun updateOrder(
         @Path("id") id: Long,
         @Body orderRequest: OrderRequest
     ): Response<Order>
 
     @PATCH("orders/{id}/status")
-    fun updateOrderStatus(
+    suspend fun updateOrderStatus(
         @Path("id") id: Long,
         @Body orderStatus: String
     ): Response<Order>
 
     // Xóa đơn hàng
     @DELETE("orders/{id}")
-    fun deleteOrder(@Path("id") id: Long): Response<Void>
+    suspend fun deleteOrder(@Path("id") id: Long): Response<Void>
 
 
     //admin
@@ -102,7 +101,7 @@ interface FoodApi {
         @Query("id") id: Long? = null,
         @Query("isAvailable") isAvailable: Boolean? = null,
 
-    ): PageResponse<MenuItem>
+    ): Response<PageResponse<MenuItem>>
 
     @GET("menu-items/{id}")
     suspend fun getMenuItemDetailById(
@@ -136,7 +135,7 @@ interface FoodApi {
         @Query("size") size: Int,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc"
-    ): PageResponse<Staff>
+    ): Response<PageResponse<Staff>>
 
     @Multipart
     @POST("staffs")

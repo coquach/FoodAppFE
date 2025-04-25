@@ -30,7 +30,31 @@ object BuildMenuItemQuery {
         }
 
         if (!isDelete) {
-            queryBuilder.append(" ORDER BY name DESC")
+            queryBuilder.append(" ORDER BY price DESC")
+        }
+
+        return SimpleSQLiteQuery(queryBuilder.toString(), args.toTypedArray())
+    }
+
+    fun buildMenuItemRemoteKeyQuery(filter: MenuItemFilter, isDelete: Boolean = false): SupportSQLiteQuery {
+        val queryBuilder = StringBuilder()
+
+        if (isDelete) {
+            queryBuilder.append("DELETE FROM menu_item_remote_keys WHERE 1=1")
+        } else {
+            queryBuilder.append("SELECT * FROM menu_item_remote_keys WHERE 1=1")
+        }
+
+        val args = mutableListOf<Any?>()
+
+        if (filter.id != null) {
+            queryBuilder.append(" AND id = ?")
+            args.add(filter.id)
+        }
+
+        if (filter.isAvailable != null) {
+            queryBuilder.append(" AND isAvailable = ?")
+            args.add(if (filter.isAvailable) 1 else 0)
         }
 
         return SimpleSQLiteQuery(queryBuilder.toString(), args.toTypedArray())

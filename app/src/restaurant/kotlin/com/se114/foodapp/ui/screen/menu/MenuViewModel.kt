@@ -1,25 +1,23 @@
 package com.se114.foodapp.ui.screen.menu
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.ExperimentalPagingApi
+
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
 import com.example.foodapp.data.dto.filter.MenuItemFilter
 import com.example.foodapp.data.model.MenuItem
-import com.se114.foodapp.data.repository.MenuItemRepository
+import com.example.foodapp.data.repository.MenuItemRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalPagingApi::class)
+
 @HiltViewModel
 class MenuViewModel
 @Inject constructor(
@@ -32,13 +30,28 @@ class MenuViewModel
     private val _event = MutableSharedFlow<MenuEvents>()
     val event = _event.asSharedFlow()
 
-    val menuItemsAvailable =
-        menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = true))
-            .cachedIn(viewModelScope)
-    val menuItemsHidden =
-        menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = false))
-            .cachedIn(viewModelScope)
+    private val _menuItemsAvailable = MutableStateFlow<PagingData<MenuItem>>(PagingData.empty())
+    val menuItemsAvailable = _menuItemsAvailable
 
+    private val _menuItemsHidden = MutableStateFlow<PagingData<MenuItem>>(PagingData.empty())
+    val menuItemsHidden = _menuItemsHidden
+
+    init {
+        refreshMenus()
+    }
+
+    fun refreshMenus() {
+        viewModelScope.launch {
+
+                menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = true)).cachedIn(viewModelScope)
+                    .collect { _menuItemsAvailable.value = it }
+
+
+                menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = false)).cachedIn(viewModelScope)
+                    .collect { _menuItemsHidden.value = it }
+            }
+
+    }
 
     private val _selectedItems = mutableStateListOf<MenuItem>()
     val selectedItems: List<MenuItem> get() = _selectedItems
@@ -75,14 +88,14 @@ class MenuViewModel
     sealed class MenuState {
         data object Nothing : MenuState()
         data object Loading : MenuState()
-        data class Success(val cartItems: List<MenuItem>) :
+        data object Success :
             MenuState()
 
-        data class Error(val message: String) : MenuState()
+        data object Error : MenuState()
     }
 
     sealed class MenuEvents {
-        data object NavigateToDetail : MenuEvents()
+        data class ShowErrorMessage(val message: String) : MenuEvents()
         data object ShowDeleteDialog : MenuEvents()
     }
 }

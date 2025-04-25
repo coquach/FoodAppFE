@@ -3,6 +3,8 @@ package com.example.foodapp.utils
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
@@ -35,7 +37,7 @@ object StringUtils {
         }
     }
 
-    fun formatLocalDate(date: LocalDate?, pattern: String = "dd/MM/yyyy"): String? {
+    fun formatLocalDate(date: LocalDate?, pattern: String = "dd-MM-yyyy"): String? {
         return if (date == null) {
             null
         } else {
@@ -48,15 +50,26 @@ object StringUtils {
         }
     }
 
-    fun getCurrentDateTime(outputPattern: String = "dd/MM/yyyy HH:mm"): String {
-        val dateFormat = SimpleDateFormat(outputPattern, Locale("vi", "VN"))
-        dateFormat.timeZone = vietnamTimeZone
-        return dateFormat.format(Date())
+    fun getFormattedCurrentVietnamDate(pattern: String = "dd-MM-yyyy"): String {
+        return try {
+            val currentDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))
+            val formatter = DateTimeFormatter.ofPattern(pattern)
+            currentDate.format(formatter)
+        } catch (e: Exception) {
+            "Ngày không hợp lệ!"
+        }
     }
+
+    fun getCurrentVietnamLocalTime(): String {
+        val timeNow = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+        return timeNow.format(formatter)
+    }
+
 
     fun parseLocalDate(input: String): LocalDate? {
         return try {
-            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
             LocalDate.parse(input, formatter)
         } catch (e: Exception) {
             null

@@ -3,6 +3,7 @@ package com.se114.foodapp.ui.app_nav.menu
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.MutableState
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -13,6 +14,7 @@ import com.example.foodapp.ui.navigation.Menu
 import com.example.foodapp.ui.navigation.UpdateMenuItem
 import com.example.foodapp.ui.navigation.menuItemNavType
 import com.se114.foodapp.ui.screen.menu.MenuScreen
+import com.se114.foodapp.ui.screen.menu.MenuViewModel
 import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemScreen
 import kotlin.reflect.typeOf
 

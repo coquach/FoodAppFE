@@ -2,7 +2,12 @@ package com.se114.foodapp.ui.screen.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.data.repository.MenuItemRepository
 
 import com.se114.foodapp.data.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,11 +24,12 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val foodApi: FoodApi,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val menuItemRepository: MenuItemRepository
 
 ) : ViewModel() {
 
-    val _uiState = MutableStateFlow<HomeState>(HomeState.Loading)
+    private val _uiState = MutableStateFlow<HomeState>(HomeState.Loading)
     val uiState = _uiState.asStateFlow()
 
     private val _navigationEvent = MutableSharedFlow<HomeNavigationEvents>()
@@ -33,33 +39,21 @@ class HomeViewModel @Inject constructor(
     val cartSize: StateFlow<Int> = cartRepository.getCartSize()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
-//    init {
-//        getCategories()
-//    }
+    private val _menuItems = MutableStateFlow<PagingData<MenuItem>>(PagingData.empty())
+    val menuItems = _menuItems
+    init {
+        refresh()
+    }
 
-//    private fun getCategories() {
-//        viewModelScope.launch {
-//            val response = safeApiCall {
-//                foodApi.getCategories()
-//            }
-//            when (response) {
-//                is ApiResponse.Success -> {
-//                    categories = (response.body.data as? List<Category>) ?: emptyList()
-//                    _uiState.value = HomeState.Success
-//
-//                }
-//
-//                is ApiResponse.Error -> {
-//                    _uiState.value = HomeState.Empty
-//                }
-//
-//                else -> {
-//                    _uiState.value = HomeState.Empty
-//                }
-//            }
-//        }
-//    }
+    fun refresh() {
+        viewModelScope.launch {
 
+            menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = true)).cachedIn(viewModelScope)
+                .collect { _menuItems.value = it }
+
+        }
+
+    }
 
 
     fun onNotificationClicked() {

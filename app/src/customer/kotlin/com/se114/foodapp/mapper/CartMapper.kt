@@ -1,8 +1,7 @@
 package com.se114.foodapp.mapper
 
 import com.example.foodapp.data.model.CartItem
-import com.example.foodapp.mapper.MenuMapper.toEntity
-import com.example.foodapp.mapper.MenuMapper.toMenuItem
+
 import com.se114.foodapp.data.entities.CartItemEntity
 
 object CartMapper {
@@ -10,6 +9,7 @@ object CartMapper {
         id = id,
         name = name,
         quantity = quantity,
+        menuId = menuId,
         menuName = menuName,
         imageUrl = imageUrl,
         price = price
@@ -18,6 +18,7 @@ object CartMapper {
     fun CartItem.toEntity() = CartItemEntity(
         id = this.id,
         quantity = this.quantity,
+        menuId = this.menuId?: 1,
         name = this.name,
         menuName = this.menuName,
         price = this.price,

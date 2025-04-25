@@ -9,15 +9,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NoMeals
@@ -34,12 +40,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import coil.compose.AsyncImage
+import com.example.foodapp.R.*
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.ui.screen.components.CustomCheckbox
@@ -65,18 +73,18 @@ fun SharedTransitionScope.MenuItemView(
             .fillMaxWidth()
     ) {
         AnimatedVisibility(visible = isInSelectionMode) {
-        CustomCheckbox(
-            checked = isSelected,
-            onCheckedChange = { onCheckedChange?.invoke(menuItem) },
-        )
-    }
+            CustomCheckbox(
+                checked = isSelected,
+                onCheckedChange = { onCheckedChange?.invoke(menuItem) },
+            )
+        }
         Column(
             modifier = Modifier
                 .padding(8.dp)
                 .width(162.dp)
                 .height(216.dp)
                 .graphicsLayer {
-                    alpha = if (isSelected && isInSelectionMode ) 0.7f else 1f
+                    alpha = if (isSelected && isInSelectionMode) 0.7f else 1f
                 }
                 .shadow(
                     elevation = 16.dp,
@@ -108,6 +116,8 @@ fun SharedTransitionScope.MenuItemView(
                             animatedVisibilityScope
                         ),
                     contentScale = ContentScale.Crop,
+                    placeholder = painterResource(drawable.ic_placeholder),
+                    error = painterResource(drawable.ic_placeholder)
                 )
                 Text(
                     text = StringUtils.formatCurrency(menuItem.price),
@@ -138,9 +148,7 @@ fun SharedTransitionScope.MenuItemView(
 //            }
 
 
-
-
-                if (isCustomer){
+                if (isCustomer) {
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -205,38 +213,53 @@ fun SharedTransitionScope.MenuItemView(
 @Composable
 fun SharedTransitionScope.MenuItemList(
     menuItems: LazyPagingItems<MenuItem>,
-    isInSelectionMode :Boolean,
-    isSelected: (MenuItem) -> Boolean,
+    isInSelectionMode: Boolean = false,
+    isSelected: (MenuItem) -> Boolean = { false },
     onCheckedChange: (MenuItem) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onItemClick: (MenuItem) -> Unit,
     onLongClick: ((Boolean) -> Unit)? = null,
     isCustomer: Boolean = false
 ) {
-    if (menuItems.itemSnapshotList.items.isEmpty() && menuItems.loadState.refresh !is LoadState.Loading ) {
-        Nothing(
-            text = "Không có món ăn nào",
-            icon = Icons.Default.NoMeals
-        )
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            gridItems(menuItems, 2, key = { menuItem -> menuItem.id }) { menuItem ->
-                menuItem?.let {
-                    MenuItemView(
-                        menuItem = menuItem,
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        isInSelectionMode = isInSelectionMode,
-                        isSelected = isSelected(menuItem),
-                        onCheckedChange = onCheckedChange,
-                        onClick = { onItemClick(menuItem) },
-                        onLongClick = onLongClick,
-                        isCustomer = isCustomer
-                    )
-                }
+        if (menuItems.itemCount == 0 && menuItems.loadState.refresh !is LoadState.Loading) {
+            Nothing(
+                text = "Không có món ăn nào",
+                icon = Icons.Default.NoMeals
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.heightIn(max = 10000.dp)
+
+            ) {
+                gridItems(
+                    menuItems, 2, key = { menuItem -> menuItem.id },
+                    itemContent = { menuItem ->
+                        menuItem?.let {
+                            MenuItemView(
+                                menuItem = menuItem,
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                isInSelectionMode = isInSelectionMode,
+                                isSelected = isSelected(menuItem),
+                                onCheckedChange = onCheckedChange,
+                                onClick = { onItemClick(menuItem) },
+                                onLongClick = onLongClick,
+                                isCustomer = isCustomer
+                            )
+                        }
+                    },
+                    placeholderContent = {
+
+                        Box(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .fillMaxWidth()
+                                .background(Color.Gray.copy(alpha = 0.3f))
+                        )
+                    }
+                )
             }
         }
-    }
+
+
+
 }

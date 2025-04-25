@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,6 +76,7 @@ import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.Checkout
+import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.utils.StringUtils
@@ -91,6 +93,7 @@ fun CartScreen(
 
     val cartItems by viewModel.cartItems.collectAsStateWithLifecycle()
     val quantityMap by viewModel.quantityMap.collectAsStateWithLifecycle()
+    val checkoutDetails by viewModel.checkoutDetails.collectAsStateWithLifecycle()
 
     val showErrorDialog = remember {
         mutableStateOf(
@@ -109,9 +112,11 @@ fun CartScreen(
                 is CartViewModel.CartEvents.ShowErrorDialog -> {
                     showErrorDialog.value = true
                 }
+
                 is CartViewModel.CartEvents.OnAddress -> {
                     navController.navigate(AddressList)
                 }
+
                 is CartViewModel.CartEvents.NavigateToCheckOut -> {
                     navController.navigate(Checkout)
                 }
@@ -129,7 +134,8 @@ fun CartScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
 
 
     ) {
@@ -138,88 +144,80 @@ fun CartScreen(
             onBack = { navController.popBackStack() },
             onEditToggle = { isEditing = !isEditing }
         )
-        Spacer(modifier = Modifier.size(16.dp))
 
-
-
-
-
-                if (cartItems.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        items(cartItems, key = { it.id!! }) { item ->
-                            val quantity = quantityMap[item.id] ?: item.quantity
-                            CartItemView(
-                                cartItem = item,
-                                isEditMode = isEditing,
-                                quantity = quantity,
-                                isChecked = viewModel.selectedItems.contains(item),
-                                onCheckedChange = { cartItem ->
-                                    viewModel.toggleSelection(cartItem)
-                                },
-                                onIncrement = { item ->
-                                    viewModel.increment(item)
-                                },
-                                onDecrement = { item->
-                                    viewModel.decrement(item)
-                                }
-                            )
+        if (cartItems.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                items(cartItems, key = { it.id!! }) { item ->
+                    val quantity = quantityMap[item.id] ?: item.quantity
+                    CartItemView(
+                        cartItem = item,
+                        isEditMode = isEditing,
+                        quantity = quantity,
+                        isChecked = viewModel.selectedItems.contains(item),
+                        onCheckedChange = { cartItem ->
+                            viewModel.toggleSelection(cartItem)
+                        },
+                        onIncrement = { item ->
+                            viewModel.increment(item)
+                        },
+                        onDecrement = { item ->
+                            viewModel.decrement(item)
                         }
-
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-
-                    ) {
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = isEditing,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                        ) {
-                            DeleteBar(
-                                onSelectAll = {
-                                    isSelectAll = !isSelectAll
-                                    viewModel.selectAllItems(cartItems, isSelectAll)
-                                },
-                                onDeleteSelected = { viewModel.removeItem() }
-                            )
-                        }
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = !isEditing,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                        ) {
-                            Column {
-                                Button(
-                                    onClick = { viewModel.checkout() },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(text = "Thanh toán")
-                                }
-                            }
-                        }
-                    }
-
-
-                } else {
-                    com.example.foodapp.ui.screen.components.Nothing(
-                        icon = Icons.Default.ShoppingCart,
-                        text = "Không có món nào trong giỏ hàng"
                     )
                 }
 
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+
+            ) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isEditing,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                ) {
+                    DeleteBar(
+                        onSelectAll = {
+                            isSelectAll = !isSelectAll
+                            viewModel.selectAllItems(cartItems, isSelectAll)
+                        },
+                        onDeleteSelected = { viewModel.removeItem() }
+                    )
+                }
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = !isEditing,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                ) {
+                    Column {
+                        CheckoutRowItem(
+                            title = "Tổng cộng",
+                            value = checkoutDetails.subTotal,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Button(
+                            onClick = { viewModel.checkout() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = "Thanh toán")
+                        }
+                    }
+                }
+            }
 
 
-
-
-
-
-
+        } else {
+            Nothing(
+                icon = Icons.Default.ShoppingCart,
+                text = "Không có món nào trong giỏ hàng"
+            )
+        }
     }
 
 
@@ -232,53 +230,6 @@ fun CartScreen(
     }
 }
 
-
-
-
-@Composable
-fun CheckoutDetailsView(
-    checkoutDetails: CheckoutDetails
-) {
-    Column {
-        CheckoutRowItem(
-            title = "Tổng giá", value = checkoutDetails.subTotal
-        )
-        CheckoutRowItem(
-            title = "Thuế GTGT", value = checkoutDetails.tax
-        )
-        CheckoutRowItem(
-            title = "Phí ship", value = checkoutDetails.deliveryFee
-        )
-        CheckoutRowItem(
-            title = "Tổng cộng", value = checkoutDetails.totalAmount, fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun CheckoutRowItem(title: String, value: BigDecimal, fontWeight: FontWeight = FontWeight.Normal) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-
-        ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            fontWeight = fontWeight
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = StringUtils.formatCurrency(value),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            fontWeight = fontWeight
-        )
-    }
-
-}
 
 @Composable
 fun CartItemView(
@@ -309,7 +260,7 @@ fun CartItemView(
             )
         }
         AsyncImage(
-            model = cartItem.menuItem.imageUrl,
+            model = cartItem.imageUrl,
             contentDescription = null,
             modifier = Modifier
                 .size(82.dp)
@@ -322,17 +273,15 @@ fun CartItemView(
         ) {
 
             Text(
-                text = cartItem.menuItem.name,
+                text = cartItem.name,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = cartItem.menuItem.description,
+                text = cartItem.menuName,
                 color = MaterialTheme.colorScheme.outline,
                 style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.width(200.dp)
             )
             Spacer(modifier = Modifier.size(8.dp))
@@ -340,7 +289,7 @@ fun CartItemView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = StringUtils.formatCurrency(cartItem.menuItem.price),
+                    text = StringUtils.formatCurrency(cartItem.price),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

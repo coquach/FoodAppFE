@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,7 +48,7 @@ fun TabWithPager(
     val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = 0)
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         val tabRow: @Composable (@Composable () -> Unit) -> Unit = { content ->
@@ -132,12 +133,9 @@ fun TabWithPager(
 
 
         HorizontalPager(state = pagerState) { page ->
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
+
                 pages[page].invoke()
-            }
+
         }
     }
 }

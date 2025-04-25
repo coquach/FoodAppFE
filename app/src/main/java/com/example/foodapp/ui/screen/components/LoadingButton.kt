@@ -33,7 +33,8 @@ fun LoadingButton(
     Button(
         onClick = onClick,
         modifier = modifier.height(48.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = containerColor)
+        colors = ButtonDefaults.buttonColors(containerColor = containerColor),
+        enabled = !loading
     ) {
         Box {
             AnimatedContent(

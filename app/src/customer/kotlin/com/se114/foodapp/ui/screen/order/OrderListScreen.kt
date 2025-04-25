@@ -42,12 +42,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
+import com.example.foodapp.ui.screen.common.OrderListSection
 import com.example.foodapp.ui.screen.components.GenericListContent
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.TabWithPager
@@ -64,6 +66,9 @@ fun OrderListScreen(
     BackHandler {
         navController.popBackStack(route = Home, inclusive = false)
     }
+
+    val ordersPending = viewModel.ordersPending.collectAsLazyPagingItems()
+    val ordersConfirm = viewModel.ordersConfirm.collectAsLazyPagingItems()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 16.dp)
@@ -112,27 +117,19 @@ fun OrderListScreen(
             tabs = listOf("Sắp tới", "Lịch sử"),
             pages = listOf(
                 {
-                    GenericListContent(
-                        list = list.filter { it.status == "PENDING_ACCEPTANCE" },
-                        iconEmpty = Icons.Default.Inventory2,
-                        textEmpty = "Không có đơn hàng nào",
-                        itemContent = { order ->
-                            OrderListItem(
-                                order = order,
-                                onClick = { viewModel.navigateToDetails(order) })
-                        },
+                    OrderListSection(
+                        orders = ordersPending,
+                        onItemClick = {
+                            navController.navigate(OrderDetails(it))
+                        }
                     )
                 },
                 {
-                    GenericListContent(
-                        list = list.filter { it.status != "PENDING_ACCEPTANCE" },
-                        iconEmpty = Icons.Default.Inventory2,
-                        textEmpty = "Không có đơn hàng nào",
-                        itemContent = { order ->
-                            OrderListItem(
-                                order = order,
-                                onClick = { viewModel.navigateToDetails(order) })
-                        },
+                    OrderListSection(
+                        orders = ordersConfirm,
+                        onItemClick = {
+                            navController.navigate(OrderDetails(it))
+                        }
                     )
                 }
             )

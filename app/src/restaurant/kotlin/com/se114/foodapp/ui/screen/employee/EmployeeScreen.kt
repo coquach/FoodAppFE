@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,6 +41,7 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +67,7 @@ import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.gridItems
 
 import com.example.foodapp.data.model.Staff
+import com.example.foodapp.ui.screen.components.Nothing
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -80,8 +83,8 @@ fun EmployeeScreen(
 
     val showDialogDelete = remember { mutableStateOf(false) }
 
-    val staffs = viewModel.getAllStaffs.collectAsLazyPagingItems()
-    var shouldRefresh by remember { mutableStateOf(false) }
+    val staffs = viewModel.staffList.collectAsLazyPagingItems()
+
 
     val loadState = staffs.loadState.refresh
     val context = LocalContext.current
@@ -111,18 +114,12 @@ fun EmployeeScreen(
         val condition = handle?.get<Boolean>("added") == true ||
                 handle?.get<Boolean>("updated") == true
         if (condition) {
-            shouldRefresh = true
             handle?.set("added", false)
             handle?.set("updated", false)
+            viewModel.refreshStaff()
         }
     }
-    LaunchedEffect(shouldRefresh) {
-        if (shouldRefresh) {
-            staffs.refresh()
-            shouldRefresh = false
-        }
 
-    }
 
     LaunchedEffect(key1 = true) {
         viewModel.event.collectLatest {
@@ -239,7 +236,7 @@ fun EmployeeScreen(
 
             if (staffs.itemSnapshotList.items.isEmpty() && staffs.loadState.refresh !is LoadState.Loading) {
 
-                com.example.foodapp.ui.screen.components.Nothing(
+                Nothing(
                     text = "Không có nhân viên nào",
                     icon = Icons.Default.Groups
                 )
@@ -250,30 +247,43 @@ fun EmployeeScreen(
                         .fillMaxWidth()
 
                 ) {
-                    gridItems(staffs, 2, key = { staff -> staff.id.toString() }) { staff ->
-                        staff?.let { it ->
+                    gridItems(
+                        staffs, 2, key = { staff -> staff.id.toString() },
+                        itemContent = {
+                                staff ->
+                            staff?.let { it ->
 
-                            EmployeeItemView(
-                                staff = it,
-                                isSelected = selectedItemId == it.id,
-                                onCheckedChange = {
-                                    viewModel.onRemoveClicked()
-                                },
-                                onClick = {
-                                    if (!isInSelectionMode) {
-                                        navController.navigate(UpdateEmployee(it))
-                                    }
-                                },
-                                onLongClick = {
-                                    if (isInSelectionMode) {
-                                        selectedItemId = null
-                                    } else selectedItemId = it.id
-                                    isInSelectionMode = !isInSelectionMode
-                                },
+                                EmployeeItemView(
+                                    staff = it,
+                                    isSelected = selectedItemId == it.id,
+                                    onCheckedChange = {
+                                        viewModel.onRemoveClicked()
+                                    },
+                                    onClick = {
+                                        if (!isInSelectionMode) {
+                                            navController.navigate(UpdateEmployee(it))
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (isInSelectionMode) {
+                                            selectedItemId = null
+                                        } else selectedItemId = it.id
+                                        isInSelectionMode = !isInSelectionMode
+                                    },
+                                )
+                            }
+
+                        },
+                        placeholderContent = {
+                            Box(
+                                modifier = Modifier
+                                    .aspectRatio(1f)
+                                    .fillMaxWidth()
+                                    .background(Color.Gray.copy(alpha = 0.3f))
                             )
                         }
+                    )
 
-                    }
                 }
             }
 
@@ -296,7 +306,6 @@ fun EmployeeScreen(
                 showDialogDelete.value = false
                 selectedItemId = null
                 isInSelectionMode = false
-                shouldRefresh = true
 
             },
             confirmText = "Xóa",
@@ -309,39 +318,39 @@ fun EmployeeScreen(
 }
 
 
-@Composable
-fun EmployeeListSection(
-    staffs: LazyPagingItems<Staff>,
-    selectedItemId: Long?,
-    isInSelectionMode: Boolean,
-    onRemoveClicked: () -> Unit,
-    onItemClick: (Staff) -> Unit,
-    onItemLongClick: (Staff) -> Unit
-) {
-    if (staffs.itemSnapshotList.items.isEmpty() && staffs.loadState.refresh !is LoadState.Loading) {
-        com.example.foodapp.ui.screen.components.Nothing(
-            text = "Không có nhân viên nào",
-            icon = Icons.Default.Groups
-        )
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            gridItems(staffs, 2, key = { staff -> staff.id.toString() }) { staff ->
-                staff?.let {
-                    EmployeeItemView(
-                        staff = it,
-                        isSelected = selectedItemId == it.id,
-                        onCheckedChange = onRemoveClicked,
-                        onClick = { onItemClick(it) },
-                        onLongClick = { onItemLongClick(it) }
-                    )
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun EmployeeListSection(
+//    staffs: LazyPagingItems<Staff>,
+//    selectedItemId: Long?,
+//    isInSelectionMode: Boolean,
+//    onRemoveClicked: () -> Unit,
+//    onItemClick: (Staff) -> Unit,
+//    onItemLongClick: (Staff) -> Unit
+//) {
+//    if (staffs.itemSnapshotList.items.isEmpty() && staffs.loadState.refresh !is LoadState.Loading) {
+//        Nothing(
+//            text = "Không có nhân viên nào",
+//            icon = Icons.Default.Groups
+//        )
+//    } else {
+//        LazyColumn(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//        ) {
+//            gridItems(staffs, 2, key = { staff -> staff.id.toString() }) { staff ->
+//                staff?.let {
+//                    EmployeeItemView(
+//                        staff = it,
+//                        isSelected = selectedItemId == it.id,
+//                        onCheckedChange = onRemoveClicked,
+//                        onClick = { onItemClick(it) },
+//                        onLongClick = { onItemLongClick(it) }
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 
 
 @OptIn(ExperimentalFoundationApi::class)

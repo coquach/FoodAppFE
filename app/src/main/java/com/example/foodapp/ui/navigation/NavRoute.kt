@@ -22,7 +22,7 @@ object Login : NavRoute
 object Home : NavRoute
 
 @Serializable
-data class FoodDetails(val menuItem: MenuItem) : NavRoute
+data class MenuItemDetails(val menuItem: MenuItem) : NavRoute
 
 @Serializable
 object Cart : NavRoute
