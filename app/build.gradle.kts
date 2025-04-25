@@ -205,6 +205,9 @@ dependencies {
     //Swipe Action
     implementation("me.saket.swipe:swipe:1.3.0")
 
+    //Bottom Bar Animated
+    implementation("com.exyte:animated-navigation-bar:1.0.0")
+
 
 }
 

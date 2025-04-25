@@ -155,7 +155,6 @@ class MainActivity : BaseFoodAppActivity() {
                             BottomNavigationBar(navController, navItems)
                         }
 
-
                     }
 
                 ) { innerPadding ->

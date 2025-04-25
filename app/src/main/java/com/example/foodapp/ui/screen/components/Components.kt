@@ -185,7 +185,6 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(color = MaterialTheme.colorScheme.surface)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -204,6 +203,7 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
                 onClick = onClick,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
 
                 ) {
                 Text(
