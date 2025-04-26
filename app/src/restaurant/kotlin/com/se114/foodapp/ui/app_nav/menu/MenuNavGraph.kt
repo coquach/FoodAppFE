@@ -13,6 +13,7 @@ import com.example.foodapp.ui.navigation.AddMenuItem
 import com.example.foodapp.ui.navigation.Menu
 import com.example.foodapp.ui.navigation.UpdateMenuItem
 import com.example.foodapp.ui.navigation.menuItemNavType
+import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.menu.MenuScreen
 import com.se114.foodapp.ui.screen.menu.MenuViewModel
 import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemScreen
@@ -25,13 +26,20 @@ fun NavGraphBuilder.menuGraph(
     sharedTransitionScope: SharedTransitionScope
 ) {
     with(sharedTransitionScope) {
+
         composable<Menu> {
             shouldShowBottomNav.value = true
-            MenuScreen(navController, this)
+            ScreenContainer {
+                MenuScreen(navController, this)
+            }
+
         }
         composable<AddMenuItem> {
             shouldShowBottomNav.value = false
-            AddMenuItemScreen(navController)
+            ScreenContainer{
+                AddMenuItemScreen(navController)
+            }
+
         }
 
         composable<UpdateMenuItem>(
@@ -39,7 +47,10 @@ fun NavGraphBuilder.menuGraph(
         ) {
             shouldShowBottomNav.value = false
             val route = it.toRoute<UpdateMenuItem>()
-            AddMenuItemScreen(navController, isUpdating = true, menuItem = route.menuItem)
+            ScreenContainer {
+                AddMenuItemScreen(navController, isUpdating = true, menuItem = route.menuItem)
+            }
+
         }
     }
 

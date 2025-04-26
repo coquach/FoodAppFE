@@ -45,6 +45,7 @@ import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.enums.Gender
+import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ComboBoxSample
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -185,19 +186,19 @@ fun AddMenuItemScreen(
                 modifier = Modifier.fillMaxWidth(),
                 labelText = "Tên"
             )
-            ComboBoxSample(
-                title = "Danh mục",
-                selected = menuName.value,
-                onPositionSelected = { selectedName ->
+            ChipsGroupWrap(
+                text = "Danh mục",
+                options =  menusAvailable.value.map { it.name },
+                selectedOption = menuName.value,
+                onOptionSelected = { selectedName ->
                     val selectedMenu = menusAvailable.value.find { it.name == selectedName }
                     selectedMenu?.let {
                         viewModel.onMenuIdChange(it.id)
                         viewModel.onMenuNameChange(it.name)
                     }
                 },
-                textPlaceholder = "Chọn danh mục...",
-                options = menusAvailable.value.map { it.name }
             )
+
             FoodAppTextField(
                 value = description.value, onValueChange = {
                     viewModel.onDescriptionChange(it)

@@ -1,4 +1,4 @@
-package com.se114.foodapp.data.paging
+package com.example.foodapp.data.paging
 
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
@@ -34,7 +34,7 @@ class OrderPagingSource(
                     if (body.content.isNotEmpty()) {
                         LoadResult.Page(
                             data = body.content,
-                            prevKey = if (currentPage == 1) null else currentPage - 1,
+                            prevKey = if (currentPage == 0) null else currentPage - 1,
                             nextKey = if (endOfPaginationReached) null else currentPage + 1
                         )
                     } else {

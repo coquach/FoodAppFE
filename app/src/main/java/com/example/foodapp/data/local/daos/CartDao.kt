@@ -1,11 +1,11 @@
-package com.se114.foodapp.data.local.dao
+package com.example.foodapp.data.local.daos
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.se114.foodapp.data.entities.CartItemEntity
+import com.example.foodapp.data.local.entities.CartItemEntity
 import kotlinx.coroutines.flow.Flow
 
 

@@ -20,10 +20,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.foodapp.data.model.CartItem
+import com.example.foodapp.data.model.OrderItem
 import com.example.foodapp.utils.StringUtils
 
 @Composable
-fun ItemView(
+fun CartItemView(
     cartItem: CartItem
 ) {
     Row(
@@ -79,6 +80,67 @@ fun ItemView(
                     )
                 Text(
                     text = StringUtils.formatCurrency(cartItem.price),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+                )
+            }
+
+
+        }
+    }
+
+
+}
+
+@Composable
+fun OrderItemView(
+    orderItem: OrderItem
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.Start
+            ) {
+
+                Text(
+                    text = orderItem.menuItemName,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Tạm thời chưa có",
+                    color = MaterialTheme.colorScheme.outline,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.End
+
+            ) {
+                Text(
+                    text = "SL: ${orderItem.quantity}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+
+                    )
+                Text(
+                    text = StringUtils.formatCurrency(orderItem.currentPrice),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline,
                 )

@@ -8,7 +8,5 @@ import java.time.LocalTime
 @Serializable
 data class Menu(
     val id: Long,
-    val name: String,
-    @SerialName("isDeleted")
-    val isDeleted: Boolean= false
+    val name: String
 )

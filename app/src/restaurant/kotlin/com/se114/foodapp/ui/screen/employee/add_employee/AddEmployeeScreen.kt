@@ -111,7 +111,7 @@ fun AddEmployeeScreen(
                         navController.previousBackStackEntry?.savedStateHandle?.set("added", true)
                     }
 
-                    navController.popBackStack()
+                    navController.navigateUp()
 
                 }
 

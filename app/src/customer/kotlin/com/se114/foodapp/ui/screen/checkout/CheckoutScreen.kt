@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Notes
@@ -65,9 +66,10 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 
 import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.OrderSuccess
+import com.example.foodapp.ui.screen.common.CartItemView
 import com.example.foodapp.ui.screen.common.CheckoutDetailsView
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
-import com.example.foodapp.ui.screen.common.ItemView
+
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.LoadingButton
@@ -112,7 +114,7 @@ fun CheckoutScreen(
                 }
 
                 is CheckoutViewModel.CheckoutEvents.OrderSuccess -> {
-                    navController.navigate(OrderSuccess("orderId"))
+                    navController.navigate(OrderSuccess(it.orderId!!))
                 }
             }
         }
@@ -165,7 +167,7 @@ fun CheckoutScreen(
             },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Notes,
+                    imageVector = Icons.AutoMirrored.Filled.Notes,
                     tint = MaterialTheme.colorScheme.outline,
                     contentDescription = "Note",
                     modifier = Modifier.size(24.dp)
@@ -189,7 +191,7 @@ fun CheckoutScreen(
                         .fillMaxWidth()
                 ) {
                     items(cartItems, key = { it.id!! }) { item ->
-                        ItemView(
+                        CartItemView(
                             cartItem = item
                         )
                     }

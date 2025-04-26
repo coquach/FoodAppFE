@@ -1,6 +1,7 @@
 package com.example.foodapp.ui.screen.common
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,7 +11,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LockClock
+import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,10 +43,12 @@ import com.example.foodapp.utils.StringUtils
 
 @Composable
 fun OrderDetailsText(order: Order) {
-    Column {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.Top,
 
             ) {
 
@@ -53,8 +62,66 @@ fun OrderDetailsText(order: Order) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
 
+            ) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Clock Icon",
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = StringUtils.formatLocalDate(order.orderDate)!!,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Timer,
+                        contentDescription = "Clock Icon",
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = order.createAt.toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Payments,
+                        contentDescription = "Clock Icon",
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = order.createAt.toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Top
             ) {
                 Text(
                     text = "Mã đơn hàng: ${order.id}",
@@ -65,26 +132,26 @@ fun OrderDetailsText(order: Order) {
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_clock),
-                        contentDescription = "Clock Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = StringUtils.formatLocalDate(order.orderDate)!!,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Black
-                    )
-                }
             }
         }
-        Spacer(modifier = Modifier.size(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.AttachMoney,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.inversePrimary
+            )
+            Spacer(modifier = Modifier.size(4.dp))
+            Text(
+                text = "Tổng giá: ${StringUtils.formatCurrency(order.totalPrice)}",
+                color = MaterialTheme.colorScheme.inversePrimary,
+                fontWeight = FontWeight.Bold
+            )
+
+        }
         val orderStatus = OrderStatus.valueOf(order.status)
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -102,7 +169,7 @@ fun OrderDetailsText(order: Order) {
                 fontWeight = FontWeight.Bold
             )
         }
-        Spacer(modifier = Modifier.size(16.dp))
+
     }
 }
 
@@ -118,7 +185,8 @@ fun OrderItemView(order: Order, onClick: () -> Unit) {
     ) {
         Column(
             modifier = Modifier
-                .padding(10.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
 
         ) {
             OrderDetailsText(order = order)
@@ -148,10 +216,11 @@ fun OrderListSection(
     } else {
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Top
         ) {
             gridItems(
-                orders, 2, key = { order -> order.id },
+                orders, 1, key = { order -> order.id },
 
                 itemContent = { order ->
                     order?.let {

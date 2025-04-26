@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 
 import com.example.foodapp.ui.navigation.Warehouse
+import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.warehouse.WarehouseScreen
 
 fun NavGraphBuilder.warehouseGraph(
@@ -14,6 +15,9 @@ fun NavGraphBuilder.warehouseGraph(
 ) {
     composable<Warehouse>{
         shouldShowBottomNav.value = true
-        WarehouseScreen(navController)
+        ScreenContainer {
+            WarehouseScreen(navController)
+        }
+
     }
 }

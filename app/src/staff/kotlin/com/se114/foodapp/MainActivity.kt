@@ -15,12 +15,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.PaddingValues
 
 import androidx.compose.foundation.layout.fillMaxSize
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +49,8 @@ import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.Statistics
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.se114.foodapp.ui.app_nav.AppNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -99,7 +103,12 @@ class MainActivity : BaseFoodAppActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+
         setContent {
+            val systemUiController: SystemUiController = rememberSystemUiController()
+            SideEffect {
+                systemUiController.isNavigationBarVisible = false
+            }
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
 
@@ -135,9 +144,7 @@ class MainActivity : BaseFoodAppActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
-
 
                         AnimatedVisibility(visible = shouldShowBottomNav.value) {
 
@@ -149,7 +156,9 @@ class MainActivity : BaseFoodAppActivity() {
 
                         AppNavGraph(
                             navController = navController,
-                            innerPadding = innerPadding,
+                            innerPadding = PaddingValues(
+                                bottom = innerPadding.calculateBottomPadding()
+                            ),
                             shouldShowBottomNav = shouldShowBottomNav,
                             notificationViewModel = notificationViewModel,
                             startDestination = screen,

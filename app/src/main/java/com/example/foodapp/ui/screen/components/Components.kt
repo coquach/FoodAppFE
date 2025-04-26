@@ -599,27 +599,6 @@ fun <T : Any> LazyListScope.gridItems(
     }
 }
 
-fun showComposeToast(context: Context, message: String) {
-    val toast = Toast(context)
-    toast.duration = Toast.LENGTH_SHORT
-
-    val composeView = ComposeView(context).apply {
-        setContent {
-            FoodAppTheme {
-                Box(
-                    modifier = Modifier
-                        .background(Color.Black, shape = RoundedCornerShape(12.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(text = message, color = Color.White, fontSize = 16.sp)
-                }
-            }
-        }
-    }
-
-    toast.view = composeView
-    toast.show()
-}
 
 
 

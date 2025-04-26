@@ -64,7 +64,7 @@ class MenuDetailsViewModel @Inject constructor(
                         menuName = menuItem.menuName,
                         quantity = quantity.value,
                         price = menuItem.price,
-                        menuId = menuItem.menuId,
+                        imageUrl = menuItem.imageUrl
                     )
                     current.add(newItem)
 

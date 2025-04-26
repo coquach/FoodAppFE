@@ -8,6 +8,7 @@ import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Login
 import com.example.foodapp.ui.screen.auth.AuthScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
+import com.example.foodapp.utils.ScreenContainer
 
 
 fun NavGraphBuilder.authGraph(
@@ -16,10 +17,14 @@ fun NavGraphBuilder.authGraph(
 ) {
     composable<Auth> {
         shouldShowBottomNav.value = false
-        AuthScreen(navController)
+        ScreenContainer(applyStatusBarInset = false) {  AuthScreen(navController) }
+
     }
     composable<Login> {
         shouldShowBottomNav.value = false
-        LoginScreen(navController, isCustomer = false)
+        ScreenContainer {
+            LoginScreen(navController, isCustomer = false)
+        }
+
     }
 }

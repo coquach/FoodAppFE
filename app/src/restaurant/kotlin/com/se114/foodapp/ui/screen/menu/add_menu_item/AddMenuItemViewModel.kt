@@ -21,8 +21,8 @@ import com.se114.foodapp.data.dto.request.MenuItemMultipartRequest
 import com.se114.foodapp.data.dto.request.StaffMultipartRequest
 import com.se114.foodapp.ui.screen.employee.add_employee.AddEmployeeViewModel.AddEmployeeEvents
 import com.se114.foodapp.ui.screen.employee.add_employee.AddEmployeeViewModel.AddEmployeeState
-import com.se114.foodapp.ui.screen.setting.category.CategoryViewModel.CategoryEvents
-import com.se114.foodapp.ui.screen.setting.category.CategoryViewModel.CategoryState
+import com.se114.foodapp.ui.screen.menu.category.CategoryViewModel.CategoryEvents
+import com.se114.foodapp.ui.screen.menu.category.CategoryViewModel.CategoryState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow

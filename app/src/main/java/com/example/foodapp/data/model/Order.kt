@@ -13,7 +13,7 @@ import java.time.LocalTime
 @Serializable
 data class Order(
     val id: Long,
-    val customerId: String? = null,
+    val customerName: String? = null,
     val tableNumber: Int? = null,
     val voucher: Double? = null,
     @Serializable(with = BigDecimalSerializer::class)

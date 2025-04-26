@@ -73,7 +73,7 @@ interface FoodApi {
 
     //menu
 
-    @GET("menus/available")
+    @GET("menus/active")
     suspend fun getAvailableMenus(): Response<List<Menu>>
 
     @GET("menus/deleted")

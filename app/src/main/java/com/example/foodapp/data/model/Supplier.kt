@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Supplier(
-    val id: Long? = null,
+    val id: Long,
     val name: String,
     val phone: String,
     val email: String,

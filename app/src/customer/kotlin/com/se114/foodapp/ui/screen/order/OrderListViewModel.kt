@@ -5,14 +5,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.filter.OrderFilter
-import com.example.foodapp.data.model.Address
-import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.model.OrderItem
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.se114.foodapp.data.repository.OrderRepository
+import com.example.foodapp.data.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -33,8 +29,8 @@ class OrderListViewModel @Inject constructor(
 
     private val _ordersPending = MutableStateFlow<PagingData<Order>>(PagingData.empty())
     val ordersPending = _ordersPending
-    private val _ordersConfirm = MutableStateFlow<PagingData<Order>>(PagingData.empty())
-    val ordersConfirm = _ordersConfirm
+    private val _ordersAll = MutableStateFlow<PagingData<Order>>(PagingData.empty())
+    val ordersAll= _ordersAll
 
     init {
         getOrders()
@@ -44,15 +40,18 @@ class OrderListViewModel @Inject constructor(
         viewModelScope.launch {
 
 
-
-            orderRepository.getOrdersByFilter(OrderFilter(status = OrderStatus.PENDING.toString())).cachedIn(viewModelScope).collect{
+            orderRepository.getOrdersByFilter(OrderFilter(status = OrderStatus.PENDING.name))
+                .cachedIn(viewModelScope).collect {
                 _ordersPending.value = it
             }
-
-            orderRepository.getOrdersByFilter(OrderFilter(status = OrderStatus.CONFIRMED.toString())).cachedIn(viewModelScope).collect{
-                _ordersConfirm.value = it
-            }
         }
+        viewModelScope.launch {
+            orderRepository.getOrdersByFilter(OrderFilter()).cachedIn(viewModelScope).collect{
+                _ordersAll.value = it
+            }
+
+        }
+
     }
 
 

@@ -2,7 +2,6 @@ package com.se114.foodapp.ui.screen.checkout
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import androidx.room.PrimaryKey
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.BaseViewModel
@@ -15,7 +14,7 @@ import com.example.foodapp.data.model.enums.ServingType
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.data.repository.CartRepository
-import com.se114.foodapp.data.repository.OrderRepository
+
 
 
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -120,8 +119,7 @@ private val foodApi: FoodApi
                 paymentMethod = PaymentMethod.fromDisplay(it.paymentMethod)!!.name,
                 orderItems = _cartItems.value.map { cartItem ->
                     OrderItemRequest(
-                        id = cartItem.id,
-                        menuItemId = cartItem.menuId,
+                        menuItemId = cartItem.id,
                         quantity = cartItem.quantity,
                     ) }
             ) }

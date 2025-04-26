@@ -9,6 +9,7 @@ import com.example.foodapp.ui.navigation.Statistics
 import com.example.foodapp.ui.screen.notification.NotificationListScreen
 
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
+import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.statistics.StatisticsScreen
 
 
@@ -20,11 +21,17 @@ fun NavGraphBuilder.statisticsGraph(
 ) {
     composable<Statistics> {
         shouldShowBottomNav.value = true
-        StatisticsScreen(navController, notificationViewModel = notificationViewModel)
+        ScreenContainer {
+            StatisticsScreen(navController, notificationViewModel = notificationViewModel)
+        }
+
     }
     composable<Notification> {
         shouldShowBottomNav.value = false
-        NotificationListScreen(navController)
+        ScreenContainer {
+            NotificationListScreen(navController)
+        }
+
     }
 }
 

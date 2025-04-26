@@ -82,6 +82,7 @@ fun SettingScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+
         HeaderDefaultView(
             text = "Cài đặt"
         )
@@ -121,12 +122,9 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(
-                            Icons.Default.Category,
-                            "Danh mục món ăn",
-                            onClick = { navController.navigate(Category) })
-                        SettingItem(Icons.Default.CardGiftcard, "Voucher & Khuyến mãi")
                         SettingItem(Icons.Default.LocalShipping, "Nhà cung cấp")
+                        SettingItem(Icons.Default.CardGiftcard, "Voucher & Khuyến mãi")
+
                     }
                 )
             )

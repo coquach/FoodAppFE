@@ -52,7 +52,7 @@ object AddAddress : NavRoute
 object Checkout : NavRoute
 
 @Serializable
-data class OrderSuccess(val orderId: String) : NavRoute
+data class OrderSuccess(val orderId: Long) : NavRoute
 
 @Serializable
 data class OrderDetails(val order: Order) : NavRoute
@@ -100,6 +100,12 @@ object AddMenuItem : NavRoute
 
 @Serializable
 object Category: NavRoute
+
+@Serializable
+object Supplier : NavRoute
+
+@Serializable
+object SupplierDetails: NavRoute
 
 
 

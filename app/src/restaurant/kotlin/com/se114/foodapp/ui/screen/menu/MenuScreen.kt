@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -54,6 +55,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.MenuItem
 
 import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.navigation.Menu
 import com.example.foodapp.ui.navigation.UpdateMenuItem
 import com.example.foodapp.ui.screen.common.MenuItemList
@@ -82,8 +84,7 @@ fun SharedTransitionScope.MenuScreen(
     var isSelectAll by rememberSaveable { mutableStateOf(false) }
 
 
-
-    val menuItemsAvailable =  viewModel.menuItemsAvailable.collectAsLazyPagingItems()
+    val menuItemsAvailable = viewModel.menuItemsAvailable.collectAsLazyPagingItems()
     val menuItemsHidden = viewModel.menuItemsHidden.collectAsLazyPagingItems()
     ObserveLoadState(
         lazyPagingItems = menuItemsAvailable,
@@ -158,6 +159,7 @@ fun SharedTransitionScope.MenuScreen(
                 .padding(horizontal = 16.dp)
 
         ) {
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -173,7 +175,12 @@ fun SharedTransitionScope.MenuScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         HeaderDefaultView(
-                            text = "Danh sách món ăn"
+                            text = "Danh sách món ăn",
+                            icon = Icons.Default.Category,
+                            iconClick = {
+                                navController.navigate(Category)
+                            },
+                            tintIcon = MaterialTheme.colorScheme.primary
                         )
                         SearchField(
                             searchInput = search,
@@ -197,40 +204,40 @@ fun SharedTransitionScope.MenuScreen(
                 }
             }
 
-                TabWithPager(
-                    tabs = listOf("Đang hiển thị", "Đã ẩn"),
-                    pages = listOf(
-                        {
-                            MenuItemList(
-                                menuItems = menuItemsAvailable,
-                                isInSelectionMode = isInSelectionMode,
-                                isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
-                                onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
-                                animatedVisibilityScope = animatedVisibilityScope,
-                                onItemClick = {
-                                    navController.navigate(UpdateMenuItem(it))
-                                },
-                                onLongClick = {
-                                    isInSelectionMode = !isInSelectionMode
-                                },
-                            )
+            TabWithPager(
+                tabs = listOf("Đang hiển thị", "Đã ẩn"),
+                pages = listOf(
+                    {
+                        MenuItemList(
+                            menuItems = menuItemsAvailable,
+                            isInSelectionMode = isInSelectionMode,
+                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
+                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            onItemClick = {
+                                navController.navigate(UpdateMenuItem(it))
+                            },
+                            onLongClick = {
+                                isInSelectionMode = !isInSelectionMode
+                            },
+                        )
 
 
-                        },
-                        {
-                            MenuItemList(
-                                menuItems = menuItemsHidden,
-                                isInSelectionMode = isInSelectionMode,
-                                isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
-                                onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
-                                animatedVisibilityScope = animatedVisibilityScope,
-                                onItemClick = {},
-                                onLongClick = {
-                                    isInSelectionMode = !isInSelectionMode
-                                },
-                            )
-                        })
-                )
+                    },
+                    {
+                        MenuItemList(
+                            menuItems = menuItemsHidden,
+                            isInSelectionMode = isInSelectionMode,
+                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
+                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            onItemClick = {},
+                            onLongClick = {
+                                isInSelectionMode = !isInSelectionMode
+                            },
+                        )
+                    })
+            )
 
 
         }

@@ -27,6 +27,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.screen.common.OrderListSection
+import com.example.foodapp.ui.screen.components.HeaderDefaultView
 
 
 import com.example.foodapp.ui.screen.components.TabWithPager
@@ -42,89 +43,90 @@ fun OrderListScreen(
         navController.popBackStack(route = Home, inclusive = false)
     }
 
-    val pendingOrders = remember { viewModel.pendingOrders }.collectAsLazyPagingItems()}
-    val confirmedOrders = rem viewModel.confirmedOrders.collectAsLazyPagingItems(
-    val deliveredOrders = viewModel.deliveredOrders.collectAsLazyPagingItems()
-    val completedOrders = viewModel.completedOrders.collectAsLazyPagingItems()
-    val cancelledOrders = viewModel.cancelledOrders.collectAsLazyPagingItems()
+    val ordersPending = viewModel.ordersPending.collectAsLazyPagingItems()
+    val ordersConfirmed = viewModel.ordersConfirmed.collectAsLazyPagingItems()
+    val ordersDelivered = viewModel.ordersDelivered.collectAsLazyPagingItems()
+    val ordersCompleted = viewModel.ordersCompleted.collectAsLazyPagingItems()
+    val ordersCancelled = viewModel.ordersCancelled.collectAsLazyPagingItems()
 
-    ObserveLoadState(pendingOrders, "Pending")
-    ObserveLoadState(confirmedOrders, "Confirmed")
-    ObserveLoadState(deliveredOrders, "Delivered")
-    ObserveLoadState(completedOrders, "Completed")
-    ObserveLoadState(cancelledOrders, "Cancelled")
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        val condition = handle?.get<Boolean>("updated") == true
+
+        if (condition) {
+            handle?.set("updated", false)
+            viewModel.getOrders()
+        }
+    }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.event.collectLatest {
+            when (it) {
+                is OrderListViewModel.OrderListEvent.NavigateToOrderDetailScreen -> {
+                    navController.navigate(OrderDetails(it.order))
+                }
+
+                is OrderListViewModel.OrderListEvent.NavigateBack -> {
+                    navController.popBackStack()
+                }
+
+                else -> {}
+            }
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
 
-
-    ) {
-
-        LaunchedEffect(key1 = true) {
-            viewModel.event.collectLatest {
-                when (it) {
-                    is OrderListViewModel.OrderListEvent.NavigateToOrderDetailScreen -> {
-                        navController.navigate(OrderDetails(it.order))
-                    }
-
-                    is OrderListViewModel.OrderListEvent.NavigateBack -> {
-                        navController.popBackStack()
-                    }
-
-                    else -> {}
-                }
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.size(48.dp))
-            Text(
-                text = "Đơn hàng", style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .weight(1f)
-                    .wrapContentWidth(Alignment.CenterHorizontally),
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.size(48.dp))
-        }
-      TabWithPager(
+       HeaderDefaultView(
+           text = "Danh sách đơn hàng"
+       )
+        TabWithPager(
             tabs = listOf("Đang chờ", "Đã xác nhận", "Đã giao hàng", "Đã hoàn thành", "Đã hủy"),
             pages = listOf(
                 {
 
-                            OrderListSection(
-                                orders = pendingOrders,
-                                onItemClick = {}
-                            )
+                    OrderListSection(
+                        orders = ordersPending,
+                        onItemClick = {
+                            navController.navigate(OrderDetails(it))
+                        }
+                    )
 
                 },
                 {
                     OrderListSection(
-                        orders = confirmedOrders,
-                        onItemClick = {}
+                        orders = ordersConfirmed,
+                        onItemClick = {
+                            navController.navigate(OrderDetails(it))
+                        }
                     )
                 },
                 {
                     OrderListSection(
-                        orders = deliveredOrders,
-                        onItemClick = {}
+                        orders = ordersDelivered,
+                        onItemClick = {
+                            navController.navigate(OrderDetails(it))
+                        }
                     )
                 },
                 {
                     OrderListSection(
-                        orders = completedOrders,
-                        onItemClick = {}
+                        orders = ordersCompleted,
+                        onItemClick = {
+                            navController.navigate(OrderDetails(it))
+                        }
                     )
                 },
                 {
                     OrderListSection(
-                        orders = cancelledOrders,
-                        onItemClick = {}
+                        orders = ordersCancelled,
+                        onItemClick = {
+                            navController.navigate(OrderDetails(it))
+                        }
                     )
                 }
             ),
@@ -147,9 +149,11 @@ fun <T : Any> ObserveLoadState(
             is LoadState.Loading -> {
                 Log.d("OrderListScreen", "Loading $statusName Orders")
             }
+
             is LoadState.Error -> {
                 Log.d("OrderListScreen", "Error loading $statusName Orders: ${state.error.message}")
             }
+
             else -> {
                 Log.d("OrderListScreen", "$statusName Orders loaded")
             }

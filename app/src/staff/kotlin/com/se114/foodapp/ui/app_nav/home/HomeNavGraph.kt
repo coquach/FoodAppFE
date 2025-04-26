@@ -1,4 +1,4 @@
-package com.se114.foodapp.app_nav.home
+package com.se114.foodapp.ui.app_nav.home
 import androidx.compose.runtime.MutableState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -7,6 +7,7 @@ import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Notification
 import com.example.foodapp.ui.screen.notification.NotificationListScreen
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
+import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.home.HomeStaffScreen
 
 fun NavGraphBuilder.homeGraph(
@@ -18,11 +19,17 @@ fun NavGraphBuilder.homeGraph(
 
         composable<Home> {
             shouldShowBottomNav.value = true
-            HomeStaffScreen(navController, notificationViewModel)
+            ScreenContainer {
+                HomeStaffScreen(navController, notificationViewModel)
+            }
+
         }
         composable<Notification> {
             shouldShowBottomNav.value = false
-            NotificationListScreen(navController)
+            ScreenContainer {
+                NotificationListScreen(navController)
+            }
+
         }
 
 

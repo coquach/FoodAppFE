@@ -2,7 +2,7 @@ package com.se114.foodapp.data.repository
 
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
-import com.se114.foodapp.data.local.CustomerDatabase
+import com.se114.foodapp.data.local.StaffDatabase
 
 import com.se114.foodapp.mapper.CartMapper.toCartItem
 import com.se114.foodapp.mapper.CartMapper.toEntity
@@ -16,9 +16,9 @@ import javax.inject.Singleton
 
 @Singleton
 class CartRepository @Inject constructor(
-    private val customerDatabase: CustomerDatabase
+    private val staffDatabase: StaffDatabase
 ) {
-    private val cartDao = customerDatabase.cartDao()
+    private val cartDao = staffDatabase.cartDao()
     val cartItemsFlow: Flow<List<CartItem>> = cartDao.getCartItems()
         .map { list -> list.map { it.toCartItem() } }
 

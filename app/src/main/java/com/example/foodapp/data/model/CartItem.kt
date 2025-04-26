@@ -8,10 +8,9 @@ import java.math.BigDecimal
 
 @Serializable
 data class CartItem(
-    val id: Long? = null,
+    val id: Long,
     val name: String,
     val quantity: Int,
-    val menuId: Long,
     val menuName: String,
     val imageUrl: String?= null,
     @Serializable(with = BigDecimalSerializer::class)

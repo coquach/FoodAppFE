@@ -7,12 +7,12 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.example.foodapp.BaseViewModel
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.mapper.OrderMapper.toOrder
-import com.example.foodapp.ui.screen.auth.BaseViewModel
-import com.se114.foodapp.data.repository.OrderRepository
+import com.example.foodapp.data.repository.OrderRepository
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,17 +36,54 @@ class OrderListViewModel
     private val _event = MutableSharedFlow<OrderListEvent>()
     val event get() = _event.asSharedFlow()
 
+    private val _ordersPending = MutableStateFlow<PagingData<Order>>(PagingData.empty())
+    val ordersPending = _ordersPending
+    private val _ordersConfirmed = MutableStateFlow<PagingData<Order>>(PagingData.empty())
+    val ordersConfirmed= _ordersConfirmed
+    private val _ordersDelivered = MutableStateFlow<PagingData<Order>>(PagingData.empty())
+    val ordersDelivered= _ordersDelivered
+    private val _ordersCompleted = MutableStateFlow<PagingData<Order>>(PagingData.empty())
+    val ordersCompleted= _ordersCompleted
+    private val _ordersCancelled = MutableStateFlow<PagingData<Order>>(PagingData.empty())
+    val ordersCancelled= _ordersCancelled
 
-    private fun getOrdersByStatus(status: OrderStatus) = orderRepository
-        .getOrdersByFilter(OrderFilter(status = status.toString()))
-        .map { pagingData -> pagingData.map { it.toOrder() } }
-        .cachedIn(viewModelScope)
+    init {
+        getOrders()
+    }
 
-    val pendingOrders = getOrdersByStatus(OrderStatus.PENDING)
-    val confirmedOrders = getOrdersByStatus(OrderStatus.CONFIRMED)
-    val deliveredOrders = getOrdersByStatus(OrderStatus.DELIVERED)
-    val completedOrders = getOrdersByStatus(OrderStatus.COMPLETED)
-    val cancelledOrders = getOrdersByStatus(OrderStatus.CANCELLED)
+    fun getOrders() {
+        viewModelScope.launch {
+            orderRepository.getOrdersByFilter(OrderFilter(status = OrderStatus.PENDING.name))
+                .cachedIn(viewModelScope).collect {
+                    _ordersPending.value = it
+                }
+        }
+        viewModelScope.launch {
+            orderRepository.getOrdersByFilter(OrderFilter(OrderStatus.CONFIRMED.name)).cachedIn(viewModelScope).collect{
+                _ordersConfirmed.value = it
+            }
+
+        }
+        viewModelScope.launch {
+            orderRepository.getOrdersByFilter(OrderFilter(OrderStatus.DELIVERED.name)).cachedIn(viewModelScope).collect{
+                _ordersDelivered.value = it
+            }
+
+        }
+        viewModelScope.launch {
+            orderRepository.getOrdersByFilter(OrderFilter(OrderStatus.COMPLETED.name)).cachedIn(viewModelScope).collect{
+                _ordersCompleted.value = it
+            }
+
+        }
+        viewModelScope.launch {
+            orderRepository.getOrdersByFilter(OrderFilter(OrderStatus.CANCELLED.name)).cachedIn(viewModelScope).collect{
+                _ordersCancelled.value = it
+            }
+
+        }
+
+    }
 
     fun navigateToDetails(it: Order) {
         viewModelScope.launch {

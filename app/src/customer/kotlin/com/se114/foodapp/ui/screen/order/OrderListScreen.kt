@@ -63,12 +63,35 @@ fun OrderListScreen(
     navController: NavController,
     viewModel: OrderListViewModel = hiltViewModel()
 ) {
-    BackHandler {
-        navController.popBackStack(route = Home, inclusive = false)
-    }
 
     val ordersPending = viewModel.ordersPending.collectAsLazyPagingItems()
-    val ordersConfirm = viewModel.ordersConfirm.collectAsLazyPagingItems()
+    val ordersAll = viewModel.ordersAll.collectAsLazyPagingItems()
+
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        val condition = handle?.get<Boolean>("update") == true
+
+        if (condition) {
+            handle?.set("update", false)
+            viewModel.getOrders()
+        }
+    }
+    LaunchedEffect(key1 = true) {
+        viewModel.event.collectLatest {
+            when (it) {
+                is OrderListViewModel.OrderListEvent.NavigateToOrderDetailScreen -> {
+                    navController.navigate(OrderDetails(it.order))
+                }
+
+                is OrderListViewModel.OrderListEvent.NavigateBack -> {
+                    navController.popBackStack()
+                }
+
+                else -> {}
+            }
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 16.dp)
@@ -76,21 +99,7 @@ fun OrderListScreen(
     ) {
         val uiState = viewModel.state.collectAsStateWithLifecycle()
 
-        LaunchedEffect(key1 = true) {
-            viewModel.event.collectLatest {
-                when (it) {
-                    is OrderListViewModel.OrderListEvent.NavigateToOrderDetailScreen -> {
-                        navController.navigate(OrderDetails(it.order))
-                    }
 
-                    is OrderListViewModel.OrderListEvent.NavigateBack -> {
-                        navController.popBackStack()
-                    }
-
-                    else -> {}
-                }
-            }
-        }
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -126,7 +135,7 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
-                        orders = ordersConfirm,
+                        orders = ordersAll,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }

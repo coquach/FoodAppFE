@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.foodapp.utils.Constants.STAFF_TABLE
 import com.example.foodapp.utils.json_format.LocalDateSerializer
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
@@ -31,7 +31,7 @@ data class Staff(
 
     val basicSalary: Double = 0.0,
 
-    @SerializedName("isDeleted")
+    @SerialName("isDeleted")
     val isDeleted: Boolean = false,
 
 

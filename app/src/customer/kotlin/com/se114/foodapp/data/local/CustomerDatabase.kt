@@ -5,8 +5,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.foodapp.utils.Converters
 
-import com.se114.foodapp.data.entities.CartItemEntity
-import com.se114.foodapp.data.local.dao.CartDao
+import com.example.foodapp.data.local.entities.CartItemEntity
+import com.example.foodapp.data.local.daos.CartDao
 
 
 @Database(entities = [CartItemEntity::class], version = 1)

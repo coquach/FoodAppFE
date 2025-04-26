@@ -13,6 +13,7 @@ import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.data.datastore.WelcomeRepository
 import com.example.foodapp.ui.navigation.OrderList
 import com.example.foodapp.ui.navigation.Statistics
+
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

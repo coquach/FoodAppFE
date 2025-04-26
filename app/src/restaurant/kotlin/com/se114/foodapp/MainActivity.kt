@@ -2,25 +2,33 @@ package com.se114.foodapp
 
 import android.animation.ObjectAnimator
 
+import android.os.Build
+
 import android.os.Bundle
 import android.util.Log
 
 import android.view.View
+
 import android.view.animation.OvershootInterpolator
+import androidx.activity.SystemBarStyle
 
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.PaddingValues
+
 
 import androidx.compose.foundation.layout.fillMaxSize
 
-import androidx.compose.material3.MaterialTheme
+
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
+
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +38,7 @@ import androidx.compose.ui.Modifier
 
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 
 
@@ -47,6 +56,8 @@ import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.Statistics
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.se114.foodapp.ui.app_nav.AppNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -61,6 +72,7 @@ class MainActivity : BaseFoodAppActivity() {
     @Inject
     lateinit var splashViewModel: SplashViewModel
 
+    @RequiresApi(Build.VERSION_CODES.R)
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -100,6 +112,7 @@ class MainActivity : BaseFoodAppActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
 
@@ -136,9 +149,7 @@ class MainActivity : BaseFoodAppActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
-
 
                         AnimatedVisibility(visible = shouldShowBottomNav.value) {
 
@@ -147,10 +158,13 @@ class MainActivity : BaseFoodAppActivity() {
                     }
 
                 ) { innerPadding ->
+
                     SharedTransitionLayout {
                         AppNavGraph(
                             navController = navController,
-                            innerPadding = innerPadding,
+                            innerPadding = PaddingValues(
+                                bottom = innerPadding.calculateBottomPadding()
+                            ),
                             shouldShowBottomNav = shouldShowBottomNav,
                             notificationViewModel = notificationViewModel,
                             startDestination = screen,
