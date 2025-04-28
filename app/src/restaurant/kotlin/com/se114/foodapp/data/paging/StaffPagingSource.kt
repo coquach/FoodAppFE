@@ -32,7 +32,7 @@ class StaffPagingSource(
                     if (body.content.isNotEmpty()) {
                         LoadResult.Page(
                             data = body.content,
-                            prevKey = if (currentPage == 1) null else currentPage - 1,
+                            prevKey = if (currentPage == 0) null else currentPage - 1,
                             nextKey = if (endOfPaginationReached) null else currentPage + 1
                         )
                     } else {

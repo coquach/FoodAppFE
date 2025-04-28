@@ -95,6 +95,7 @@ fun CategoryScreen(
         CategoryViewModel.CategoryState.Error -> {
             isLoading = false
         }
+
         CategoryViewModel.CategoryState.Loading -> {
             isLoading = true
         }
@@ -102,6 +103,7 @@ fun CategoryScreen(
         CategoryViewModel.CategoryState.Nothing -> {
             isLoading = false
         }
+
         CategoryViewModel.CategoryState.Success -> {
             isLoading = false
         }
@@ -130,10 +132,9 @@ fun CategoryScreen(
             HeaderDefaultView(
                 text = "Danh mục món ăn",
                 onBack = {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 },
-
-                )
+            )
         }
 
 
@@ -208,7 +209,12 @@ fun CategoryScreen(
                                             isEditMode = false
                                         },
                                         value = categoryName,
-                                        onValueChange = { newName -> viewModel.onChangeCategoryName(newName) }
+                                        onValueChange = { newName ->
+                                            viewModel.onChangeCategoryName(
+                                                newName
+                                            )
+                                        },
+                                        modifier = Modifier.width(320.dp).height(150.dp)
                                     )
                                 } else {
                                     SwipeableActionsBox(
@@ -247,12 +253,12 @@ fun CategoryScreen(
                         onClick = {
                             viewModel.addCategory()
                             isCreating = false
-                                  },
+                        },
                         value = categoryName,
-                        onValueChange = {newName -> viewModel.onChangeCategoryName(newName)}
+                        onValueChange = { newName -> viewModel.onChangeCategoryName(newName) }
                     )
 
-                } else if(!isLoading && !isEditMode) {
+                } else if (!isLoading && !isEditMode) {
                     IconButton(
                         onClick = { isCreating = true },
                         modifier = Modifier
@@ -283,29 +289,29 @@ fun CategoryScreen(
 fun MenuCard(
     text: String,
 ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Row {
-                    Icon(
-                        imageVector = Icons.Default.Fastfood,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(12.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Row {
+            Icon(
+                imageVector = Icons.Default.Fastfood,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.size(10.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.tertiary,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 
 
 }
@@ -315,9 +321,10 @@ fun MenuCard(
 fun EditMenuCard(
     onClick: () -> Unit,
     value: String,
-    onValueChange:(String) -> Unit
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
 
-){
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -326,7 +333,7 @@ fun EditMenuCard(
         FoodAppTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.width(320.dp),
+            modifier = modifier,
             placeholder = { Text("Nhập tên danh mục...") }
         )
         Spacer(modifier = Modifier.width(8.dp))

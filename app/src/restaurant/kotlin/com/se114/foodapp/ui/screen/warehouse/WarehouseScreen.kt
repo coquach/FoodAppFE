@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,6 +44,7 @@ import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Unit
+import com.example.foodapp.ui.navigation.Material
 import com.example.foodapp.ui.screen.components.GenericListContent
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.SearchField
@@ -76,7 +79,12 @@ fun WarehouseScreen(
 
 
         HeaderDefaultView(
-            text = "Kho hàng"
+            onBackIcon = Icons.Filled.Inventory,
+            onBack = {
+                navController.navigate(Material)
+            },
+            text = "Kho hàng",
+            icon = Icons.Filled.Description
         )
         SearchField(
             searchInput = search,

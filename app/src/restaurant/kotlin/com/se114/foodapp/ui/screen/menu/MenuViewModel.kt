@@ -43,14 +43,18 @@ class MenuViewModel
     fun refreshMenus() {
         viewModelScope.launch {
 
-                menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = true)).cachedIn(viewModelScope)
-                    .collect { _menuItemsAvailable.value = it }
+            menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = true))
+                .cachedIn(viewModelScope)
+                .collect { _menuItemsAvailable.value = it }
 
+        }
+        viewModelScope.launch {
 
-                menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = false)).cachedIn(viewModelScope)
-                    .collect { _menuItemsHidden.value = it }
-            }
+            menuItemRepository.getMenuItemsByFilter(MenuItemFilter(isAvailable = false))
+                .cachedIn(viewModelScope)
+                .collect { _menuItemsHidden.value = it }
 
+        }
     }
 
     private val _selectedItems = mutableStateListOf<MenuItem>()

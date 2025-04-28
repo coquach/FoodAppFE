@@ -1,5 +1,7 @@
 package com.se114.foodapp.ui.screen.setting
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.navigation.Profile
+import com.example.foodapp.ui.navigation.Supplier
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.SettingGroup
@@ -57,7 +61,13 @@ fun SettingScreen(
 
     val showDialogLogout = remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val activity = context as? Activity
 
+
+    BackHandler {
+        activity?.moveTaskToBack(true)
+    }
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
@@ -122,7 +132,7 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(Icons.Default.LocalShipping, "Nhà cung cấp")
+                        SettingItem(Icons.Default.LocalShipping, "Nhà cung cấp", onClick = { navController.navigate(Supplier)})
                         SettingItem(Icons.Default.CardGiftcard, "Voucher & Khuyến mãi")
 
                     }

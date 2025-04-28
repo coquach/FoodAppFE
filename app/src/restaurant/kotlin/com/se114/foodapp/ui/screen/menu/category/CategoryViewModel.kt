@@ -54,7 +54,7 @@ class CategoryViewModel @Inject constructor(
                     is ApiResponse.Success -> {
                         Log.d("Load menu", "Done")
                         val data = response.body
-                        _categoryList.value = data!!
+                        _categoryList.value = data ?: emptyList()
                         _uiState.value = CategoryState.Success
                     }
 

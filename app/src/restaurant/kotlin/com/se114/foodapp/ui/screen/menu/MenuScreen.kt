@@ -163,7 +163,7 @@ fun SharedTransitionScope.MenuScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(130.dp)
             ) {
                 androidx.compose.animation.AnimatedVisibility(
                     visible = !isInSelectionMode,

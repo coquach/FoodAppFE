@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.navigation
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -54,14 +55,21 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
 
     data object Order : BottomNavItem(OrderList, R.drawable.ic_order)
     data object Setting :
-        BottomNavItem(com.example.foodapp.ui.navigation.Setting, if(BuildConfig.FLAVOR == "restaurant") R.drawable.ic_setting else R.drawable.ic_user_circle)
-    data object  Statistics :
+        BottomNavItem(
+            com.example.foodapp.ui.navigation.Setting,
+            if (BuildConfig.FLAVOR == "restaurant") R.drawable.ic_setting else R.drawable.ic_user_circle
+        )
+
+    data object Statistics :
         BottomNavItem(com.example.foodapp.ui.navigation.Statistics, R.drawable.ic_chart)
-    data object  Warehouse :
+
+    data object Warehouse :
         BottomNavItem(com.example.foodapp.ui.navigation.Warehouse, R.drawable.ic_warehouse)
-    data object  Employee :
+
+    data object Employee :
         BottomNavItem(com.example.foodapp.ui.navigation.Employee, R.drawable.ic_employee)
-    data object  Menu :
+
+    data object Menu :
         BottomNavItem(com.example.foodapp.ui.navigation.Menu, R.drawable.ic_meal)
 
 
@@ -69,11 +77,17 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomNavItem>) {
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination
-    var selectedIndex by rememberSaveable{ mutableIntStateOf(0) }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route
+
+    val selectedIndex = navItems.indexOfFirst { it.route::class.qualifiedName == currentRoute }
+        .takeIf { it >= 0 } ?: 0
+
 
     AnimatedNavigationBar(
-        modifier = Modifier.height(80.dp)
+        modifier = Modifier
+            .height(80.dp)
             .padding(top = 0.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
         selectedIndex = selectedIndex,
         barColor = MaterialTheme.colorScheme.primary,
@@ -82,12 +96,14 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
         ballAnimation = Straight(tween(durationMillis = 350, easing = FastOutSlowInEasing)),
         indentAnimation = Height(tween(durationMillis = 200, easing = LinearOutSlowInEasing))
     ) {
-        navItems.forEachIndexed{ index, item ->
+        navItems.forEachIndexed { index, item ->
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .noRippleClickable {
-                        selectedIndex = index
+
+
                         navController.navigate(item.route) {
 
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -98,6 +114,8 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
 
                             restoreState = true
                         }
+
+
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -111,7 +129,8 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
     }
 
 }
-fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed{
+
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
     clickable(
         indication = null,
         interactionSource = remember { MutableInteractionSource() }

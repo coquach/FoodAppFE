@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -64,16 +65,21 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.draw.clip
 
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -95,6 +101,7 @@ fun FoodAppTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    fieldHeight: Dp = 56.dp,
     enabled: Boolean = true,
     readOnly: Boolean = false,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -127,28 +134,38 @@ fun FoodAppTextField(
 
     )
 ) {
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        labelText?.let {
-            Column {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.outline,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-            }
 
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+
+        labelText?.let {
+
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.outline,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+            )
+
+
+        }
+        val actualTextStyle = when {
+            fieldHeight < 52.dp -> textStyle.copy(fontSize = 14.sp)
+            fieldHeight in 52.dp..60.dp -> textStyle.copy(fontSize = 16.sp)
+            fieldHeight in 61.dp..70.dp -> textStyle.copy(fontSize = 18.sp)
+            else -> textStyle.copy(fontSize = 20.sp)
         }
 
         OutlinedTextField(
             value = value,
             onValueChange,
-            modifier,
+            modifier = modifier.heightIn(min = 56.dp),
             enabled,
             readOnly,
-            textStyle.copy(fontWeight = FontWeight.SemiBold),
+            textStyle = actualTextStyle ,
             null,
             placeholder,
             leadingIcon,
@@ -191,12 +208,14 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
             Text(
                 text = title,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = description,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.size(16.dp))
             Button(
@@ -205,7 +224,7 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
 
-                ) {
+            ) {
                 Text(
                     text = stringResource(id = R.string.ok),
                     color = MaterialTheme.colorScheme.onPrimary,
@@ -340,27 +359,32 @@ fun Loading() {
 @Composable
 fun HeaderDefaultView(
     text: String,
+    onBackIcon: ImageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
     onBack: (() -> Unit)? = null,
     icon: ImageVector? = null,
     iconClick: (() -> Unit)? = null,
     tintIcon: Color = MaterialTheme.colorScheme.primary
 
-    ) {
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if(onBack != null){
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = null,
+        if (onBack != null) {
+            IconButton(
+                onClick = onBack,
                 modifier = Modifier
                     .padding(end = 16.dp)
-                    .size(30.dp)
+                    .size(40.dp) // size to rộng xíu cho dễ bấm
                     .clip(CircleShape)
-                    .clickable { onBack() },
-                tint = MaterialTheme.colorScheme.primary
-            )
+            ) {
+                Icon(
+                    imageVector = onBackIcon,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp) // icon nhỏ hơn để căn giữa trong button
+                )
+            }
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
         }
@@ -368,25 +392,31 @@ fun HeaderDefaultView(
         Text(
             text = text,
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
+            color = tintIcon,
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier
                 .weight(1f),
             textAlign = TextAlign.Center
         )
 
-        if(icon != null){
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
+        if (icon != null) {
+            IconButton(
+                onClick = { iconClick?.invoke() },
                 modifier = Modifier
-                    .size(30.dp)
-                    .clickable {
-                        iconClick?.invoke()
-                    },
-                tint = tintIcon
+                    .padding(start = 16.dp)
+                    .size(40.dp) // size to rộng xíu cho dễ bấm
+                    .clip(CircleShape)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp),
+                    tint = tintIcon
 
-            )
+                )
+            }
+
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
         }
@@ -422,6 +452,8 @@ fun FoodAppDialog(
     message: String,
     messageColor: Color = MaterialTheme.colorScheme.onBackground,
     onDismiss: () -> Unit,
+    containerConfirmButtonColor: Color = MaterialTheme.colorScheme.error,
+    labelConfirmButtonColor: Color = MaterialTheme.colorScheme.onError,
     onConfirm: (() -> Unit)? = null,
     confirmText: String = "Ok",
     dismissText: String = "Đóng",
@@ -441,7 +473,13 @@ fun FoodAppDialog(
         containerColor = MaterialTheme.colorScheme.background,
         confirmButton = {
             if (showConfirmButton) {
-                TextButton(onClick = { onConfirm?.invoke(); onDismiss() }) {
+                TextButton(
+                    onClick = { onConfirm?.invoke(); onDismiss() },
+                    colors = ButtonDefaults.buttonColors().copy(
+                        containerColor = containerConfirmButtonColor,
+                        contentColor = labelConfirmButtonColor
+                    )
+                ) {
                     Text(confirmText)
                 }
             }
@@ -551,8 +589,6 @@ fun CustomPagerIndicator(
 }
 
 
-
-
 fun <T : Any> LazyListScope.gridItems(
     data: LazyPagingItems<T>,
     nColumns: Int,
@@ -568,7 +604,7 @@ fun <T : Any> LazyListScope.gridItems(
         )
     }
 ) {
-    val rowCount = if (data.itemCount == 0) 0 else (data.itemCount + nColumns  - 1) / nColumns
+    val rowCount = if (data.itemCount == 0) 0 else (data.itemCount + nColumns - 1) / nColumns
     items(rowCount) { rowIndex ->
         Row(horizontalArrangement = horizontalArrangement) {
             for (columnIndex in 0 until nColumns) {

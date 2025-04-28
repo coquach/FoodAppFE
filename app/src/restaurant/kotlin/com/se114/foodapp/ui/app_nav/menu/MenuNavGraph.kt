@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.navigation.Menu
 import com.example.foodapp.ui.navigation.UpdateMenuItem
 import com.example.foodapp.ui.navigation.menuItemNavType
@@ -17,6 +18,7 @@ import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.menu.MenuScreen
 import com.se114.foodapp.ui.screen.menu.MenuViewModel
 import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemScreen
+import com.se114.foodapp.ui.screen.menu.category.CategoryScreen
 import kotlin.reflect.typeOf
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -50,6 +52,11 @@ fun NavGraphBuilder.menuGraph(
             ScreenContainer {
                 AddMenuItemScreen(navController, isUpdating = true, menuItem = route.menuItem)
             }
+
+        }
+        composable<Category> {
+            shouldShowBottomNav.value = false
+            ScreenContainer { CategoryScreen(navController) }
 
         }
     }

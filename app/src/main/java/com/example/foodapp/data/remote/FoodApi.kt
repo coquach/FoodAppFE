@@ -1,7 +1,9 @@
 package com.example.foodapp.data.remote
 
 
-
+import com.example.foodapp.data.dto.request.ExportRequest
+import com.example.foodapp.data.dto.request.ImportRequest
+import com.example.foodapp.data.dto.request.IngredientRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 import com.example.foodapp.data.dto.request.RegisterRequest
 import com.example.foodapp.data.dto.response.PageResponse
@@ -12,6 +14,14 @@ import com.example.foodapp.data.model.Order
 
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.dto.request.MenuRequest
+import com.example.foodapp.data.dto.request.SupplierRequest
+import com.example.foodapp.data.dto.request.UnitRequest
+import com.example.foodapp.data.model.Export
+import com.example.foodapp.data.model.Import
+import com.example.foodapp.data.model.Ingredient
+import com.example.foodapp.data.model.Inventory
+import com.example.foodapp.data.model.Supplier
+
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -30,8 +40,6 @@ import retrofit2.http.Query
 interface FoodApi {
 
 
-
-
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
@@ -39,13 +47,13 @@ interface FoodApi {
     @GET("orders")
     suspend fun getOrders(
         @Query("page") page: Int,
-        @Query("size") size: Int ,
+        @Query("size") size: Int,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
         @Query("staffId") staffId: Long? = null,
         @Query("status") status: String? = null,
         @Query("paymentMethod") paymentMethod: String? = null,
-        @Query("startDate") startDate: String? = null,      
+        @Query("startDate") startDate: String? = null,
         @Query("endDate") endDate: String? = null,
     ): Response<PageResponse<Order>>
 
@@ -101,7 +109,7 @@ interface FoodApi {
         @Query("id") id: Long? = null,
         @Query("isAvailable") isAvailable: Boolean? = null,
 
-    ): Response<PageResponse<MenuItem>>
+        ): Response<PageResponse<MenuItem>>
 
     @GET("menu-items/{id}")
     suspend fun getMenuItemDetailById(
@@ -164,6 +172,170 @@ interface FoodApi {
         @Query("year") year: Int
     ): Response<Map<String, Double>>
 
+    //Supplier
+    @GET("suppliers")
+    suspend fun getSuppliers(
+        @Query("page") page: Int,
+        @Query("size") size: Int,
+        @Query("sortBy") sortBy: String = "id",
+        @Query("order") order: String = "asc",
+        @Query("name") name: String? = null,
+        @Query("phone") phone: String? = null,
+        @Query("email") email: String? = null,
+        @Query("address") address: String? = null,
+        @Query("isActive") isActive: Boolean? = null
+    ): Response<PageResponse<Supplier>>
 
+    @POST("suppliers")
+    suspend fun createSupplier(
+        @Body request: SupplierRequest
+    ): Response<Supplier>
+
+    @PUT("suppliers/{id}")
+    suspend fun updateSupplier(
+        @Path("id") id: Long,
+        @Body request: SupplierRequest
+    ): Response<Supplier>
+
+    @PUT("suppliers/set-active/{id}")
+    suspend fun setActiveSupplier(
+        @Path("id") id: Long,
+        @Body isActive: Boolean
+    ): Response<Unit>
+
+    @DELETE("suppliers/{id}")
+    suspend fun deleteSupplier(
+        @Path("id") id: Long
+    ): Response<Unit>
+
+
+    //Unit
+    @GET("units/active")
+    suspend fun getActiveUnits() : Response<List<com.example.foodapp.data.model.Unit>>
+
+    @GET("units/isActive")
+    suspend fun getHiddenUnits() : Response<List<com.example.foodapp.data.model.Unit>>
+    @POST("units")
+    suspend fun createUnit(
+        @Body request: UnitRequest
+    ): Response<com.example.foodapp.data.model.Unit>
+
+    @PUT("units/{id}")
+    suspend fun updateUnit(
+        @Path("id") id: Long,
+        @Body request: UnitRequest
+    ): Response<com.example.foodapp.data.model.Unit>
+
+    @DELETE("units/{id}")
+    suspend fun deleteUnit(
+        @Path("id") id: Long
+    ): Response<Unit>
+
+    @PUT("units/set-active/{id}")
+    suspend fun recoverUnit(
+        @Path("id") id: Long,
+        @Body isActive: Boolean
+    ): Response<Unit>
+
+
+    //Ingredient
+    @GET("ingredients/active")
+    suspend fun getActiveIngredients(): Response<List<Ingredient>>
+
+    @GET("ingredients/inActive")
+    suspend fun getHiddenIngredients(): Response<List<Ingredient>>
+
+    @GET("ingredients/{id}")
+    suspend fun getIngredientById(
+        @Path("id") id: Long
+    ): Response<Ingredient>
+
+    @POST("ingredients")
+    suspend fun createIngredient(
+        @Body request: IngredientRequest
+    ): Response<Ingredient>
+
+    @PUT("ingredients/{id}")
+    suspend fun updateIngredient(
+        @Path("id") id: Long,
+        @Body request: IngredientRequest
+    ): Response<Ingredient>
+
+    @DELETE("ingredients/{id}")
+    suspend fun deleteIngredient(
+        @Path("id") id: Long
+    ): Response<Unit> // 204 No Content
+
+    @PUT("ingredients/set-active/{id}")
+    suspend fun setActiveIngredient(
+        @Path("id") id: Long,
+        @Body isActive: Boolean
+    ): Response<Unit> // 204 No Content
+
+    //Import
+
+
+        @GET("imports")
+        suspend fun getImports(
+            @Query("page") page: Int = 0,
+            @Query("size") size: Int = 10,
+            @Query("sortBy") sortBy: String = "id",
+            @Query("order") order: String = "asc",
+            @Query("staffId") staffId: Long?= null,
+            @Query("supplierId") supplierId: Long?= null,
+            @Query("startDate") startDate: String?= null,
+            @Query("endDate") endDate: String?= null
+        ): Response<PageResponse<Import>>
+
+        @POST("imports")
+        suspend fun createImport(@Body request: ImportRequest): Response<Import>
+
+        @PUT("imports/{id}")
+        suspend fun updateImport(
+            @Path("id") id: Long,
+            @Body request: ImportRequest
+        ): Response<Import>
+
+        @DELETE("imports/{id}")
+        suspend fun deleteImport(@Path("id") id: Long): Response<Unit>
+
+
+    //Export
+    @GET("exports")
+    suspend fun getExports(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "exportDate",
+        @Query("order") order: String = "asc",
+
+    ): Response<PageResponse<Export>>
+
+
+    @POST("exports")
+    suspend fun createExport(@Body request: ExportRequest): Response<Export>
+
+
+    @PUT("exports/{id}")
+    suspend fun updateExport(
+        @Path("id") id: Long,
+        @Body request: ExportRequest
+    ): Response<Export>
+
+
+    @DELETE("exports/{id}")
+    suspend fun deleteExport(@Path("id") id: Long): Response<Unit>
+
+    //Inventory
+
+    @GET("inventories")
+    suspend fun getInventories(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "expiryDate",
+        @Query("order") order: String = "asc",
+        @Query("ingredientId") ingredientId: Long? = null,
+        @Query("expiryDate") expiryDate: String? = null,
+        @Query("isOutOfStock") isOutOfStock: Boolean? = null,
+    ): Response<PageResponse<Inventory>>
 
 }

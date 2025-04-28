@@ -8,7 +8,6 @@ data class Supplier(
     val name: String,
     val phone: String,
     val email: String,
-    val address: String,
-    val imports: List<Import> = emptyList(),
-    val isDeleted: Boolean = false
+    val address: String
+
 )

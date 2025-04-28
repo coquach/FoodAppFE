@@ -4,10 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Ingredient(
-    val id: Long? = null,
+    val id: Long,
     val name: String,
-    val unit: Unit,
-    val importDetails: List<ImportDetail> = mutableListOf(),
-    val inventories: List<Inventory> = mutableListOf(),
-    val isDeleted: Boolean = false
+    val unitId: Long,
 )

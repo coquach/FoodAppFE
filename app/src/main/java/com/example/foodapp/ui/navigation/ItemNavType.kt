@@ -107,3 +107,22 @@ val staffNavType = object : NavType<Staff>(false) {
     }
 
 }
+
+val importNavType = object : NavType<Import>(false) {
+    override fun get(bundle: Bundle, key: String): Import {
+        return parseValue(bundle.getString(key).orEmpty())
+    }
+
+    override fun parseValue(value: String): Import {
+        return Json.decodeFromString(Import.serializer(), value)
+    }
+
+    override fun serializeAsValue(value: Import): String {
+        return Json.encodeToString(Import.serializer(), value)
+    }
+
+    override fun put(bundle: Bundle, key: String, value: Import) {
+        bundle.putString(key, serializeAsValue(value))
+    }
+
+}

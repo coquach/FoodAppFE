@@ -3,8 +3,10 @@ package com.example.foodapp.utils
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
@@ -22,16 +24,15 @@ object StringUtils {
     }
     private val vietnamTimeZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh")
 
-    fun formatDateTime(input: String, inputPattern: String = "yyyy-MM-dd'T'HH:mm:ss'Z'", outputPattern: String = "dd/MM/yyyy HH:mm"): String {
+    fun formatDateTime(input: LocalDateTime, inputPattern: String = "yyyy-MM-dd'T'HH:mm:ss'Z'", outputPattern: String = "dd/MM/yyyy HH:mm:ss"): String {
         return try {
-            val inputFormat = SimpleDateFormat(inputPattern, Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
-            val outputFormat = SimpleDateFormat(outputPattern, Locale("vi", "VN")).apply {
-                timeZone = vietnamTimeZone
-            }
-            val date = inputFormat.parse(input) ?: return "Invalid date"
-            outputFormat.format(date)
+            // Chuyển LocalDateTime sang ZonedDateTime với múi giờ UTC
+            val inputFormatter = DateTimeFormatter.ofPattern(inputPattern).withLocale(Locale.getDefault())
+            val date = input.atZone(ZoneOffset.UTC).toLocalDateTime()
+
+            // Định dạng lại với output pattern
+            val outputFormatter = DateTimeFormatter.ofPattern(outputPattern).withLocale(Locale("vi", "VN"))
+            return outputFormatter.format(date)
         } catch (e: Exception) {
             "Thời gian không hợp lệ!"
         }

@@ -1,41 +1,40 @@
-package com.example.foodapp.data.paging
+package com.se114.foodapp.data.paging
 
-import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.OrderFilter
+import com.example.foodapp.data.dto.filter.MenuItemFilter
 import com.example.foodapp.data.dto.safeApiCall
-import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.Import
+import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.utils.Constants
+import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
 import com.example.foodapp.utils.StringUtils
+import com.se114.foodapp.data.dto.filter.ImportFilter
 import java.io.IOException
 
-@OptIn(ExperimentalPagingApi::class)
-class OrderPagingSource(
+class ImportPagingSource(
     private val foodApi: FoodApi,
-    private val filter: OrderFilter
-) : PagingSource<Int, Order>() {
-
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Order> {
+    private val filter: ImportFilter,
+) : PagingSource<Int, Import>() {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Import> {
         val currentPage = params.key ?: 0
         return try {
             val response = safeApiCall {
-                foodApi.getOrders(
+                foodApi.getImports(
                     page = currentPage,
-                    size = Constants.ITEMS_PER_PAGE,
-                    status = filter.status,
-                    paymentMethod = filter.paymentMethod,
+                    size = ITEMS_PER_PAGE,
                     staffId = filter.staffId,
+                    supplierId = filter.supplierId,
                     startDate = StringUtils.formatLocalDate(filter.startDate),
                     endDate = StringUtils.formatLocalDate(filter.endDate)
+
                 )
             }
             when (response) {
                 is ApiResponse.Success -> {
                     val body = response.body!!
-                    val endOfPaginationReached = body.content.isEmpty() || body.content.size < Constants.ITEMS_PER_PAGE
+                    val endOfPaginationReached = body.content.isEmpty() || body.content.size < ITEMS_PER_PAGE
                     if (body.content.isNotEmpty()) {
                         LoadResult.Page(
                             data = body.content,
@@ -65,7 +64,7 @@ class OrderPagingSource(
 
     }
 
-    override fun getRefreshKey(state: PagingState<Int, Order>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, Import>): Int? {
         return state.anchorPosition?.let { anchor ->
             state.closestPageToPosition(anchor)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchor)?.nextKey?.minus(1)

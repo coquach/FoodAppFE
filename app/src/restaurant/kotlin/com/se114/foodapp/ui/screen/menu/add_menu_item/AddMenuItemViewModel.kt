@@ -250,7 +250,7 @@ class AddMenuItemViewModel @Inject constructor(
     }
 
     sealed class AddMenuItemState {
-        object Nothing : AddMenuItemState()
+        data object Nothing : AddMenuItemState()
         object Loading : AddMenuItemState()
         object Success : AddMenuItemState()
         object Error : AddMenuItemState()
@@ -258,6 +258,6 @@ class AddMenuItemViewModel @Inject constructor(
 
     sealed class AddMenuItemEvent {
         data class ShowErrorMessage(val message: String) : AddMenuItemEvent()
-        object GoBack : AddMenuItemEvent()
+        data object GoBack : AddMenuItemEvent()
     }
 }

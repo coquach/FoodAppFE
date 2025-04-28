@@ -105,7 +105,14 @@ object Category: NavRoute
 object Supplier : NavRoute
 
 @Serializable
-object SupplierDetails: NavRoute
+object Material: NavRoute
+
+@Serializable
+object Import: NavRoute
+
+@Serializable
+data class ImportDetails(val import: Import) : NavRoute
+
 
 
 
