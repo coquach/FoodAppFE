@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.LocalDate
@@ -39,26 +40,22 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangePickerSample(
+    startDateText: String = "Ngày bắt đầu",
+    endDateText: String = "Ngày kết thúc",
     startDate: LocalDate?,
     endDate: LocalDate?,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.width(200.dp),
+    fieldHeight: Dp = 56.dp,
     onDateRangeSelected: (LocalDate?, LocalDate?) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    val dateRangePickerState = rememberDateRangePickerState()
-
-
-
-
-
-
-
-
-
+    val dateRangePickerState = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = startDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
+        initialSelectedEndDateMillis = endDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+    )
     val interactionSource = remember { MutableInteractionSource() }
 
     LaunchedEffect(interactionSource) {
@@ -70,23 +67,22 @@ fun DateRangePickerSample(
     }
 
     Row(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // TextField cho ngày bắt đầu
         FoodAppTextField(
             value = startDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
             onValueChange = {},
             readOnly = true,
-            labelText = "Ngày bắt đầu",
+            labelText = startDateText,
             trailingIcon = {
                 Icon(Icons.Default.DateRange, contentDescription = null)
             },
             interactionSource = interactionSource,
-            modifier = Modifier
-                .clickable { showDialog = true }
-                .width(200.dp)
+            modifier = modifier
+                .clickable { showDialog = true },
+            fieldHeight = fieldHeight
+
         )
 
         // TextField cho ngày kết thúc
@@ -94,14 +90,14 @@ fun DateRangePickerSample(
             value = endDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
             onValueChange = {},
             readOnly = true,
-            labelText = "Ngày kết thúc",
+            labelText = endDateText,
             trailingIcon = {
                 Icon(Icons.Default.DateRange, contentDescription = null)
             },
             interactionSource = interactionSource,
-            modifier = Modifier
-                .clickable { showDialog = true }
-                .width(200.dp)
+            modifier = modifier
+                .clickable { showDialog = true },
+            fieldHeight = fieldHeight
         )
     }
 

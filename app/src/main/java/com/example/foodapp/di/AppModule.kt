@@ -10,11 +10,11 @@ import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.service.AccountService
 import com.example.foodapp.utils.gson.BigDecimalDeserializer
 import com.example.foodapp.utils.gson.LocalDateDeserializer
-import com.example.foodapp.utils.gson.LocalTimeSerializer
+import com.example.foodapp.utils.gson.LocalDateTimeDeserializer
+import com.example.foodapp.utils.gson.LocalTimeDeserializer
 
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 
 import dagger.Module
@@ -28,10 +28,9 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.math.BigDecimal
-import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
-import javax.inject.Provider
 import javax.inject.Singleton
 
 
@@ -75,8 +74,9 @@ object NetworkModule {
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateDeserializer())
-            .registerTypeAdapter(LocalTime::class.java, LocalTimeSerializer())
+            .registerTypeAdapter(LocalTime::class.java, LocalTimeDeserializer())
             .registerTypeAdapter(BigDecimal::class.java, BigDecimalDeserializer())
+            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeDeserializer())
             .setLenient()
             .create()
         return Retrofit.Builder()

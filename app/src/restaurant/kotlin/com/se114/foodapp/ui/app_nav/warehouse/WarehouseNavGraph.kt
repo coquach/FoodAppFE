@@ -4,16 +4,20 @@ import androidx.compose.runtime.MutableState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.example.foodapp.data.model.MenuItem
+import androidx.navigation.toRoute
+import com.example.foodapp.ui.navigation.AddImportDetails
 import com.example.foodapp.ui.navigation.Import
-import com.example.foodapp.ui.navigation.ImportDetails
+
+
 import com.example.foodapp.ui.navigation.Material
+import com.example.foodapp.ui.navigation.UpdateImportDetails
 
 import com.example.foodapp.ui.navigation.Warehouse
 import com.example.foodapp.ui.navigation.importNavType
-import com.example.foodapp.ui.navigation.menuItemNavType
 import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.warehouse.WarehouseScreen
+import com.se114.foodapp.ui.screen.warehouse.imports.ImportDetailsScreen
+import com.se114.foodapp.ui.screen.warehouse.imports.ImportScreen
 import com.se114.foodapp.ui.screen.warehouse.material.MaterialScreen
 import kotlin.reflect.typeOf
 
@@ -34,11 +38,28 @@ fun NavGraphBuilder.warehouseGraph(
             MaterialScreen(navController)
         }
     }
-    composable<Import> {  }
+    composable<Import> {
+        shouldShowBottomNav.value = false
+        ScreenContainer {
+            ImportScreen(navController)
+        }
+    }
 
-    composable<ImportDetails>(
-        typeMap = mapOf(typeOf<Import>() to importNavType)
+    composable<UpdateImportDetails>(
+        typeMap = mapOf(typeOf<com.example.foodapp.data.model.Import>() to importNavType)
     ) {
+        shouldShowBottomNav.value = false
+        val route = it.toRoute<UpdateImportDetails>()
+        ScreenContainer {
+            ImportDetailsScreen(navController, isUpdating = true, import = route.import)
+        }
+    }
 
+    composable<AddImportDetails>(
+    ) {
+        shouldShowBottomNav.value = false
+        ScreenContainer {
+            ImportDetailsScreen(navController)
+        }
     }
 }

@@ -34,7 +34,7 @@ class ImportViewModel @Inject constructor(
         refreshImports()
     }
 
-    private fun refreshImports() {
+    fun refreshImports() {
         viewModelScope.launch {
             importRepository.getAllImports(ImportFilter()).cachedIn(viewModelScope).collect{
                 _import.value = it
@@ -58,14 +58,14 @@ class ImportViewModel @Inject constructor(
                 when (response) {
                     is ApiResponse.Success -> {
                         _uiState.value = ImportState.Success
-                        _event.send(ImportEvents.ShowSuccessToast("Xóa đơn nhập thành công"))
+                        _event.send(ImportEvents.ShowSuccessToast("Xóa phiếu nhập thành công"))
                     }
                     is ApiResponse.Error -> {
-                        _uiState.value = ImportState.Error("Xóa đơn nhập thất bại")
+                        _uiState.value = ImportState.Error("Xóa phiếu nhập thất bại")
                      Log.d("Delete import", response.message)
                     }
                     else -> {
-                        _uiState.value = ImportState.Error("Xóa đơn nhập thất bại")
+                        _uiState.value = ImportState.Error("Xóa phiếu nhập thất bại")
                     }
                 }
 

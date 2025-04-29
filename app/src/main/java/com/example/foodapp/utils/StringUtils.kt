@@ -67,6 +67,15 @@ object StringUtils {
         return timeNow.format(formatter)
     }
 
+    fun getFormattedCurrentVietnamDateTime(pattern: String = "dd-MM-yyyy HH:mm:ss"): String {
+        return try {
+            val formatter = DateTimeFormatter.ofPattern(pattern)
+            LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(formatter)
+        } catch (e: Exception) {
+            "Thời gian không hợp lệ!"
+        }
+    }
+
 
     fun parseLocalDate(input: String): LocalDate? {
         return try {

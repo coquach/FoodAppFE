@@ -1,11 +1,18 @@
 package com.example.foodapp.ui.screen.components
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -28,7 +35,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
 import com.example.foodapp.ui.theme.FoodAppTheme
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,15 +57,20 @@ fun ComboBoxSample(
             onPositionSelected(options.first())
         }
     }
+
+
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = {
+            Log.d("expanded", "$expanded")
+            expanded = !expanded },
     ) {
         FoodAppTextField(
             value = selected ?: "",
             onValueChange = {},
             readOnly = true,
             labelText = title,
+
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
@@ -99,4 +113,84 @@ fun ComboBoxSample(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun <T : Any> ComboBoxSampleLazyPaging(
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    textPlaceholder: String,
+    selected: String?,
+    onPositionSelected: (String?) -> Unit,
+    options: LazyPagingItems<T>,
+    fieldHeight: Dp = 56.dp,
+    width: Dp = 200.dp,
+    labelExtractor: (T) -> String, // T -> String để lấy label hiển thị
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
+
+    LaunchedEffect(selected, options.itemSnapshotList.items) {
+        if (selected == null && options.itemCount > 0) {
+            options.itemSnapshotList.items.firstOrNull()?.let { firstItem ->
+                onPositionSelected(labelExtractor(firstItem))
+            }
+        }
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        FoodAppTextField(
+            value = selected ?: "",
+            onValueChange = {},
+            readOnly = true,
+            labelText = title,
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+                ,
+            fieldHeight = fieldHeight
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .width(500.dp)
+                    .height(300.dp)
+            ) {
+                // Mục placeholder đầu tiên
+                item {
+                    DropdownMenuItem(
+                        text = { Text(textPlaceholder) },
+                        onClick = {
+                            onPositionSelected(null)
+                            expanded = false
+                        }
+                    )
+                }
+
+                items(options.itemCount) { index ->
+                    val item = options[index]
+                    if (item != null) {
+                        val label = labelExtractor(item)
+                        DropdownMenuItem(
+                            text = { Text(label) },
+                            onClick = {
+                                onPositionSelected(label)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 

@@ -10,7 +10,6 @@ import java.time.LocalDateTime
 @Serializable
 data class ImportDetail(
     val id: Long,
-    val anImport: Import,
     val ingredient: Ingredient,
 
     @Serializable(with = LocalDateTimeSerializer::class)

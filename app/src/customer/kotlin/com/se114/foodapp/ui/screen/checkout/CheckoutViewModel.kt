@@ -111,7 +111,7 @@ private val foodApi: FoodApi
     fun onConfirmClicked() {
         viewModelScope.launch {
             _uiState.value = ResultState.Loading
-            delay(3000)
+
             _orderRequest.update { it.copy(
                 orderDate = StringUtils.getFormattedCurrentVietnamDate(),
                 createAt = StringUtils.getCurrentVietnamLocalTime(),
@@ -123,6 +123,7 @@ private val foodApi: FoodApi
                         quantity = cartItem.quantity,
                     ) }
             ) }
+            delay(3000)
             Log.d("PaymentMethod", _orderRequest.value.paymentMethod)
             Log.d("Order Items", "${_cartItems.value.size}")
             try {

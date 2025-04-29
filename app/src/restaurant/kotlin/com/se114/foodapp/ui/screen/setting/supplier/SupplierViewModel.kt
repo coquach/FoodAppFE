@@ -217,7 +217,6 @@ class SupplierViewModel @Inject constructor(
     }
 
     sealed class SupplierEvents {
-        data object OnBack : SupplierEvents()
         data object ShowSupplierDialog : SupplierEvents()
         data object ShowErrorSheet : SupplierEvents()
         data object ShowActiveDialog : SupplierEvents()

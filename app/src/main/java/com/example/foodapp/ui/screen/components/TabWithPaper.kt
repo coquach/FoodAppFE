@@ -151,7 +151,8 @@ fun <T> GenericListContent(
     if (list.isEmpty()) {
         Nothing(
             icon = iconEmpty,
-            text = textEmpty
+            text = textEmpty,
+            modifier = Modifier.fillMaxSize()
         )
     } else {
 

@@ -44,6 +44,7 @@ import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Unit
+import com.example.foodapp.ui.navigation.Import
 import com.example.foodapp.ui.navigation.Material
 import com.example.foodapp.ui.screen.components.GenericListContent
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -84,7 +85,10 @@ fun WarehouseScreen(
                 navController.navigate(Material)
             },
             text = "Kho hàng",
-            icon = Icons.Filled.Description
+            icon = Icons.Filled.Description,
+            iconClick = {
+                navController.navigate(Import)
+            }
         )
         SearchField(
             searchInput = search,

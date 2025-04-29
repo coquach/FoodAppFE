@@ -431,13 +431,12 @@ fun MaterialScreen(
             }
         }
         ComboBoxSample(
-            modifier = Modifier.width(80.dp),
-            title = "",
+            modifier = Modifier.fillMaxWidth(),
+
             textPlaceholder = "test",
-            selected = "",
+            selected = "null",
             onPositionSelected = {  },
-            options = activeUnits.map { it.name },
-            fieldHeight = 56.dp
+            options = listOf("a", "b"),
         )
     }
 }

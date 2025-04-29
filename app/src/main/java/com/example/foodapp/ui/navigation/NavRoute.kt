@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.navigation
 
+import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs
@@ -111,7 +112,10 @@ object Material: NavRoute
 object Import: NavRoute
 
 @Serializable
-data class ImportDetails(val import: Import) : NavRoute
+object AddImportDetails : NavRoute
+
+@Serializable
+data class UpdateImportDetails(val import: Import) : NavRoute
 
 
 

@@ -7,7 +7,7 @@ import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs
 import com.example.foodapp.data.model.Staff
-import kotlinx.serialization.encodeToString
+import com.example.foodapp.data.model.Import
 
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
@@ -42,7 +42,7 @@ val menuItemNavType = object : NavType<MenuItem>(false) {
 }
 
 val orderNavType = object : NavType<Order>(false) {
-    override fun get(bundle: Bundle, key: String): Order? {
+    override fun get(bundle: Bundle, key: String): Order {
         return parseValue(bundle.getString(key).toString())
 
     }

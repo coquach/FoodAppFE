@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Factory
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Payments
@@ -71,9 +72,10 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.ui.navigation.AddImportDetails
 import com.example.foodapp.ui.navigation.AddMenuItem
 import com.example.foodapp.ui.navigation.Category
-import com.example.foodapp.ui.navigation.ImportDetails
+
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.UpdateEmployee
 import com.example.foodapp.ui.navigation.UpdateMenuItem
@@ -107,9 +109,18 @@ fun ImportScreen(
     val showDialogDelete = rememberSaveable { mutableStateOf(false) }
     var loading by rememberSaveable { mutableStateOf(false) }
 
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        val condition = handle?.get<Boolean>("updated") == true
+        if (condition) {
+            handle?.set("updated", false)
+            viewModel.refreshImports()
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
-            when(it) {
+            when (it) {
                 ImportViewModel.ImportEvents.ShowDeleteDialog -> {
                     showDialogDelete.value = true
                 }
@@ -120,10 +131,11 @@ fun ImportScreen(
             }
         }
     }
-    when(uiState) {
-        is ImportViewModel.ImportState.Loading ->{
+    when (uiState) {
+        is ImportViewModel.ImportState.Loading -> {
             loading = true
         }
+
         is ImportViewModel.ImportState.Error -> {
             loading = false
             val message = (uiState as ImportViewModel.ImportState.Error).message
@@ -133,6 +145,7 @@ fun ImportScreen(
                 Toast.LENGTH_SHORT
             ).show()
         }
+
         else -> {
             loading = false
         }
@@ -143,7 +156,7 @@ fun ImportScreen(
         {
             MyFloatingActionButton(
                 onClick = {
-
+                    navController.navigate(AddImportDetails)
                 },
                 bgColor = MaterialTheme.colorScheme.primary,
             ) {
@@ -169,7 +182,8 @@ fun ImportScreen(
                         end = padding.calculateEndPadding(LayoutDirection.Ltr)
                     )
                 )
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
 
         ) {
             Column(
@@ -177,12 +191,11 @@ fun ImportScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 HeaderDefaultView(
-                    text = "Danh sách món ăn",
-                    icon = Icons.Default.Category,
-                    iconClick = {
-                        navController.navigate(Category)
+                    onBack = {
+                        navController.navigateUp()
                     },
-                    tintIcon = MaterialTheme.colorScheme.primary
+                    text = "Phiếu nhập hàng",
+
                 )
                 SearchField(
                     searchInput = search,
@@ -193,8 +206,8 @@ fun ImportScreen(
             if (importList.itemSnapshotList.items.isEmpty() && importList.loadState.refresh !is LoadState.Loading) {
 
                 Nothing(
-                    text = "Không có nhân viên nào",
-                    icon = Icons.Default.Groups,
+                    text = "Không có phiếu nào",
+                    icon = Icons.Default.Description,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
@@ -224,7 +237,7 @@ fun ImportScreen(
                                             }
                                         ))
                                 ) {
-                                    ImportCart(
+                                    ImportCard(
                                         import = it,
                                         onClick = {
 
@@ -254,9 +267,9 @@ fun ImportScreen(
     if (showDialogDelete.value) {
 
         FoodAppDialog(
-            title = "Xóa đơn nhập",
+            title = "Xóa phiếu nhập",
             titleColor = MaterialTheme.colorScheme.error,
-            message = "Bạn có chắc chắn muốn xóa đơn đã chọn khỏi danh sách không?",
+            message = "Bạn có chắc chắn muốn xóa phiếu đã chọn khỏi danh sách không?",
             onDismiss = {
 
                 showDialogDelete.value = false
@@ -395,7 +408,7 @@ fun ImportDetails(import: Import) {
 }
 
 @Composable
-fun ImportCart(import: Import, onClick: () -> Unit) {
+fun ImportCard(import: Import, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
