@@ -430,14 +430,6 @@ fun MaterialScreen(
                 }
             }
         }
-        ComboBoxSample(
-            modifier = Modifier.fillMaxWidth(),
-
-            textPlaceholder = "test",
-            selected = "null",
-            onPositionSelected = {  },
-            options = listOf("a", "b"),
-        )
     }
 }
 

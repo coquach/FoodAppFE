@@ -3,6 +3,9 @@ package com.se114.foodapp.ui.screen.warehouse.imports
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -80,6 +83,7 @@ import com.example.foodapp.ui.screen.components.ComboBoxSample
 
 import com.example.foodapp.ui.screen.components.ComboBoxSampleLazyPaging
 import com.example.foodapp.ui.screen.components.DateRangePickerSample
+import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -118,10 +122,12 @@ fun ImportDetailsScreen(
     val importRequest by viewModel.importRequest.collectAsStateWithLifecycle()
     val importDetailsListRequest by viewModel.importDetailsListRequest.collectAsStateWithLifecycle()
     val importDetailsRequest by viewModel.importDetailsRequest.collectAsStateWithLifecycle()
+    val totalCost by viewModel.totalCost.collectAsStateWithLifecycle()
 
     var isCreating by remember { mutableStateOf(false) }
     var isEditMode by remember { mutableStateOf(false) }
     var editingItemId by remember { mutableStateOf<String?>(null) }
+    val isEditable = import?.importDate?.plusDays(3)?.isAfter(LocalDateTime.now()) ?: true
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -200,7 +206,7 @@ fun ImportDetailsScreen(
                         }
                     },
                     options = suppliers,
-
+                    enabled = isEditable,
                     labelExtractor = { supplier -> supplier.name }
                 )
                 ComboBoxSampleLazyPaging(
@@ -211,8 +217,8 @@ fun ImportDetailsScreen(
                     selected = import?.staffName ?: "",
                     onPositionSelected = { name ->
                         val selectedSupplier = (0 until suppliers.itemCount)
-                            .mapNotNull { index -> suppliers[index] }
-                            .find { it.name == name }
+                            .mapNotNull { index -> staffs[index] }
+                            .find { it.fullName == name }
                         val supplierId = selectedSupplier?.id
                         supplierId?.let {
                             viewModel.onChangeSupplerId(it)
@@ -220,7 +226,8 @@ fun ImportDetailsScreen(
                     },
                     options = suppliers,
                     fieldHeight = 80.dp,
-                    labelExtractor = { supplier -> supplier.name }
+                    labelExtractor = { supplier -> supplier.name },
+                    enabled = isEditable,
                 )
 
             }
@@ -261,27 +268,80 @@ fun ImportDetailsScreen(
             }
         } else {
             Column(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                           ,
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(2.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        state = listState
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(2.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    state = listState
 
-                        ) {
-                        item{
-                            if (isCreating) {
+                ) {
+                    item {
+                        if (isCreating) {
+                            ImportDetailsEditCard(
+                                importDetail = importDetailsRequest,
+                                ingredients = ingredients,
+                                onIngredientChange = { name ->
+                                    val selectedIngredient = ingredients.find { it.name == name }
+                                    selectedIngredient?.let {
+                                        viewModel.onChangeIngredient(selectedIngredient)
+                                    }
+                                },
+                                onCostChange = {
+                                    viewModel.onChangeCost(it.toBigDecimal())
+                                },
+                                onChangeProductionDate = {
+                                    viewModel.onChangeProductionDate(it)
+                                },
+                                onChangeExpiryDate = {
+                                    viewModel.onChangeExpiryDate(it)
+                                },
+                                onIncrement = {
+                                    viewModel.onChangeQuantity(
+                                        importDetailsRequest.quantity + BigDecimal.ONE
+                                    )
+                                },
+                                onDecrement = {
+                                    viewModel.onChangeQuantity(
+                                        if (importDetailsRequest.quantity > BigDecimal.ONE)
+                                            importDetailsRequest.quantity - BigDecimal.ONE
+                                        else importDetailsRequest.quantity
+                                    )
+                                },
+                                onUpdate = {
+                                    viewModel.addImportDetails()
+                                    isCreating = false
+                                },
+                                onClose = { isCreating = false },
+                            )
+                        }
+                    }
+                    items(importDetailsListRequest) { importDetails ->
+                        val isEditing = editingItemId == importDetails.localId
+
+                        AnimatedContent(
+                            targetState = isEditing,
+                            transitionSpec = {
+                                (slideInVertically { it } + fadeIn()) togetherWith
+                                        (slideOutVertically { -it } + fadeOut())
+                            },
+                            label = "Edit Switch"
+                        ) { editing ->
+                            if (editing) {
+
                                 ImportDetailsEditCard(
                                     importDetail = importDetailsRequest,
                                     ingredients = ingredients,
                                     onIngredientChange = { name ->
-                                        val selectedIngredient = ingredients.find { it.name == name }
+                                        val selectedIngredient =
+                                            ingredients.find { it.name == name }
                                         selectedIngredient?.let {
                                             viewModel.onChangeIngredient(selectedIngredient)
                                         }
@@ -297,162 +357,130 @@ fun ImportDetailsScreen(
                                     },
                                     onIncrement = {
                                         viewModel.onChangeQuantity(
-                                            importDetailsRequest.quantity + BigDecimal.ONE
+                                            importDetailsRequest.quantity.add(
+                                                BigDecimal(1)
+                                            )
                                         )
                                     },
                                     onDecrement = {
                                         viewModel.onChangeQuantity(
                                             if (importDetailsRequest.quantity > BigDecimal.ONE)
-                                                importDetailsRequest.quantity - BigDecimal.ONE
-                                            else importDetailsRequest.quantity
+                                                importDetailsRequest.quantity.subtract(
+                                                    BigDecimal(1)
+                                                ) else importDetailsRequest.quantity
                                         )
                                     },
                                     onUpdate = {
-                                        viewModel.addImportDetails()
-                                        isCreating = false
+                                        viewModel.updateImportDetails(importDetails.localId)
+                                        editingItemId = null
+                                        isEditMode = false
                                     },
-                                    onClose = { isCreating = false },
+                                    onClose = {
+                                        editingItemId = null
+                                        isEditMode = false
+                                    },
                                 )
-                            }
-                        }
-                        items(importDetailsListRequest) { importDetails ->
-                            val isEditing = editingItemId == importDetails.localId
-
-                            AnimatedContent(
-                                targetState = isEditing,
-                                transitionSpec = {
-                                    (slideInVertically { it } + fadeIn()) togetherWith
-                                            (slideOutVertically { -it } + fadeOut())
-                                },
-                                label = "Edit Switch"
-                            ) { editing ->
-                                if (editing) {
-
-                                    ImportDetailsEditCard(
-                                        importDetail = importDetailsRequest,
-                                        ingredients = ingredients,
-                                        onIngredientChange = { name ->
-                                            val selectedIngredient =
-                                                ingredients.find { it.name == name }
-                                            selectedIngredient?.let {
-                                                viewModel.onChangeIngredient(selectedIngredient)
-                                            }
-                                        },
-                                        onCostChange = {
-                                            viewModel.onChangeCost(it.toBigDecimal())
-                                        },
-                                        onChangeProductionDate = {
-                                            viewModel.onChangeProductionDate(it)
-                                        },
-                                        onChangeExpiryDate = {
-                                            viewModel.onChangeExpiryDate(it)
-                                        },
-                                        onIncrement = {
-                                            viewModel.onChangeQuantity(
-                                                importDetailsRequest.quantity.add(
-                                                    BigDecimal(1)
-                                                )
-                                            )
-                                        },
-                                        onDecrement = {
-                                            viewModel.onChangeQuantity(
-                                                if (importDetailsRequest.quantity > BigDecimal.ONE)
-                                                    importDetailsRequest.quantity.subtract(
-                                                        BigDecimal(1)
-                                                    ) else importDetailsRequest.quantity
-                                            )
-                                        },
-                                        onUpdate = {
-                                            viewModel.updateImportDetails(importDetails.localId)
-                                            editingItemId = null
-                                            isEditMode = false
-                                        },
-                                        onClose = {
-                                            editingItemId = null
-                                            isEditMode = false
-                                        },
-                                    )
-                                } else {
-                                    SwipeableActionsBox(
-                                        modifier = Modifier
-                                            .padding(
-                                                vertical = 8.dp,
-                                            )
-                                            .clip(RoundedCornerShape(16.dp)),
-                                        startActions = listOf(
-                                            SwipeAction(
-                                                icon = rememberVectorPainter(Icons.Default.Edit),
-                                                background = MaterialTheme.colorScheme.primary,
-                                                onSwipe = {
+                            } else {
+                                SwipeableActionsBox(
+                                    modifier = Modifier
+                                        .padding(
+                                            vertical = 8.dp,
+                                        )
+                                        .clip(RoundedCornerShape(16.dp)),
+                                    startActions = listOf(
+                                        SwipeAction(
+                                            icon = rememberVectorPainter(Icons.Default.Edit),
+                                            background = MaterialTheme.colorScheme.primary,
+                                            onSwipe = {
+                                                if(isEditable) {
                                                     editingItemId = importDetails.localId
                                                     viewModel.loadImportDetails(importDetails)
                                                     isEditMode = true
                                                 }
-                                            )
-                                        ),
-                                        endActions = listOf(
-                                            SwipeAction(
-                                                icon = rememberVectorPainter(Icons.Default.Delete),
-                                                background = MaterialTheme.colorScheme.error,
-                                                onSwipe = {
+
+                                            }
+                                        )
+                                    ),
+                                    endActions = listOf(
+                                        SwipeAction(
+                                            icon = rememberVectorPainter(Icons.Default.Delete),
+                                            background = MaterialTheme.colorScheme.error,
+                                            onSwipe = {
+                                                if(isEditable){
                                                     viewModel.deleteImportDetails(importDetails.localId)
                                                 }
-                                            )
-                                        )
-                                    ) {
-                                        ImportDetailsCard(
-                                            importDetail = importDetails
-                                        )
-                                    }
-                                }
-                            }
 
-                        }
-                        item {
-                             if (!isCreating &&!isEditMode) {
-                                IconButton(
-                                    onClick = { isCreating = true
-                                        coroutineScope.launch {
-                                            listState.animateScrollToItem(0)
-                                        }},
-                                    modifier = Modifier
-                                        .padding(10.dp)
-                                        .size(42.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.outline)
+                                            }
+                                        )
+                                    )
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "Add ImportDetails",
-                                        modifier = Modifier.size(30.dp),
-                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    ImportDetailsCard(
+                                        importDetail = importDetails
                                     )
                                 }
                             }
                         }
-                    }
 
+                    }
+                    item {
+                        if (isEditable && !isCreating && !isEditMode) {
+                            IconButton(
+                                onClick = {
+                                    isCreating = true
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(0)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.outline)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add ImportDetails",
+                                    modifier = Modifier.size(30.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+                    }
+                }
 
 
             }
         }
 
-        Column(
-
+        AnimatedVisibility(
+            visible =isEditable && !isCreating && !isEditMode,
+            enter = slideInVertically(
+                initialOffsetY = { fullHeight -> fullHeight },
+                animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { fullHeight -> fullHeight },
+                animationSpec = tween(durationMillis = 300)
+            )
         ) {
-            CheckoutRowItem(
-                title = "Tổng cộng",
-                value = BigDecimal(0),
-                fontWeight = FontWeight.Bold
-            )
-            LoadingButton(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth(),
-                text = "Tạo",
-                loading = false,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            Column {
+                CheckoutRowItem(
+                    title = "Tổng cộng",
+                    value = totalCost,
+                    fontWeight = FontWeight.Bold
+                )
+                LoadingButton(
+                    onClick = {
+                        if (isUpdating) viewModel.updateImport(import!!.id)
+                        else viewModel.addImport()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    text = if (isUpdating) "Cập nhật" else "Tạo",
+                    loading = false,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 
@@ -463,8 +491,7 @@ fun ImportDetailsCard(importDetail: ImportDetailUIModel) {
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-        ,
+            .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inversePrimary),
@@ -489,28 +516,28 @@ fun ImportDetailsCard(importDetail: ImportDetailUIModel) {
             ) {
 
 
-                ImportDetailsTextRow(
+                DetailsTextRow(
                     text = "Nguyên liệu: ${importDetail.ingredient?.name}",
                     icon = Icons.Default.Inventory,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 )
-                ImportDetailsTextRow(
+                DetailsTextRow(
                     text = "NSX: ${StringUtils.formatDateTime(importDetail.productionDate)}",
                     icon = Icons.Default.DateRange,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 )
 
-                ImportDetailsTextRow(
-                    text = "NSX: ${StringUtils.formatDateTime(importDetail.expiryDate)}",
+                DetailsTextRow(
+                    text = "HSD: ${StringUtils.formatDateTime(importDetail.expiryDate)}",
                     icon = Icons.Default.DateRange,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 )
-                ImportDetailsTextRow(
+                DetailsTextRow(
                     text = "Số lượng: ${importDetail.quantity}",
                     icon = Icons.Default.Tag,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 )
-                ImportDetailsTextRow(
+                DetailsTextRow(
                     text = "Giá: ${StringUtils.formatCurrency(importDetail.cost)}",
                     icon = Icons.Default.MonetizationOn,
                     color = MaterialTheme.colorScheme.inverseOnSurface
@@ -536,7 +563,9 @@ fun ImportDetailsEditCard(
     onDecrement: () -> Unit,
     onUpdate: () -> Unit,
     onClose: () -> Unit,
+
 ) {
+
     Column {
         Card(
             modifier = Modifier
@@ -648,28 +677,4 @@ fun ImportDetailsEditCard(
 }
 
 
-@Composable
-fun ImportDetailsTextRow(
-    text: String,
-    icon: ImageVector,
-    color: Color = MaterialTheme.colorScheme.outline,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = color,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
 

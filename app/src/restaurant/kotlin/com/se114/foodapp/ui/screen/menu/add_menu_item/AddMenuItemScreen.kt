@@ -95,15 +95,18 @@ fun AddMenuItemScreen(
                             "Cập nhật món ăn thành công",
                             Toast.LENGTH_SHORT
                         ).show()
-                        navController.previousBackStackEntry?.savedStateHandle?.set("updated", true)
+
                     } else {
                         Toast.makeText(
                             navController.context,
                             "Tạo món ăn thành công",
                             Toast.LENGTH_SHORT
                         ).show()
-                        navController.previousBackStackEntry?.savedStateHandle?.set("added", true)
+
                     }
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("shouldRefresh", true)
                     navController.popBackStack()
 
                 }

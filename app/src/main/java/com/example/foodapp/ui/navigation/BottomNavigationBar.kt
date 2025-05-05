@@ -46,6 +46,7 @@ import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
 import com.exyte.animatednavbar.utils.noRippleClickable
 
 sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
+    //Customer
     data object Home : BottomNavItem(com.example.foodapp.ui.navigation.Home, R.drawable.ic_home)
     data object Favorite :
         BottomNavItem(com.example.foodapp.ui.navigation.Favorite, R.drawable.ic_favorite)
@@ -60,6 +61,7 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
             if (BuildConfig.FLAVOR == "restaurant") R.drawable.ic_setting else R.drawable.ic_user_circle
         )
 
+    //Admin
     data object Statistics :
         BottomNavItem(com.example.foodapp.ui.navigation.Statistics, R.drawable.ic_chart)
 
@@ -71,6 +73,10 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
 
     data object Menu :
         BottomNavItem(com.example.foodapp.ui.navigation.Menu, R.drawable.ic_meal)
+
+    //Staff
+    data object Export:
+            BottomNavItem(com.example.foodapp.ui.navigation.Export,R.drawable.ic_export )
 
 
 }

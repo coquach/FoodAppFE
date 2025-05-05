@@ -1,34 +1,36 @@
-package com.se114.foodapp.data.repository
+package com.example.foodapp.data.repository
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.foodapp.data.dto.filter.SupplierFilter
-import com.example.foodapp.data.model.Supplier
+import com.example.foodapp.data.dto.filter.InventoryFilter
+
+import com.example.foodapp.data.model.Inventory
+import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.paging.InventoryPagingSource
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
-import com.se114.foodapp.data.paging.SupplierPagingSource
+
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SupplierRepository @Inject constructor(
+class InventoryRepository @Inject constructor(
     private val foodApi: FoodApi,
-) {
 
-    fun getAllSuppliers(filter: SupplierFilter): Flow<PagingData<Supplier>> {
+    ) {
+
+    fun getInventoriesByFilter(filter: InventoryFilter): Flow<PagingData<Inventory>> {
+
         return Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
                 enablePlaceholders = false),
             pagingSourceFactory = {
-                SupplierPagingSource(foodApi = foodApi, filter = filter)
+                InventoryPagingSource(foodApi = foodApi, filter = filter)
             }
         ).flow
     }
-
-
-
 }

@@ -33,6 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 
 import kotlinx.coroutines.launch
 
@@ -40,7 +42,8 @@ import kotlinx.coroutines.launch
 fun TabWithPager(
     tabs: List<String>,
     pages: List<@Composable () -> Unit>,
-    scrollable: Boolean = false
+    scrollable: Boolean = false,
+    onTabSelected: (Int) -> Unit
 ) {
     require(tabs.size == pages.size) { "Số lượng tabs và pages phải bằng nhau" }
 
@@ -90,6 +93,7 @@ fun TabWithPager(
                             .clickable {
                                 coroutineScope.launch {
                                     pagerState.animateScrollToPage(index)
+                                    onTabSelected(index)
                                 }
                             }
                             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -140,31 +144,3 @@ fun TabWithPager(
     }
 }
 
-@Composable
-fun <T> GenericListContent(
-    list: List<T>,
-    iconEmpty: ImageVector,
-    columns: Int = 1,
-    textEmpty: String,
-    itemContent: @Composable (T) -> Unit
-) {
-    if (list.isEmpty()) {
-        Nothing(
-            icon = iconEmpty,
-            text = textEmpty,
-            modifier = Modifier.fillMaxSize()
-        )
-    } else {
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(columns),
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-        ) {
-            items(list) { item ->
-                itemContent(item)
-            }
-        }
-
-    }
-}

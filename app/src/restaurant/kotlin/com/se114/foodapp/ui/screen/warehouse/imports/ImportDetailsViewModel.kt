@@ -4,9 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.BaseViewModel
@@ -16,14 +14,12 @@ import com.example.foodapp.data.dto.request.ImportDetailRequest
 import com.example.foodapp.data.dto.request.ImportRequest
 import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.ImportDetail
 import com.example.foodapp.data.model.Ingredient
-import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.model.Supplier
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.StringUtils
-import com.se114.foodapp.data.repository.StaffRepository
+import com.example.foodapp.data.repository.StaffRepository
 import com.se114.foodapp.data.repository.SupplierRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -31,9 +27,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -82,6 +81,19 @@ class ImportDetailsViewModel @Inject constructor(
 
     private val _importDetailsListRequest = MutableStateFlow<List<ImportDetailUIModel>>(emptyList())
     val importDetailsListRequest = _importDetailsListRequest.asStateFlow()
+
+    val totalCost: StateFlow<BigDecimal> = _importDetailsListRequest
+        .map { list ->
+            list.fold(BigDecimal.ZERO) { acc, item ->
+                acc + (item.quantity * item.cost)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = BigDecimal.ZERO
+        )
+
 
     private val _importDetailsRequest = MutableStateFlow(
         ImportDetailUIModel()
@@ -161,6 +173,7 @@ class ImportDetailsViewModel @Inject constructor(
     private fun loadInitialData(import: Import) {
         _importRequest.update {
             it.copy(
+
                 supplierId = import.id,
                 staffId = import.staffId,
                 importDate = StringUtils.formatDateTime(import.importDate),

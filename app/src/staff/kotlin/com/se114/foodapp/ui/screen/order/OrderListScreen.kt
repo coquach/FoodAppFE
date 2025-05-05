@@ -14,16 +14,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.screen.common.OrderListSection
@@ -43,11 +47,9 @@ fun OrderListScreen(
         navController.popBackStack(route = Home, inclusive = false)
     }
 
-    val ordersPending = viewModel.ordersPending.collectAsLazyPagingItems()
-    val ordersConfirmed = viewModel.ordersConfirmed.collectAsLazyPagingItems()
-    val ordersDelivered = viewModel.ordersDelivered.collectAsLazyPagingItems()
-    val ordersCompleted = viewModel.ordersCompleted.collectAsLazyPagingItems()
-    val ordersCancelled = viewModel.ordersCancelled.collectAsLazyPagingItems()
+    val currentTab by viewModel.tabIndex.collectAsStateWithLifecycle()
+
+    val orders = viewModel.getOrdersByTab(currentTab).collectAsLazyPagingItems()
 
     val handle = navController.currentBackStackEntry?.savedStateHandle
     LaunchedEffect(handle) {
@@ -55,7 +57,7 @@ fun OrderListScreen(
 
         if (condition) {
             handle?.set("updated", false)
-            viewModel.getOrders()
+            viewModel.refreshAllTabs()
         }
     }
 
@@ -90,7 +92,7 @@ fun OrderListScreen(
                 {
 
                     OrderListSection(
-                        orders = ordersPending,
+                        orders = orders,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }
@@ -99,7 +101,7 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
-                        orders = ordersConfirmed,
+                        orders = orders,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }
@@ -107,7 +109,7 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
-                        orders = ordersDelivered,
+                        orders = orders,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }
@@ -115,7 +117,7 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
-                        orders = ordersCompleted,
+                        orders = orders,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }
@@ -123,14 +125,17 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
-                        orders = ordersCancelled,
+                        orders = orders,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }
                     )
                 }
             ),
-            scrollable = true
+            scrollable = true,
+            onTabSelected = {
+                viewModel.setTab(it)
+            }
         )
 
 

@@ -238,12 +238,14 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
 
 @Composable
 fun FoodItemCounter(
+    modifier: Modifier = Modifier,
     onCounterIncrement: () -> Unit,
     onCounterDecrement: () -> Unit,
     count: Int
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
     ) {
         IconButton(
             onClick = {
@@ -634,6 +636,32 @@ fun <T : Any> LazyListScope.gridItems(
         }
     }
 }
+
+@Composable
+fun DetailsTextRow(
+    text: String,
+    icon: ImageVector,
+    color: Color = MaterialTheme.colorScheme.outline,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
 
 
 

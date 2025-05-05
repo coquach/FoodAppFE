@@ -11,7 +11,7 @@ data class Export(
     val id: Long,
     val staffId: Long,
     val staffName: String,
-@Serializable(with = LocalDateSerializer::class)
+    @Serializable(with = LocalDateSerializer::class)
     val exportDate: LocalDate,
-    val exportDetails: List<ExportDetail>
+    val exportDetails: List<ExportDetail>,
 )

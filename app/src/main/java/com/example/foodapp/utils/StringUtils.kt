@@ -24,30 +24,28 @@ object StringUtils {
     }
     private val vietnamTimeZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh")
 
-    fun formatDateTime(input: LocalDateTime, inputPattern: String = "yyyy-MM-dd'T'HH:mm:ss'Z'", outputPattern: String = "dd/MM/yyyy HH:mm:ss"): String {
+    fun formatDateTime(
+        input: LocalDateTime?,
+        outputPattern: String = "dd/MM/yyyy HH:mm:ss"
+    ): String? {
         return try {
-            // Chuyển LocalDateTime sang ZonedDateTime với múi giờ UTC
-            val inputFormatter = DateTimeFormatter.ofPattern(inputPattern).withLocale(Locale.getDefault())
-            val date = input.atZone(ZoneOffset.UTC).toLocalDateTime()
-
-            // Định dạng lại với output pattern
-            val outputFormatter = DateTimeFormatter.ofPattern(outputPattern).withLocale(Locale("vi", "VN"))
-            return outputFormatter.format(date)
+            input?.let {
+                val outputFormatter = DateTimeFormatter.ofPattern(outputPattern).withLocale(Locale("vi", "VN"))
+                outputFormatter.format(it.atZone(ZoneOffset.UTC).toLocalDateTime())
+            }
         } catch (e: Exception) {
-            "Thời gian không hợp lệ!"
+            null
         }
     }
 
-    fun formatLocalDate(date: LocalDate?, pattern: String = "dd-MM-yyyy"): String? {
-        return if (date == null) {
+    fun formatLocalDate(
+        date: LocalDate?,
+        pattern: String = "dd-MM-yyyy"
+    ): String? {
+        return try {
+            date?.format(DateTimeFormatter.ofPattern(pattern))
+        } catch (e: Exception) {
             null
-        } else {
-            try {
-                val formatter = DateTimeFormatter.ofPattern(pattern)
-                date.format(formatter)
-            } catch (e: Exception) {
-                "Ngày không hợp lệ!"
-            }
         }
     }
 

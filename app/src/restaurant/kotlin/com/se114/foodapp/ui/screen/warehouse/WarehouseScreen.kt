@@ -11,10 +11,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,15 +46,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Unit
 import com.example.foodapp.ui.navigation.Import
 import com.example.foodapp.ui.navigation.Material
-import com.example.foodapp.ui.screen.components.GenericListContent
+
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
+import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
 
 @Composable
@@ -59,11 +69,7 @@ fun WarehouseScreen(
 ) {
     var search by remember { mutableStateOf("") }
 
-
-    val listOfTabs = listOf("Sắp tới", "Lịch sử")
-    val coroutineScope = rememberCoroutineScope()
-    val pagerState =
-        rememberPagerState(pageCount = { listOfTabs.size }, initialPage = 0)
+    val inventories = viewModel.inventories.collectAsLazyPagingItems()
 
 
 
@@ -98,46 +104,57 @@ fun WarehouseScreen(
             tabs = listOf("Tồn kho", "Hết hạn", "Đã dùng"),
             pages = listOf(
                 {
-                    GenericListContent(
-                        list = emptyList<Inventory>(),
-                        iconEmpty = Icons.Default.Spa,
-                        textEmpty = "Không có nguyên liệu nào",
-                        itemContent = { inventory ->
-                           InventoryItemView(
-                               inventory = inventory,
-                           )
-                        }
+                    InventoryListSection(
+                        list = inventories
                     )
                 },
                 {
-                    GenericListContent(
-                        list = emptyList<Inventory>(),
-                        iconEmpty = Icons.Default.Spa,
-                        textEmpty = "Không có nguyên liệu nào",
-                        itemContent = { inventory ->
-                            InventoryItemView(
-                                inventory = inventory,
-                            )
-                        }
+                    InventoryListSection(
+                        list = inventories
                     )
                 },
                 {
-                    GenericListContent(
-                        list = emptyList<Inventory>(),
-                        iconEmpty = Icons.Default.Spa,
-                        textEmpty = "Không có nguyên liệu nào",
-                        itemContent = { inventory ->
-                            InventoryItemView(
-                                inventory = inventory,
-                            )
-                        }
+                    InventoryListSection(
+                        list = inventories
                     )
                 }
-            )
+            ),
+            onTabSelected = { index ->
+                viewModel.setTab(index)
+            }
         )
 
     }
 
+}
+
+@Composable
+fun InventoryListSection(
+    list: LazyPagingItems<Inventory>,
+) {
+    if (list.itemCount == 0 && list.loadState.refresh !is LoadState.Loading) {
+        Nothing(
+            icon = Icons.Default.Spa,
+            text = "Không có nguyên liệu nào",
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
+
+        LazyColumn(
+            modifier = Modifier.heightIn(max = 10000.dp)
+
+        ) {
+            gridItems(
+                list, 2, key = { inventory -> inventory.id },
+                itemContent = { inventory ->
+                    inventory?.let {
+                        InventoryItemView(
+                            inventory = inventory,
+                        )
+                    }
+                })}
+
+    }
 }
 
 
@@ -202,7 +219,7 @@ fun InventoryItemView(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = inventory.ingredient.name,
+                    text = inventory.ingredientName,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,

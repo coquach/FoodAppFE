@@ -9,5 +9,6 @@ data class OrderFilter(
     val paymentMethod: String? = null,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
-    val staffId: Long? = null
+    val staffId: Long? = null,
+    val reloadTrigger: Long = System.currentTimeMillis()
 )

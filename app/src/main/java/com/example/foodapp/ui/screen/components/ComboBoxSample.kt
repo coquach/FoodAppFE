@@ -49,6 +49,7 @@ fun ComboBoxSample(
     onPositionSelected: (String?) -> Unit,
     options: List<String>,
     fieldHeight : Dp = 56.dp,
+    enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
     var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
@@ -61,9 +62,7 @@ fun ComboBoxSample(
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = {
-            Log.d("expanded", "$expanded")
-            expanded = !expanded },
+        onExpandedChange = { if (enabled) expanded = !expanded }
     ) {
         FoodAppTextField(
             value = selected ?: "",
@@ -117,14 +116,15 @@ fun ComboBoxSample(
 @Composable
 fun <T : Any> ComboBoxSampleLazyPaging(
     modifier: Modifier = Modifier,
-    title: String? = null,
+    title: String,
     textPlaceholder: String,
     selected: String?,
     onPositionSelected: (String?) -> Unit,
     options: LazyPagingItems<T>,
     fieldHeight: Dp = 56.dp,
     width: Dp = 200.dp,
-    labelExtractor: (T) -> String, // T -> String để lấy label hiển thị
+    labelExtractor: (T) -> String,
+    enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
     var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
@@ -139,7 +139,7 @@ fun <T : Any> ComboBoxSampleLazyPaging(
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = { if (enabled) expanded = !expanded }
     ) {
         FoodAppTextField(
             value = selected ?: "",
@@ -152,17 +152,23 @@ fun <T : Any> ComboBoxSampleLazyPaging(
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    textFieldSize = coordinates.size
+                }
                 ,
-            fieldHeight = fieldHeight
+            fieldHeight = fieldHeight,
+            enabled = enabled
+
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
         ) {
             LazyColumn(
                 modifier = Modifier
-                    .width(500.dp)
                     .height(300.dp)
             ) {
                 // Mục placeholder đầu tiên

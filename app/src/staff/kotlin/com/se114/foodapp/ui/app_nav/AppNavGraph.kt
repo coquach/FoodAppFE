@@ -11,6 +11,7 @@ import com.example.foodapp.ui.navigation.FoodAppNavHost
 import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.ui.app_nav.auth.authGraph
+import com.se114.foodapp.ui.app_nav.export.exportGraph
 import com.se114.foodapp.ui.app_nav.home.homeGraph
 import com.se114.foodapp.ui.app_nav.order.orderGraph
 
@@ -33,6 +34,7 @@ fun AppNavGraph(
         authGraph(navController, shouldShowBottomNav)
         homeGraph(navController, shouldShowBottomNav, notificationViewModel)
         orderGraph(navController, shouldShowBottomNav)
+        exportGraph(navController, shouldShowBottomNav)
 
     }
 

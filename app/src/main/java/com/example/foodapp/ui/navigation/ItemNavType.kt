@@ -2,6 +2,7 @@ package com.example.foodapp.ui.navigation
 
 import android.os.Bundle
 import androidx.navigation.NavType
+import com.example.foodapp.data.model.Export
 
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
@@ -122,6 +123,25 @@ val importNavType = object : NavType<Import>(false) {
     }
 
     override fun put(bundle: Bundle, key: String, value: Import) {
+        bundle.putString(key, serializeAsValue(value))
+    }
+
+}
+
+val exportNavItem = object : NavType<Export>(false) {
+    override fun get(bundle: Bundle, key: String): Export {
+        return parseValue(bundle.getString(key).orEmpty())
+    }
+
+    override fun parseValue(value: String): Export {
+        return Json.decodeFromString(Export.serializer(), value)
+    }
+
+    override fun serializeAsValue(value: Export): String {
+        return Json.encodeToString(Export.serializer(), value)
+    }
+
+    override fun put(bundle: Bundle, key: String, value: Export) {
         bundle.putString(key, serializeAsValue(value))
     }
 

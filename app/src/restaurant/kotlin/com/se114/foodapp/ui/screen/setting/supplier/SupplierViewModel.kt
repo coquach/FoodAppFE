@@ -18,17 +18,23 @@ import com.example.foodapp.data.remote.FoodApi
 import com.google.android.gms.common.api.Api
 import com.se114.foodapp.data.repository.SupplierRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
 class SupplierViewModel @Inject constructor(
     private val foodApi: FoodApi,
     private val supplierRepository: SupplierRepository
@@ -39,31 +45,32 @@ class SupplierViewModel @Inject constructor(
     private val _event = Channel<SupplierEvents>()
     val event = _event.receiveAsFlow()
 
-    private val _suppliersActive = MutableStateFlow<PagingData<Supplier>>(PagingData.empty())
-    val suppliersActive = _suppliersActive
+    private val _filter = MutableStateFlow(SupplierFilter())
 
-    private val _suppliersHidden = MutableStateFlow<PagingData<Supplier>>(PagingData.empty())
-    val suppliersHidden = _suppliersHidden
-
-    init {
-        getSuppliers()
+    fun updateFilter(newFilter: SupplierFilter) {
+        _filter.update { it.copy(reloadTrigger = newFilter.reloadTrigger) }
     }
 
-    private fun getSuppliers() {
-        viewModelScope.launch {
 
-            supplierRepository.getAllSuppliers(SupplierFilter(isActive = true))
-                .cachedIn(viewModelScope)
-                .collect { _suppliersActive.value = it }
+
+    val suppliers: StateFlow<PagingData<Supplier>> = _filter
+        .flatMapLatest { filter ->
+            supplierRepository.getAllSuppliers(filter)
         }
+        .cachedIn(viewModelScope)
+        .stateIn(
+            viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = PagingData.empty()
+        )
 
-        viewModelScope.launch {
-
-            supplierRepository.getAllSuppliers(SupplierFilter(isActive = false))
-                .cachedIn(viewModelScope)
-                .collect { _suppliersHidden.value = it }
+    fun setTab(index: Int) {
+        val newFilter = when (index) {
+            0 -> SupplierFilter(isActive = true)
+            1 -> SupplierFilter(isActive = false)
+            else -> SupplierFilter()
         }
-
+        _filter.value = newFilter
     }
 
     private val _supplierRequest = MutableStateFlow(
@@ -120,7 +127,7 @@ class SupplierViewModel @Inject constructor(
                 val response = safeApiCall { foodApi.createSupplier(supplierRequest) }
                 when (response) {
                     is ApiResponse.Success -> {
-                        getSuppliers()
+                        updateFilter(SupplierFilter())
                         _uiState.value = SupplierState.Success
                         loadSupplier()
                     }
@@ -153,7 +160,7 @@ class SupplierViewModel @Inject constructor(
                 val response = safeApiCall { foodApi.updateSupplier(supplierId, supplierRequest) }
                 when (response) {
                     is ApiResponse.Success -> {
-                        getSuppliers()
+                        updateFilter(SupplierFilter())
                         _uiState.value = SupplierState.Success
                         loadSupplier()
                     }
@@ -184,7 +191,7 @@ class SupplierViewModel @Inject constructor(
                 val response = safeApiCall { foodApi.setActiveSupplier(supplierId, isActive) }
                 when (response) {
                     is ApiResponse.Success -> {
-                        getSuppliers()
+                        updateFilter(SupplierFilter())
                         _uiState.value = SupplierState.Success
                         _supplierRequest.value
                     }

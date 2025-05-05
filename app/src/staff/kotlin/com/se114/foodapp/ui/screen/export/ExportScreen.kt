@@ -1,11 +1,6 @@
-package com.se114.foodapp.ui.screen.warehouse.imports
+package com.se114.foodapp.ui.screen.export
 
 import android.widget.Toast
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +13,6 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,16 +21,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Business
-import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Factory
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -58,7 +49,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -68,47 +58,34 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.R
+import com.example.foodapp.data.model.Export
 import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.ui.navigation.AddExportDetails
 import com.example.foodapp.ui.navigation.AddImportDetails
-import com.example.foodapp.ui.navigation.AddMenuItem
-import com.example.foodapp.ui.navigation.Category
-
-import com.example.foodapp.ui.navigation.OrderDetails
-import com.example.foodapp.ui.navigation.UpdateEmployee
-import com.example.foodapp.ui.navigation.UpdateImportDetails
-import com.example.foodapp.ui.navigation.UpdateMenuItem
-import com.example.foodapp.ui.screen.common.MenuItemList
-import com.example.foodapp.ui.screen.common.OrderListSection
-import com.example.foodapp.ui.screen.components.DeleteBar
+import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
-import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
-import com.se114.foodapp.ui.screen.employee.EmployeeItemView
 import kotlinx.coroutines.flow.collectLatest
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 @Composable
-fun ImportScreen(
+fun ExportScreen(
     navController: NavController,
-    viewModel: ImportViewModel = hiltViewModel(),
+    viewModel: ExportViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val importList = viewModel.importList.collectAsLazyPagingItems()
+    val exportList = viewModel.exportList.collectAsLazyPagingItems()
     var search by remember { mutableStateOf("") }
 
-    var selectedImportId by rememberSaveable { mutableStateOf<Long?>(null) }
-    var isDeleted by rememberSaveable { mutableStateOf(true) }
+    var selectedExportId by rememberSaveable { mutableStateOf<Long?>(null) }
     val showDialogDelete = rememberSaveable { mutableStateOf(false) }
     var loading by rememberSaveable { mutableStateOf(false) }
 
@@ -117,31 +94,31 @@ fun ImportScreen(
         val condition = handle?.get<Boolean>("updated") == true
         if (condition) {
             handle?.set("updated", false)
-            viewModel.refreshImports()
+            viewModel.refreshExports()
         }
     }
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
-                ImportViewModel.ImportEvents.ShowDeleteDialog -> {
+                ExportViewModel.ExportEvents.ShowDeleteDialog -> {
                     showDialogDelete.value = true
                 }
 
-                is ImportViewModel.ImportEvents.ShowSuccessToast -> {
+                is ExportViewModel.ExportEvents.ShowSuccessToast -> {
 
                 }
             }
         }
     }
     when (uiState) {
-        is ImportViewModel.ImportState.Loading -> {
+        is ExportViewModel.ExportState.Loading -> {
             loading = true
         }
 
-        is ImportViewModel.ImportState.Error -> {
+        is ExportViewModel.ExportState.Error -> {
             loading = false
-            val message = (uiState as ImportViewModel.ImportState.Error).message
+            val message = (uiState as ExportViewModel.ExportState.Error).message
             Toast.makeText(
                 context,
                 message,
@@ -159,7 +136,7 @@ fun ImportScreen(
         {
             MyFloatingActionButton(
                 onClick = {
-                    navController.navigate(AddImportDetails)
+                    navController.navigate(AddExportDetails)
                 },
                 bgColor = MaterialTheme.colorScheme.primary,
             ) {
@@ -197,7 +174,7 @@ fun ImportScreen(
                     onBack = {
                         navController.navigateUp()
                     },
-                    text = "Phiếu nhập hàng",
+                    text = "Phiếu xuất hàng",
 
                     )
                 SearchField(
@@ -206,7 +183,7 @@ fun ImportScreen(
                 )
 
             }
-            if (importList.itemSnapshotList.items.isEmpty() && importList.loadState.refresh !is LoadState.Loading) {
+            if (exportList.itemSnapshotList.items.isEmpty() && exportList.loadState.refresh !is LoadState.Loading) {
 
                 Nothing(
                     text = "Không có phiếu nào",
@@ -221,9 +198,9 @@ fun ImportScreen(
 
                 ) {
                     gridItems(
-                        importList, 1, key = { import -> import.id },
-                        itemContent = { import ->
-                            import?.let { it ->
+                        exportList, 1, key = { export -> export.id },
+                        itemContent = { export ->
+                            export?.let { it ->
                                 SwipeableActionsBox(
                                     modifier = Modifier
                                         .padding(
@@ -235,19 +212,15 @@ fun ImportScreen(
                                             icon = rememberVectorPainter(Icons.Default.Delete),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
-                                                isDeleted = it.importDate.plusDays(3).isAfter(LocalDateTime.now())
-                                                if(isDeleted) {
-                                                    selectedImportId = it.id
-                                                    viewModel.onRemoveSwipe()
-                                                }
-
+                                                selectedExportId = it.id
+                                                viewModel.onRemoveSwipe()
                                             }
                                         ))
                                 ) {
-                                    ImportCard(
-                                        import = it,
+                                    ExportCard(
+                                        export = it,
                                         onClick = {
-                                            navController.navigate(UpdateImportDetails(import))
+
                                         }
                                     )
                                 }
@@ -282,9 +255,9 @@ fun ImportScreen(
                 showDialogDelete.value = false
             },
             onConfirm = {
-                viewModel.removeImport(selectedImportId!!)
+                viewModel.removeExport(selectedExportId!!)
                 showDialogDelete.value = false
-                selectedImportId = null
+                selectedExportId = null
 
             },
             confirmText = "Xóa",
@@ -297,7 +270,7 @@ fun ImportScreen(
 }
 
 @Composable
-fun ImportDetails(import: Import) {
+fun ExportDetail(export: Export) {
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -308,7 +281,7 @@ fun ImportDetails(import: Import) {
             ) {
 
             Icon(
-                imageVector = Icons.Default.ShoppingCart,
+                imageVector = Icons.Default.ImportExport,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(80.dp)
@@ -324,89 +297,23 @@ fun ImportDetails(import: Import) {
             ) {
 
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Staff Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = import.staffName,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Business,
-                        contentDescription = "Supplier Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = import.supplierName,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Clock Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = StringUtils.formatDateTime(import.importDate),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Text(
-                    text = "Mã đơn nhập: ${import.id}",
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1
+                DetailsTextRow(
+                    text = "${export.id}",
+                    icon = Icons.Default.Tag,
+                    color = MaterialTheme.colorScheme.outline
+                )
+                DetailsTextRow(
+                    text = export.staffName,
+                    icon = Icons.Default.Person,
+                    color = MaterialTheme.colorScheme.outline
+                )
+                DetailsTextRow(
+                    text = StringUtils.formatLocalDate(export.exportDate)?: "",
+                    icon = Icons.Default.DateRange,
+                    color = MaterialTheme.colorScheme.outline
                 )
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.AttachMoney,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.inversePrimary
-            )
-            Spacer(modifier = Modifier.size(4.dp))
-            Text(
-                text = "Tổng giá: ${StringUtils.formatCurrency(import.totalPrice)}",
-                color = MaterialTheme.colorScheme.inversePrimary,
-                fontWeight = FontWeight.Bold
-            )
 
         }
 
@@ -415,7 +322,7 @@ fun ImportDetails(import: Import) {
 }
 
 @Composable
-fun ImportCard(import: Import, onClick: () -> Unit) {
+fun ExportCard(export: Export, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -430,7 +337,7 @@ fun ImportCard(import: Import, onClick: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
 
         ) {
-            ImportDetails(import = import)
+            ExportDetail(export = export)
             Button(onClick = onClick) {
                 Text(
                     text = "Chi tiết",

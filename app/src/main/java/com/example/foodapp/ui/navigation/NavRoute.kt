@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.navigation
 
+import com.example.foodapp.data.model.Export
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
@@ -116,6 +117,15 @@ object AddImportDetails : NavRoute
 
 @Serializable
 data class UpdateImportDetails(val import: Import) : NavRoute
+
+@Serializable
+object Export: NavRoute
+
+@Serializable
+object  AddExportDetails: NavRoute
+
+@Serializable
+data class  UpdateExportDetails(val export: Export) : NavRoute
 
 
 

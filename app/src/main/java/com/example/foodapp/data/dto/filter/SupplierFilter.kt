@@ -9,4 +9,5 @@ data class SupplierFilter (
     val address: String?= null,
     @SerializedName("isActive")
     val isActive: Boolean?= null,
+    val reloadTrigger: Long = System.currentTimeMillis()
     )

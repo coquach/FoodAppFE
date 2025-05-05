@@ -65,7 +65,7 @@ class MainActivity : BaseFoodAppActivity() {
     @Inject
     lateinit var splashViewModel: SplashViewModel
 
-    @OptIn(ExperimentalSharedTransitionApi::class)
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         installSplashScreen().apply {
@@ -119,7 +119,7 @@ class MainActivity : BaseFoodAppActivity() {
                 val navItems = listOf(
                     BottomNavItem.Home,
                     BottomNavItem.Order,
-                    BottomNavItem.Warehouse,
+                    BottomNavItem.Export,
                     BottomNavItem.Setting
                 )
                 val notificationViewModel: NotificationViewModel = hiltViewModel()

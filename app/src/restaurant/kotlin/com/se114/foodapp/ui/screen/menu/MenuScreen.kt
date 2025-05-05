@@ -3,6 +3,7 @@ package com.se114.foodapp.ui.screen.menu
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -47,11 +48,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.foodapp.data.dto.filter.MenuItemFilter
 import com.example.foodapp.data.model.MenuItem
 
 import com.example.foodapp.ui.navigation.AddMenuItem
@@ -76,7 +79,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun SharedTransitionScope.MenuScreen(
     navController: NavController,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    viewModel: MenuViewModel = hiltViewModel()
+    viewModel: MenuViewModel = hiltViewModel(),
 ) {
     var search by remember { mutableStateOf("") }
 
@@ -84,16 +87,7 @@ fun SharedTransitionScope.MenuScreen(
     var isSelectAll by rememberSaveable { mutableStateOf(false) }
 
 
-    val menuItemsAvailable = viewModel.menuItemsAvailable.collectAsLazyPagingItems()
-    val menuItemsHidden = viewModel.menuItemsHidden.collectAsLazyPagingItems()
-    ObserveLoadState(
-        lazyPagingItems = menuItemsAvailable,
-        statusName = "menuItemsAvailable"
-    )
-//    ObserveLoadState(
-//        lazyPagingItems = menuItemsHidden,
-//        statusName = "menuItemsHidden"
-//    )
+    val menuItems = viewModel.menuItems.collectAsLazyPagingItems()
 
 
     val showDialogDelete = remember { mutableStateOf(false) }
@@ -115,12 +109,9 @@ fun SharedTransitionScope.MenuScreen(
 
     val handle = navController.currentBackStackEntry?.savedStateHandle
     LaunchedEffect(handle) {
-        val condition = handle?.get<Boolean>("added") == true ||
-                handle?.get<Boolean>("updated") == true
-        if (condition) {
-            handle?.set("added", false)
-            handle?.set("updated", false)
-            viewModel.refreshMenus()
+        if (handle?.get<Boolean>("shouldRefresh") == true) {
+            handle["shouldRefresh"] = false
+            viewModel.updateFilter(MenuItemFilter())
         }
     }
 
@@ -209,7 +200,7 @@ fun SharedTransitionScope.MenuScreen(
                 pages = listOf(
                     {
                         MenuItemList(
-                            menuItems = menuItemsAvailable,
+                            menuItems = menuItems,
                             isInSelectionMode = isInSelectionMode,
                             isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
                             onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
@@ -226,7 +217,7 @@ fun SharedTransitionScope.MenuScreen(
                     },
                     {
                         MenuItemList(
-                            menuItems = menuItemsHidden,
+                            menuItems = menuItems,
                             isInSelectionMode = isInSelectionMode,
                             isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
                             onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
@@ -236,7 +227,10 @@ fun SharedTransitionScope.MenuScreen(
                                 isInSelectionMode = !isInSelectionMode
                             },
                         )
-                    })
+                    }),
+                onTabSelected = { index ->
+                    viewModel.setTab(index)
+                }
             )
 
 
