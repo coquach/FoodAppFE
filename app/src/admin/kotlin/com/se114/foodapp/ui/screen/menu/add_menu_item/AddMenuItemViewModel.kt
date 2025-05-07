@@ -15,14 +15,9 @@ import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.enums.Gender
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.ImageUtils
-import com.example.foodapp.utils.ImageUtils.getFileFromUri
-import com.example.foodapp.utils.ImageUtils.toMultipartBodyPartOrNull
+
 import com.se114.foodapp.data.dto.request.MenuItemMultipartRequest
-import com.se114.foodapp.data.dto.request.StaffMultipartRequest
-import com.se114.foodapp.ui.screen.employee.add_employee.AddEmployeeViewModel.AddEmployeeEvents
-import com.se114.foodapp.ui.screen.employee.add_employee.AddEmployeeViewModel.AddEmployeeState
-import com.se114.foodapp.ui.screen.menu.category.CategoryViewModel.CategoryEvents
-import com.se114.foodapp.ui.screen.menu.category.CategoryViewModel.CategoryState
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow

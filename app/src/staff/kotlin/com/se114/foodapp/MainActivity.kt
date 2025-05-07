@@ -10,6 +10,7 @@ import android.view.animation.OvershootInterpolator
 
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -62,8 +63,7 @@ class MainActivity : BaseFoodAppActivity() {
     @Inject
     lateinit var foodApi: FoodApi
 
-    @Inject
-    lateinit var splashViewModel: SplashViewModel
+    private val splashViewModel: SplashViewModel by viewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

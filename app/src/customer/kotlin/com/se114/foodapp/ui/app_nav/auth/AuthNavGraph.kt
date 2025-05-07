@@ -7,7 +7,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.foodapp.data.model.ResetPasswordArgs
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.CreateProfile
 import com.example.foodapp.ui.navigation.Login
+
 import com.example.foodapp.ui.navigation.ResetPassword
 import com.example.foodapp.ui.navigation.ResetPasswordSuccess
 import com.example.foodapp.ui.navigation.SendEmail
@@ -19,6 +21,7 @@ import com.example.foodapp.ui.screen.auth.forgot_password.reset_success.ResetPas
 import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
+import com.example.foodapp.ui.screen.auth.signup.profile.ProfileScreen
 import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.authGraph(
@@ -32,6 +35,10 @@ fun NavGraphBuilder.authGraph(
     composable<SignUp> {
         shouldShowBottomNav.value = false
         SignUpScreen(navController)
+    }
+    composable<CreateProfile> {
+        shouldShowBottomNav.value = false
+        ProfileScreen(navController)
     }
     composable<Login> {
         shouldShowBottomNav.value = false

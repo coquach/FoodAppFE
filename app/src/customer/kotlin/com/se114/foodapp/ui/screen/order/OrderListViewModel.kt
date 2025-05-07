@@ -9,10 +9,15 @@ import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,40 +29,46 @@ class OrderListViewModel @Inject constructor(
     private val _state = MutableStateFlow<OrderListState>(OrderListState.Loading)
     val state get() = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<OrderListEvent>()
-    val event get() = _event.asSharedFlow()
+    private val _event = Channel<OrderListEvent>()
+    val event get() = _event.receiveAsFlow()
 
-    private val _ordersPending = MutableStateFlow<PagingData<Order>>(PagingData.empty())
-    val ordersPending = _ordersPending
-    private val _ordersAll = MutableStateFlow<PagingData<Order>>(PagingData.empty())
-    val ordersAll= _ordersAll
+    private val _tabIndex = MutableStateFlow(0)
+    val tabIndex: StateFlow<Int> = _tabIndex
 
-    init {
-        getOrders()
+    fun setTab(index: Int) {
+        _tabIndex.value = index
     }
+    fun refreshAllTabs() {
+        ordersCache.clear()
 
-    fun getOrders() {
-        viewModelScope.launch {
+    }
+    private val ordersCache = mutableMapOf<Int, StateFlow<PagingData<Order>>>()
 
 
-            orderRepository.getOrdersByFilter(OrderFilter(status = OrderStatus.PENDING.name))
-                .cachedIn(viewModelScope).collect {
-                _ordersPending.value = it
+    fun getOrdersByTab(index: Int): StateFlow<PagingData<Order>> {
+        return ordersCache.getOrPut(index) {
+            val status = when (index) {
+                0 -> OrderStatus.PENDING
+                1 -> null
+                else -> null
             }
-        }
-        viewModelScope.launch {
-            orderRepository.getOrdersByFilter(OrderFilter()).cachedIn(viewModelScope).collect{
-                _ordersAll.value = it
-            }
 
-        }
+            val filter = OrderFilter(status = status?.name)
 
+            orderRepository.getOrdersByFilter(filter)
+                .cachedIn(viewModelScope)
+                .stateIn(
+                    viewModelScope,
+                    SharingStarted.WhileSubscribed(5000),
+                    PagingData.empty()
+                )
+        }
     }
 
 
     fun navigateToDetails(it: Order) {
         viewModelScope.launch {
-            _event.emit(OrderListEvent.NavigateToOrderDetailScreen(it))
+            _event.send(OrderListEvent.NavigateToOrderDetailScreen(it))
         }
     }
 

@@ -49,6 +49,19 @@ object StringUtils {
         }
     }
 
+    fun parseLocalDate(
+        dateString: String?,
+        pattern: String = "dd-MM-yyyy"
+    ): LocalDate? {
+        return try {
+            dateString?.let {
+                LocalDate.parse(it, DateTimeFormatter.ofPattern(pattern))
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun getFormattedCurrentVietnamDate(pattern: String = "dd-MM-yyyy"): String {
         return try {
             val currentDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))

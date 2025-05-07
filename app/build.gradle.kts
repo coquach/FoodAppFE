@@ -80,7 +80,7 @@ android {
             dimension = "environment"
 
         }
-        create("restaurant") {
+        create("admin") {
             dimension = "environment"
             applicationIdSuffix = ".restaurant"
 
@@ -130,10 +130,11 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation("androidx.compose.material3:material3:1.3.2")
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     implementation(libs.google.firebase.messaging.ktx)
     implementation(libs.transport.api)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -177,6 +178,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
 
 
 

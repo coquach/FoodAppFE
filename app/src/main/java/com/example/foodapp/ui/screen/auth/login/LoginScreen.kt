@@ -64,6 +64,7 @@ import com.example.foodapp.ui.navigation.SendEmail
 
 import com.example.foodapp.ui.navigation.SignUp
 import com.example.foodapp.ui.navigation.Statistics
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.GoogleLoginButton
 import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.LoadingButton
@@ -84,7 +85,7 @@ fun LoginScreen(
     var showPassword by remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val loading = remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+
     val scope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
 
@@ -101,14 +102,7 @@ fun LoginScreen(
     LaunchedEffect(true) {
         viewModel.navigationEvent.collectLatest { event ->
             when (event) {
-                // Test chuyển hướng view trong variant khi nào có role thì sửa lại code
-                is LoginViewModel.LoginNavigationEvent.NavigateAfterLogin -> {
-                    when (BuildConfig.FLAVOR) {
-                        "customer" -> navController.navigate(Home)
-                        "staff" -> navController.navigate(OrderList)
-                        "restaurant" -> navController.navigate(Statistics)
-                    }
-                }
+
 
                 is LoginViewModel.LoginNavigationEvent.NavigateSignUp -> {
                     navController.navigate(SignUp)
@@ -116,6 +110,24 @@ fun LoginScreen(
 
                 is LoginViewModel.LoginNavigationEvent.NavigateForgot -> {
                     navController.navigate(SendEmail)
+                }
+
+                LoginViewModel.LoginNavigationEvent.NavigateToAdmin -> {
+                    navController.navigate(Statistics) {
+                        popUpTo(navController.graph.startDestinationId)
+                    }
+                }
+                LoginViewModel.LoginNavigationEvent.NavigateToCustomer -> {
+                    navController.navigate(Home) {
+                        popUpTo(navController.graph.startDestinationId)
+                    }
+
+                }
+                LoginViewModel.LoginNavigationEvent.NavigateToStaff -> {
+                    navController.navigate(Home) {
+                        
+                        popUpTo(navController.graph.startDestinationId)
+                    }
                 }
             }
 
@@ -288,18 +300,12 @@ fun LoginScreen(
         }
     }
     if (showDialog) {
-        ModalBottomSheet(onDismissRequest = { showDialog = false }, sheetState = sheetState) {
-            BasicDialog(
-                title = viewModel.error,
-                description = viewModel.errorDescription,
-                onClick = {
-                    scope.launch {
-                        sheetState.hide()
-                        showDialog = false
-                    }
-                }
-            )
-        }
+        ErrorModalBottomSheet(
+            title = viewModel.error,
+            description = viewModel.errorDescription,
+            onDismiss = { showDialog = false },
+
+        )
     }
 }
 

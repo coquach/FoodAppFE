@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 
 import com.example.foodapp.data.service.AccountService
 import com.example.foodapp.BaseViewModel
+import com.example.foodapp.BuildConfig
 import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
@@ -22,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val accountService: AccountService
+    private val accountService: AccountService,
 ) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow<LoginEvent>(LoginEvent.Nothing)
@@ -52,8 +53,25 @@ class LoginViewModel @Inject constructor(
             _uiState.value = LoginEvent.Loading
             try {
                 accountService.signInWithEmail(email.value, password.value)
+                val role = accountService.getUserRole() ?: "customer" // fallback
+
+                val currentFlavor = BuildConfig.FLAVOR
+                if (role != currentFlavor) {
+                    accountService.signOut()
+                    error = "Sai tài khoản"
+                    errorDescription = "Bạn đang dùng app dành cho '$currentFlavor' nhưng tài khoản này là '$role'."
+                    _uiState.value = LoginEvent.Error
+                    return@launch
+                }
+
                 _uiState.value = LoginEvent.Success
-                _navigationEvent.emit(LoginNavigationEvent.NavigateAfterLogin)
+                when (role) {
+                    "admin" -> _navigationEvent.emit(LoginNavigationEvent.NavigateToAdmin)
+                    "staff" -> _navigationEvent.emit(LoginNavigationEvent.NavigateToStaff)
+                    "customer" -> _navigationEvent.emit(LoginNavigationEvent.NavigateToCustomer)
+                }
+
+
 
 
             } catch (e: FirebaseAuthInvalidUserException) {
@@ -100,7 +118,7 @@ class LoginViewModel @Inject constructor(
                     val googleIdTokenCredential =
                         GoogleIdTokenCredential.createFrom(credential.data)
                     accountService.signInWithGoogle(googleIdTokenCredential.idToken)
-                    _navigationEvent.emit(LoginNavigationEvent.NavigateAfterLogin)
+                    _navigationEvent.emit(LoginNavigationEvent.NavigateToCustomer)
 
                 } else throw IllegalArgumentException("Thông tin không hợp lệ")
             } catch (e: ApiException) {
@@ -131,7 +149,9 @@ class LoginViewModel @Inject constructor(
 
     sealed class LoginNavigationEvent {
         data object NavigateSignUp : LoginNavigationEvent()
-        data object NavigateAfterLogin  : LoginNavigationEvent()
+        data object NavigateToAdmin : LoginNavigationEvent()
+        data object NavigateToStaff : LoginNavigationEvent()
+        data object NavigateToCustomer : LoginNavigationEvent()
         data object NavigateForgot : LoginNavigationEvent()
     }
 

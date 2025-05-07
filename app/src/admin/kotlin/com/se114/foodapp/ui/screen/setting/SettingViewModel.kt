@@ -22,8 +22,8 @@ class SettingViewModel @Inject constructor(
     fun onLogoutClicked() {
         viewModelScope.launch() {
             try {
-                _event.emit(SettingEvents.NavigateToAuth)
-                val result = accountService.signOut()
+
+                accountService.signOut()
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -40,7 +40,7 @@ class SettingViewModel @Inject constructor(
 
 
     sealed class SettingEvents {
-        data object NavigateToAuth : SettingEvents()
+
         data object OnLogout : SettingEvents()
 
     }

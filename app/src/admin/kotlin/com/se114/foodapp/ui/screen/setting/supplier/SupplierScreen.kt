@@ -95,8 +95,7 @@ fun SupplierScreen(
     viewModel: SupplierViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val suppliersActive = viewModel.suppliersActive.collectAsLazyPagingItems()
-    val suppliersHidden = viewModel.suppliersHidden.collectAsLazyPagingItems()
+    val supplier = viewModel.suppliers.collectAsLazyPagingItems()
     val supplierRequest by viewModel.supplierRequest.collectAsStateWithLifecycle()
 
     var isLoading by rememberSaveable { mutableStateOf(false) }
@@ -174,7 +173,7 @@ fun SupplierScreen(
                 pages = listOf(
                     {
                         SupplierListSection(
-                            suppliers = suppliersActive,
+                            suppliers = supplier,
                             onClick = {
                                 isUpdating = true
                                 supplierSelected = it.id
@@ -196,7 +195,7 @@ fun SupplierScreen(
                     },
                     {
                         SupplierListSection(
-                            suppliers = suppliersHidden,
+                            suppliers = supplier,
                             onClick = {
                                 isUpdating = true
                                 supplierSelected = it.id
@@ -215,7 +214,11 @@ fun SupplierScreen(
                             }
                         )
                     }
-                )
+                ),
+
+                onTabSelected = {
+                    viewModel.setTab(it)
+                }
             )
         }
     }

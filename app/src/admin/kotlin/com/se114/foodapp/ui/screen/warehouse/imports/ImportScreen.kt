@@ -235,7 +235,7 @@ fun ImportScreen(
                                             icon = rememberVectorPainter(Icons.Default.Delete),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
-                                                isDeleted = it.importDate.plusDays(3).isAfter(LocalDateTime.now())
+                                                isDeleted = it.importDate.plusDays(3)?.isAfter(LocalDateTime.now()) == true
                                                 if(isDeleted) {
                                                     selectedImportId = it.id
                                                     viewModel.onRemoveSwipe()
@@ -368,7 +368,7 @@ fun ImportDetails(import: Import) {
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = StringUtils.formatDateTime(import.importDate),
+                        text = StringUtils.formatDateTime(import.importDate)?: "",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }

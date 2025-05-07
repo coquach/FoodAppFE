@@ -176,7 +176,7 @@ class ImportDetailsViewModel @Inject constructor(
 
                 supplierId = import.id,
                 staffId = import.staffId,
-                importDate = StringUtils.formatDateTime(import.importDate),
+                importDate = StringUtils.formatDateTime(import.importDate)!!,
             )
         }
         _importDetailsListRequest.update {

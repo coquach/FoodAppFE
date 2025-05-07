@@ -47,6 +47,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 
 import androidx.compose.material3.HorizontalDivider
@@ -55,18 +56,22 @@ import androidx.compose.material3.IconButton
 
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,6 +99,7 @@ import androidx.paging.compose.LazyPagingItems
 
 import com.example.foodapp.R
 import com.example.foodapp.ui.theme.FoodAppTheme
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -235,6 +241,63 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ErrorModalBottomSheet(
+    title: String,
+    description: String,
+    onDismiss: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+) {
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            scope.launch {
+                sheetState.hide()
+                onDismiss()
+            }
+        },
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 4.dp,
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        sheetState.hide()
+                        onDismiss()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Đóng")
+            }
+        }
+    }
+}
 
 @Composable
 fun FoodItemCounter(

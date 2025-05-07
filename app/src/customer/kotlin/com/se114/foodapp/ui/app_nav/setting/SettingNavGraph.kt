@@ -1,13 +1,16 @@
-package com.se114.foodapp.app_nav.setting
+package com.se114.foodapp.ui.app_nav.setting
 
 import androidx.compose.runtime.MutableState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.example.foodapp.ui.navigation.Profile
+
 import com.example.foodapp.ui.navigation.Setting
+import com.example.foodapp.ui.navigation.UpdateProfile
+
+import com.example.foodapp.ui.screen.auth.signup.profile.ProfileScreen
 import com.se114.foodapp.ui.screen.setting.SettingScreen
-import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
+
 
 fun NavGraphBuilder.settingGraph(
     navController: NavHostController,
@@ -19,8 +22,8 @@ fun NavGraphBuilder.settingGraph(
         shouldShowBottomNav.value = true
         SettingScreen(navController, isDarkMode, onThemeUpdated)
     }
-    composable<Profile> {
+    composable<UpdateProfile> {
         shouldShowBottomNav.value = false
-        ProfileScreen(navController)
+        ProfileScreen(navController, isUpdating = true)
     }
 }

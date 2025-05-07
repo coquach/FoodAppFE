@@ -33,7 +33,10 @@ object Cart : NavRoute
 object Notification : NavRoute
 
 @Serializable
-object Profile : NavRoute
+object CreateProfile : NavRoute
+
+@Serializable
+object UpdateProfile : NavRoute
 
 @Serializable
 object Reservation : NavRoute

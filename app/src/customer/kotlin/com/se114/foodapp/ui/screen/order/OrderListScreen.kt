@@ -30,6 +30,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,8 +51,7 @@ import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.screen.common.OrderListSection
-import com.example.foodapp.ui.screen.components.GenericListContent
-import com.example.foodapp.ui.screen.components.Nothing
+
 import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.utils.StringUtils
 
@@ -63,17 +63,15 @@ fun OrderListScreen(
     navController: NavController,
     viewModel: OrderListViewModel = hiltViewModel()
 ) {
-
-    val ordersPending = viewModel.ordersPending.collectAsLazyPagingItems()
-    val ordersAll = viewModel.ordersAll.collectAsLazyPagingItems()
+    val currentTab by viewModel.tabIndex.collectAsStateWithLifecycle()
+    val orders = viewModel.getOrdersByTab(currentTab).collectAsLazyPagingItems()
 
     val handle = navController.currentBackStackEntry?.savedStateHandle
     LaunchedEffect(handle) {
-        val condition = handle?.get<Boolean>("update") == true
-
+        val condition = handle?.get<Boolean>("shouldRefresh") == true
         if (condition) {
-            handle?.set("update", false)
-            viewModel.getOrders()
+            handle?.set("shouldRefresh", false)
+            viewModel.refreshAllTabs()
         }
     }
     LaunchedEffect(key1 = true) {
@@ -127,7 +125,7 @@ fun OrderListScreen(
             pages = listOf(
                 {
                     OrderListSection(
-                        orders = ordersPending,
+                        orders = orders,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }
@@ -135,13 +133,17 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
-                        orders = ordersAll,
+                        orders = orders,
                         onItemClick = {
                             navController.navigate(OrderDetails(it))
                         }
                     )
                 }
-            )
+            ),
+
+            onTabSelected = {
+                viewModel.setTab(it)
+            }
         )
 
 

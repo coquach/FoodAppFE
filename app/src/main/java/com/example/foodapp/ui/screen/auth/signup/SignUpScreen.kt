@@ -1,12 +1,6 @@
 package com.example.foodapp.ui.screen.auth.signup
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,11 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,8 +55,11 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.ui.navigation.CreateProfile
 import com.example.foodapp.ui.navigation.Home
 import com.example.foodapp.ui.navigation.Login
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
+
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -91,26 +87,23 @@ fun SignUpScreen(
 
     var showPassword by remember { mutableStateOf(false) }
     val loading = remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
     var showErrorSheet by remember { mutableStateOf(false) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
+    val errorMessage = remember { mutableStateOf<String?>(null) }
 
 
-
-
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(errorMessage.value) {
+        if (errorMessage.value != null)
+            scope.launch {
+                showErrorSheet = true
+            }
+    }
 
 
     LaunchedEffect(true) {
         viewModel.event.collectLatest { event ->
             when (event) {
-                is SignUpViewModel.SignUpEvent.NavigateHome -> {
-                    navController.navigate(Home) {
-                        popUpTo(Auth) {
-                            inclusive = true
-                        }
-                    }
-                }
+
 
                 is SignUpViewModel.SignUpEvent.NavigateLogin -> {
                     navController.navigate(Login) {
@@ -120,8 +113,8 @@ fun SignUpScreen(
                     }
                 }
 
-                is SignUpViewModel.SignUpEvent.ShowSuccessDialog -> {
-                    showSuccessDialog = true
+                is SignUpViewModel.SignUpEvent.NavigateProfile -> {
+                    navController.navigate(CreateProfile)
                 }
 
 
@@ -139,14 +132,17 @@ fun SignUpScreen(
 
             is SignUpViewModel.SignUpState.Loading -> {
                 loading.value = true
+                errorMessage.value = null
             }
 
             is SignUpViewModel.SignUpState.Error -> {
                 loading.value = false
-                showErrorSheet = true
+                errorMessage.value = "Failed"
+
             }
             else -> {
                 loading.value = false
+                errorMessage.value = null
             }
         }
 
@@ -324,6 +320,7 @@ fun SignUpScreen(
             LoadingButton(
                 onClick = viewModel::onSignUpClick,
                 text = stringResource(R.string.sign_up),
+                modifier = Modifier.fillMaxWidth(),
                 loading = loading.value
             )
             Spacer(modifier = Modifier.size(16.dp))
@@ -341,42 +338,15 @@ fun SignUpScreen(
 
         }
     }
-    if (showSuccessDialog) {
 
-        FoodAppDialog(
-            title = "Đăng kí thành công",
-            titleColor = Color.Green.copy(alpha = 0.8f),
-            message = "Bây giờ bạn có thể đăng nhập được rồi nha",
-            onDismiss = {
-
-                showSuccessDialog = false
-            },
-            onConfirm = {
-                viewModel.onLoginClick()
-                showSuccessDialog = false
-
-            },
-            confirmText = "Đăng nhập",
-            dismissText = "Đóng",
-            showConfirmButton = true
-        )
-
-
-    }
 
     if (showErrorSheet) {
-        ModalBottomSheet(onDismissRequest = { showErrorSheet = false }, sheetState = sheetState) {
-            BasicDialog(
-                title = viewModel.error,
-                description = viewModel.errorDescription,
-                onClick = {
-                    scope.launch {
-                        sheetState.hide()
-                        showErrorSheet = false
-                    }
-                }
-            )
-        }
+        ErrorModalBottomSheet(
+            title = viewModel.error,
+            description =viewModel.errorDescription,
+            onDismiss = { showErrorSheet = false },
+
+        )
     }
 }
 

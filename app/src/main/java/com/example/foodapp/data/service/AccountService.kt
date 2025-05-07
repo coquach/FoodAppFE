@@ -2,6 +2,7 @@ package com.example.foodapp.data.service
 
 
 import com.example.foodapp.data.model.Account
+import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.flow.Flow
 
 interface AccountService {
@@ -14,7 +15,7 @@ interface AccountService {
     fun sendVerifyEmail()
     suspend fun reloadToken()
     suspend fun createAccountWithEmail(email: String, password: String)
-    suspend fun updateDisplayName(newDisplayName: String)
+    suspend fun updateProfile(updateProfile: UserProfileChangeRequest)
     suspend fun linkAccountWithGoogle(idToken: String)
     suspend fun linkAccountWithEmail(email: String, password: String)
     suspend fun signInWithGoogle(idToken: String)

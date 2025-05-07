@@ -7,6 +7,7 @@ import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
 
 import androidx.navigation.compose.rememberNavController
 
@@ -36,6 +38,7 @@ import com.example.foodapp.SplashViewModel
 import com.example.foodapp.data.remote.FoodApi
 
 import com.example.foodapp.data.model.ResetPasswordArgs
+import com.example.foodapp.ui.navigation.Auth
 
 import com.example.foodapp.ui.navigation.BottomNavItem
 import com.example.foodapp.ui.navigation.BottomNavigationBar
@@ -57,8 +60,7 @@ import javax.inject.Inject
 class MainActivity : BaseFoodAppActivity() {
     @Inject
     lateinit var foodApi: FoodApi
-    @Inject
-    lateinit var splashViewModel: SplashViewModel
+    private val splashViewModel: SplashViewModel by viewModels()
 
 
     @OptIn(ExperimentalSharedTransitionApi::class)
@@ -146,7 +148,20 @@ class MainActivity : BaseFoodAppActivity() {
                         }
                     }
                 }
-                
+                LaunchedEffect(Unit) {
+                    splashViewModel.navigateEventFlow.collectLatest { event ->
+                        when (event) {
+                            is SplashViewModel.UiEvent.NavigateToAuth -> {
+                                navController.navigate(Auth) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.background,
@@ -160,18 +175,18 @@ class MainActivity : BaseFoodAppActivity() {
                 ) { innerPadding ->
 
                     SharedTransitionLayout {
-                       AppNavGraph(
-                           navController = navController,
-                           innerPadding = innerPadding,
-                           shouldShowBottomNav = shouldShowBottomNav,
-                           notificationViewModel = notificationViewModel,
-                           startDestination = screen,
-                           isDarkMode = isDarkMode,
-                           onThemeUpdated = {
-                               isDarkMode = !isDarkMode
-                           },
-                           sharedTransitionScope = this
-                       ) 
+                        AppNavGraph(
+                            navController = navController,
+                            innerPadding = innerPadding,
+                            shouldShowBottomNav = shouldShowBottomNav,
+                            notificationViewModel = notificationViewModel,
+                            startDestination = screen,
+                            isDarkMode = isDarkMode,
+                            onThemeUpdated = {
+                                isDarkMode = !isDarkMode
+                            },
+                            sharedTransitionScope = this
+                        )
                     }
                 }
             }

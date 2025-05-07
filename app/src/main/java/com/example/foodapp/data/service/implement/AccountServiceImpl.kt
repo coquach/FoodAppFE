@@ -6,10 +6,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.FirebaseUserMetadata
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
-import com.google.firebase.auth.userProfileChangeRequest
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -44,6 +43,8 @@ class AccountServiceImpl @Inject constructor() : AccountService{
         Firebase.auth.currentUser?.sendEmailVerification()
     }
 
+
+
     override fun hasUser(): Boolean {
         return Firebase.auth.currentUser != null
     }
@@ -56,12 +57,8 @@ class AccountServiceImpl @Inject constructor() : AccountService{
         Firebase.auth.createUserWithEmailAndPassword(email, password).await()
     }
 
-    override suspend fun updateDisplayName(newDisplayName: String) {
-        val profileUpdates = userProfileChangeRequest {
-            displayName = newDisplayName
-        }
-
-        Firebase.auth.currentUser?.updateProfile(profileUpdates)?.await()
+    override suspend fun updateProfile(updateProfile: UserProfileChangeRequest) {
+        Firebase.auth.currentUser?.updateProfile(updateProfile)?.await()
     }
 
     override suspend fun forgetPassword(email: String) {
@@ -104,17 +101,19 @@ class AccountServiceImpl @Inject constructor() : AccountService{
         return currentUser.getIdToken(false).await().claims["role"] as String?
     }
 
-    private fun FirebaseUser.toAppUser(): Account {
-        return Account(
-            id = this.uid,
-            email = this.email ?: "",
-            provider = this.providerId,
-            displayName = this.displayName ?: "",
-            photoUrl = this.photoUrl,
-        )
-    }
+
 
     override suspend fun reloadToken() {
         Firebase.auth.currentUser?.getIdToken(true)?.await()
     }
+}
+
+fun FirebaseUser.toAppUser(): Account {
+    return Account(
+        id = this.uid,
+        email = this.email ?: "",
+        phoneNumber = this.phoneNumber?: "",
+        displayName = this.displayName ?: "",
+        avatar = this.photoUrl,
+    )
 }

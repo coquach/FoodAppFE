@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.setting
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 
@@ -37,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,18 +48,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.foodapp.R
+import com.example.foodapp.data.dto.filter.MenuItemFilter
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.ThemeSwitcher
 import com.example.foodapp.ui.navigation.Auth
-import com.example.foodapp.ui.navigation.Profile
+import com.example.foodapp.ui.navigation.CreateProfile
+import com.example.foodapp.ui.navigation.UpdateProfile
+
 import com.example.foodapp.ui.screen.components.SettingGroup
 import com.example.foodapp.ui.screen.components.SettingItem
 import kotlinx.coroutines.flow.collectLatest
@@ -73,6 +81,17 @@ fun SettingScreen(
 
     val showDialogLogout = remember { mutableStateOf(false) }
 
+    val profile by viewModel.profile.collectAsStateWithLifecycle()
+
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        if (handle?.get<Boolean>("shouldRefresh") == true) {
+            handle["shouldRefresh"] = false
+            viewModel.getProfile()
+        }
+    }
+    Log.d("Setting", profile.displayName)
+
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
@@ -81,18 +100,8 @@ fun SettingScreen(
                     showDialogLogout.value = true
                 }
 
-                is SettingViewModel.SettingEvents.NavigateToAuth -> {
-                    navController.navigate(Auth) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-
-                    }
-                }
-
                 is SettingViewModel.SettingEvents.NavigateToProfile -> {
-                    navController.navigate(Profile)
+                    navController.navigate(UpdateProfile)
                 }
             }
         }
@@ -114,23 +123,28 @@ fun SettingScreen(
                     .align(Alignment.CenterHorizontally),
                 contentAlignment = Alignment.Center
             ) {
-                // Avatar tròn
-                Image(
-                    painter = painterResource(id = R.drawable.avatar_placeholder),
+
+                AsyncImage(
+                    model = profile.avatar,
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .size(100.dp)
                         .shadow(8.dp, shape = CircleShape)
                         .clip(CircleShape)
-                        .border(4.dp, Color.White, CircleShape)
+                        .border(4.dp, MaterialTheme.colorScheme.background, CircleShape),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.avatar_placeholder),
+                    error = painterResource(id = R.drawable.avatar_placeholder)
                 )
+
+
 
             }
             Spacer(modifier = Modifier.height(10.dp))
 
 
             Text(
-                "Quách Vĩnh Cơ",
+                text = profile.displayName,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary

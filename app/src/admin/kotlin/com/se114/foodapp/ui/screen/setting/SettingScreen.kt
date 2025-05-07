@@ -37,17 +37,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+
 import com.example.foodapp.ui.navigation.Auth
-import com.example.foodapp.ui.navigation.Category
-import com.example.foodapp.ui.navigation.Profile
+
 import com.example.foodapp.ui.navigation.Supplier
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.SettingGroup
 import com.example.foodapp.ui.screen.components.SettingItem
 import com.example.foodapp.ui.screen.components.ThemeSwitcher
-import com.example.foodapp.ui.theme.FoodAppTheme
+
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -73,13 +72,6 @@ fun SettingScreen(
             when (it) {
                 is SettingViewModel.SettingEvents.OnLogout -> {
                     showDialogLogout.value = true
-                }
-
-                is SettingViewModel.SettingEvents.NavigateToAuth -> {
-                    navController.navigate(Auth) {
-                        popUpTo(navController.graph.startDestinationId)
-
-                    }
                 }
 
             }

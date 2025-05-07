@@ -5,9 +5,7 @@ import com.example.foodapp.data.dto.request.ExportRequest
 import com.example.foodapp.data.dto.request.ImportRequest
 import com.example.foodapp.data.dto.request.IngredientRequest
 import com.example.foodapp.data.dto.request.OrderRequest
-import com.example.foodapp.data.dto.request.RegisterRequest
 import com.example.foodapp.data.dto.response.PageResponse
-import com.example.foodapp.data.dto.response.RegisterResponse
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.data.model.MenuItem
 import com.example.foodapp.data.model.Order
@@ -40,8 +38,7 @@ import retrofit2.http.Query
 interface FoodApi {
 
 
-    @POST("auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
+
 
     //Order
     @GET("orders")

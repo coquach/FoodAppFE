@@ -14,6 +14,7 @@ import androidx.activity.SystemBarStyle
 
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 
 import androidx.compose.animation.AnimatedVisibility
@@ -48,6 +49,7 @@ import com.example.foodapp.HomeViewModel
 import com.example.foodapp.SplashViewModel
 
 import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.ui.navigation.Auth
 import com.example.foodapp.ui.navigation.BottomNavItem
 import com.example.foodapp.ui.navigation.BottomNavigationBar
 
@@ -69,8 +71,7 @@ class MainActivity : BaseFoodAppActivity() {
     @Inject
     lateinit var foodApi: FoodApi
 
-    @Inject
-    lateinit var splashViewModel: SplashViewModel
+    private val splashViewModel: SplashViewModel by viewModels()
 
     @RequiresApi(Build.VERSION_CODES.R)
     @OptIn(ExperimentalSharedTransitionApi::class)
@@ -142,6 +143,19 @@ class MainActivity : BaseFoodAppActivity() {
                                         it.order
                                     )
                                 )
+                            }
+                        }
+                    }
+                }
+                LaunchedEffect(Unit) {
+                    splashViewModel.navigateEventFlow.collectLatest { event ->
+                        when (event) {
+                            is SplashViewModel.UiEvent.NavigateToAuth -> {
+                                navController.navigate(Auth) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        inclusive = true
+                                    }
+                                }
                             }
                         }
                     }
