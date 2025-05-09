@@ -8,11 +8,15 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.filter.InventoryFilter
 import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.repository.MenuItemRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,35 +40,40 @@ class MenuViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<MenuState>(MenuState.Nothing)
     val uiState = _uiState.asStateFlow()
 
-    private val _event = MutableSharedFlow<MenuEvents>()
-    val event = _event.asSharedFlow()
+    private val _event = Channel<MenuEvents>()
+    val event get() = _event.receiveAsFlow()
 
-    private val _filter = MutableStateFlow(MenuItemFilter(isAvailable = true))
-
-
-    fun updateFilter(newFilter: MenuItemFilter) {
-        _filter.update { it.copy(reloadTrigger = newFilter.reloadTrigger) }
-    }
-
-
-    val menuItems: StateFlow<PagingData<MenuItem>> = _filter
-        .flatMapLatest { filter ->
-            menuItemRepository.getMenuItemsByFilter(filter)
-        }
-        .cachedIn(viewModelScope)
-        .stateIn(
-            viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = PagingData.empty()
-        )
+    private val _tabIndex = MutableStateFlow(0)
+    val tabIndex: StateFlow<Int> = _tabIndex
 
     fun setTab(index: Int) {
-        val newFilter = when (index) {
-            0 -> MenuItemFilter(isAvailable = true)
-            1 -> MenuItemFilter(isAvailable = false)
-            else -> {MenuItemFilter(isAvailable = true)}
+        _tabIndex.value = index
+    }
+    fun refreshAllTabs() {
+        menuItemsCache.clear()
+
+    }
+    private val menuItemsCache = mutableMapOf<Int, StateFlow<PagingData<MenuItem>>>()
+
+
+    fun getMenuItemsByTab(index: Int): StateFlow<PagingData<MenuItem>> {
+        return menuItemsCache.getOrPut(index) {
+            val isAvailable = when (index) {
+                0 -> true
+                1 -> false
+                else -> null
+            }
+
+            val filter = MenuItemFilter(isAvailable = isAvailable)
+
+            menuItemRepository.getMenuItemsByFilter(filter)
+                .cachedIn(viewModelScope)
+                .stateIn(
+                    viewModelScope,
+                    SharingStarted.WhileSubscribed(5000),
+                    PagingData.empty()
+                )
         }
-        _filter.value = newFilter
     }
 
     private val _selectedItems = mutableStateListOf<MenuItem>()
@@ -94,7 +104,7 @@ class MenuViewModel @Inject constructor(
 
     fun onRemoveClicked() {
         viewModelScope.launch {
-            _event.emit(MenuEvents.ShowDeleteDialog)
+            _event.send(MenuEvents.ShowDeleteDialog)
         }
     }
 

@@ -77,7 +77,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     navController: NavController,
-    isCustomer: Boolean = true,
+    isCustomer: Boolean = false,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val email = viewModel.email.collectAsStateWithLifecycle()
@@ -232,6 +232,7 @@ fun LoginScreen(
                         maxLines = 1
 
                     )
+
                     Spacer(modifier = Modifier.size(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),

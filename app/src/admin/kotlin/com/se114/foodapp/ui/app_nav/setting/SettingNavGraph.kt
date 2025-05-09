@@ -7,6 +7,8 @@ import androidx.navigation.compose.composable
 import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.navigation.Setting
 import com.example.foodapp.ui.navigation.Supplier
+import com.example.foodapp.ui.navigation.Voucher
+import com.example.foodapp.ui.screen.voucher.VoucherListScreen
 import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.setting.SettingScreen
 import com.se114.foodapp.ui.screen.menu.category.CategoryScreen
@@ -32,5 +34,11 @@ fun NavGraphBuilder.settingGraph(
             SupplierScreen(navController)
         }
 
+    }
+    composable<Voucher> {
+        shouldShowBottomNav.value = false
+        ScreenContainer {
+            VoucherListScreen(navController)
+        }
     }
 }

@@ -42,12 +42,11 @@ class SupplierViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<SupplierState>(SupplierState.Nothing)
     val uiState = _uiState.asStateFlow()
 
-    private val _event = Channel<SupplierEvents>()
-    val event = _event.receiveAsFlow()
+
 
     private val _filter = MutableStateFlow(SupplierFilter())
 
-    fun updateFilter(newFilter: SupplierFilter) {
+    private fun updateFilter(newFilter: SupplierFilter) {
         _filter.update { it.copy(reloadTrigger = newFilter.reloadTrigger) }
     }
 
@@ -133,14 +132,15 @@ class SupplierViewModel @Inject constructor(
                     }
 
                     is ApiResponse.Error -> {
-                        _uiState.value = SupplierState.Error
+
                         errorDescription = response.message
-                        Log.d("Supplier error", response.message)
+                        _uiState.value = SupplierState.Error
                     }
 
                     else -> {
-                        _uiState.value = SupplierState.Error
+                        error = "Đã xảy ra lỗi ..."
                         errorDescription = "Lỗi không xác định"
+                        _uiState.value = SupplierState.Error
 
                     }
                 }
@@ -166,19 +166,24 @@ class SupplierViewModel @Inject constructor(
                     }
 
                     is ApiResponse.Error -> {
-                        _uiState.value = SupplierState.Error
+
                         errorDescription = response.message
+                        _uiState.value = SupplierState.Error
                     }
 
                     else -> {
-                        _uiState.value = SupplierState.Error
+
+                        error = "Đã xảy ra lỗi ..."
                         errorDescription = "Lỗi không xác định"
+                        _uiState.value = SupplierState.Error
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _uiState.value = SupplierState.Error
+
+                error = "Đã xảy ra lỗi ..."
                 errorDescription = e.message.toString()
+                _uiState.value = SupplierState.Error
             }
         }
     }
@@ -202,13 +207,16 @@ class SupplierViewModel @Inject constructor(
                     }
 
                     else -> {
-                        _uiState.value = SupplierState.Error
+                        error = "Đã xảy ra lỗi ..."
+
                         errorDescription = "Lỗi không xác định"
+                        _uiState.value = SupplierState.Error
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.value = SupplierState.Error
+                error = "Đã xảy ra lỗi ..."
                 errorDescription = e.message.toString()
             }
         }
@@ -223,11 +231,5 @@ class SupplierViewModel @Inject constructor(
         data object Error : SupplierState()
     }
 
-    sealed class SupplierEvents {
-        data object ShowSupplierDialog : SupplierEvents()
-        data object ShowErrorSheet : SupplierEvents()
-        data object ShowActiveDialog : SupplierEvents()
-        data object ShowDeleteDialog : SupplierEvents()
 
-    }
 }

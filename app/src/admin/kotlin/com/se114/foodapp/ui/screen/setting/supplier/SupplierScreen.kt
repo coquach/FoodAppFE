@@ -44,8 +44,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -74,6 +76,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Supplier
 
 import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -84,6 +87,7 @@ import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.ui.theme.confirm
 import com.se114.foodapp.ui.screen.employee.EmployeeItemView
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
@@ -92,7 +96,7 @@ import me.saket.swipe.SwipeableActionsBox
 @Composable
 fun SupplierScreen(
     navController: NavController,
-    viewModel: SupplierViewModel = hiltViewModel()
+    viewModel: SupplierViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val supplier = viewModel.suppliers.collectAsLazyPagingItems()
@@ -100,30 +104,23 @@ fun SupplierScreen(
 
     var isLoading by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
     var showSupplierDialog by rememberSaveable { mutableStateOf(false) }
     var isUpdating by rememberSaveable { mutableStateOf(false) }
     var supplierSelected by rememberSaveable { mutableStateOf<Long?>(null) }
     var showSetActiveDialog by rememberSaveable { mutableStateOf(false) }
     var isHide by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
+    val errorMessage = remember { mutableStateOf<String?>(null) }
 
 
-
-    when (uiState) {
-        is SupplierViewModel.SupplierState.Loading -> {
-            isLoading = true
-        }
-
-        is SupplierViewModel.SupplierState.Error -> {
-            isLoading = false
-            showErrorSheet = true
-        }
-
-        else -> {
-            isLoading = false
-        }
+    LaunchedEffect(errorMessage.value) {
+        if (errorMessage.value != null)
+            scope.launch {
+                showErrorSheet = true
+            }
     }
+
+
 
 
     Scaffold(
@@ -149,6 +146,21 @@ fun SupplierScreen(
             }
         }
     ) { padding ->
+
+       when (uiState) {
+            is SupplierViewModel.SupplierState.Loading -> {
+                isLoading = true
+                errorMessage.value = null
+            }
+            is SupplierViewModel.SupplierState.Error ->{
+                isLoading = false
+                errorMessage.value = "Failed"
+            }
+            else -> {
+                isLoading = false
+                errorMessage.value = null
+            }
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -223,18 +235,11 @@ fun SupplierScreen(
         }
     }
     if (showErrorSheet) {
-        ModalBottomSheet(onDismissRequest = { showErrorSheet = false }, sheetState = sheetState) {
-            BasicDialog(
-                title = viewModel.error,
-                description = viewModel.errorDescription,
-                onClick = {
-                    scope.launch {
-                        sheetState.hide()
-                        showErrorSheet = false
-                    }
-                }
-            )
-        }
+        ErrorModalBottomSheet(
+            title = viewModel.error,
+            description = viewModel.errorDescription,
+            onDismiss = { showErrorSheet = false }
+        )
     }
     if (showSupplierDialog) {
         Dialog(
@@ -306,6 +311,7 @@ fun SupplierScreen(
                         Button(
                             onClick = {
                                 showSupplierDialog = false
+                                isUpdating = false
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.outline
@@ -377,7 +383,7 @@ fun SupplierScreen(
 fun SupplierListSection(
     suppliers: LazyPagingItems<Supplier>,
     onClick: (Supplier) -> Unit,
-    endAction: @Composable (Long) -> SwipeAction
+    endAction: @Composable (Long) -> SwipeAction,
 ) {
     if (suppliers.itemSnapshotList.items.isEmpty() && suppliers.loadState.refresh !is LoadState.Loading) {
 
@@ -403,7 +409,7 @@ fun SupplierListSection(
                                     8.dp,
                                 )
                                 .clip(RoundedCornerShape(12.dp)),
-                            endActions =  listOf(endAction(it.id))
+                            endActions = listOf(endAction(it.id))
                         ) {
                             SupplierCard(
                                 supplier = it,
@@ -501,7 +507,7 @@ fun SupplierDetails(supplier: Supplier) {
 fun SupplierDetailsRow(
     text: String,
     icon: ImageVector,
-    color: Color = MaterialTheme.colorScheme.outline
+    color: Color = MaterialTheme.colorScheme.outline,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically

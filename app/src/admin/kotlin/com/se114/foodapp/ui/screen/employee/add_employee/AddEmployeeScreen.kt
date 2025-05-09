@@ -232,7 +232,8 @@ fun AddEmployeeScreen(
                     }
                 },
                 textPlaceholder = "Chọn chức vụ...",
-                options = listOf("Bán hàng", "Giao Hàng", "Quản lí kho")
+                options = listOf("Bán hàng", "Giao Hàng", "Quản lí kho"),
+                modifier = Modifier.fillMaxWidth()
             )
             DatePickerSample(
                 text = "Ngày sinh",

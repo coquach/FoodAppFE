@@ -14,11 +14,14 @@ import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.dto.request.MenuRequest
 import com.example.foodapp.data.dto.request.SupplierRequest
 import com.example.foodapp.data.dto.request.UnitRequest
+import com.example.foodapp.data.dto.request.VoucherRequest
 import com.example.foodapp.data.model.Export
+import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Supplier
+import com.example.foodapp.data.model.Voucher
 
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -36,8 +39,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FoodApi {
-
-
 
 
     //Order
@@ -60,13 +61,13 @@ interface FoodApi {
     @PUT("orders/{id}")
     suspend fun updateOrder(
         @Path("id") id: Long,
-        @Body orderRequest: OrderRequest
+        @Body orderRequest: OrderRequest,
     ): Response<Order>
 
     @PATCH("orders/{id}/status")
     suspend fun updateOrderStatus(
         @Path("id") id: Long,
-        @Body orderStatus: String
+        @Body orderStatus: String,
     ): Response<Order>
 
     // Xóa đơn hàng
@@ -90,7 +91,7 @@ interface FoodApi {
     @PUT("menus/{id}")
     suspend fun updateMenu(
         @Path("id") id: Long,
-        @Body request: MenuRequest
+        @Body request: MenuRequest,
     ): Response<Menu>
 
     @DELETE("menus/{id}")
@@ -110,14 +111,14 @@ interface FoodApi {
 
     @GET("menu-items/{id}")
     suspend fun getMenuItemDetailById(
-        @Path("id") id: Long
+        @Path("id") id: Long,
     ): Response<MenuItem>
 
     @Multipart
     @POST("menu-items")
     suspend fun createMenuItem(
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part image: MultipartBody.Part? = null
+        @Part image: MultipartBody.Part? = null,
     ): Response<MenuItem>
 
     @Multipart
@@ -125,12 +126,12 @@ interface FoodApi {
     suspend fun updateMenuItem(
         @Path("id") id: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part image: MultipartBody.Part? = null
+        @Part image: MultipartBody.Part? = null,
     ): Response<MenuItem>
 
     @DELETE("menu-items/{id}")
     suspend fun deleteMenuItem(
-        @Path("id") id: Long
+        @Path("id") id: Long,
     ): Response<Unit>
 
     //staffs
@@ -139,14 +140,14 @@ interface FoodApi {
         @Query("page") page: Int,
         @Query("size") size: Int,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc"
+        @Query("order") order: String = "asc",
     ): Response<PageResponse<Staff>>
 
     @Multipart
     @POST("staffs")
     suspend fun createStaff(
         @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part imageUrl: MultipartBody.Part? = null
+        @Part imageUrl: MultipartBody.Part? = null,
     ): Response<Staff>
 
     @Multipart
@@ -154,7 +155,7 @@ interface FoodApi {
     suspend fun updateStaff(
         @Path("id") id: Long,
         @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part imageUrl: MultipartBody.Part? = null
+        @Part imageUrl: MultipartBody.Part? = null,
     ): Response<Staff>
 
     @DELETE("staffs/{id}")
@@ -166,7 +167,7 @@ interface FoodApi {
     @GET("staffs/total-salary")
     suspend fun getTotalSalary(
         @Query("month") month: Int,
-        @Query("year") year: Int
+        @Query("year") year: Int,
     ): Response<Map<String, Double>>
 
     //Supplier
@@ -180,58 +181,59 @@ interface FoodApi {
         @Query("phone") phone: String? = null,
         @Query("email") email: String? = null,
         @Query("address") address: String? = null,
-        @Query("isActive") isActive: Boolean? = null
+        @Query("isActive") isActive: Boolean? = null,
     ): Response<PageResponse<Supplier>>
 
     @POST("suppliers")
     suspend fun createSupplier(
-        @Body request: SupplierRequest
+        @Body request: SupplierRequest,
     ): Response<Supplier>
 
     @PUT("suppliers/{id}")
     suspend fun updateSupplier(
         @Path("id") id: Long,
-        @Body request: SupplierRequest
+        @Body request: SupplierRequest,
     ): Response<Supplier>
 
     @PUT("suppliers/set-active/{id}")
     suspend fun setActiveSupplier(
         @Path("id") id: Long,
-        @Body isActive: Boolean
+        @Body isActive: Boolean,
     ): Response<Unit>
 
     @DELETE("suppliers/{id}")
     suspend fun deleteSupplier(
-        @Path("id") id: Long
+        @Path("id") id: Long,
     ): Response<Unit>
 
 
     //Unit
     @GET("units/active")
-    suspend fun getActiveUnits() : Response<List<com.example.foodapp.data.model.Unit>>
+    suspend fun getActiveUnits(): Response<List<com.example.foodapp.data.model.Unit>>
 
     @GET("units/isActive")
-    suspend fun getHiddenUnits() : Response<List<com.example.foodapp.data.model.Unit>>
+    suspend fun getHiddenUnits(): Response<List<com.example.foodapp.data.model.Unit>>
+
     @POST("units")
     suspend fun createUnit(
-        @Body request: UnitRequest
+        @Body request: UnitRequest,
     ): Response<com.example.foodapp.data.model.Unit>
 
     @PUT("units/{id}")
     suspend fun updateUnit(
         @Path("id") id: Long,
-        @Body request: UnitRequest
+        @Body request: UnitRequest,
     ): Response<com.example.foodapp.data.model.Unit>
 
     @DELETE("units/{id}")
     suspend fun deleteUnit(
-        @Path("id") id: Long
+        @Path("id") id: Long,
     ): Response<Unit>
 
     @PUT("units/set-active/{id}")
     suspend fun recoverUnit(
         @Path("id") id: Long,
-        @Body isActive: Boolean
+        @Body isActive: Boolean,
     ): Response<Unit>
 
 
@@ -244,57 +246,57 @@ interface FoodApi {
 
     @GET("ingredients/{id}")
     suspend fun getIngredientById(
-        @Path("id") id: Long
+        @Path("id") id: Long,
     ): Response<Ingredient>
 
     @POST("ingredients")
     suspend fun createIngredient(
-        @Body request: IngredientRequest
+        @Body request: IngredientRequest,
     ): Response<Ingredient>
 
     @PUT("ingredients/{id}")
     suspend fun updateIngredient(
         @Path("id") id: Long,
-        @Body request: IngredientRequest
+        @Body request: IngredientRequest,
     ): Response<Ingredient>
 
     @DELETE("ingredients/{id}")
     suspend fun deleteIngredient(
-        @Path("id") id: Long
+        @Path("id") id: Long,
     ): Response<Unit> // 204 No Content
 
     @PUT("ingredients/set-active/{id}")
     suspend fun setActiveIngredient(
         @Path("id") id: Long,
-        @Body isActive: Boolean
+        @Body isActive: Boolean,
     ): Response<Unit> // 204 No Content
 
     //Import
 
 
-        @GET("imports")
-        suspend fun getImports(
-            @Query("page") page: Int = 0,
-            @Query("size") size: Int = 10,
-            @Query("sortBy") sortBy: String = "id",
-            @Query("order") order: String = "asc",
-            @Query("staffId") staffId: Long?= null,
-            @Query("supplierId") supplierId: Long?= null,
-            @Query("startDate") startDate: String?= null,
-            @Query("endDate") endDate: String?= null
-        ): Response<PageResponse<Import>>
+    @GET("imports")
+    suspend fun getImports(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "id",
+        @Query("order") order: String = "asc",
+        @Query("staffId") staffId: Long? = null,
+        @Query("supplierId") supplierId: Long? = null,
+        @Query("startDate") startDate: String? = null,
+        @Query("endDate") endDate: String? = null,
+    ): Response<PageResponse<Import>>
 
-        @POST("imports")
-        suspend fun createImport(@Body request: ImportRequest): Response<Import>
+    @POST("imports")
+    suspend fun createImport(@Body request: ImportRequest): Response<Import>
 
-        @PUT("imports/{id}")
-        suspend fun updateImport(
-            @Path("id") id: Long,
-            @Body request: ImportRequest
-        ): Response<Import>
+    @PUT("imports/{id}")
+    suspend fun updateImport(
+        @Path("id") id: Long,
+        @Body request: ImportRequest,
+    ): Response<Import>
 
-        @DELETE("imports/{id}")
-        suspend fun deleteImport(@Path("id") id: Long): Response<Unit>
+    @DELETE("imports/{id}")
+    suspend fun deleteImport(@Path("id") id: Long): Response<Unit>
 
 
     //Export
@@ -302,13 +304,13 @@ interface FoodApi {
     suspend fun getExports(
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
-        @Query("sortBy") sortBy: String = "exportDate",
+        @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
-        @Query("staffId") staffId: Long?= null,
-        @Query("startDate") startDate: String?= null,
-        @Query("endDate") endDate: String?= null
+        @Query("staffId") staffId: Long? = null,
+        @Query("startDate") startDate: String? = null,
+        @Query("endDate") endDate: String? = null,
 
-    ): Response<PageResponse<Export>>
+        ): Response<PageResponse<Export>>
 
 
     @POST("exports")
@@ -318,7 +320,7 @@ interface FoodApi {
     @PUT("exports/{id}")
     suspend fun updateExport(
         @Path("id") id: Long,
-        @Body request: ExportRequest
+        @Body request: ExportRequest,
     ): Response<Export>
 
 
@@ -331,11 +333,78 @@ interface FoodApi {
     suspend fun getInventories(
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
-        @Query("sortBy") sortBy: String = "expiryDate",
+        @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
         @Query("ingredientId") ingredientId: Long? = null,
         @Query("expiryDate") expiryDate: String? = null,
         @Query("isOutOfStock") isOutOfStock: Boolean? = null,
     ): Response<PageResponse<Inventory>>
 
+    //Voucher
+    @GET("vouchers")
+    suspend fun getVouchers(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "id",
+        @Query("order") order: String = "asc",
+    ): Response<PageResponse<Voucher>>
+
+    @POST("vouchers")
+    suspend fun createVouchers(
+        @Body request: VoucherRequest,
+    ): Response<Voucher>
+
+    @PUT("vouchers/{id}")
+    suspend fun updateVoucher(
+        @Path("id") id: Long,
+        @Body request: VoucherRequest,
+    ): Response<Voucher>
+
+    @DELETE("vouchers/{id}")
+    suspend fun deleteVoucher(@Path("id") id: Long): Response<Void>
+
+    //Feedbacks
+    @GET("foods/{foodId}/feedbacks")
+    suspend fun getFeedbacksByFoodId(
+        @Path("foodId") foodId: Long,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "id",
+        @Query("order") order: String = "asc",
+    ): Response<PageResponse<Feedback>>
+
+    @Multipart
+    @POST("feedbacks")
+    suspend fun createFeedback(
+        @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
+        @Part images: List<MultipartBody.Part>? = null,
+    ): Response<Feedback>
+
+    @Multipart
+    @PUT("feedbacks/{id}")
+    suspend fun updateFeedback(
+        @Path("id") id: Long,
+        @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
+        @Part images: List<MultipartBody.Part>? = null,
+    ): Response<Feedback>
+
+    @DELETE("feedbacks/{id}")
+    suspend fun deleteFeedback(@Path("id") id: Long): Response<Void>
+
+
+    //Customer
+    @POST("customers/{customerId}/vouchers/{voucherId}")
+    suspend fun receiveVoucher(
+        @Path("customerId") customerId: String,
+        @Path("voucherId") voucherId: Long,
+    ): Response<Voucher>
+
+    @GET("customers/{customerId}/vouchers")
+    suspend fun getVouchersByCustomerId(
+        @Path("customerId") customerId: String,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "id",
+        @Query("order") order: String = "asc",
+    ): Response<PageResponse<Voucher>>
 }

@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.filled.Add
 
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -77,6 +79,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 
 
 import androidx.compose.ui.graphics.Color
@@ -95,9 +98,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import co.yml.charts.common.extensions.isNotNull
 
 import com.example.foodapp.R
+import com.example.foodapp.data.model.Order
+import com.example.foodapp.ui.screen.common.OrderItemView
 import com.example.foodapp.ui.theme.FoodAppTheme
 import kotlinx.coroutines.launch
 
@@ -138,7 +145,7 @@ fun FoodAppTextField(
         focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
 
-    )
+    ),
 ) {
 
     Column(
@@ -171,7 +178,7 @@ fun FoodAppTextField(
             modifier = modifier.heightIn(min = 56.dp),
             enabled,
             readOnly,
-            textStyle = actualTextStyle ,
+            textStyle = actualTextStyle,
             null,
             placeholder,
             leadingIcon,
@@ -247,7 +254,7 @@ fun ErrorModalBottomSheet(
     title: String,
     description: String,
     onDismiss: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
     val scope = rememberCoroutineScope()
 
@@ -304,7 +311,7 @@ fun FoodItemCounter(
     modifier: Modifier = Modifier,
     onCounterIncrement: () -> Unit,
     onCounterDecrement: () -> Unit,
-    count: Int
+    count: Int,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -370,7 +377,7 @@ fun FoodItemCounter(
 fun MyFloatingActionButton(
     onClick: () -> Unit,
     bgColor: Color,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     FloatingActionButton(
         onClick = onClick,
@@ -428,9 +435,9 @@ fun HeaderDefaultView(
     onBack: (() -> Unit)? = null,
     icon: ImageVector? = null,
     iconClick: (() -> Unit)? = null,
-    tintIcon: Color = MaterialTheme.colorScheme.primary
+    tintIcon: Color = MaterialTheme.colorScheme.primary,
 
-) {
+    ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -494,7 +501,7 @@ fun HeaderDefaultView(
 @Composable
 fun Retry(
     message: String,
-    onClicked: () -> Unit
+    onClicked: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize(),
@@ -522,7 +529,7 @@ fun FoodAppDialog(
     onConfirm: (() -> Unit)? = null,
     confirmText: String = "Ok",
     dismissText: String = "Đóng",
-    showConfirmButton: Boolean = true
+    showConfirmButton: Boolean = true,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -538,19 +545,25 @@ fun FoodAppDialog(
         containerColor = MaterialTheme.colorScheme.background,
         confirmButton = {
             if (showConfirmButton) {
-                TextButton(
+                Button(
                     onClick = { onConfirm?.invoke(); onDismiss() },
                     colors = ButtonDefaults.buttonColors().copy(
                         containerColor = containerConfirmButtonColor,
                         contentColor = labelConfirmButtonColor
-                    )
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(confirmText)
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            Button(onClick = onDismiss,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.outline
+                ),
+                ) {
                 Text(dismissText)
             }
         }
@@ -566,7 +579,7 @@ fun ThemeSwitcher(
     parentShape: Shape = CircleShape,
     toggleShape: Shape = CircleShape,
     animationSpec: AnimationSpec<Dp> = tween(durationMillis = 300),
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val offset by animateDpAsState(
         targetValue = if (darkTheme) 0.dp else size / 1.5f,
@@ -635,7 +648,7 @@ fun CustomPagerIndicator(
     dotSize: Dp = 8.dp,
     dotSpacing: Dp = 6.dp,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
-    unselectedColor: Color = MaterialTheme.colorScheme.outline
+    unselectedColor: Color = MaterialTheme.colorScheme.outline,
 ) {
     Row(
         modifier = modifier,
@@ -667,7 +680,7 @@ fun <T : Any> LazyListScope.gridItems(
                 .aspectRatio(1f)
                 .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
         )
-    }
+    },
 ) {
     val rowCount = if (data.itemCount == 0) 0 else (data.itemCount + nColumns - 1) / nColumns
     items(rowCount) { rowIndex ->
@@ -702,12 +715,15 @@ fun <T : Any> LazyListScope.gridItems(
 
 @Composable
 fun DetailsTextRow(
+    modifier: Modifier = Modifier,
     text: String,
     icon: ImageVector,
     color: Color = MaterialTheme.colorScheme.outline,
-) {
+
+    ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
     ) {
         Icon(
             imageVector = icon,
@@ -725,6 +741,128 @@ fun DetailsTextRow(
     }
 }
 
+@Composable
+fun <T : Any> LazyPagingSample(
+    modifier: Modifier = Modifier,
+    items: LazyPagingItems<T>,
+    textNothing: String,
+    iconNothing: ImageVector,
+    columns: Int = 1,
+    key: ((item: T) -> Any)? = null,
+    itemContent: @Composable (T) -> Unit,
+) {
+    val isEmpty = items.itemSnapshotList.items.isEmpty()
+    val isNotLoading = items.loadState.refresh !is LoadState.Loading
+
+    Box(modifier = modifier) {
+        when {
+            isEmpty && isNotLoading -> {
+                Nothing(
+                    text = textNothing,
+                    icon = iconNothing,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    gridItems(
+                        data = items,
+                        nColumns = columns,
+                        key = key,
+                        itemContent = { item ->
+                            item?.let{itemContent(item)}
+
+
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+@Composable
+fun NoteInput(
+    note: String,
+    onNoteChange: (String) -> Unit,
+    maxLines: Int = 5 ,
+    textHolder: String
+) {
+    OutlinedTextField(
+        value = note,
+        onValueChange = onNoteChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(16.dp),
+        placeholder = {
+            Text(
+                text = textHolder,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors().copy(
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+            cursorColor = MaterialTheme.colorScheme.primary,
+        ),
+        textStyle = MaterialTheme.typography.bodyMedium,
+        shape = RoundedCornerShape(8.dp),
+        maxLines = maxLines
+    )
+}
+@Composable
+fun ExpandableText(
+    modifier: Modifier = Modifier,
+    text: String,
+    minimizedMaxLines: Int,
+    style: TextStyle
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var hasVisualOverflow by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        Text(
+            text = text,
+            maxLines = if (expanded) Int.MAX_VALUE else minimizedMaxLines,
+            onTextLayout = { hasVisualOverflow = it.hasVisualOverflow },
+            style = style
+        )
+        if (hasVisualOverflow) {
+            Row(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                val lineHeightDp: Dp = with(LocalDensity.current) { style.lineHeight.toDp() }
+                Spacer(
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(lineHeightDp)
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                            )
+                        )
+                )
+                Text(
+                    modifier = Modifier
+                        .background(Color.White)
+                        .padding(start = 4.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = { expanded = !expanded }
+                        ),
+                    text = "Xem thêm",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = style
+                )
+            }
+        }
+    }
+}
 
 
 

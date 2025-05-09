@@ -49,8 +49,10 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.ItemCount
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.navigation.Cart
+import com.example.foodapp.ui.navigation.Feedbacks
 import com.example.foodapp.ui.navigation.MenuItemDetails
 import com.example.foodapp.ui.navigation.Notification
+import com.example.foodapp.ui.navigation.Voucher
 import com.example.foodapp.ui.screen.common.MenuItemList
 
 import com.example.foodapp.ui.screen.common.MenuItemView
@@ -58,6 +60,7 @@ import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.ui.screen.home.banner.Banners
+import com.se114.foodapp.ui.screen.vouchers.VouchersScreen
 import kotlinx.coroutines.flow.collectLatest
 
 
@@ -167,7 +170,9 @@ fun SharedTransitionScope.HomeScreen(
                         searchChange = { searchInput = it }
                     )
                     Spacer(modifier = Modifier.size(8.dp))
-                    Banners()
+                    Banners(onClick = {
+                        navController.navigate(Feedbacks(1))
+                    })
                 }
             }
 

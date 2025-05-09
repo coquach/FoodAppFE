@@ -130,6 +130,18 @@ object  AddExportDetails: NavRoute
 @Serializable
 data class  UpdateExportDetails(val export: Export) : NavRoute
 
+@Serializable
+object  Voucher : NavRoute
+
+@Serializable
+object MyVoucher : NavRoute
+
+
+@Serializable
+data class Feedbacks(val menuItemId: Long) : NavRoute
+
+@Serializable
+data class FeedbackDetails(val menuItemId: Long) : NavRoute
 
 
 

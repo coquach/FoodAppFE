@@ -83,7 +83,7 @@ fun SendEmailScreen(
                 }
 
                 is SendEmailViewModel.SendEmailEvents.ShowAlreadySent -> {
-                    Toast.makeText(context, "Bạn đã gửi email rồi! 📩 Kiểm tra hộp thư trước khi gửi lại nha.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Bạn đã gửi email rồi! 📩 Kiểm tra hộp thư trước khi gửi lại nha.", Toast.LENGTH_SHORT).show()
                 }
                 is SendEmailViewModel.SendEmailEvents.ShowError -> {
                     showErrorSheet = true
@@ -92,7 +92,7 @@ fun SendEmailScreen(
                     Toast.makeText(
                         context,
                         "Email đã được gửi! Hãy kiểm tra hộp thư của bạn nhé 📬",
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_SHORT
                     ).show()
                     navController.navigate(Auth) {
                         popUpTo(navController.graph.startDestinationId)

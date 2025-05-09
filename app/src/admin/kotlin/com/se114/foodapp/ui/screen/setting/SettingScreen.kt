@@ -41,6 +41,7 @@ import androidx.navigation.NavController
 import com.example.foodapp.ui.navigation.Auth
 
 import com.example.foodapp.ui.navigation.Supplier
+import com.example.foodapp.ui.navigation.Voucher
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.SettingGroup
@@ -125,7 +126,7 @@ fun SettingScreen(
                 items = listOf(
                     {
                         SettingItem(Icons.Default.LocalShipping, "Nhà cung cấp", onClick = { navController.navigate(Supplier)})
-                        SettingItem(Icons.Default.CardGiftcard, "Voucher & Khuyến mãi")
+                        SettingItem(Icons.Default.CardGiftcard, "Voucher & Khuyến mãi", onClick = {navController.navigate(Voucher)})
 
                     }
                 )

@@ -42,7 +42,7 @@ fun NavGraphBuilder.authGraph(
     }
     composable<Login> {
         shouldShowBottomNav.value = false
-        LoginScreen(navController)
+        LoginScreen(navController, isCustomer = true)
     }
     composable<SendEmail> {
         shouldShowBottomNav.value = false

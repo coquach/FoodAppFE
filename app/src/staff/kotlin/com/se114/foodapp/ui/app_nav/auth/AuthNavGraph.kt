@@ -27,7 +27,7 @@ fun NavGraphBuilder.authGraph(
     composable<Auth> {
         shouldShowBottomNav.value = false
         ScreenContainer(applyStatusBarInset = false) {
-            AuthScreen(navController)
+            AuthScreen(navController, isCustomer = false)
         }
 
     }
@@ -38,29 +38,5 @@ fun NavGraphBuilder.authGraph(
         }
 
     }
-    composable<SendEmail> {
-        shouldShowBottomNav.value = false
-        SendEmailScreen(navController)
-    }
-    composable<ResetPassword>(
-        typeMap = mapOf(typeOf<ResetPasswordArgs>() to resetPasswordNavType)
-    ) {
-        val route = it.toRoute<ResetPassword>()
-        shouldShowBottomNav.value = false
-        ScreenContainer {
-            ChangePasswordScreen(
-                navController,
-                route.resetPasswordArgs.oobCode,
-                route.resetPasswordArgs.method
-            )
-        }
-
-    }
-    composable<ResetPasswordSuccess> {
-        shouldShowBottomNav.value = false
-        ScreenContainer {
-            ResetPassSuccessScreen(navController)
-        }
-
-    }
+    
 }

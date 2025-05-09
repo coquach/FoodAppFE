@@ -17,7 +17,7 @@ fun NavGraphBuilder.authGraph(
 ) {
     composable<Auth> {
         shouldShowBottomNav.value = false
-        ScreenContainer(applyStatusBarInset = false) {  AuthScreen(navController) }
+        ScreenContainer(applyStatusBarInset = false) {  AuthScreen(navController, isCustomer = false) }
 
     }
     composable<Login> {

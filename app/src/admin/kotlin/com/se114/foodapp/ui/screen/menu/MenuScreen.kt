@@ -87,7 +87,9 @@ fun SharedTransitionScope.MenuScreen(
     var isSelectAll by rememberSaveable { mutableStateOf(false) }
 
 
-    val menuItems = viewModel.menuItems.collectAsLazyPagingItems()
+    val currentTab by viewModel.tabIndex.collectAsStateWithLifecycle()
+
+    val menuItems = viewModel.getMenuItemsByTab(currentTab).collectAsLazyPagingItems()
 
 
     val showDialogDelete = remember { mutableStateOf(false) }
@@ -111,7 +113,7 @@ fun SharedTransitionScope.MenuScreen(
     LaunchedEffect(handle) {
         if (handle?.get<Boolean>("shouldRefresh") == true) {
             handle["shouldRefresh"] = false
-            viewModel.updateFilter(MenuItemFilter())
+            viewModel.refreshAllTabs()
         }
     }
 

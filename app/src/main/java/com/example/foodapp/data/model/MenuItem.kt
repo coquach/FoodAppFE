@@ -15,14 +15,13 @@ import java.time.LocalTime
 data class MenuItem(
     val id: Long,
     val description: String,
-    val menuId: Long=1,
     val menuName: String,
     val imageUrl: String? = null,
     val name: String,
 
     @Serializable(with = BigDecimalSerializer::class)
     val price: BigDecimal,
-
-    @SerialName("isAvailable")
-    val isAvailable: Boolean
+    val defaultQuantity: Int,
+    val remainingQuantity: Int,
+    val active: Boolean,
 )

@@ -186,7 +186,7 @@ fun SettingScreen(
                 items = listOf(
                     {
                         SettingItem(Icons.Default.LocationOn, "Địa chỉ")
-                        SettingItem(Icons.Default.CardGiftcard, "Voucher")
+                        SettingItem(Icons.Default.CardGiftcard, "Voucher của tôi")
                     }
                 )
             )
