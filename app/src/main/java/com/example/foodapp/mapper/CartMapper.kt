@@ -9,7 +9,6 @@ object CartMapper {
         id = id,
         name = name,
         quantity = quantity,
-        menuName = menuName,
         imageUrl = imageUrl,
         price = price
     )
@@ -18,7 +17,6 @@ object CartMapper {
         id = this.id,
         quantity = this.quantity,
         name = this.name,
-        menuName = this.menuName,
         price = this.price,
         imageUrl = this.imageUrl
     )

@@ -2,6 +2,7 @@ package com.se114.foodapp.ui.screen.feedback.feedback_details
 
 import android.Manifest
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,8 +37,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +63,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.foodapp.R
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.NoteInput
@@ -65,14 +71,15 @@ import com.example.foodapp.ui.theme.FoodAppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FeedbackDetailsScreen(
     navController: NavController,
-    menuItemId: Long,
+    foodId: Long,
     viewModel: FeedbackDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -100,6 +107,51 @@ fun FeedbackDetailsScreen(
     val full = LocalConfiguration.current.screenWidthDp.dp
     val pad = (full - 200.dp) / 2
 
+    var showErrorSheet by remember { mutableStateOf(false) }
+    val errorMessage = remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+
+
+    LaunchedEffect(errorMessage.value) {
+        if (errorMessage.value != null)
+            scope.launch {
+                showErrorSheet = true
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collectLatest {
+            when(it){
+                FeedbackDetailsViewModel.FeedbackDetailsEvents.BackToFeedbackList -> {
+                    Toast.makeText(
+                        context,
+                        "Đánh giá thành công",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("shouldRefresh", true)
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
+    when(uiState){
+        FeedbackDetailsViewModel.FeedbackDetailsState.Error ->{
+            errorMessage.value = "Failed"
+            if (showErrorSheet) {
+                ErrorModalBottomSheet(
+                    title = viewModel.error,
+                    description = viewModel.errorDescription,
+                    onDismiss = { showErrorSheet = false },
+                )
+            }
+        }
+        else -> {
+            errorMessage.value = null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -233,7 +285,7 @@ fun FeedbackDetailsScreen(
             )
         LoadingButton(
             onClick = {
-                viewModel.createFeedback(menuItemId)
+                viewModel.createFeedback(foodId)
             },
             modifier = Modifier.fillMaxWidth(),
             text = "Xác nhận",

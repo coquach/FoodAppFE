@@ -18,7 +18,6 @@ import javax.inject.Singleton
 @Singleton
 class VoucherRepository @Inject constructor(
     private val foodApi: FoodApi,
-    private val accountService: AccountService
 ) {
 
     fun getVouchers(): Flow<PagingData<Voucher>> {
@@ -36,8 +35,7 @@ class VoucherRepository @Inject constructor(
         ).flow
     }
 
-    fun getVouchersByCustomerId(): Flow<PagingData<Voucher>> {
-        val customerId = accountService.currentUserId
+    fun getVouchersByCustomerId(customerId: String): Flow<PagingData<Voucher>> {
         return Pager(
             config = PagingConfig(
                 pageSize = ITEMS_PER_PAGE,

@@ -81,7 +81,7 @@ import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
-import com.example.foodapp.ui.screen.common.MenuItemView
+import com.example.foodapp.ui.screen.common.FoodView
 import com.example.foodapp.ui.screen.components.ComboBoxSample
 import com.example.foodapp.ui.screen.components.ComboBoxSampleLazyPaging
 import com.example.foodapp.ui.screen.components.DateRangePickerSample

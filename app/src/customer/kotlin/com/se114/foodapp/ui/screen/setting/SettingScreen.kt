@@ -59,7 +59,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.ThemeSwitcher
 import com.example.foodapp.ui.navigation.Auth

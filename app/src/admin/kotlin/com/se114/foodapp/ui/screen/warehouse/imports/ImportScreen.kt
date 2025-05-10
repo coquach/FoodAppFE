@@ -73,14 +73,14 @@ import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.ui.navigation.AddImportDetails
-import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.AddFood
 import com.example.foodapp.ui.navigation.Category
 
 import com.example.foodapp.ui.navigation.OrderDetails
 import com.example.foodapp.ui.navigation.UpdateEmployee
 import com.example.foodapp.ui.navigation.UpdateImportDetails
-import com.example.foodapp.ui.navigation.UpdateMenuItem
-import com.example.foodapp.ui.screen.common.MenuItemList
+import com.example.foodapp.ui.navigation.UpdateFood
+import com.example.foodapp.ui.screen.common.FoodList
 import com.example.foodapp.ui.screen.common.OrderListSection
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.FoodAppDialog

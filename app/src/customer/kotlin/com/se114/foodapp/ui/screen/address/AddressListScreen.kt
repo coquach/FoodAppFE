@@ -49,7 +49,7 @@ fun AddressListScreen(
                 }
 
                 is AddressListViewModel.AddressEvent.NavigateToAddAddress -> {
-                    navController.navigate(AddAddress)
+//                    navController.navigate(AddAddress)
                 }
 
                 else -> {

@@ -8,16 +8,16 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.foodapp.data.model.MenuItem
-import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.data.model.Food
+import com.example.foodapp.ui.navigation.AddFood
 import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.navigation.Menu
-import com.example.foodapp.ui.navigation.UpdateMenuItem
-import com.example.foodapp.ui.navigation.menuItemNavType
+import com.example.foodapp.ui.navigation.UpdateFood
+import com.example.foodapp.ui.navigation.FoodNavType
 import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.menu.MenuScreen
 import com.se114.foodapp.ui.screen.menu.MenuViewModel
-import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemScreen
+import com.se114.foodapp.ui.screen.menu.add_menu_item.AddFoodScreen
 import com.se114.foodapp.ui.screen.menu.category.CategoryScreen
 import kotlin.reflect.typeOf
 
@@ -36,21 +36,21 @@ fun NavGraphBuilder.menuGraph(
             }
 
         }
-        composable<AddMenuItem> {
+        composable<AddFood> {
             shouldShowBottomNav.value = false
             ScreenContainer{
-                AddMenuItemScreen(navController)
+                AddFoodScreen(navController)
             }
 
         }
 
-        composable<UpdateMenuItem>(
-            typeMap = mapOf(typeOf<MenuItem>() to menuItemNavType)
+        composable<UpdateFood>(
+            typeMap = mapOf(typeOf<Food>() to FoodNavType)
         ) {
             shouldShowBottomNav.value = false
-            val route = it.toRoute<UpdateMenuItem>()
+            val route = it.toRoute<UpdateFood>()
             ScreenContainer {
-                AddMenuItemScreen(navController, isUpdating = true, menuItem = route.menuItem)
+                AddFoodScreen(navController, isUpdating = true, Food = route.Food)
             }
 
         }

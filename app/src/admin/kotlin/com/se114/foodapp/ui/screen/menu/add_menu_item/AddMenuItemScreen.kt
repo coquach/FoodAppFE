@@ -43,7 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.enums.Gender
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ComboBoxSample
@@ -55,11 +55,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun AddMenuItemScreen(
+fun AddFoodScreen(
     navController: NavController,
-    viewModel: AddMenuItemViewModel = hiltViewModel(),
+    viewModel: AddFoodViewModel = hiltViewModel(),
     isUpdating: Boolean = false,
-    menuItem: MenuItem? = null
+    Food: Food? = null
 ) {
 
     val name = viewModel.name.collectAsStateWithLifecycle()
@@ -80,15 +80,15 @@ fun AddMenuItemScreen(
 
     LaunchedEffect(key1 = isUpdating) {
         delay(100)
-        viewModel.setMode(isUpdating, menuItem)
+        viewModel.setMode(isUpdating, Food)
     }
 
 
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest {
             when (it) {
-                is AddMenuItemViewModel.AddMenuItemEvent.GoBack -> {
-                    Log.d("MenuItem goback", "Done")
+                is AddFoodViewModel.AddFoodEvent.GoBack -> {
+                    Log.d("Food goback", "Done")
                     if (isUpdating) {
                         Toast.makeText(
                             navController.context,
@@ -111,19 +111,19 @@ fun AddMenuItemScreen(
 
                 }
 
-                is AddMenuItemViewModel.AddMenuItemEvent.ShowErrorMessage -> {
+                is AddFoodViewModel.AddFoodEvent.ShowErrorMessage -> {
                     Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
     when (uiState.value) {
-        is AddMenuItemViewModel.AddMenuItemState.Error -> {}
-        is AddMenuItemViewModel.AddMenuItemState.Loading -> {
+        is AddFoodViewModel.AddFoodState.Error -> {}
+        is AddFoodViewModel.AddFoodState.Loading -> {
         }
 
-        is AddMenuItemViewModel.AddMenuItemState.Nothing -> {}
-        is AddMenuItemViewModel.AddMenuItemState.Success -> {
+        is AddFoodViewModel.AddFoodState.Nothing -> {}
+        is AddFoodViewModel.AddFoodState.Success -> {
 
         }
     }
@@ -223,12 +223,12 @@ fun AddMenuItemScreen(
 
             Button(
                 onClick = {
-                    if (isUpdating && menuItem != null) {
+                    if (isUpdating && Food != null) {
 
-                        viewModel.updateMenuItem(menuItem.id)
+                        viewModel.updateFood(Food.id)
 
                     } else {
-                        viewModel.addMenuItem()
+                        viewModel.addFood()
                     }},
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),

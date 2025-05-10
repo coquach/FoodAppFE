@@ -43,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.R
@@ -50,12 +51,12 @@ import com.example.foodapp.ui.screen.components.ItemCount
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.navigation.Cart
 import com.example.foodapp.ui.navigation.Feedbacks
-import com.example.foodapp.ui.navigation.MenuItemDetails
+import com.example.foodapp.ui.navigation.FoodDetails
 import com.example.foodapp.ui.navigation.Notification
 import com.example.foodapp.ui.navigation.Voucher
-import com.example.foodapp.ui.screen.common.MenuItemList
+import com.example.foodapp.ui.screen.common.FoodList
 
-import com.example.foodapp.ui.screen.common.MenuItemView
+import com.example.foodapp.ui.screen.common.FoodView
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
@@ -73,9 +74,10 @@ fun SharedTransitionScope.HomeScreen(
     notificationViewModel: NotificationViewModel
 
 ) {
-    val unReadCount by notificationViewModel.unreadCount.collectAsState()
-    val cartSize by viewModel.cartSize.collectAsState()
-    val menuItems = viewModel.menuItems.collectAsLazyPagingItems()
+    val unReadCount by notificationViewModel.unreadCount.collectAsStateWithLifecycle()
+    val cartSize by viewModel.cartSize.collectAsStateWithLifecycle()
+    val menuId by viewModel.menuId.collectAsStateWithLifecycle()
+    val foods = viewModel.getFoodsByMenuId(menuId).collectAsLazyPagingItems()
 
     var searchInput by remember { mutableStateOf("") }
     LaunchedEffect(key1 = true) {
@@ -171,7 +173,6 @@ fun SharedTransitionScope.HomeScreen(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Banners(onClick = {
-                        navController.navigate(Feedbacks(1))
                     })
                 }
             }
@@ -194,13 +195,13 @@ fun SharedTransitionScope.HomeScreen(
 //                    })
 
 
-            MenuItemList(
-                menuItems = menuItems,
+            FoodList(
+                foods = foods,
                 animatedVisibilityScope = animatedVisibilityScope,
                 onItemClick = {
                     navController.navigate(
-                        MenuItemDetails(
-                            menuItem = it
+                        FoodDetails(
+                            food = it
                         )
                     )
                 },

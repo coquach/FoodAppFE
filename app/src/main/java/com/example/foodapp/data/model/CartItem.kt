@@ -11,7 +11,6 @@ data class CartItem(
     val id: Long,
     val name: String,
     val quantity: Int,
-    val menuName: String,
     val imageUrl: String?= null,
     @Serializable(with = BigDecimalSerializer::class)
     val price: BigDecimal

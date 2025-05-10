@@ -278,12 +278,7 @@ fun CartItemView(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Text(
-                text = cartItem.menuName,
-                color = MaterialTheme.colorScheme.outline,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.width(200.dp)
-            )
+
             Spacer(modifier = Modifier.size(8.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically

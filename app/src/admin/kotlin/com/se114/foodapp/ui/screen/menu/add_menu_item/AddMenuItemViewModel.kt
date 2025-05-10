@@ -11,12 +11,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Menu
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.enums.Gender
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.ImageUtils
 
-import com.se114.foodapp.data.dto.request.MenuItemMultipartRequest
+import com.se114.foodapp.data.dto.request.FoodMultipartRequest
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,15 +29,15 @@ import java.math.BigDecimal
 import javax.inject.Inject
 
 @HiltViewModel
-class AddMenuItemViewModel @Inject constructor(
+class AddFoodViewModel @Inject constructor(
     private val foodApi: FoodApi,
     @ApplicationContext val context: Context
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<AddMenuItemState>(AddMenuItemState.Nothing)
+    private val _uiState = MutableStateFlow<AddFoodState>(AddFoodState.Nothing)
     val uiState = _uiState.asStateFlow()
 
-    private val _event = MutableSharedFlow<AddMenuItemEvent>()
+    private val _event = MutableSharedFlow<AddFoodEvent>()
     val event = _event.asSharedFlow()
 
     private val _name = MutableStateFlow("")
@@ -69,18 +69,18 @@ class AddMenuItemViewModel @Inject constructor(
         loadMenusAvailable()
     }
 
-    fun setMode(mode: Boolean, item: MenuItem?) {
+    fun setMode(mode: Boolean, item: Food?) {
         isUpdating = mode
 
         if (isUpdating && item != null) {
-            loadMenuItem(item)
+            loadFood(item)
         }
     }
 
 
     private fun loadMenusAvailable() {
         viewModelScope.launch {
-            _uiState.value = AddMenuItemState.Loading
+            _uiState.value = AddFoodState.Loading
             try {
                 val response = safeApiCall { foodApi.getAvailableMenus() }
                 when (response) {
@@ -88,28 +88,28 @@ class AddMenuItemViewModel @Inject constructor(
                         Log.d("Load menu", "Done")
                         val data = response.body
                         _menusAvailable.value = data!!
-                        _uiState.value = AddMenuItemState.Success
+                        _uiState.value = AddFoodState.Success
                     }
 
                     is ApiResponse.Error -> {
-                        _uiState.value = AddMenuItemState.Error
-                        _event.emit(AddMenuItemEvent.ShowErrorMessage("Tải danh sách thực đơn lỗi: ${response.message}"))
+                        _uiState.value = AddFoodState.Error
+                        _event.emit(AddFoodEvent.ShowErrorMessage("Tải danh sách thực đơn lỗi: ${response.message}"))
                     }
 
                     else -> {
-                        _uiState.value = AddMenuItemState.Error
-                        _event.emit(AddMenuItemEvent.ShowErrorMessage("Lỗi không xác định"))
+                        _uiState.value = AddFoodState.Error
+                        _event.emit(AddFoodEvent.ShowErrorMessage("Lỗi không xác định"))
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _uiState.value = AddMenuItemState.Error
-                _event.emit(AddMenuItemEvent.ShowErrorMessage("Lỗi không xác định: ${e.message}"))
+                _uiState.value = AddFoodState.Error
+                _event.emit(AddFoodEvent.ShowErrorMessage("Lỗi không xác định: ${e.message}"))
             }
         }
     }
 
-    private fun loadMenuItem(item: MenuItem) {
+    private fun loadFood(item: Food) {
         _menuName.value = item.menuName
         _name.value = item.name
         _description.value = item.description
@@ -150,12 +150,12 @@ class AddMenuItemViewModel @Inject constructor(
     }
 
 
-    fun addMenuItem() {
+    fun addFood() {
         viewModelScope.launch {
-            _uiState.value = AddMenuItemState.Loading
+            _uiState.value = AddFoodState.Loading
             try {
                 val imagePart = ImageUtils.getImagePart(context, imageUrl.value)
-                val request = MenuItemMultipartRequest(
+                val request = FoodMultipartRequest(
                     menuId = _menuId.value.toString(),
                     name = _name.value,
                     description = _description.value,
@@ -164,47 +164,47 @@ class AddMenuItemViewModel @Inject constructor(
                 )
                 val partMap = request.toPartMap()
 
-                val response = safeApiCall { foodApi.createMenuItem(partMap, imagePart) }
+                val response = safeApiCall { foodApi.createFood(partMap, imagePart) }
 
                 when (response) {
                     is ApiResponse.Success -> {
-                        Log.d("add menuitem: ", "Done")
-                        _uiState.value = AddMenuItemState.Success
+                        Log.d("add Food: ", "Done")
+                        _uiState.value = AddFoodState.Success
                         Log.d("Event", "About to emit GoBack event")
-                        _event.emit(AddMenuItemEvent.GoBack)
+                        _event.emit(AddFoodEvent.GoBack)
                     }
 
                     is ApiResponse.Error -> {
-                        _uiState.value = AddMenuItemState.Error
-                        _event.emit(AddMenuItemEvent.ShowErrorMessage("Tạo món ăn thất bại: ${response.message}"))
+                        _uiState.value = AddFoodState.Error
+                        _event.emit(AddFoodEvent.ShowErrorMessage("Tạo món ăn thất bại: ${response.message}"))
                     }
 
                     else -> {
-                        _uiState.value = AddMenuItemState.Error
-                        _event.emit(AddMenuItemEvent.ShowErrorMessage("Có lỗi xảy ra khi tạo"))
+                        _uiState.value = AddFoodState.Error
+                        _event.emit(AddFoodEvent.ShowErrorMessage("Có lỗi xảy ra khi tạo"))
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
 
-                _uiState.value = AddMenuItemState.Error
-                _event.emit(AddMenuItemEvent.ShowErrorMessage("Có lỗi xảy ra khi tạo: ${e.message}"))
+                _uiState.value = AddFoodState.Error
+                _event.emit(AddFoodEvent.ShowErrorMessage("Có lỗi xảy ra khi tạo: ${e.message}"))
             }
 
 
         }
     }
 
-    fun updateMenuItem(menuItemId: Long) {
+    fun updateFood(FoodId: Long) {
 
         viewModelScope.launch {
-            _uiState.value = AddMenuItemState.Loading
+            _uiState.value = AddFoodState.Loading
             try {
 
                 val imagePart = ImageUtils.getImagePart(context, imageUrl.value)
 
 
-                val request = MenuItemMultipartRequest(
+                val request = FoodMultipartRequest(
                     menuId = _menuId.value.toString(),
                     name = _name.value,
                     description = _description.value,
@@ -215,44 +215,44 @@ class AddMenuItemViewModel @Inject constructor(
                 val partMap = request.toPartMap()
 
 
-                val response = safeApiCall { foodApi.updateMenuItem(menuItemId, partMap, imagePart) }
+                val response = safeApiCall { foodApi.updateFood(FoodId, partMap, imagePart) }
 
 
                 when (response) {
                     is ApiResponse.Success -> {
-                        Log.d("update menuitem: ", "Done")
-                        _uiState.value = AddMenuItemState.Success
-                        _event.emit(AddMenuItemEvent.GoBack)
+                        Log.d("update Food: ", "Done")
+                        _uiState.value = AddFoodState.Success
+                        _event.emit(AddFoodEvent.GoBack)
                     }
 
                     is ApiResponse.Error -> {
-                        _uiState.value = AddMenuItemState.Error
-                        _event.emit(AddMenuItemEvent.ShowErrorMessage("Cập nhật món ăn thất bại: ${response.message}"))
+                        _uiState.value = AddFoodState.Error
+                        _event.emit(AddFoodEvent.ShowErrorMessage("Cập nhật món ăn thất bại: ${response.message}"))
                     }
 
                     else -> {
-                        _uiState.value = AddMenuItemState.Error
-                        _event.emit(AddMenuItemEvent.ShowErrorMessage("Có lỗi xảy ra khi cập nhật"))
+                        _uiState.value = AddFoodState.Error
+                        _event.emit(AddFoodEvent.ShowErrorMessage("Có lỗi xảy ra khi cập nhật"))
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
 
-                _uiState.value = AddMenuItemState.Error
-                _event.emit(AddMenuItemEvent.ShowErrorMessage("Có lỗi xảy ra khi cập nhật: ${e.message}"))
+                _uiState.value = AddFoodState.Error
+                _event.emit(AddFoodEvent.ShowErrorMessage("Có lỗi xảy ra khi cập nhật: ${e.message}"))
             }
         }
     }
 
-    sealed class AddMenuItemState {
-        data object Nothing : AddMenuItemState()
-        object Loading : AddMenuItemState()
-        object Success : AddMenuItemState()
-        object Error : AddMenuItemState()
+    sealed class AddFoodState {
+        data object Nothing : AddFoodState()
+        object Loading : AddFoodState()
+        object Success : AddFoodState()
+        object Error : AddFoodState()
     }
 
-    sealed class AddMenuItemEvent {
-        data class ShowErrorMessage(val message: String) : AddMenuItemEvent()
-        data object GoBack : AddMenuItemEvent()
+    sealed class AddFoodEvent {
+        data class ShowErrorMessage(val message: String) : AddFoodEvent()
+        data object GoBack : AddFoodEvent()
     }
 }

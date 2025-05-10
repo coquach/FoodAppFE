@@ -12,7 +12,6 @@ data class CartItemEntity(
     @PrimaryKey(autoGenerate = false)
     val id: Long,
     val name: String,
-    val menuName: String,
     val quantity: Int,
     val price: BigDecimal,
     val imageUrl: String?= null

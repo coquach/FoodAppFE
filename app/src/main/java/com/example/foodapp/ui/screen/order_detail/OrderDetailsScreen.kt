@@ -46,16 +46,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 import com.example.foodapp.data.model.Order
 
 import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 
 import com.example.foodapp.ui.screen.common.OrderItemView
+import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LoadingButton
+import com.example.foodapp.ui.screen.components.NoteInput
 import com.example.foodapp.ui.screen.order_detail.OrderDetailsViewModel
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.ui.theme.onConfirm
@@ -255,31 +259,31 @@ fun OrderDetails(order: Order, isStaff: Boolean = false) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        OrderDetailsRow(
+        DetailsTextRow(
             icon = Icons.Default.Numbers,
             color = MaterialTheme.colorScheme.primary,
             text = "Mã đơn hàng: ${order.id}"
         )
-        if (isStaff) {
-            order.staffName?.let {
-                OrderDetailsRow(
-                    icon = Icons.Default.SupervisorAccount,
-                    color = MaterialTheme.colorScheme.secondary,
-                    text = "Tên nhân viên: ${order.staffName}"
-                )
-            }
-            OrderDetailsRow(
-                icon = Icons.Default.Person,
-                color = MaterialTheme.colorScheme.tertiary,
-                text = "Tên khách hàng: ${order.customerName}"
-            )
-        }
-        OrderDetailsRow(
+//        if (isStaff) {
+//            order.staffName?.let {
+//                OrderDetailsRow(
+//                    icon = Icons.Default.SupervisorAccount,
+//                    color = MaterialTheme.colorScheme.secondary,
+//                    text = "Tên nhân viên: ${order.staffName}"
+//                )
+//            }
+//            OrderDetailsRow(
+//                icon = Icons.Default.Person,
+//                color = MaterialTheme.colorScheme.tertiary,
+//                text = "Tên khách hàng: ${order.customerName}"
+//            )
+//        }
+        DetailsTextRow(
             icon = orderStatus.icon,
             color = orderStatus.color,
             text = orderStatus.display
         )
-        OrderDetailsRow(
+        DetailsTextRow(
             icon = Icons.Default.LocationOn,
             color = MaterialTheme.colorScheme.onBackground,
             text = "Địa chỉ: ${order.address}"
@@ -302,113 +306,66 @@ fun OrderDetails(order: Order, isStaff: Boolean = false) {
 //            )
 //        }
 
-        OrderDetailsRow(
-            icon = Icons.Default.DateRange,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Ngày tạo: ${StringUtils.formatLocalDate(order.orderDate)}"
-        )
-        OrderDetailsRow(
+
+        DetailsTextRow(
             icon = Icons.Default.Timer,
             color = MaterialTheme.colorScheme.onBackground,
-            text = "Thời gian tạo: ${order.createAt}"
+            text = "Thời gian tạo: ${StringUtils.formatDateTime(order.startedAt)}"
         )
-        OrderDetailsRow(
+        DetailsTextRow(
             icon = Icons.Default.AccountBalanceWallet,
             color = MaterialTheme.colorScheme.onBackground,
-            text = "Thời gian thanh toán: ${order.paymentAt}"
+            text = "Thời gian thanh toán: ${StringUtils.formatDateTime(order.paymentAt)}"
         )
-        OrderDetailsRow(
+        DetailsTextRow(
             icon = Icons.Default.Payments,
             color = MaterialTheme.colorScheme.onBackground,
-            "Phuơng thức thanh toán: ${order.paymentMethod}"
+            text = "Phuơng thức thanh toán: ${PaymentMethod.fromName(order.method)!!.getDisplayName()}"
         )
-        if (isStaff) {
-            OrderDetailsRow(
-                icon = Icons.Default.Category,
-                color = MaterialTheme.colorScheme.secondary,
-                text = "Loại phục vụ: ${order.servingType}"
-            )
-        }
+//        if (isStaff) {
+//            DetailsTextRow(
+//                icon = Icons.Default.Category,
+//                color = MaterialTheme.colorScheme.secondary,
+//                text = "Loại phục vụ: ${order.servingType}"
+//            )
+//        }
     }
 
-    NoteCard(order.note)
-
-
-}
-
-@Composable
-fun OrderDetailsRow(
-    icon: ImageVector,
-    color: Color,
-    text: String
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            text = text,
-            color = color,
-            fontWeight = FontWeight.Bold,
-        )
-    }
-}
-
-@Composable
-fun NoteCard(
-    note: String? = null,
-) {
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(16.dp)
-            ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+            .padding(12.dp)
 
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Notes,
-                    contentDescription = "Note",
-                    tint = MaterialTheme.colorScheme.inversePrimary
-                )
-                Text(
-                    text = "Ghi chú",
-                    color = MaterialTheme.colorScheme.inversePrimary
-                )
-            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Notes,
+                contentDescription = "Note",
+                tint = MaterialTheme.colorScheme.inversePrimary
+            )
             Text(
-                text = note ?: "",
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
+                text = "Ghi chú",
+                color = MaterialTheme.colorScheme.inversePrimary
             )
         }
+        NoteInput(
+            note = order.note?: "",
+            onNoteChange = {
 
+            },
+            maxLines = 3,
+            textHolder = "Không có ghi chú",
+            readOnly = true
+        )
     }
+
+
 }
+
+
+
+
 

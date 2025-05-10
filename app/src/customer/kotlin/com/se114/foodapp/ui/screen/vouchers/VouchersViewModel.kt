@@ -4,22 +4,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.foodapp.BaseViewModel
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.request.VoucherRequest
 import com.example.foodapp.data.dto.safeApiCall
+import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.VoucherType
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.repository.VoucherRepository
 import com.example.foodapp.data.service.AccountService
+import com.se114.foodapp.data.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -31,6 +38,7 @@ class VouchersViewModel @Inject constructor(
     private val foodApi: FoodApi,
     private val accountService: AccountService,
     private val voucherRepository: VoucherRepository,
+
 ) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow<VouchersState>(VouchersState.Nothing)
@@ -46,26 +54,26 @@ class VouchersViewModel @Inject constructor(
     private val _vouchers = MutableStateFlow<PagingData<Voucher>>(PagingData.empty())
     val vouchers: StateFlow<PagingData<Voucher>> = _vouchers
 
-    private var isUpdating by mutableStateOf(false)
+
+    private var isMyVoucher by mutableStateOf(false)
 
     fun setMode(mode: Boolean) {
-        isUpdating = mode
-
-    }
-
-    init {
+        isMyVoucher = mode
         getVouchers()
+
     }
 
     private fun getVouchers() {
         viewModelScope.launch {
-            if (isUpdating) {
-                voucherRepository.getVouchersByCustomerId().collect {
+            delay(100)
+            if (isMyVoucher) {
+                val customerId = accountService.currentUserId
+                voucherRepository.getVouchersByCustomerId(customerId!!).cachedIn(viewModelScope).collect {
                     _vouchers.value = it
                 }
             } else {
 
-                voucherRepository.getVouchers().collect {
+                voucherRepository.getVouchers().cachedIn(viewModelScope).collect {
                     _vouchers.value = it
                 }
             }
@@ -95,7 +103,7 @@ class VouchersViewModel @Inject constructor(
 
                     is ApiResponse.Success -> {
                         _isLoadingAction.value = false
-                        _event.send(VouchersEvents.showSuccessToast)
+                        _event.send(VouchersEvents.ShowSuccessToast)
                         getVouchers()
                     }
                 }
@@ -107,43 +115,6 @@ class VouchersViewModel @Inject constructor(
     }
 
 
-//    fun addVoucher() {
-//        viewModelScope.launch {
-//            _uiState.value = VoucherListState.Loading
-//            try {
-//                val voucherRequest = _voucherRequest.value
-//                val response = safeApiCall { foodApi.createVouchers(voucherRequest) }
-//                when (response) {
-//                    is ApiResponse.Success -> {
-//                        getVouchers()
-//                        _uiState.value = VoucherListState.Success
-//                        loadVoucher()
-//                    }
-//
-//                    is ApiResponse.Error -> {
-//
-//                        error = "Lỗi tạo voucher"
-//                        errorDescription = response.message
-//                        _uiState.value = VoucherListState.Error
-//                    }
-//
-//                    else -> {
-//                        error = "Đã xảy ra lỗi ..."
-//                        errorDescription = "Lỗi không xác định"
-//                        _uiState.value = VoucherListState.Error
-//
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//                error = "Đã xảy ra lỗi ..."
-//
-//                errorDescription = "${e.message}"
-//                _uiState.value = VoucherListState.Error
-//
-//            }
-//        }
-//    }
 
 
     sealed class VouchersState {
@@ -154,7 +125,7 @@ class VouchersViewModel @Inject constructor(
     }
 
     sealed class VouchersEvents {
-        data object showSuccessToast : VouchersEvents()
+        data object ShowSuccessToast : VouchersEvents()
     }
 
 

@@ -38,8 +38,11 @@ import androidx.paging.compose.LazyPagingItems
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.data.model.enums.PaymentMethod
+import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.gridItems
+import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.utils.StringUtils
 
 @Composable
@@ -68,54 +71,21 @@ fun OrderDetailsText(order: Order) {
 
             ) {
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Clock Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = StringUtils.formatLocalDate(order.orderDate)!!,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Timer,
-                        contentDescription = "Clock Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = order.createAt.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Payments,
-                        contentDescription = "Clock Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = order.createAt.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+               DetailsTextRow(
+                   text = "Thời gian tạo: ${StringUtils.formatDateTime(order.startedAt)}",
+                   icon = Icons.Default.Timer,
+                   color = MaterialTheme.colorScheme.outline
+               )
+                DetailsTextRow(
+                    text = "Thời gian thanh toán: ${StringUtils.formatDateTime(order.paymentAt)}",
+                    icon = Icons.Default.Timer,
+                    color = MaterialTheme.colorScheme.outline
+                )
+               DetailsTextRow(
+                   text = PaymentMethod.fromName(order.method)!!.getDisplayName(),
+                   icon = Icons.Default.Payments,
+                   color = MaterialTheme.colorScheme.confirm
+               )
             }
             Column(
                 modifier = Modifier
@@ -143,12 +113,12 @@ fun OrderDetailsText(order: Order) {
             Icon(
                 imageVector = Icons.Default.AttachMoney,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.inversePrimary
+                tint = Color.Yellow
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
                 text = "Tổng giá: ${StringUtils.formatCurrency(order.totalPrice)}",
-                color = MaterialTheme.colorScheme.inversePrimary,
+                color = Color.Yellow,
                 fontWeight = FontWeight.Bold
             )
 

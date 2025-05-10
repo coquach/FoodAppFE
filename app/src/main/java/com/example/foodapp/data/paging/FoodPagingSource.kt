@@ -3,27 +3,27 @@ package com.example.foodapp.data.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.dto.safeApiCall
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
 
 import java.io.IOException
 
 
-class MenuItemPagingSource(
+class FoodPagingSource(
     private val foodApi: FoodApi,
-    private val filter: MenuItemFilter,
-) : PagingSource<Int, MenuItem>() {
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MenuItem> {
+    private val menuId: Long
+) : PagingSource<Int, Food>() {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Food> {
         val currentPage = params.key ?: 0
         return try {
             val response = safeApiCall {
-                foodApi.getMenuItems(
+                foodApi.getFoods(
                     page = currentPage,
                     size = ITEMS_PER_PAGE,
-                    isAvailable = filter.isAvailable
+                    menuId = menuId
                 )
             }
             when (response) {
@@ -59,7 +59,7 @@ class MenuItemPagingSource(
 
     }
 
-    override fun getRefreshKey(state: PagingState<Int, MenuItem>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, Food>): Int? {
         return state.anchorPosition?.let { anchor ->
             state.closestPageToPosition(anchor)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchor)?.nextKey?.minus(1)

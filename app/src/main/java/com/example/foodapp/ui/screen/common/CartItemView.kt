@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,7 +45,7 @@ fun CartItemView(
         )
         Spacer(modifier = Modifier.size(8.dp))
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).height(82.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.Start
@@ -57,11 +59,9 @@ fun CartItemView(
                 )
 
                 Text(
-                    text = cartItem.menuName,
+                    text = "x${cartItem.quantity}",
                     color = MaterialTheme.colorScheme.outline,
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
 
 
@@ -69,15 +69,11 @@ fun CartItemView(
             Spacer(modifier = Modifier.weight(1f))
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Bottom
 
             ) {
-                Text(
-                    text = "SL: ${cartItem.quantity}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline,
 
-                    )
                 Text(
                     text = StringUtils.formatCurrency(cartItem.price),
                     style = MaterialTheme.typography.bodySmall,
@@ -111,14 +107,14 @@ fun OrderItemView(
             ) {
 
                 Text(
-                    text = orderItem.menuItemName,
+                    text = orderItem.foodName,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = "Tạm thời chưa có",
+                    text = "x${orderItem.quantity}",
                     color = MaterialTheme.colorScheme.outline,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
@@ -133,14 +129,9 @@ fun OrderItemView(
                 horizontalAlignment = Alignment.End
 
             ) {
-                Text(
-                    text = "SL: ${orderItem.quantity}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline,
 
-                    )
                 Text(
-                    text = StringUtils.formatCurrency(orderItem.currentPrice),
+                    text = StringUtils.formatCurrency(orderItem.price),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline,
                 )

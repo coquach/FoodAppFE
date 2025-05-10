@@ -55,7 +55,7 @@ import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.VoucherType
-import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.AddFood
 import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.screen.common.VoucherCard
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap

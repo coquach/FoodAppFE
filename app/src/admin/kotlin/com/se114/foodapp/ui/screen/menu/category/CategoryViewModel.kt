@@ -9,8 +9,8 @@ import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.data.remote.FoodApi
 
-import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemViewModel.AddMenuItemEvent
-import com.se114.foodapp.ui.screen.menu.add_menu_item.AddMenuItemViewModel.AddMenuItemState
+import com.se114.foodapp.ui.screen.menu.add_menu_item.AddFoodViewModel.AddFoodEvent
+import com.se114.foodapp.ui.screen.menu.add_menu_item.AddFoodViewModel.AddFoodState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

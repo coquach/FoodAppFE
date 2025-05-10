@@ -8,7 +8,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.foodapp.BaseViewModel
-import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus

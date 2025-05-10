@@ -786,18 +786,19 @@ fun <T : Any> LazyPagingSample(
 }
 @Composable
 fun NoteInput(
+    modifier: Modifier = Modifier.height(200.dp),
     note: String,
     onNoteChange: (String) -> Unit,
     maxLines: Int = 5 ,
-    textHolder: String
+    textHolder: String,
+    readOnly: Boolean = false
 ) {
     OutlinedTextField(
         value = note,
         onValueChange = onNoteChange,
+        readOnly = readOnly,
         modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .padding(16.dp),
+            .fillMaxWidth(),
         placeholder = {
             Text(
                 text = textHolder,

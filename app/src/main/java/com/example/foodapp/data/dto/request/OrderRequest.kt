@@ -8,25 +8,21 @@ data class OrderRequest(
     val customerId: String? = null,
 
 
-    val foodTableId: Long? = null,
+    val foodTableId: Int? = null,
 
 
     val voucherId: Long? = null,
 
 
-    val staffId: Long? = null,
 
 
-    val servingType: String,
+    val type: String,
 
 
-    val paymentMethod: String,
+    val method: String,
 
 
-    val orderDate: String,
-
-
-    val createAt: String,
+    val startAt: String,
 
 
     val paymentAt: String,

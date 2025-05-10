@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,11 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NoMeals
-import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,8 +45,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import coil.compose.AsyncImage
 import com.example.foodapp.R.*
-import com.example.foodapp.data.model.MenuItem
-import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.ui.screen.components.CustomCheckbox
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.gridItems
@@ -57,14 +53,14 @@ import com.example.foodapp.utils.StringUtils
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun SharedTransitionScope.MenuItemView(
-    menuItem: MenuItem,
+fun SharedTransitionScope.FoodView(
+    food: Food,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    onClick: (MenuItem) -> Unit,
+    onClick: (Food) -> Unit,
     onLongClick: ((Boolean) -> Unit)? = null,
     isInSelectionMode: Boolean = false,
     isSelected: Boolean = false,
-    onCheckedChange: ((MenuItem) -> Unit)? = null,
+    onCheckedChange: ((Food) -> Unit)? = null,
     isCustomer: Boolean = true
 ) {
     Row(
@@ -75,7 +71,7 @@ fun SharedTransitionScope.MenuItemView(
         AnimatedVisibility(visible = isInSelectionMode) {
             CustomCheckbox(
                 checked = isSelected,
-                onCheckedChange = { onCheckedChange?.invoke(menuItem) },
+                onCheckedChange = { onCheckedChange?.invoke(food) },
             )
         }
         Column(
@@ -94,7 +90,7 @@ fun SharedTransitionScope.MenuItemView(
                 )
                 .background(color = MaterialTheme.colorScheme.surface)
                 .combinedClickable(
-                    onClick = { onClick.invoke(menuItem) },
+                    onClick = { onClick.invoke(food) },
                     onLongClick = {
                         onLongClick?.invoke(true)
                     }
@@ -107,12 +103,12 @@ fun SharedTransitionScope.MenuItemView(
                     .height(147.dp)
             ) {
                 AsyncImage(
-                    model = menuItem.imageUrl, contentDescription = null,
+                    model = food.imageUrl, contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(16.dp))
                         .sharedElement(
-                            state = rememberSharedContentState(key = "image/${menuItem.id}"),
+                            state = rememberSharedContentState(key = "image/${food.id}"),
                             animatedVisibilityScope
                         ),
                     contentScale = ContentScale.Crop,
@@ -120,7 +116,7 @@ fun SharedTransitionScope.MenuItemView(
                     error = painterResource(drawable.ic_placeholder)
                 )
                 Text(
-                    text = StringUtils.formatCurrency(menuItem.price),
+                    text = StringUtils.formatCurrency(food.price),
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .padding(8.dp)
@@ -186,22 +182,26 @@ fun SharedTransitionScope.MenuItemView(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = menuItem.name,
+                    text = food.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     modifier = Modifier.sharedElement(
-                        state = rememberSharedContentState(key = "title/${menuItem.id}"),
+                        state = rememberSharedContentState(key = "title/${food.id}"),
                         animatedVisibilityScope
                     ),
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = menuItem.description,
+                    text = food.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.sharedElement(
+                        state = rememberSharedContentState(key = "description/${food.id}"),
+                        animatedVisibilityScope
+                    )
                 )
             }
         }
@@ -211,17 +211,17 @@ fun SharedTransitionScope.MenuItemView(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.MenuItemList(
-    menuItems: LazyPagingItems<MenuItem>,
+fun SharedTransitionScope.FoodList(
+    foods: LazyPagingItems<Food>,
     isInSelectionMode: Boolean = false,
-    isSelected: (MenuItem) -> Boolean = { false },
-    onCheckedChange: (MenuItem) -> Unit,
+    isSelected: (Food) -> Boolean = { false },
+    onCheckedChange: (Food) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    onItemClick: (MenuItem) -> Unit,
+    onItemClick: (Food) -> Unit,
     onLongClick: ((Boolean) -> Unit)? = null,
     isCustomer: Boolean = false
 ) {
-        if (menuItems.itemCount == 0 && menuItems.loadState.refresh !is LoadState.Loading) {
+        if (foods.itemCount == 0 && foods.loadState.refresh !is LoadState.Loading) {
             Nothing(
                 text = "Không có món ăn nào",
                 icon = Icons.Default.NoMeals
@@ -232,16 +232,16 @@ fun SharedTransitionScope.MenuItemList(
 
             ) {
                 gridItems(
-                    menuItems, 2, key = { menuItem -> menuItem.id },
-                    itemContent = { menuItem ->
-                        menuItem?.let {
-                            MenuItemView(
-                                menuItem = menuItem,
+                    foods, 2, key = { food -> food.id },
+                    itemContent = { food ->
+                        food?.let {
+                            FoodView(
+                                food = food,
                                 animatedVisibilityScope = animatedVisibilityScope,
                                 isInSelectionMode = isInSelectionMode,
-                                isSelected = isSelected(menuItem),
+                                isSelected = isSelected(food),
                                 onCheckedChange = onCheckedChange,
-                                onClick = { onItemClick(menuItem) },
+                                onClick = { onItemClick(food) },
                                 onLongClick = onLongClick,
                                 isCustomer = isCustomer
                             )

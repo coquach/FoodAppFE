@@ -1,17 +1,18 @@
 package com.example.foodapp.data.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
-@Serializable
+@Parcelize
 data class Address(
-    val id: String? = null,
+    val id: Long,
     val userId: String? = null,
-    val addressLine1: String,
-    val addressLine2: String? = null,
-    val city: String,
-    val state: String,
-    val zipCode: String,
+    val name: String,
+    val formatAddress: String,
+    val latitude: Double?,
+    val longitude: Double?,
     val country: String,
-    val latitude: Double? = null,
-    val longitude: Double? = null
-)
+    val placeId: String,
+    val defaultAddress: Boolean,
+) : Parcelable

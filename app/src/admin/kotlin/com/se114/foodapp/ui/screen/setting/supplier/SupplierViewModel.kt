@@ -7,12 +7,12 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.BaseViewModel
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.dto.filter.SupplierFilter
 import com.example.foodapp.data.dto.request.SupplierRequest
 import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Address
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Supplier
 import com.example.foodapp.data.remote.FoodApi
 import com.google.android.gms.common.api.Api

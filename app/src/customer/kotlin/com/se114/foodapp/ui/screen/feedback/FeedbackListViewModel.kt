@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.repository.FeedbackRepository
 import com.example.foodapp.ui.navigation.Feedbacks
@@ -39,10 +40,10 @@ class FeedbackListViewModel @Inject constructor(
 
     }
 
-    private fun getFeedbacks() {
+    fun getFeedbacks() {
         viewModelScope.launch {
             delay(100)
-            feedbackRepository.getAllFeedbacksByFoodId(_foodId.value!!).collect {
+            feedbackRepository.getAllFeedbacksByFoodId(_foodId.value!!).cachedIn(viewModelScope).collect {
                 _feedbacks.value = it
             }
         }

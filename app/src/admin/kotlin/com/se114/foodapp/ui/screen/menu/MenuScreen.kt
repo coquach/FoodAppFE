@@ -54,14 +54,14 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.dto.filter.MenuItemFilter
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.dto.filter.FoodFilter
+import com.example.foodapp.data.model.Food
 
-import com.example.foodapp.ui.navigation.AddMenuItem
+import com.example.foodapp.ui.navigation.AddFood
 import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.navigation.Menu
-import com.example.foodapp.ui.navigation.UpdateMenuItem
-import com.example.foodapp.ui.screen.common.MenuItemList
+import com.example.foodapp.ui.navigation.UpdateFood
+import com.example.foodapp.ui.screen.common.FoodList
 import com.example.foodapp.ui.screen.components.DeleteBar
 
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -89,7 +89,7 @@ fun SharedTransitionScope.MenuScreen(
 
     val currentTab by viewModel.tabIndex.collectAsStateWithLifecycle()
 
-    val menuItems = viewModel.getMenuItemsByTab(currentTab).collectAsLazyPagingItems()
+    val Foods = viewModel.getFoodsByTab(currentTab).collectAsLazyPagingItems()
 
 
     val showDialogDelete = remember { mutableStateOf(false) }
@@ -123,7 +123,7 @@ fun SharedTransitionScope.MenuScreen(
         {
             MyFloatingActionButton(
                 onClick = {
-                    navController.navigate(AddMenuItem)
+                    navController.navigate(AddFood)
                 },
                 bgColor = MaterialTheme.colorScheme.primary,
             ) {
@@ -201,14 +201,14 @@ fun SharedTransitionScope.MenuScreen(
                 tabs = listOf("Đang hiển thị", "Đã ẩn"),
                 pages = listOf(
                     {
-                        MenuItemList(
-                            menuItems = menuItems,
+                        FoodList(
+                            Foods = Foods,
                             isInSelectionMode = isInSelectionMode,
-                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
-                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                            isSelected = { Food -> viewModel.selectedItems.contains(Food) },
+                            onCheckedChange = { Food -> viewModel.toggleSelection(Food) },
                             animatedVisibilityScope = animatedVisibilityScope,
                             onItemClick = {
-                                navController.navigate(UpdateMenuItem(it))
+                                navController.navigate(UpdateFood(it))
                             },
                             onLongClick = {
                                 isInSelectionMode = !isInSelectionMode
@@ -218,11 +218,11 @@ fun SharedTransitionScope.MenuScreen(
 
                     },
                     {
-                        MenuItemList(
-                            menuItems = menuItems,
+                        FoodList(
+                            Foods = Foods,
                             isInSelectionMode = isInSelectionMode,
-                            isSelected = { menuItem -> viewModel.selectedItems.contains(menuItem) },
-                            onCheckedChange = { menuItem -> viewModel.toggleSelection(menuItem) },
+                            isSelected = { Food -> viewModel.selectedItems.contains(Food) },
+                            onCheckedChange = { Food -> viewModel.toggleSelection(Food) },
                             animatedVisibilityScope = animatedVisibilityScope,
                             onItemClick = {},
                             onLongClick = {
@@ -274,13 +274,13 @@ fun <T : Any> ObserveLoadState(
     LaunchedEffect(lazyPagingItems.loadState.refresh) {
         when (val state = lazyPagingItems.loadState.refresh) {
             is LoadState.Loading -> {
-                Log.d("MenuItemScreen", "Loading $statusName MenuItems")
+                Log.d("FoodScreen", "Loading $statusName Foods")
             }
 
             is LoadState.Error -> {
                 Log.d(
-                    "MenuItemScreen",
-                    "Error loading $statusName MenuItems: ${state.error.message}"
+                    "FoodScreen",
+                    "Error loading $statusName Foods: ${state.error.message}"
                 )
                 Toast.makeText(
                     context,
@@ -290,8 +290,8 @@ fun <T : Any> ObserveLoadState(
             }
 
             else -> {
-                Log.d("MenuItemScreen", "$statusName MenuItems loaded")
-                Log.d("MenuItemScreen", "${lazyPagingItems.itemCount} size")
+                Log.d("FoodScreen", "$statusName Foods loaded")
+                Log.d("FoodScreen", "${lazyPagingItems.itemCount} size")
 
             }
         }

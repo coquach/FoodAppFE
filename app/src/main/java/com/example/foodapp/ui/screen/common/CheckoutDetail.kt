@@ -17,7 +17,8 @@ import java.math.BigDecimal
 
 @Composable
 fun CheckoutDetailsView(
-    checkoutDetails: CheckoutDetails
+    checkoutDetails: CheckoutDetails,
+    voucherValue: BigDecimal = BigDecimal(0)
 ) {
     Column {
         CheckoutRowItem(
@@ -30,7 +31,10 @@ fun CheckoutDetailsView(
             title = "Phí ship", value = checkoutDetails.deliveryFee
         )
         CheckoutRowItem(
-            title = "Tổng cộng", value = checkoutDetails.totalAmount, fontWeight = FontWeight.Bold
+            title = "Voucher", value = voucherValue
+        )
+        CheckoutRowItem(
+            title = "Tổng cộng", value = checkoutDetails.totalAmount + voucherValue, fontWeight = FontWeight.Bold
         )
     }
 }

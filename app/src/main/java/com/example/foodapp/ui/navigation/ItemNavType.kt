@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.navigation.NavType
 import com.example.foodapp.data.model.Export
 
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs
 import com.example.foodapp.data.model.Staff
@@ -14,29 +14,29 @@ import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
 
-val menuItemNavType = object : NavType<MenuItem>(false) {
-    override fun get(bundle: Bundle, key: String): MenuItem {
-        val menuItemJson = bundle.getString(key).toString()
+val FoodNavType = object : NavType<Food>(false) {
+    override fun get(bundle: Bundle, key: String): Food {
+        val foodJson = bundle.getString(key).toString()
 
-        val menuItem = parseValue(menuItemJson)
-        return menuItem.copy(
-            imageUrl = menuItem.imageUrl?.let { URLDecoder.decode(it, "UTF-8") }
+        val food = parseValue(foodJson)
+        return food.copy(
+            imageUrl = food.imageUrl?.let { URLDecoder.decode(it, "UTF-8") }
         )
     }
 
-    override fun parseValue(value: String): MenuItem {
-        return Json.decodeFromString(MenuItem.serializer(), value)
+    override fun parseValue(value: String): Food {
+        return Json.decodeFromString(Food.serializer(), value)
     }
 
-    override fun serializeAsValue(value: MenuItem): String {
+    override fun serializeAsValue(value: Food): String {
         return Json.encodeToString(
-            MenuItem.serializer(), value.copy(
+            Food.serializer(), value.copy(
                 imageUrl = value.imageUrl?.let { URLEncoder.encode(it, "UTF-8") }
             )
         )
     }
 
-    override fun put(bundle: Bundle, key: String, value: MenuItem) {
+    override fun put(bundle: Bundle, key: String, value: Food) {
         bundle.putString(key, serializeAsValue(value))
     }
 

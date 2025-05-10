@@ -3,10 +3,10 @@ package com.se114.foodapp.data.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
 import com.example.foodapp.utils.StringUtils

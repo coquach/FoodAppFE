@@ -7,13 +7,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.filter.InventoryFilter
-import com.example.foodapp.data.dto.filter.MenuItemFilter
+import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Inventory
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.data.repository.MenuItemRepository
+import com.example.foodapp.data.repository.FoodRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -34,7 +34,7 @@ import javax.inject.Inject
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class MenuViewModel @Inject constructor(
-    private val menuItemRepository: MenuItemRepository
+    private val FoodRepository: FoodRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MenuState>(MenuState.Nothing)
@@ -50,23 +50,23 @@ class MenuViewModel @Inject constructor(
         _tabIndex.value = index
     }
     fun refreshAllTabs() {
-        menuItemsCache.clear()
+        FoodsCache.clear()
 
     }
-    private val menuItemsCache = mutableMapOf<Int, StateFlow<PagingData<MenuItem>>>()
+    private val FoodsCache = mutableMapOf<Int, StateFlow<PagingData<Food>>>()
 
 
-    fun getMenuItemsByTab(index: Int): StateFlow<PagingData<MenuItem>> {
-        return menuItemsCache.getOrPut(index) {
+    fun getFoodsByTab(index: Int): StateFlow<PagingData<Food>> {
+        return FoodsCache.getOrPut(index) {
             val isAvailable = when (index) {
                 0 -> true
                 1 -> false
                 else -> null
             }
 
-            val filter = MenuItemFilter(isAvailable = isAvailable)
+            val filter = FoodFilter(isAvailable = isAvailable)
 
-            menuItemRepository.getMenuItemsByFilter(filter)
+            FoodRepository.getFoodsByFilter(filter)
                 .cachedIn(viewModelScope)
                 .stateIn(
                     viewModelScope,
@@ -76,20 +76,20 @@ class MenuViewModel @Inject constructor(
         }
     }
 
-    private val _selectedItems = mutableStateListOf<MenuItem>()
-    val selectedItems: List<MenuItem> get() = _selectedItems
+    private val _selectedItems = mutableStateListOf<Food>()
+    val selectedItems: List<Food> get() = _selectedItems
 
-    fun toggleSelection(menuItem: MenuItem) {
-        if (_selectedItems.contains(menuItem)) {
-            _selectedItems.remove(menuItem)
+    fun toggleSelection(Food: Food) {
+        if (_selectedItems.contains(Food)) {
+            _selectedItems.remove(Food)
         } else {
-            _selectedItems.add(menuItem)
+            _selectedItems.add(Food)
         }
     }
 
-    fun selectAllItems(menuItems: List<MenuItem>, isSelectAll: Boolean) {
+    fun selectAllItems(Foods: List<Food>, isSelectAll: Boolean) {
         _selectedItems.clear()
-        if (isSelectAll) _selectedItems.addAll(menuItems)
+        if (isSelectAll) _selectedItems.addAll(Foods)
     }
 
     fun removeItem() {

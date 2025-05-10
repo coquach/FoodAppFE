@@ -19,7 +19,7 @@ enum class OrderStatus(val display: String, val color: Color,
     DELIVERED("Đã vận chuyển",   Color(0xFFAB47BC), Icons.Default.LocalShipping),
     COMPLETED("Đã hoàn thành", Color(0xFF2E7D32), Icons.Default.DoneAll),
     CANCELLED("Đã hủy", Color(0xFFE57373), Icons.Default.Cancel);
-    fun getDisplayName(): String = display
+
 
     override fun toString(): String = name
 

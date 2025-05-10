@@ -7,7 +7,7 @@ import com.example.foodapp.data.dto.request.IngredientRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 import com.example.foodapp.data.dto.response.PageResponse
 import com.example.foodapp.data.model.Menu
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Order
 
 import com.example.foodapp.data.model.Staff
@@ -70,20 +70,17 @@ interface FoodApi {
         @Body orderStatus: String,
     ): Response<Order>
 
-    // Xóa đơn hàng
-    @DELETE("orders/{id}")
-    suspend fun deleteOrder(@Path("id") id: Long): Response<Void>
 
 
     //admin
 
     //menu
 
-    @GET("menus/active")
-    suspend fun getAvailableMenus(): Response<List<Menu>>
-
-    @GET("menus/deleted")
-    suspend fun getDeletedMenus(): Response<List<Menu>>
+//    @GET("menus/active")
+//    suspend fun getAvailableMenus(): Response<List<Menu>>
+//
+//    @GET("menus/deleted")
+//    suspend fun getDeletedMenus(): Response<List<Menu>>
 
     @POST("menus")
     suspend fun createMenu(@Body request: MenuRequest): Response<Menu>
@@ -93,45 +90,43 @@ interface FoodApi {
         @Path("id") id: Long,
         @Body request: MenuRequest,
     ): Response<Menu>
+    @PATCH("menu/{id}/status")
+    suspend fun updateMenuStatus(
+        @Path("id") id: Long,
+        @Body status: Map<String, Boolean>
+    ): Response<Unit>
 
-    @DELETE("menus/{id}")
-    suspend fun deleteMenu(@Path("id") id: Long): Response<Void>
-
-    //menu-items
-    @GET("menu-items")
-    suspend fun getMenuItems(
+    //food
+    @GET("menus/{menuId}/foods")
+    suspend fun getFoods(
+        @Path("menuId") menuId: Long,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
-        @Query("id") id: Long? = null,
-        @Query("isAvailable") isAvailable: Boolean? = null,
-
-        ): Response<PageResponse<MenuItem>>
-
-    @GET("menu-items/{id}")
-    suspend fun getMenuItemDetailById(
-        @Path("id") id: Long,
-    ): Response<MenuItem>
+        @Query("order") order: String = "asc"
+    ): Response<PageResponse<Food>>
 
     @Multipart
-    @POST("menu-items")
-    suspend fun createMenuItem(
+    @POST("menus/{menuId}/foods")
+    suspend fun createFood(
+        @Path("menuId") menuId: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part image: MultipartBody.Part? = null,
-    ): Response<MenuItem>
+        @Part image: MultipartBody.Part? = null
+    ): Response<Food>
 
     @Multipart
-    @PUT("menu-items/{id}")
-    suspend fun updateMenuItem(
-        @Path("id") id: Long,
+    @PUT("menus/{menuId}/foods/{foodId}")
+    suspend fun updateFood(
+        @Path("menuId") menuId: Int,
+        @Path("foodId") foodId: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part image: MultipartBody.Part? = null,
-    ): Response<MenuItem>
+        @Part image: MultipartBody.Part?
+    ): Response<Food>
 
-    @DELETE("menu-items/{id}")
-    suspend fun deleteMenuItem(
-        @Path("id") id: Long,
+    @PATCH("menus/foods/{foodId}/status")
+    suspend fun updateFoodStatus(
+        @Path("foodId") foodId: Long,
+        @Body status: Map<String, Boolean>
     ): Response<Unit>
 
     //staffs
@@ -407,4 +402,14 @@ interface FoodApi {
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
     ): Response<PageResponse<Voucher>>
+
+
+    @GET("orders/{customerId}")
+    suspend fun getOrdersByCustomerId(
+        @Path("customerId") customerId: String,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Query("sortBy") sortBy: String = "id",
+        @Query("order") order: String = "asc",
+    ): Response<PageResponse<Order>>
 }

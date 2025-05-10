@@ -5,7 +5,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 data class FeedbackMultipartRequest(
-    val menuItemId: Long?,
+    val FoodId: Long?,
     val content: String?,
     val rating: Int
 ) {
@@ -20,7 +20,7 @@ data class FeedbackMultipartRequest(
                 map[key] = it.toRequestBody("text/plain".toMediaTypeOrNull())
             }
         }
-        add("menuItemId", menuItemId.toString())
+        add("FoodId", FoodId.toString())
         add("content", content)
         add("rating", rating.toString())
 

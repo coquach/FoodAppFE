@@ -9,6 +9,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("com.google.gms.google-services")
+    id("kotlin-parcelize")
 }
 
 
@@ -145,7 +146,7 @@ dependencies {
 
     implementation(libs.core.splashscreen)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
-    implementation("com.google.accompanist:accompanist-snapper:0.34.0")
+
 
     //Dagger - Hilt
     implementation(libs.hilt.android)

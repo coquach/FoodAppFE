@@ -58,14 +58,13 @@ fun RadioGroupWrap(
         val layoutModifier = modifier
             .fillMaxWidth()
             .selectableGroup()
-            .padding(8.dp)
 
         val optionLayout: @Composable (content: @Composable () -> Unit) -> Unit =
             if (isFlowLayout) {
                 { content ->
                     FlowRow(
                         modifier = layoutModifier,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         content = { content() }
                     )

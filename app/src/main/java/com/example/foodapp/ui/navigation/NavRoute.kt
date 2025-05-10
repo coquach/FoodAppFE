@@ -2,7 +2,7 @@ package com.example.foodapp.ui.navigation
 
 import com.example.foodapp.data.model.Export
 import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.ResetPasswordArgs
 import com.example.foodapp.data.model.Staff
@@ -24,7 +24,7 @@ object Login : NavRoute
 object Home : NavRoute
 
 @Serializable
-data class MenuItemDetails(val menuItem: MenuItem) : NavRoute
+data class FoodDetails(val food: Food) : NavRoute
 
 @Serializable
 object Cart : NavRoute
@@ -98,10 +98,10 @@ object AddEmployee : NavRoute
 object Menu : NavRoute
 
 @Serializable
-data class UpdateMenuItem(val menuItem: MenuItem) : NavRoute
+data class UpdateFood(val Food: Food) : NavRoute
 
 @Serializable
-object AddMenuItem : NavRoute
+object AddFood : NavRoute
 
 @Serializable
 object Category: NavRoute
@@ -136,12 +136,17 @@ object  Voucher : NavRoute
 @Serializable
 object MyVoucher : NavRoute
 
+@Serializable
+object VoucherCustomerCheck : NavRoute
 
 @Serializable
-data class Feedbacks(val menuItemId: Long) : NavRoute
+object VoucherStaffCheck : NavRoute
 
 @Serializable
-data class FeedbackDetails(val menuItemId: Long) : NavRoute
+data class Feedbacks(val foodId: Long) : NavRoute
+
+@Serializable
+data class FeedbackDetails(val foodId: Long) : NavRoute
 
 
 

@@ -79,11 +79,19 @@ import com.example.foodapp.utils.StringUtils
 @Composable
 fun FeedbackListScreen(
     navController: NavController,
-    menuItemId: Long,
+    foodId: Long,
     viewModel: FeedbackListViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
-        viewModel.setUpFoodId(foodId = menuItemId)
+        viewModel.setUpFoodId(foodId = foodId)
+    }
+
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        if (handle?.get<Boolean>("shouldRefresh") == true) {
+            handle["shouldRefresh"] = false
+            viewModel.getFeedbacks()
+        }
     }
 
     val feedbacks = viewModel.feedbacks.collectAsLazyPagingItems()
@@ -102,7 +110,7 @@ fun FeedbackListScreen(
         )
         ButtonFeedback(
             onClick = {
-                navController.navigate(FeedbackDetails(menuItemId))
+                navController.navigate(FeedbackDetails(foodId))
             }
         )
         LazyPagingSample(

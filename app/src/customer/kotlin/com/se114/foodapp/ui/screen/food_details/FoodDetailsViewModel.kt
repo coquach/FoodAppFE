@@ -1,10 +1,10 @@
-package com.se114.foodapp.ui.screen.menu_item_details
+package com.se114.foodapp.ui.screen.food_details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.model.CartItem
 
-import com.example.foodapp.data.model.MenuItem
+import com.example.foodapp.data.model.Food
 import com.se114.foodapp.data.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,14 +12,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 import javax.inject.Inject
 
 @HiltViewModel
-class MenuDetailsViewModel @Inject constructor(
+class FoodDetailsViewModel @Inject constructor(
     private val cartRepository: CartRepository
 ) : ViewModel() {
 
@@ -44,12 +43,12 @@ class MenuDetailsViewModel @Inject constructor(
         _quantity.value -= 1
     }
 
-    fun addToCart(menuItem: MenuItem) {
+    fun addToCart(food: Food) {
         viewModelScope.launch {
             _uiState.value = FoodDetailsState.Loading
             try {
                 val current = cartItems.value.toMutableList()
-                val index = current.indexOfFirst { it.id == menuItem.id }
+                val index = current.indexOfFirst { it.id == food.id }
 
                 if (index != -1) {
                     val updatedItem = current[index].copy(
@@ -59,12 +58,11 @@ class MenuDetailsViewModel @Inject constructor(
                     _event.emit(FoodDetailsEvent.OnItemAlreadyInCart)
                 } else {
                     val newItem = CartItem(
-                        id = menuItem.id,
-                        name = menuItem.name,
-                        menuName = menuItem.menuName,
+                        id = food.id,
+                        name = food.name,
                         quantity = quantity.value,
-                        price = menuItem.price,
-                        imageUrl = menuItem.imageUrl
+                        price = food.price,
+                        imageUrl = food.imageUrl
                     )
                     current.add(newItem)
 

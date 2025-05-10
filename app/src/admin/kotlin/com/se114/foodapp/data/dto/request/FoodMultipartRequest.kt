@@ -5,12 +5,11 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.math.BigDecimal
 
-data class MenuItemMultipartRequest(
-    val menuId: String? = null,
+data class FoodMultipartRequest(
     val name: String,
     val description: String,
     val price: BigDecimal,
-    val isAvailable: Boolean
+    val defaultQuantity: Int
 ) {
     fun toPartMap(): Map<String, @JvmSuppressWildcards RequestBody> {
         val map = mutableMapOf<String, RequestBody>()
@@ -20,11 +19,11 @@ data class MenuItemMultipartRequest(
                 map[key] = it.toRequestBody("text/plain".toMediaTypeOrNull())
             }
         }
-        add("menuId", menuId)
+
         add("name", name)
         add("description", description)
         add("price", price.toPlainString())
-        add("isAvailable", isAvailable.toString())
+        add("defaultQuantity", defaultQuantity.toString())
 
         return map
     }
