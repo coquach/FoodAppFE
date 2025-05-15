@@ -1,17 +1,20 @@
 package com.example.foodapp.data.remote
 
-import com.example.foodapp.data.dto.response.RouteRequest
-import com.example.foodapp.data.dto.response.RouteResponse
+import com.example.foodapp.data.dto.response.OsrmRouteResponse
+
 import retrofit2.Response
 
-import retrofit2.http.Body
-import retrofit2.http.Header
-import retrofit2.http.POST
+
+import retrofit2.http.GET
+
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface OsrmApi {
-    @POST("v2/directions/driving-car/geojson")
+    @GET("route/v1/driving/{coordinates}")
     suspend fun getRoute(
-        @Header("Authorization") apiKey: String,
-        @Body body: RouteRequest
-    ): Response<RouteResponse>
+        @Path("coordinates") coordinates: String,
+        @Query("overview") overview: String = "full",
+        @Query("geometries") geometries: String = "geojson"
+    ): Response<OsrmRouteResponse>
 }

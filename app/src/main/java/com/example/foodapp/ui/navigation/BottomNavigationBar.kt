@@ -19,6 +19,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -86,9 +87,14 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
 
-    val selectedIndex = navItems.indexOfFirst { it.route::class.qualifiedName == currentRoute }
-        .takeIf { it >= 0 } ?: 0
+    // Tìm index nếu có
+    val matchedIndex = navItems.indexOfFirst { it.route::class.qualifiedName == currentRoute }
+    if (matchedIndex >= 0 && matchedIndex != selectedIndex) {
+        selectedIndex = matchedIndex
+    }
+
 
 
     AnimatedNavigationBar(

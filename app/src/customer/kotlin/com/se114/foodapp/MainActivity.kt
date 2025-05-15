@@ -13,7 +13,6 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.material3.Scaffold
@@ -28,12 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.lifecycleScope
 
 import androidx.navigation.compose.rememberNavController
 
 import com.example.foodapp.BaseFoodAppActivity
-import com.example.foodapp.HomeViewModel
+import com.example.foodapp.MainViewModel
 import com.example.foodapp.SplashViewModel
 import com.example.foodapp.data.remote.FoodApi
 
@@ -50,7 +48,7 @@ import com.example.foodapp.ui.navigation.ResetPassword
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
 
-import com.se114.foodapp.app_nav.AppNavGraph
+import com.se114.foodapp.ui.app_nav.AppNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
@@ -138,7 +136,7 @@ class MainActivity : BaseFoodAppActivity() {
                 LaunchedEffect(key1 = true) {
                     viewModel.event.collectLatest {
                         when (it) {
-                            is HomeViewModel.HomeEvent.NavigateToOrderDetail -> {
+                            is MainViewModel.HomeEvent.NavigateToOrderDetail -> {
                                 navController.navigate(
                                     OrderDetails(
                                         it.order

@@ -94,6 +94,10 @@ private val foodApi: FoodApi
         _checkoutRequest.update { it.copy(note= note) }
     }
 
+    fun onAddressChanged(address: String){
+        _checkoutRequest.update { it.copy(address = address) }
+    }
+
 
 
     fun onAddressClicked() {

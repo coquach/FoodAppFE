@@ -18,11 +18,15 @@ import com.example.foodapp.ui.navigation.NavRoute
 import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.data.datastore.WelcomeRepository
 import com.example.foodapp.data.model.Account
+import com.example.foodapp.ui.navigation.AddAddress
+
 
 import com.example.foodapp.ui.navigation.Statistics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -39,8 +43,8 @@ class SplashViewModel @Inject constructor(
 
     ) : ViewModel() {
 
-    private val _isLoading: MutableState<Boolean> = mutableStateOf(true)
-    val isLoading: State<Boolean> = _isLoading
+    private val _isLoading = MutableStateFlow<Boolean>(true)
+    val isLoading = _isLoading.asStateFlow()
 
     private val _startDestination: MutableState<NavRoute> = mutableStateOf(Auth)
     val startDestination: State<NavRoute> = _startDestination
@@ -79,7 +83,7 @@ class SplashViewModel @Inject constructor(
             }
 
             else -> {
-                val completed = welcomeRepository.readOnBoardingState().firstOrNull() ?: false
+                val completed = welcomeRepository.readOnBoardingState().firstOrNull() == true
                 if (completed) {
                     _startDestination.value = if (user == null) Auth else Home
                 } else {

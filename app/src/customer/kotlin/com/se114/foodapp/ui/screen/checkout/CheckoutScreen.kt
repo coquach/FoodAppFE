@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,12 +64,10 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.Address
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.PaymentMethod
+import com.example.foodapp.ui.navigation.AddressListCheckout
 
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-
-import com.example.foodapp.ui.navigation.AddressList
-import com.example.foodapp.ui.navigation.MyVoucher
 import com.example.foodapp.ui.navigation.OrderSuccess
 import com.example.foodapp.ui.navigation.VoucherCustomerCheck
 import com.example.foodapp.ui.screen.common.CartItemView
@@ -110,7 +110,7 @@ fun CheckoutScreen(
         viewModel.event.collectLatest {
             when (it) {
                 is CheckoutViewModel.CheckoutEvents.OnAddress -> {
-                    navController.navigate(AddressList)
+                    navController.navigate(AddressListCheckout)
                 }
 
 
@@ -146,6 +146,22 @@ fun CheckoutScreen(
         }
     }
 
+    val address =
+        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<String?>(
+            "address",
+            null
+        )
+            ?.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = address?.value) {
+        address?.value?.let {
+            viewModel.onAddressChanged(it)
+        }
+    }
+
+
+
+
     when (uiState.value) {
         is BaseViewModel.ResultState.Loading -> {
             isLoading = true
@@ -176,7 +192,7 @@ fun CheckoutScreen(
             text = "Xác nhận đơn hàng"
         )
         AddressCard(
-            null,
+            checkoutRequest.address,
             onAddressClicked = {
                 viewModel.onAddressClicked()
             }
@@ -196,7 +212,7 @@ fun CheckoutScreen(
                 .fillMaxWidth(),
 
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.background,
             shadowElevation = 6.dp,
             tonalElevation = 6.dp
         ) {
@@ -264,7 +280,7 @@ fun CheckoutScreen(
 }
 
 @Composable
-fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
+fun AddressCard(address: String?, onAddressClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -276,35 +292,43 @@ fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
             .padding(16.dp)
 
     ) {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Icon(
                 imageVector = Icons.Default.LocationOn,
                 contentDescription = "Vị trí của bạn",
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(30.dp)
             )
 
-            Spacer(modifier = Modifier.size(8.dp))
+
             if (address != null) {
-                Column {
+
                     Text(
-                        text = address.formatAddress,
+                        text = address,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+
                     )
-                }
+
             } else {
                 Text(
                     text = "Chọn địa chỉ",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.weight(1f)
                 )
             }
-            Spacer(modifier = Modifier.weight(1f))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Next",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(30.dp)
             )
         }
 

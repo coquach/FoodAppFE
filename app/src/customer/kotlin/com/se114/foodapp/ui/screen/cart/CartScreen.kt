@@ -69,12 +69,10 @@ import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
+import com.example.foodapp.ui.navigation.AddressListCheckout
 
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodItemCounter
-import com.example.foodapp.ui.screen.components.Loading
-import com.example.foodapp.ui.screen.components.Retry
-import com.example.foodapp.ui.navigation.AddressList
 import com.example.foodapp.ui.navigation.Checkout
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.components.DeleteBar
@@ -113,10 +111,6 @@ fun CartScreen(
                     showErrorDialog.value = true
                 }
 
-                is CartViewModel.CartEvents.OnAddress -> {
-                    navController.navigate(AddressList)
-                }
-
                 is CartViewModel.CartEvents.NavigateToCheckOut -> {
                     navController.navigate(Checkout)
                 }
@@ -151,7 +145,7 @@ fun CartScreen(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                items(cartItems, key = { it.id!! }) { item ->
+                items(cartItems, key = { it.id }) { item ->
                     val quantity = quantityMap[item.id] ?: item.quantity
                     CartItemView(
                         cartItem = item,

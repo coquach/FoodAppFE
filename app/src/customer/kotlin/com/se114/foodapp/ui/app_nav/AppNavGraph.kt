@@ -1,4 +1,4 @@
-package com.se114.foodapp.app_nav
+package com.se114.foodapp.ui.app_nav
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -15,7 +15,7 @@ import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.app_nav.auth.authGraph
 import com.se114.foodapp.app_nav.home.homeGraph
-import com.se114.foodapp.app_nav.order.orderGraph
+import com.se114.foodapp.ui.app_nav.order.orderGraph
 import com.se114.foodapp.ui.app_nav.setting.settingGraph
 import com.example.foodapp.ui.screen.welcome.WelcomeScreen
 

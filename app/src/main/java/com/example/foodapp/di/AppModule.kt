@@ -7,7 +7,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodapp.BuildConfig
 import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.data.remote.OpenCageApi
+import com.example.foodapp.data.remote.OsrmApi
 import com.example.foodapp.data.service.AccountService
+import com.example.foodapp.location.LocationManager
 import com.example.foodapp.utils.gson.BigDecimalDeserializer
 import com.example.foodapp.utils.gson.LocalDateDeserializer
 import com.example.foodapp.utils.gson.LocalDateTimeDeserializer
@@ -31,6 +34,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 
@@ -49,11 +53,7 @@ object NetworkModule {
         val client = OkHttpClient.Builder()
         client.addInterceptor  { chain ->
             val originalRequest = chain.request()
-            val requestUrl = originalRequest.url.toString()
 
-            if (requestUrl.contains("auth/register")) {
-                return@addInterceptor chain.proceed(originalRequest)
-            }
                 val token = runBlocking { account.getUserToken() }
             Log.d("Firebase Token: ", token.toString())
                 val requestWithAuth = originalRequest.newBuilder()
@@ -68,10 +68,10 @@ object NetworkModule {
     }
 
 
-
+    @MainApi
     @Provides
     @Singleton
-    fun provideRetrofit(client: OkHttpClient): Retrofit {
+    fun provideRetrofitMainApi(client: OkHttpClient): Retrofit {
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDate::class.java, LocalDateDeserializer())
             .registerTypeAdapter(LocalTime::class.java, LocalTimeDeserializer())
@@ -86,14 +86,43 @@ object NetworkModule {
            .build()
     }
 
+    @GeocodingApi
     @Provides
     @Singleton
-    fun provideFoodApi(retrofit: Retrofit): FoodApi {
+    fun provideRetrofitGeocodingApi(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://api.opencagedata.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    @NavigationApi
+    @Provides
+    @Singleton
+    fun provideRetrofitNavigationApi(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("http://router.project-osrm.org")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNavigationApi(@NavigationApi retrofit: Retrofit): OsrmApi {
+        return retrofit.create(OsrmApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOpenCageApi(@GeocodingApi retrofit: Retrofit): OpenCageApi {
+        return retrofit.create(OpenCageApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFoodApi(@MainApi retrofit: Retrofit): FoodApi {
         return retrofit.create(FoodApi::class.java)
     }
  
-
-
 
     @Provides
     @Singleton
@@ -101,6 +130,14 @@ object NetworkModule {
         return LocationServices.getFusedLocationProviderClient(context)
     }
 
+    @Provides
+    @Singleton
+    fun provideLocationManager(
+        fusedLocationProviderClient: FusedLocationProviderClient,
+        @ApplicationContext context: Context
+    ): LocationManager {
+        return LocationManager(fusedLocationProviderClient, context)
+    }
 
     @Provides
     @Singleton
@@ -109,3 +146,15 @@ object NetworkModule {
     }
 }
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class MainApi
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class GeocodingApi
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class NavigationApi

@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
 
 interface NavRoute
 
+
+
 @Serializable
 object Auth : NavRoute
 
@@ -48,7 +50,10 @@ object Favorite : NavRoute
 object OrderList : NavRoute
 
 @Serializable
-object AddressList : NavRoute
+object AddressListCheckout : NavRoute
+
+@Serializable
+object MyAddressList : NavRoute
 
 @Serializable
 object AddAddress : NavRoute
@@ -98,7 +103,7 @@ object AddEmployee : NavRoute
 object Menu : NavRoute
 
 @Serializable
-data class UpdateFood(val Food: Food) : NavRoute
+data class UpdateFood(val food: Food) : NavRoute
 
 @Serializable
 object AddFood : NavRoute

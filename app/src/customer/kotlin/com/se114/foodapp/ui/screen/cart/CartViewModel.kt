@@ -114,12 +114,8 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun onAddressClicked() {
-        viewModelScope.launch {
-            _event.emit(CartEvents.OnAddress)
-        }
 
-    }
+
 
 
 
@@ -128,7 +124,6 @@ class CartViewModel @Inject constructor(
         data object OnCheckOut : CartEvents()
         data object OnQuantityUpdateError : CartEvents()
         data object OnItemRemoveError : CartEvents()
-        data object OnAddress: CartEvents()
         data object NavigateToCheckOut : CartEvents()
     }
 }

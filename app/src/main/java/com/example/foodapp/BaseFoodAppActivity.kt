@@ -6,16 +6,14 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import com.example.foodapp.data.model.Order
-import com.example.foodapp.nofication.FoodAppMessagingService.Companion.ORDER_ID
 import com.google.gson.Gson
 
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.json.Json
 
 @AndroidEntryPoint
 abstract class BaseFoodAppActivity : ComponentActivity(){
 
-    val viewModel by viewModels<HomeViewModel>()
+    val viewModel by viewModels<MainViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         processIntent(intent)

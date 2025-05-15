@@ -34,7 +34,7 @@ import javax.inject.Inject
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class MenuViewModel @Inject constructor(
-    private val FoodRepository: FoodRepository
+    private val foodRepository: FoodRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MenuState>(MenuState.Nothing)

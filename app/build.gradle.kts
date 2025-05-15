@@ -27,9 +27,17 @@ android {
 
         buildConfigField(
             "String",
-            "MAPS_API_KEY",
-            "\"${project.findProperty("MAPS_API_KEY") ?: ""}\""
+            "OPEN_CAGE_API_KEY",
+            "\"${project.findProperty("OPEN_CAGE_API_KEY") ?: ""}\""
+
         )
+        buildConfigField(
+            "String",
+            "ORS_KEY",
+            "\"${project.findProperty("ORS_KEY") ?: ""}\""
+
+        )
+
 
     }
     buildTypes {
@@ -45,6 +53,12 @@ android {
                 "GOOGLE_WEB_CLIENT_ID",
                 "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
             )
+            buildConfigField(
+                "String",
+                "MAPS_BOX_KEY",
+                "\"${project.findProperty("MAPS_BOX_KEYL") ?: ""}\""
+
+            )
 
 
         }
@@ -58,6 +72,12 @@ android {
                 "String",
                 "GOOGLE_WEB_CLIENT_ID",
                 "\"${project.findProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "MAPS_BOX_KEY",
+                "\"${project.findProperty("MAPS_BOX_KEYL") ?: ""}\""
+
             )
 
         }
@@ -74,6 +94,7 @@ android {
         compose = true
         buildConfig = true
     }
+
     flavorDimensions += "environment"
 
     productFlavors {
@@ -213,6 +234,11 @@ dependencies {
     //Bottom Bar Animated
     implementation("com.exyte:animated-navigation-bar:1.0.0")
 
+    //MapBox
+    implementation("com.mapbox.maps:android:11.12.0")
+    implementation("com.mapbox.extension:maps-compose:11.12.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.mapbox.navigationcore:android:3.9.0")
 
 }
 

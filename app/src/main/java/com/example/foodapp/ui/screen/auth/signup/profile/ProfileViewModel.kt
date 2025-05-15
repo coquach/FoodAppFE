@@ -21,9 +21,10 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,7 +85,7 @@ class ProfileViewModel @Inject constructor(
 
 
     private fun loadProfile() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ProfileState.Loading
             try {
                 val firebaseUser =
@@ -146,7 +147,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun updateProfile(isUpdating: Boolean = false) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ProfileState.Loading
             try {
                 val uid = accountService.currentUserId ?: throw Exception("User not logged in")
@@ -198,7 +199,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun updateFirebaseUserProfile(photoUrl: Uri?) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val userProfileChangeRequest = userProfileChangeRequest {
                 displayName = _profile.value.displayName
                 photoUri = photoUrl
@@ -216,9 +217,24 @@ class ProfileViewModel @Inject constructor(
             "gender" to _profile.value.gender,
             "dob" to StringUtils.formatLocalDate(_profile.value.dob),
         )
+        val firestore = Firebase.firestore
 
-        Firebase.firestore.collection("users").document(uid)
+        firestore.collection("users").document(uid)
             .set(userMap, SetOptions.merge())
+            .addOnSuccessListener {
+                val dummyAddress = hashMapOf(
+                    "id" to "init",  // để phân biệt là init thôi
+                    "formatted" to "",
+                    "lat" to 0.0,
+                    "lon" to 0.0
+                )
+
+                firestore.collection("users")
+                    .document(uid)
+                    .collection("addresses")
+                    .document("init") // tên doc là "init"
+                    .set(dummyAddress)
+            }
             .addOnFailureListener { e ->
                 error = "Lỗi lưu dữ liệu"
                 errorDescription = e.message ?: "Không thể lưu dữ liệu vào hệ thống"
