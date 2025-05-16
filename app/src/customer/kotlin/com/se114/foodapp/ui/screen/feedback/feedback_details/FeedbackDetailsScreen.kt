@@ -110,6 +110,8 @@ fun FeedbackDetailsScreen(
     var showErrorSheet by remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
 
+    val feedbackRequest by viewModel.feedbackRequest.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
 
 
@@ -279,8 +281,10 @@ fun FeedbackDetailsScreen(
                 }
             }
             NoteInput(
-                note = "",
-                onNoteChange = { },
+                note = feedbackRequest.content?: "",
+                onNoteChange = {
+                    viewModel.onContentChange(it)
+                },
                 textHolder = "Nhập đánh giá.."
             )
         LoadingButton(

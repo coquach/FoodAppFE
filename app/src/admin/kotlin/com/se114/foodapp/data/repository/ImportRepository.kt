@@ -23,7 +23,7 @@ class ImportRepository @Inject constructor(
                 pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
-                enablePlaceholders = false
+                enablePlaceholders = true
             ),
             pagingSourceFactory = {
                 ImportPagingSource(foodApi = foodApi, filter = filter)

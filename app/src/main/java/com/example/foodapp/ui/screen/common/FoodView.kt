@@ -224,7 +224,8 @@ fun SharedTransitionScope.FoodList(
         if (foods.itemCount == 0 && foods.loadState.refresh !is LoadState.Loading) {
             Nothing(
                 text = "Không có món ăn nào",
-                icon = Icons.Default.NoMeals
+                icon = Icons.Default.NoMeals,
+                modifier = Modifier.fillMaxSize()
             )
         } else {
             LazyColumn(

@@ -4,9 +4,9 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.foodapp.data.model.Feedback
-import com.example.foodapp.data.model.Staff
+
 import com.example.foodapp.data.paging.FeedbackPagingSource
-import com.example.foodapp.data.paging.StaffPagingSource
+
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +23,7 @@ class FeedbackRepository @Inject constructor(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
-                enablePlaceholders = false),
+                enablePlaceholders = true),
             pagingSourceFactory = {
                 FeedbackPagingSource(foodApi = foodApi, foodId = foodId)
             }

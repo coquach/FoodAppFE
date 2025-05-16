@@ -8,23 +8,10 @@ data class VoucherRequest(
     val value: Double,
     val minOrderPrice: BigDecimal,
     val maxValue: BigDecimal,
-    val total: Int,
+    val quantity: Int,
     val type: String,
     val startDate: LocalDate?,
     val endDate: LocalDate?,
-
-    val published: Boolean,
-
-
-
 )
-    {
-        fun isStartDateBeforeEndDate(): Boolean {
-            return if (startDate != null && endDate != null) {
-                startDate.isBefore(endDate)
-            } else {
-                true
-            }
-        }
-    }
+
 

@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class Feedback(
     val id: Long,
     val content: String?,
-    val imageUrls: List<String>?,
+    val images: List<String>?,
     val rating: Int,
 
     @Serializable(with = LocalDateTimeSerializer::class)

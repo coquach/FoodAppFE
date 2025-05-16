@@ -3,7 +3,7 @@ package com.example.foodapp.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.foodapp.data.dto.filter.FoodFilter
+
 
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.remote.FoodApi
@@ -30,7 +30,7 @@ class FoodRepository @Inject constructor(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
-                enablePlaceholders = false),
+                enablePlaceholders = true),
             pagingSourceFactory = {
                 FoodPagingSource(foodApi = foodApi, menuId = menuId)
             }

@@ -24,7 +24,7 @@ class StaffRepository @Inject constructor(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
-                enablePlaceholders = false),
+                enablePlaceholders = true),
             pagingSourceFactory = {
                 StaffPagingSource(foodApi = foodApi)
             }

@@ -42,12 +42,17 @@ class FeedbackDetailsViewModel @Inject constructor(
 
     private val _feedbackRequest = MutableStateFlow(
         FeedbackMultipartRequest(
-            FoodId = null,
-            content = null,
+            foodId = null,
+            content = "",
             rating = 5
         )
     )
     val feedbackRequest = _feedbackRequest.asStateFlow()
+
+    fun onContentChange(content: String) {
+        _feedbackRequest.update { it.copy(content = content) }
+
+    }
     private val _foodId = MutableStateFlow<Long?>(null)
     
     
@@ -63,7 +68,7 @@ class FeedbackDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = FeedbackDetailsState.Loading
             try {
-                _feedbackRequest.update { it.copy(FoodId = foodId) }
+                _feedbackRequest.update { it.copy(foodId = foodId) }
                 val request =_feedbackRequest.value
                 val partMap = request.toPartMap()
                 val imageListPart = if(_imageList.value.isNotEmpty()) _imageList.value.map {

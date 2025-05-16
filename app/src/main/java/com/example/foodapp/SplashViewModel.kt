@@ -19,10 +19,12 @@ import com.example.foodapp.ui.navigation.Welcome
 import com.example.foodapp.data.datastore.WelcomeRepository
 import com.example.foodapp.data.model.Account
 import com.example.foodapp.ui.navigation.AddAddress
+import com.example.foodapp.ui.navigation.Feedbacks
 
 
 import com.example.foodapp.ui.navigation.Statistics
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,7 +58,7 @@ class SplashViewModel @Inject constructor(
 
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val initialUser = currentUserStateFlow.firstOrNull()
             updateStartDestination(initialUser)
 

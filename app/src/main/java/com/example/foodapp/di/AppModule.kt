@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodapp.BuildConfig
+import com.example.foodapp.data.remote.AiApi
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.data.remote.OpenCageApi
 import com.example.foodapp.data.remote.OsrmApi
@@ -40,7 +41,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object NetworkModule {
+object AppModule {
 
 
 
@@ -48,7 +49,6 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         account: AccountService,
-        @ApplicationContext context: Context
     ): OkHttpClient {
         val client = OkHttpClient.Builder()
         client.addInterceptor  { chain ->
@@ -106,13 +106,11 @@ object NetworkModule {
     }
 
     @Provides
-    @Singleton
     fun provideNavigationApi(@NavigationApi retrofit: Retrofit): OsrmApi {
         return retrofit.create(OsrmApi::class.java)
     }
 
     @Provides
-    @Singleton
     fun provideOpenCageApi(@GeocodingApi retrofit: Retrofit): OpenCageApi {
         return retrofit.create(OpenCageApi::class.java)
     }
@@ -122,7 +120,12 @@ object NetworkModule {
     fun provideFoodApi(@MainApi retrofit: Retrofit): FoodApi {
         return retrofit.create(FoodApi::class.java)
     }
- 
+
+    @Provides
+    @Singleton
+    fun provideAIApi(@MainApi retrofit: Retrofit): AiApi {
+        return retrofit.create(AiApi::class.java)
+    }
 
     @Provides
     @Singleton

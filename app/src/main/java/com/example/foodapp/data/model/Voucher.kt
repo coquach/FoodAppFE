@@ -18,20 +18,12 @@ data class Voucher(
     val code: String,
     val value: Double,
     val minOrderPrice: BigDecimal,
-
     val maxValue: BigDecimal,
-
-    val total: Int,
+    val quantity: Int,
     val type: String,
-
-
     val startDate: LocalDate,
-
-
     val endDate: LocalDate,
 
     val expired: Boolean,
 
-
-    val useAt: LocalDateTime
 ) : Parcelable

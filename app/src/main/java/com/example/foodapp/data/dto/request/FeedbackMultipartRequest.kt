@@ -5,13 +5,10 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 data class FeedbackMultipartRequest(
-    val FoodId: Long?,
+    val orderItemId: Long?,
     val content: String?,
     val rating: Int
 ) {
-    fun isRatingValid(): Boolean {
-        return rating in 1..5
-    }
     fun toPartMap(): Map<String, @JvmSuppressWildcards RequestBody> {
         val map = mutableMapOf<String, RequestBody>()
 
@@ -20,7 +17,7 @@ data class FeedbackMultipartRequest(
                 map[key] = it.toRequestBody("text/plain".toMediaTypeOrNull())
             }
         }
-        add("FoodId", FoodId.toString())
+        add("orderItemId", orderItemId.toString())
         add("content", content)
         add("rating", rating.toString())
 

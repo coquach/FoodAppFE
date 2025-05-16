@@ -12,5 +12,4 @@ data class Address(
     val formatAddress: String,
     val latitude: Double?,
     val longitude: Double?,
-
     ) : Parcelable

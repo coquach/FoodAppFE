@@ -795,9 +795,11 @@ fun NoteInput(
 ) {
     OutlinedTextField(
         value = note,
-        onValueChange = onNoteChange,
+        onValueChange = {
+            onNoteChange(it)
+        },
         readOnly = readOnly,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth(),
         placeholder = {
             Text(

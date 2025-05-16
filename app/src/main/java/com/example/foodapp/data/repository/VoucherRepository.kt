@@ -27,7 +27,7 @@ class VoucherRepository @Inject constructor(
                 pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
-                enablePlaceholders = false
+                enablePlaceholders = true
             ),
             pagingSourceFactory = {
                 VoucherPagingSource(foodApi = foodApi)
@@ -41,7 +41,7 @@ class VoucherRepository @Inject constructor(
                 pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
-                enablePlaceholders = false
+                enablePlaceholders = true
             ),
             pagingSourceFactory = {
                 VoucherPagingSource(foodApi = foodApi, customerId = customerId)

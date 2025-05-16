@@ -6,7 +6,7 @@ import androidx.paging.PagingData
 import com.example.foodapp.data.dto.filter.InventoryFilter
 
 import com.example.foodapp.data.model.Inventory
-import com.example.foodapp.data.model.Food
+
 import com.example.foodapp.data.paging.InventoryPagingSource
 import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
@@ -27,7 +27,7 @@ class InventoryRepository @Inject constructor(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE,
                 initialLoadSize = ITEMS_PER_PAGE,
                 prefetchDistance = 2,
-                enablePlaceholders = false),
+                enablePlaceholders = true),
             pagingSourceFactory = {
                 InventoryPagingSource(foodApi = foodApi, filter = filter)
             }

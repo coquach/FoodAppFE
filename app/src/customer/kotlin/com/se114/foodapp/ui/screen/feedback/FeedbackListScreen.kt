@@ -120,7 +120,8 @@ fun FeedbackListScreen(
             columns = 1,
             key = {
                 it.id
-            }
+            },
+            modifier = Modifier.fillMaxSize()
         ) {
             FeedbackItem(it)
         }
