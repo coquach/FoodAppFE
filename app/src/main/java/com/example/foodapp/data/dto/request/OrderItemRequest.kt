@@ -5,9 +5,6 @@ import com.google.gson.annotations.SerializedName
 
 
 data class OrderItemRequest(
-    val id: Long?= null,
     val foodId: Long,
     val quantity: Int,
-    @SerializedName("isDeleted")
-    val isDeleted: Boolean = false
 )

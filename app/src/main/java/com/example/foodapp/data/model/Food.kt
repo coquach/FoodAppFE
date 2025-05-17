@@ -9,7 +9,7 @@ import java.math.BigDecimal
 data class Food(
     val id: Long,
     val description: String,
-    val imageUrl: String? = null,
+    val images: List<ImageInfo>?,
     val name: String,
 
     @Serializable(with = BigDecimalSerializer::class)
@@ -17,4 +17,8 @@ data class Food(
     val defaultQuantity: Int,
     val remainingQuantity: Int,
     val active: Boolean,
+    val totalRating: Double,
+    val totalFeedback: Int,
+    val totalLikes: Int,
+    val liked: Boolean,
 )

@@ -15,11 +15,9 @@ import java.time.LocalTime
 @Serializable
 data class Order(
     val id: Long,
-    val customerId: String? = null,
     val tableNumber: Int? = null,
     val voucherDiscount: Double? = null,
-    @Serializable(with = BigDecimalSerializer::class)
-    val totalPrice: BigDecimal,
+    val createdBy: String,
     val status: String,
     val method: String,
     val type: String,

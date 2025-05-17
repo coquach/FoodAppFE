@@ -9,16 +9,14 @@ import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 @Serializable
-@Entity(tableName = STAFF_TABLE)
 data class Staff(
-    @PrimaryKey(autoGenerate = false)
     val id: Long,
     val fullName: String? = null,
     val position: String? = null,
     val phone: String? = null,
     val gender: String? = null,
     val address: String? = null,
-    val imageUrl: String? = null,
+    val avatar: ImageInfo,
 
     @Serializable(with = LocalDateSerializer::class)
     val birthDate: LocalDate? = null,
@@ -30,9 +28,5 @@ data class Staff(
     val endDate: LocalDate? = null,
 
     val basicSalary: Double = 0.0,
-
-    @SerialName("isDeleted")
-    val isDeleted: Boolean = false,
-
-
+    val salaryHistories: List<SalaryHistory> = emptyList(),
     )
