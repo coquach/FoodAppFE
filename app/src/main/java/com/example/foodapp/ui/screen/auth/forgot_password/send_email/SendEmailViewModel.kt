@@ -2,8 +2,7 @@ package com.example.foodapp.ui.screen.auth.forgot_password.send_email
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.BaseViewModel
+import com.example.foodapp.domain.repository.AccountService
 import com.example.foodapp.utils.ValidateField
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import dagger.hilt.android.lifecycle.HiltViewModel

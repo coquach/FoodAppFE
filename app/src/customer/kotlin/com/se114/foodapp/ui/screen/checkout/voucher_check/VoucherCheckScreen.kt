@@ -20,7 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.map
@@ -37,27 +39,23 @@ import kotlinx.coroutines.launch
 fun VoucherCheckScreen(
     navController: NavController,
     viewModel: VoucherCheckViewModel = hiltViewModel(),
-    isCustomer: Boolean = true,
 ) {
 
     val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
 
-
-    var search by remember { mutableStateOf("") }
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        viewModel.setMode(isCustomer)
-    }
-
-
-    LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
-                is VoucherCheckViewModel.VoucherCheckEvents.OnBackToCheckout -> {
+                is VoucherCheck.Event.OnBackToCheckout -> {
                     val voucher = it.voucher
                     navController.previousBackStackEntry?.savedStateHandle?.set("voucher", voucher)
                     navController.popBackStack()
 
+                }
+
+                VoucherCheck.Event.OnBack -> {
+                    navController.popBackStack()
                 }
             }
         }
@@ -79,16 +77,12 @@ fun VoucherCheckScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             HeaderDefaultView(
-                text = if(isCustomer)"Voucher của tôi" else "Voucher",
+                text = "Voucher",
                 onBack = {
                     navController.navigateUp()
                 },
 
                 )
-            SearchField(
-                searchInput = search,
-                searchChange = { search = it }
-            )
 
         }
         LazyPagingSample(
@@ -105,7 +99,7 @@ fun VoucherCheckScreen(
                 modifier = Modifier.fillMaxWidth(),
                 voucher = it,
                 onClick = {
-                    viewModel.onSelectedVoucherToCheckout(it)
+                    viewModel.onAction(VoucherCheck.Action.OnVoucherSelected(it))
                 }
             )
 

@@ -3,9 +3,6 @@ package com.example.foodapp.ui.screen.auth.signup.profile
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,19 +17,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,17 +38,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.example.foodapp.R
 import com.example.foodapp.data.model.enums.Gender
-import com.example.foodapp.ui.navigation.Auth
-import com.example.foodapp.ui.navigation.Login
-import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.navigation.Auth
+import com.example.foodapp.navigation.Login
 import com.example.foodapp.ui.screen.components.DatePickerSample
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -68,85 +59,74 @@ import com.example.foodapp.ui.screen.components.RadioGroupWrap
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.ui.theme.onConfirm
-import com.example.foodapp.utils.ImageUtils
+import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp.lifecycleOwner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import androidx.core.net.toUri
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    isUpdating: Boolean = false,
     viewModel: ProfileViewModel = hiltViewModel(),
-    ) {
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showSheetImage by remember { mutableStateOf(false) }
     var showErrorSheet by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
-    val profile by viewModel.profile.collectAsStateWithLifecycle()
-    var isLoading by remember { mutableStateOf(false) }
-
-    Log.d("Profile" , "${profile.avatar}")
-
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        delay(100)
-        viewModel.setMode(isUpdating)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
-            when (it) {
-                ProfileViewModel.ProfileEvents.NavigateAuth -> {
-                    navController.navigate(Auth) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            inclusive = true
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle)
+            .collect { event -> // Renamed 'it' for clarity
+                when (event) {
+                    Profile.Event.NavigateAuth -> {
+                        navController.navigate(Auth) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
-                    }
-                }
-
-                ProfileViewModel.ProfileEvents.NavigateLogin -> {
-                    navController.navigate(Login) {
-                        popUpTo(Auth) {
-                            inclusive = false
-                        }
-                        launchSingleTop = true
                     }
 
-                }
+                    Profile.Event.NavigateLogin -> {
+                        navController.navigate(Login) {
+                            popUpTo(Auth) {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
 
-                ProfileViewModel.ProfileEvents.BackToSetting -> {
-                    Toast.makeText(
-                        context,
-                        "Cập nhật thành công",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    navController.previousBackStackEntry?.savedStateHandle?.set("shouldRefresh", true)
-                    navController.popBackStack()
-                }
-                ProfileViewModel.ProfileEvents.ShowDialog -> {
-                    showSuccessDialog = true
+                    }
+
+                    Profile.Event.BackToSetting -> {
+                        Toast.makeText(
+                            context,
+                            "Cập nhật thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "shouldRefresh",
+                            true
+                        )
+                        navController.popBackStack()
+                    }
+
+                    Profile.Event.ShowDialog -> {
+                        showSuccessDialog = true
+                    }
+
+                    Profile.Event.ShowError -> {
+                        showErrorSheet = true
+                    }
+
+                    Profile.Event.BackToPrevious -> {
+                        navController.popBackStack()
+                    }
                 }
             }
-        }
     }
-
-   when(uiState){
-        ProfileViewModel.ProfileState.Loading -> {
-            isLoading = true
-        }
-       ProfileViewModel.ProfileState.Error ->{
-           isLoading = false
-           showErrorSheet = true
-       }
-        else -> {
-            isLoading =false
-        }
-
-    }
-
 
     Column(
         modifier = Modifier
@@ -155,11 +135,11 @@ fun ProfileScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
 
         ) {
-        if (isUpdating)
+        if (uiState.isUpdating)
             HeaderDefaultView(
                 text = "Thông tin cá nhân",
                 onBack = {
-                    navController.navigateUp()
+                    viewModel.onAction(Profile.Action.OnBack)
                 }
             )
         else HeaderDefaultView(
@@ -183,7 +163,7 @@ fun ProfileScreen(
             ) {
 
                 AsyncImage(
-                    model = profile.avatar,
+                    model = uiState.profile.avatar,
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .size(100.dp)
@@ -215,8 +195,8 @@ fun ProfileScreen(
 
             }
             FoodAppTextField(
-                value = profile.displayName,
-                onValueChange = { viewModel.onChangeDisplayName(it) },
+                value = uiState.profile.displayName,
+                onValueChange = { viewModel.onAction(Profile.Action.OnDisplayNameChanged(it)) },
                 labelText = stringResource(R.string.full_name),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -226,22 +206,22 @@ fun ProfileScreen(
             RadioGroupWrap(
                 text = "Giới tính",
                 options = Gender.entries.map { it.display },
-                selectedOption = profile.gender ?: "",
+                selectedOption = uiState.profile.gender,
                 onOptionSelected = {
                     Log.d("GenderSelect", "Selected: $it")
-                    viewModel.onChangeGender(it)
+                    viewModel.onAction(Profile.Action.OnGenderChanged(it))
                 }
             )
             DatePickerSample(
                 text = "Ngày sinh",
-                selectedDate = profile.dob,
-                onDateSelected = { viewModel.onChangeDob(it) }
+                selectedDate = uiState.profile.dob,
+                onDateSelected = { viewModel.onAction(Profile.Action.OnDateOfBirthChanged(it)) }
             )
 
             FoodAppTextField(
-                value = profile.phoneNumber,
+                value = uiState.profile.phoneNumber,
                 onValueChange = {
-                    viewModel.onChangePhoneNumber(it)
+                    viewModel.onAction(Profile.Action.OnPhoneNumberChanged(it))
                 },
                 labelText = stringResource(R.string.phone_number),
                 modifier = Modifier.fillMaxWidth(),
@@ -251,10 +231,10 @@ fun ProfileScreen(
 
 
             LoadingButton(
-                onClick ={if(isUpdating) viewModel.updateProfile(isUpdating = true) else viewModel.updateProfile() } ,
+                onClick = { if (uiState.isUpdating) viewModel.updateProfile(isUpdating = true) else viewModel.updateProfile() },
                 modifier = Modifier.fillMaxWidth(),
-                text = if (isUpdating) "Cập nhật" else "Xác nhận",
-                loading = isLoading,
+                text = if (uiState.isUpdating) "Cập nhật" else "Xác nhận",
+                loading = uiState.isLoading,
             )
         }
 
@@ -266,11 +246,11 @@ fun ProfileScreen(
             titleColor = MaterialTheme.colorScheme.confirm,
             message = "Bây giờ bạn có thể đăng nhập được rồi nha",
             onDismiss = {
-                viewModel.onAuthClick()
+                viewModel.onAction(Profile.Action.OnBackAuth)
                 showSuccessDialog = false
             },
             onConfirm = {
-                viewModel.onLoginClick()
+                viewModel.onAction(Profile.Action.OnBackLogin)
                 showSuccessDialog = false
 
             },
@@ -286,17 +266,16 @@ fun ProfileScreen(
     ImagePickerBottomSheet(
         showSheet = showSheetImage,
         onDismiss = { showSheetImage = false },
-        onImageSelected = { uri -> viewModel.onChangeAvatar(uri) })
+        onImageSelected = { uri -> viewModel.onAction(Profile.Action.OnAvatarChanged(uri)) })
 
     if (showErrorSheet) {
         ErrorModalBottomSheet(
-            title = viewModel.error,
-            description = viewModel.errorDescription,
+            description = uiState.error ?: "Lỗi không xác định",
             onDismiss = {
                 showErrorSheet = false
             },
 
-        )
+            )
     }
 }
 

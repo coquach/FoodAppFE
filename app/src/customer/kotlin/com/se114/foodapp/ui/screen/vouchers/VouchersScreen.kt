@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.flowWithLifecycle
 
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -53,46 +55,20 @@ import kotlinx.coroutines.launch
 fun VouchersScreen(
     navController: NavController,
     viewModel: VouchersViewModel = hiltViewModel(),
-    isMyVoucher: Boolean = false,
 ) {
-
     val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
-
-
     var search by remember { mutableStateOf("") }
-    var showErrorSheet by remember { mutableStateOf(false) }
-    val errorMessage = remember { mutableStateOf<String?>(null) }
 
-
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-LaunchedEffect(Unit) {
-    viewModel.setMode(isMyVoucher)
-}
-
-    LaunchedEffect(errorMessage.value) {
-        if (errorMessage.value != null)
-            scope.launch {
-                showErrorSheet = true
-            }
-    }
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
-                VouchersViewModel.VouchersEvents.ShowSuccessToast -> {
-                    Toast.makeText(
-                        context,
-                        "Lấy voucher thành công",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                is Vouchers.Event.OnBack -> {
+                    navController.popBackStack()
                 }
-
             }
         }
     }
-
 
 
     Column(
@@ -109,9 +85,9 @@ LaunchedEffect(Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             HeaderDefaultView(
-                text = if(isMyVoucher)"Voucher của tôi" else "Voucher",
+                text = "Voucher",
                 onBack = {
-                    navController.navigateUp()
+                    viewModel.onAction(Vouchers.Action.OnBack)
                 },
 
                 )
@@ -135,21 +111,10 @@ LaunchedEffect(Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 voucher = it,
                 onClick = {
-                    if (!isMyVoucher) viewModel.receivedVoucher(it.id)
+
                 }
             )
-
-
         }
-
     }
-    if (showErrorSheet) {
-        ErrorModalBottomSheet(
-            title = viewModel.error,
-            description = viewModel.errorDescription,
-            onDismiss = { showErrorSheet = false },
-        )
-    }
-
 
 }

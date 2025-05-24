@@ -6,9 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.model.Feedback
-import com.example.foodapp.data.repository.FeedbackRepository
-import com.example.foodapp.ui.navigation.Feedbacks
-import com.se114.foodapp.ui.screen.vouchers.VouchersViewModel.VouchersState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +18,8 @@ import javax.inject.Inject
 class FeedbackListViewModel @Inject constructor(
     private val feedbackRepository: FeedbackRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<FeedbackListState>(FeedbackListState.Nothing)
-    val uiState = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(com.se114.foodapp.ui.screen.feedback.Feedback.UiState())
+    val uiState : StateFlow<com.se114.foodapp.ui.screen.feedback.Feedback.UiState> get() = _uiState.asStateFlow()
 
     private val _feedbacks = MutableStateFlow<PagingData<Feedback>>(PagingData.empty())
     val feedbacks: StateFlow<PagingData<Feedback>> = _feedbacks
@@ -40,19 +37,22 @@ class FeedbackListViewModel @Inject constructor(
 
     }
 
-    fun getFeedbacks() {
-        viewModelScope.launch {
-            delay(100)
-            feedbackRepository.getAllFeedbacksByFoodId(_foodId.value!!).cachedIn(viewModelScope).collect {
-                _feedbacks.value = it
-            }
-        }
-    }
+//    fun getFeedbacks() {
+//        viewModelScope.launch {
+//            delay(100)
+//            feedbackRepository.getAllFeedbacksByFoodId(_foodId.value!!).cachedIn(viewModelScope).collect {
+//                _feedbacks.value = it
+//            }
+//        }
+//    }
 
-    sealed class FeedbackListState {
-        data object Nothing : FeedbackListState()
-        data object Loading : FeedbackListState()
-        data object Success : FeedbackListState()
-        data object Error : FeedbackListState()
-    }
+
+}
+
+object Feedback{
+    data class UiState(
+        val isLoading: Boolean = false,
+        val error: String?= null,
+    )
+
 }

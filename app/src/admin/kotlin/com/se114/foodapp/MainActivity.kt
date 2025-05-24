@@ -43,14 +43,13 @@ import com.example.foodapp.BaseFoodAppActivity
 import com.example.foodapp.MainViewModel
 import com.example.foodapp.SplashViewModel
 
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.ui.navigation.Auth
-import com.example.foodapp.ui.navigation.BottomNavItem
-import com.example.foodapp.ui.navigation.BottomNavigationBar
-import com.example.foodapp.ui.navigation.OrderDetails
+import com.example.foodapp.navigation.Auth
+import com.example.foodapp.navigation.BottomNavItem
+import com.example.foodapp.navigation.BottomNavigationBar
+import com.example.foodapp.navigation.OrderDetails
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
-import com.se114.foodapp.ui.app_nav.AppNavGraph
+import com.se114.foodapp.navigation.AppNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject

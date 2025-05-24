@@ -14,7 +14,6 @@ import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Address
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Supplier
-import com.example.foodapp.data.remote.FoodApi
 import com.google.android.gms.common.api.Api
 import com.se114.foodapp.data.repository.SupplierRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

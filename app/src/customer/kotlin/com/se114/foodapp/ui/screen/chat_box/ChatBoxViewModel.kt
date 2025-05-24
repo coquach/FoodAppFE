@@ -9,7 +9,7 @@ import androidx.paging.insertHeaderItem
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.model.ChatMessage
 import com.example.foodapp.data.model.Staff
-import com.example.foodapp.data.repository.ChatBoxRepository
+import com.se114.foodapp.domain.repository.ChatBoxRepository
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -72,26 +72,28 @@ class ChatBoxViewModel @Inject constructor(
                 _tempMessages.update { oldList ->
                     oldList + userMessage + botTypingMessage
                 }
-                val response = chatBoxRepository.sendMessage(message)
+               chatBoxRepository.sendMessage(message).collect { response ->
+                   when (response) {
+                       is ApiResponse.Success -> {
+                           resetTempMessages()
+                           getMessageList()
+                       }
 
-                when (response) {
-                    is ApiResponse.Success -> {
-                        resetTempMessages()
-                        getMessageList()
-                    }
+                       is ApiResponse.Failure -> {
+                           _tempMessages.update { oldList ->
+                               oldList.map { if(it.id == 2L) it.copy(content = response.errorMessage) else it }
+                           }
+                       }
 
-                    is ApiResponse.Error -> {
-                        _tempMessages.update { oldList ->
-                            oldList.map { if(it.id == 2L) it.copy(content = response.message) else it }
-                        }
-                    }
+                       else -> {
+                           _tempMessages.update { oldList ->
+                               oldList.map { if(it.id == 2L) it.copy(content = "Lỗi không xác định") else it }
+                           }
+                       }
+                   }
+               }
 
-                    else -> {
-                        _tempMessages.update { oldList ->
-                            oldList.map { if(it.id == 2L) it.copy(content = "Lỗi không xác định") else it }
-                        }
-                    }
-                }
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 _tempMessages.update { oldList ->

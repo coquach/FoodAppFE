@@ -1,103 +1,180 @@
 package com.se114.foodapp.ui.screen.food_details
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.model.CartItem
-
+import androidx.navigation.toRoute
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.model.Food
-import com.se114.foodapp.data.repository.CartRepository
+import com.se114.foodapp.domain.use_case.feedback.GetFeedbacksUseCase
+import com.se114.foodapp.domain.use_case.food_details.AddToCartUseCase
+import com.se114.foodapp.domain.use_case.food_details.ToggleLikecUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 import javax.inject.Inject
 
 @HiltViewModel
 class FoodDetailsViewModel @Inject constructor(
-    private val cartRepository: CartRepository
+    val savedStateHandle: SavedStateHandle,
+    private val addToCartUseCase: AddToCartUseCase,
+    private val toggleLikecUseCase: ToggleLikecUseCase,
+    private val getFeedbacksUseCase: GetFeedbacksUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<FoodDetailsState>(FoodDetailsState.Nothing)
-    val uiState = _uiState.asStateFlow()
 
-    private val _event = MutableSharedFlow<FoodDetailsEvent>()
-    val event = _event.asSharedFlow()
+    private val foodArgument: com.example.foodapp.navigation.FoodDetails =
+        savedStateHandle.toRoute()
 
-    private val cartItems = cartRepository.cartItemsFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    private val _uiState = MutableStateFlow(FoodDetails.UiState(food = foodArgument.food))
+    val uiState: StateFlow<FoodDetails.UiState> get() = _uiState.asStateFlow()
 
-    private val _quantity = MutableStateFlow<Int>(1)
-    val quantity = _quantity.asStateFlow()
+    private val _event = Channel<FoodDetails.Event>()
+    val event = _event.receiveAsFlow()
 
-    fun incrementQuantity() {
-        _quantity.value += 1
+
+
+    private fun incrementQuantity() {
+        _uiState.update { it.copy(quantity = it.quantity + 1) }
     }
 
-    fun decrementQuantity() {
-        if (quantity.value == 1) return
-        _quantity.value -= 1
+    private fun decrementQuantity() {
+        if (_uiState.value.quantity == 1) return
+        _uiState.update { it.copy(quantity = it.quantity - 1) }
     }
 
-    fun addToCart(food: Food) {
+    private fun addToCart(food: Food) {
         viewModelScope.launch {
-            _uiState.value = FoodDetailsState.Loading
+            _uiState.update { it.copy(isLoading = true) }
+            delay(2000L)
             try {
-                val current = cartItems.value.toMutableList()
-                val index = current.indexOfFirst { it.id == food.id }
+                val result = addToCartUseCase(food, _uiState.value.quantity)
+                when (result) {
+                    AddToCartUseCase.Result.ItemAdded -> {
+                        _uiState.update { it.copy(isLoading = false, error = null) }
+                        _event.send(FoodDetails.Event.OnAddToCart)
+                    }
 
-                if (index != -1) {
-                    val updatedItem = current[index].copy(
-                        quantity = quantity.value
-                    )
-                    current[index] = updatedItem
-                    _event.emit(FoodDetailsEvent.OnItemAlreadyInCart)
-                } else {
-                    val newItem = CartItem(
-                        id = food.id,
-                        name = food.name,
-                        quantity = quantity.value,
-                        price = food.price,
-                        imageUrl = food.imageUrl
-                    )
-                    current.add(newItem)
-
-                    _event.emit(FoodDetailsEvent.OnAddToCart)
+                    AddToCartUseCase.Result.ItemUpdated -> {
+                        _uiState.update { it.copy(isLoading = false, error = null) }
+                        _event.send(FoodDetails.Event.OnItemAlreadyInCart)
+                    }
                 }
-                cartRepository.saveCartItems(current)
-                _uiState.value = FoodDetailsState.Nothing
 
             } catch (e: Exception) {
-                _uiState.value = FoodDetailsState.Error(e.message ?: "Không thể thêm vào giỏ hàng.")
-                _event.emit(FoodDetailsEvent.ShowErrorDialog(e.message ?: "Có lỗi xảy ra."))
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                _event.send(FoodDetails.Event.ShowError)
             }
         }
     }
 
 
-    fun goToCart() {
+    private fun toggleLike(foodId: Long) {
         viewModelScope.launch {
-            _event.emit(FoodDetailsEvent.GoToCart)
-            _quantity.value = 1
+            try {
+                toggleLikecUseCase.invoke(foodId).collect { result ->
+                    when (result) {
+                        is ApiResponse.Failure -> {
+                            _uiState.update { it.copy(error = result.errorMessage) }
+                            _event.send(FoodDetails.Event.ShowError)
+                        }
+
+                        ApiResponse.Loading -> {
+
+                        }
+
+                        is ApiResponse.Success -> {
+                            _uiState.update { it.copy(error = null) }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+
+
         }
     }
 
-
-    sealed class FoodDetailsState {
-        data object Nothing : FoodDetailsState()
-        data object Loading : FoodDetailsState()
-        data class Error(val message: String) : FoodDetailsState()
+    fun getFeedbacks() : StateFlow<PagingData<Feedback>> {
+          return  getFeedbacksUseCase.invoke(_uiState.value.food.id).cachedIn(viewModelScope) .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                PagingData.empty()
+            )
     }
 
-    sealed class FoodDetailsEvent {
-        data class ShowErrorDialog(val message: String) : FoodDetailsEvent()
-        data object OnAddToCart : FoodDetailsEvent()
-        data object OnItemAlreadyInCart : FoodDetailsEvent()
-        data object GoToCart : FoodDetailsEvent()
+    fun onAction(action: FoodDetails.Action) {
+        when (action) {
+            is FoodDetails.Action.OnAddToCart -> {
+                addToCart(_uiState.value.food)
+            }
+
+            is FoodDetails.Action.GoToCart -> {
+                viewModelScope.launch {
+                    _event.send(FoodDetails.Event.GoToCart)
+                    _uiState.update { it.copy(quantity = 1) }
+                }
+            }
+
+            is FoodDetails.Action.IncreaseQuantity -> {
+                incrementQuantity()
+            }
+
+            is FoodDetails.Action.DecreaseQuantity -> {
+                decrementQuantity()
+            }
+
+            is FoodDetails.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(FoodDetails.Event.OnBack)
+                }
+            }
+
+            is FoodDetails.Action.OnFavorite -> {
+                toggleLike(action.foodId)
+            }
+
+        }
+    }
+}
+
+object FoodDetails {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val error: String? = null,
+        val food: Food = Food.sample(),
+        val quantity: Int = 1,
+    )
+
+    sealed interface Event {
+        data object ShowError : Event
+        data object OnAddToCart : Event
+        data object OnItemAlreadyInCart : Event
+        data object GoToCart : Event
+        data object OnBack : Event
+
+    }
+
+    sealed interface Action {
+        data object OnAddToCart : Action
+        data object GoToCart : Action
+        data object IncreaseQuantity : Action
+        data object DecreaseQuantity : Action
+        data object OnBack : Action
+        data class OnFavorite(val foodId: Long) : Action
 
     }
 }

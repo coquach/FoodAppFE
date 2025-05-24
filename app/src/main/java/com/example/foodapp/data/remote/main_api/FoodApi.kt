@@ -41,21 +41,11 @@ interface FoodApi {
     @Multipart
     @PUT("menus/{menuId}/foods/{foodId}")
     suspend fun updateFood(
-        @Path("menuId") menuId: Int,
+        @Path("menuId") menuId: Long,
         @Path("foodId") foodId: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
         @Part images: List<MultipartBody.Part>? = null
     ): Response<Food>
-
-
-    @GET("foods/{foodId}/feedbacks")
-    suspend fun getFeedbacksByFoodId(
-        @Path("foodId") foodId: Long,
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10,
-        @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
-    ): Response<PageResponse<Feedback>>
 
 
     @GET("foods/favorite")
@@ -64,17 +54,17 @@ interface FoodApi {
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
-    )
+    ): Response<PageResponse<Food>>
 
     @POST("foods/{foodId}/like-toggle")
     suspend fun toggleLike(
         @Path("foodId") foodId: Long,
-    )
+    ): Response<Unit>
 
     @PATCH("/foods/{foodId}/status-toggle")
     suspend fun toggleStatus(
         @Path("foodId") foodId: Long,
-    )
+    ) : Response<Unit>
 //menu
     @GET("menus")
     suspend fun getMenus(

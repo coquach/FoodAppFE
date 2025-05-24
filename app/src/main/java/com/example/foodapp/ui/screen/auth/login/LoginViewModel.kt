@@ -1,164 +1,192 @@
 package com.example.foodapp.ui.screen.auth.login
 
 import androidx.credentials.Credential
-import androidx.credentials.CustomCredential
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.BaseViewModel
-import com.example.foodapp.BuildConfig
-import com.google.android.gms.common.api.ApiException
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.domain.use_case.auth.LoginByEmailUseCase
+import com.example.foodapp.domain.use_case.auth.LoginByGoogleUseCase
+import com.example.foodapp.ui.screen.components.validateField
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val accountService: AccountService,
-) : BaseViewModel() {
+    private val loginByEmailUseCase: LoginByEmailUseCase,
+    private val loginByGoogleUseCase: LoginByGoogleUseCase,
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<LoginEvent>(LoginEvent.Nothing)
-    val uiState = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(Login.UiState())
+    val uiState: StateFlow<Login.UiState> get() = _uiState.asStateFlow()
 
-    private val _navigationEvent = MutableSharedFlow<LoginNavigationEvent>()
-    val navigationEvent = _navigationEvent.asSharedFlow()
+    private val _event = Channel<Login.Event>()
+    val event = _event.receiveAsFlow()
 
-    private val _email = MutableStateFlow("")
-    val email = _email.asStateFlow()
+    fun onAction(action: Login.Action) {
+        when (action) {
+            is Login.Action.EmailChanged -> {
+                _uiState.value = _uiState.value.copy(email = action.email)
+            }
+
+            is Login.Action.PasswordChanged -> {
+                _uiState.value = _uiState.value.copy(password = action.password)
+            }
+
+            is Login.Action.LoginClicked -> {
+                loginByEmail()
+            }
+
+            is Login.Action.SignUpClicked -> {
+                viewModelScope.launch {
+                    _event.send(Login.Event.NavigateSignUp)
+                }
+            }
+
+            is Login.Action.ForgotPasswordClicked -> {
+                viewModelScope.launch {
+                    _event.send(Login.Event.NavigateForgot)
+                }
+            }
+
+            is Login.Action.LoginWithGoogleClicked -> {
+                loginByGoogle(action.credential)
+            }
+
+            is Login.Action.rememberLoginClicked -> {
+
+            }
+
+        }
+
+    }
+
+    fun validate(type: String) {
+        val current = _uiState.value
+        var emailError: String? = current.emailError
+        var passwordError: String? = current.passwordError
+        when (type) {
+            "email" -> {
+                val emailError = validateField(
+                    current.email.trim(),
+                    "Email không hợp lệ"
+                ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) }
 
 
-    private val _password = MutableStateFlow("")
-    val password = _password.asStateFlow()
+            }
 
-    fun onEmailChanged(username: String) {
-        _email.value = username
+            "password" -> {
+                val passwordError = validateField(
+                    current.password.trim(),
+                    "Mật khẩu phải có ít nhất 6 ký tự"
+                ) { it.length >= 6 }
+
+
+            }
+
+        }
+        val isValid = emailError == null && passwordError == null
+        _uiState.update {
+            it.copy(
+                emailError = emailError,
+                passwordError = passwordError,
+                isValid = isValid
+            )
+        }
     }
 
 
-    fun onPasswordChanged(password: String) {
-        _password.value = password
-    }
-
-    fun onLoginClick() {
+    private fun loginByEmail() {
         viewModelScope.launch {
-            _uiState.value = LoginEvent.Loading
-            try {
-                accountService.signInWithEmail(email.value, password.value)
-                val role = accountService.getUserRole() ?: "customer" // fallback
+            loginByEmailUseCase.invoke(_uiState.value.email, _uiState.value.password)
+                .collect { result ->
+                    when (result) {
+                        is FirebaseResult.Loading -> {
+                            _uiState.update { it.copy(loading = true) }
+                        }
 
-                val currentFlavor = BuildConfig.FLAVOR
-                if (role != currentFlavor) {
-                    accountService.signOut()
-                    error = "Sai tài khoản"
-                    errorDescription = "Bạn đang dùng app dành cho '$currentFlavor' nhưng tài khoản này là '$role'."
-                    _uiState.value = LoginEvent.Error
-                    return@launch
+                        is FirebaseResult.Success -> {
+                            _uiState.update { it.copy(loading = false) }
+                            val role = result.data
+                            when (role) {
+                                "admin" -> _event.send(Login.Event.NavigateToAdmin)
+                                "staff" -> _event.send(Login.Event.NavigateToStaff)
+                                "customer" -> _event.send(Login.Event.NavigateToCustomer)
+                            }
+                        }
+
+                        is FirebaseResult.Failure -> {
+                            _uiState.update { it.copy(loading = false, error = result.error) }
+                            _event.send(Login.Event.ShowError)
+
+                        }
+                    }
                 }
+        }
 
-                _uiState.value = LoginEvent.Success
-                when (role) {
-                    "admin" -> _navigationEvent.emit(LoginNavigationEvent.NavigateToAdmin)
-                    "staff" -> _navigationEvent.emit(LoginNavigationEvent.NavigateToStaff)
-                    "customer" -> _navigationEvent.emit(LoginNavigationEvent.NavigateToCustomer)
+    }
+
+
+    private fun loginByGoogle(credential: Credential) {
+        viewModelScope.launch {
+            loginByGoogleUseCase.invoke(credential).collect { result ->
+                when (result) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(loading = true) }
+                    }
+
+                    is FirebaseResult.Success -> {
+                        _uiState.update { it.copy(loading = false) }
+                        _event.send(Login.Event.NavigateToCustomer)
+                    }
+
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(loading = false, error = result.error) }
+                        _event.send(Login.Event.ShowError)
+                    }
                 }
-
-
-
-
-            } catch (e: FirebaseAuthInvalidUserException) {
-                error = "Email không tồn tại"
-                errorDescription = "Tài khoản chưa được đăng ký."
-                _uiState.value = LoginEvent.Error
-
-            } catch (e: FirebaseAuthInvalidCredentialsException) {
-                error = "Sai mật khẩu"
-                errorDescription = "Mật khẩu không đúng. Vui lòng thử lại."
-                _uiState.value = LoginEvent.Error
-
-            } catch (e: FirebaseAuthException) {
-                error = "Lỗi xác thực"
-                errorDescription = e.localizedMessage ?: "Lỗi không xác định từ Firebase."
-                _uiState.value = LoginEvent.Error
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                error = "Lỗi không xác định"
-                errorDescription = e.localizedMessage ?: "Vui lòng thử lại."
-                _uiState.value = LoginEvent.Error
             }
 
         }
     }
 
-    fun onSignUpClick() {
-        viewModelScope.launch {
-            _navigationEvent.emit(LoginNavigationEvent.NavigateSignUp)
-        }
+
+}
+
+
+object Login {
+    data class UiState(
+        val email: String = "",
+        val emailError: String? = null,
+        val password: String = "",
+        val passwordError: String? = null,
+        val loading: Boolean = false,
+        val error: String? = null,
+        val isValid: Boolean = false,
+    )
+
+    sealed interface Event {
+        data object NavigateSignUp : Event
+        data object NavigateToAdmin : Event
+        data object NavigateToStaff : Event
+        data object NavigateToCustomer : Event
+        data object NavigateForgot : Event
+        data object ShowError : Event
     }
 
-    fun onForgotPasswordClick() {
-        viewModelScope.launch {
-            _navigationEvent.emit(LoginNavigationEvent.NavigateForgot)
-        }
-    }
-
-    fun onLoginWithGoogleClick(credential: Credential) {
-        viewModelScope.launch {
-            try {
-                if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                    val googleIdTokenCredential =
-                        GoogleIdTokenCredential.createFrom(credential.data)
-                    accountService.signInWithGoogle(googleIdTokenCredential.idToken)
-                    _navigationEvent.emit(LoginNavigationEvent.NavigateToCustomer)
-
-                } else throw IllegalArgumentException("Thông tin không hợp lệ")
-            } catch (e: ApiException) {
-                error = "Đăng nhập thất bại"
-                errorDescription = e.localizedMessage ?: "Vui lòng thử lại."
-                _uiState.value = LoginEvent.Error
-            } catch (e: FirebaseAuthException) {
-
-                error = "Lỗi xác thực với Firebase"
-                errorDescription = e.localizedMessage ?: "Vui lòng thử lại."
-                _uiState.value = LoginEvent.Error
-            } catch (e: IllegalArgumentException) {
-                error = "Thông tin không hợp lệ"
-                errorDescription =
-                    e.localizedMessage ?: "Vui lòng kiểm tra lại thông tin đăng nhập."
-                _uiState.value = LoginEvent.Error
-            } catch (e: Exception) {
-
-                error = "Lỗi không xác định"
-                errorDescription = e.localizedMessage ?: "Vui lòng thử lại."
-                _uiState.value = LoginEvent.Error
-            }
-
-
-        }
-    }
-
-
-    sealed class LoginNavigationEvent {
-        data object NavigateSignUp : LoginNavigationEvent()
-        data object NavigateToAdmin : LoginNavigationEvent()
-        data object NavigateToStaff : LoginNavigationEvent()
-        data object NavigateToCustomer : LoginNavigationEvent()
-        data object NavigateForgot : LoginNavigationEvent()
-    }
-
-    sealed class LoginEvent {
-        data object Nothing : LoginEvent()
-        data object Success : LoginEvent()
-        data object Error : LoginEvent()
-        data object Loading : LoginEvent()
+    sealed interface Action {
+        data class EmailChanged(val email: String) : Action
+        data class PasswordChanged(val password: String) : Action
+        data object LoginClicked : Action
+        data object SignUpClicked : Action
+        data object ForgotPasswordClicked : Action
+        data class LoginWithGoogleClicked(val credential: Credential) : Action
+        data object rememberLoginClicked : Action
     }
 }

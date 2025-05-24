@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.safeApiCall
-import com.example.foodapp.data.remote.FoodApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay

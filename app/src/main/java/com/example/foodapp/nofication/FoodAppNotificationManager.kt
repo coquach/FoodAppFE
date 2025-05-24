@@ -42,15 +42,13 @@ class FoodAppNotificationManager @Inject constructor(
 
 
     fun createChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            NotificationChannelType.entries.forEach {
-                val channel = NotificationChannel(it.id, it.channelName, it.importance).apply {
-                    description = it.channelDesc
-                }
-                notificationManager.createNotificationChannel(channel)
+        NotificationChannelType.entries.forEach {
+            val channel = NotificationChannel(it.id, it.channelName, it.importance).apply {
+                description = it.channelDesc
             }
+            notificationManager.createNotificationChannel(channel)
         }
     }
 

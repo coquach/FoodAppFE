@@ -4,25 +4,24 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.BuildConfig
+
 import com.example.foodapp.data.dto.ApiResponse
 
-import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Address
-import com.example.foodapp.data.remote.OpenCageApi
-import com.example.foodapp.data.remote.OsrmApi
+
 
 import com.example.foodapp.location.LocationManager
-import com.mapbox.geojson.Point
+import com.se114.foodapp.domain.use_case.location.GeoCodingUseCase
+import com.se114.foodapp.domain.use_case.location.ReverseGeoCodeUseCase
+import com.se114.foodapp.ui.screen.address.addAddress.AddAddress.Event.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
+
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -30,132 +29,136 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddAddressViewModel @Inject constructor(
-    private val openCageApi: OpenCageApi,
-    private val orsApi: OsrmApi,
+    private val reverseGeoCodeUseCase: ReverseGeoCodeUseCase,
+    private val geoCodingUseCase: GeoCodingUseCase,
     private val locationManager: LocationManager,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<AddAddressState>(AddAddressState.Loading)
-    val uiState = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(AddAddress.UiState())
+    val uiState: StateFlow<AddAddress.UiState> get() = _uiState.asStateFlow()
 
-    private val _event = Channel<AddAddressEvent>()
+    private val _event = Channel<AddAddress.Event>()
     val event = _event.receiveAsFlow()
 
-    private val _address = MutableStateFlow<Address>(
-        Address(
-            formatAddress = "",
-            latitude = null,
-            longitude = null
-        )
-    )
-    val address = _address.asStateFlow()
-
-
-
-
-    private val apiKey = BuildConfig.OPEN_CAGE_API_KEY
 
     private val _currentLocation: Flow<Location> = locationManager.getLocation()
     val currentLocation: Flow<Location> = _currentLocation
 
 
-
-    fun reverseGeocode(lat: Double, lon: Double) {
-        viewModelScope.launch(Dispatchers.IO) {
+    private fun reverseGeocode(lat: Double, lon: Double) {
+        viewModelScope.launch {
             try {
                 val query = "$lat,$lon"
-                Log.d("Debug", "LatLng = $query")
-                val response = safeApiCall { openCageApi.reverseGeocode(query, apiKey) }
-                when (response) {
-                    is ApiResponse.Success -> {
-                        val address = response.body?.results?.firstOrNull()?.formatted
-                        val geometry = response.body?.results?.firstOrNull()?.geometry
-                        if (address != null && geometry != null) {
-                            _address.update {
-                                it.copy(
-                                    formatAddress = address,
-                                    latitude = geometry.lat,
-                                    longitude = geometry.lng
-                                )
+                reverseGeoCodeUseCase(query).collect { result ->
+                    when (result) {
+                        is ApiResponse.Success -> {
+                            _uiState.update {
+                                it.copy(address = result.data, isLoading = false)
                             }
+                        }
+                        is ApiResponse.Failure -> {
+                            _uiState.update {
+                                it.copy(error = result.errorMessage, isLoading = false)
+                            }
+                        }
 
-                        } else throw IllegalStateException("Không tìm thấy địa chỉ trong kết quả reverseGeocode!")
-                    }
-
-                    is ApiResponse.Error -> {
-                        Log.e("Geocode", "Lỗi reverse geocoding: ${response.message}")
-
-                    }
-
-                    else -> {
-                        Log.e("Geocode", "Lỗi reverse geocoding: Không xác định")
-
+                        is ApiResponse.Loading -> {
+                            _uiState.update {
+                                it.copy(isLoading = true)
+                            }
+                        }
                     }
                 }
             } catch (e: Exception) {
-                Log.e("Geocode", "Lỗi reverse geocoding", e)
-            }
-        }
-    }
-
-    fun geocoding(address: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val response = safeApiCall { openCageApi.geocode(address, apiKey) }
-                when (response) {
-                    is ApiResponse.Success -> {
-                        val formatted = response.body?.results?.firstOrNull()?.formatted
-                        val geometry = response.body?.results?.firstOrNull()?.geometry
-                        if (geometry != null && formatted != null) {
-                            _address.update {
-                                it.copy(
-                                    formatAddress = formatted,
-                                    latitude = geometry.lat,
-                                    longitude = geometry.lng
-                                )
-                            }
-                        } else throw IllegalStateException("Không tìm thấy tọa độ trong kết quả geocoding!")
-
-                    }
-
-                    is ApiResponse.Error -> {
-                        Log.e("Geocode", "Lỗi geocoding: ${response.message}")
-
-                    }
-
-                    else -> {
-                        Log.e("Geocode", "Lỗi geocoding: Không xác định")
-
-                    }
+                _uiState.update {
+                    it.copy(error = e.message ?: "Đã xảy ra lỗi khi lấy địa chỉ", isLoading = false)
                 }
-            } catch (e: Exception) {
-                Log.e("Geocode", "Lỗi  geocoding", e)
-
             }
+
         }
     }
 
 
-
-
-    fun onAddAddressClicked() {
+    private fun geocoding(address: String) {
         viewModelScope.launch {
-            _event.send(AddAddressEvent.NavigateToAddressList)
+            try {
+                geoCodingUseCase(address).collect { result ->
+                    when (result) {
+                        is ApiResponse.Success -> {
+                            _uiState.update {
+                                it.copy(address = result.data, isLoading = false)
+                            }
+
+                        }
+                        is ApiResponse.Failure -> {
+                            _uiState.update {
+                                it.copy(error = result.errorMessage, isLoading = false)
+
+                            }
+                        }
+
+                        is ApiResponse.Loading -> {
+                            _uiState.update {
+                                it.copy(isLoading = true)
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(error = e.message ?: "Đã xảy ra lỗi khi lấy địa chỉ", isLoading = false)
+                }
+
+            }
         }
     }
+    fun onAction(action: AddAddress.Action) {
+        when (action) {
+            is AddAddress.Action.OnAddAddress -> {
+                viewModelScope.launch {
+                    _event.send(BackToAddressList(action.address))
+                }
+
+            }
+            is AddAddress.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(AddAddress.Event.OnBack)
+                }
+            }
+
+            is AddAddress.Action.OnGeocoding -> {
+                geocoding(action.address)
+            }
+            is AddAddress.Action.OnReverseGeocode -> {
+                reverseGeocode(action.lat, action.lon)
+            }
+        }
+    }
+
 
     override fun onCleared() {
         super.onCleared()
         locationManager.stopLocationUpdate()
     }
+    
+}
 
-    sealed class AddAddressEvent {
-        data object NavigateToAddressList : AddAddressEvent()
+object AddAddress {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val address: Address? = null,
+        val error: String? = null,
+    )
 
+    sealed interface Event {
+        data object OnBack : Event
+        data class BackToAddressList(val address: Address) : Event
+        data object ShowError : Event
     }
 
-    sealed class AddAddressState {
-        data object Loading : AddAddressState()
-        data object Success : AddAddressState()
-        data class Error(val message: String) : AddAddressState()
+    sealed interface Action {
+        data class OnAddAddress(val address: Address ) : Action
+        data object OnBack : Action
+        data class OnReverseGeocode(val lat: Double, val lon: Double) : Action
+        data class OnGeocoding(val address: String) : Action
     }
 }

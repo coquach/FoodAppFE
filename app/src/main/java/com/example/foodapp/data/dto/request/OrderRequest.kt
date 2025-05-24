@@ -14,4 +14,20 @@ data class OrderRequest(
     val address: String? = null,
 
     val orderItems: List<OrderItemRequest>
-)
+){
+    companion object {
+        fun emptySample(): OrderRequest {
+            return OrderRequest(
+                foodTableId = null,
+                voucherId = null,
+                type = "",
+                method = "",
+                startAt = "",
+                paymentAt = "",
+                note = null,
+                address = null,
+                orderItems = emptyList()
+            )
+        }
+    }
+}

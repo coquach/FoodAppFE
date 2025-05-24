@@ -31,7 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +55,9 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 
-import com.example.foodapp.ui.navigation.AddEmployee
+import com.example.foodapp.navigation.AddEmployee
 
-import com.example.foodapp.ui.navigation.UpdateEmployee
+import com.example.foodapp.navigation.UpdateEmployee
 import com.example.foodapp.ui.screen.components.CustomCheckbox
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView

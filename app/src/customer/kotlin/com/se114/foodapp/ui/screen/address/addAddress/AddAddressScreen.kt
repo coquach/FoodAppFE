@@ -16,11 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddLocationAlt
-
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,40 +42,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-
 import com.example.foodapp.R
-
 import com.example.foodapp.ui.screen.components.permissions.LocationPermissionHandler
 import com.example.foodapp.ui.screen.components.permissions.MapControlButtons
 import com.example.foodapp.ui.screen.components.permissions.flyToLocation
-
-
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-
-
 import com.mapbox.geojson.Point
-import com.mapbox.geojson.Polygon
 import com.mapbox.maps.CameraOptions
 
 
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.PuckBearing
-
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
-
-import kotlinx.coroutines.flow.collectLatest
-
 
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -88,15 +73,26 @@ fun AddAddressScreen(
     navController: NavController,
     viewModel: AddAddressViewModel = hiltViewModel(),
 ) {
-    val addressSelected by viewModel.address.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showErrorSheet by remember { mutableStateOf(false) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
-            when(it){
-                AddAddressViewModel.AddAddressEvent.NavigateToAddressList -> {
-                    val address = addressSelected
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
+            when (it) {
+                is AddAddress.Event.BackToAddressList -> {
+                    val address = it.address
                     navController.previousBackStackEntry?.savedStateHandle?.set("address", address)
                     navController.popBackStack()
+                }
+
+                AddAddress.Event.OnBack -> {
+                    navController.popBackStack()
+                }
+
+                AddAddress.Event.ShowError -> {
+                    showErrorSheet = true
                 }
             }
         }
@@ -112,7 +108,7 @@ fun AddAddressScreen(
             )
 
             var currentZoom by remember { mutableDoubleStateOf(16.0) }
-            val mapViewportState = rememberMapViewportState{
+            val mapViewportState = rememberMapViewportState {
                 setCameraOptions {
                     zoom(currentZoom)
                 }
@@ -128,7 +124,7 @@ fun AddAddressScreen(
 
             LaunchedEffect(currentLocation) {
                 currentLocation?.let {
-                    viewModel.reverseGeocode(it.latitude, it.longitude)
+                    viewModel.onAction(AddAddress.Action.OnReverseGeocode(it.latitude, it.longitude))
                     mapViewportState.flyToLocation(
                         latitude = it.latitude,
                         longitude = it.longitude,
@@ -140,7 +136,7 @@ fun AddAddressScreen(
                 selectedLocation?.let { point ->
                     val lat = point.latitude()
                     val lon = point.longitude()
-                    viewModel.reverseGeocode(lat, lon)
+                    viewModel.onAction(AddAddress.Action.OnReverseGeocode(lat, lon))
                     mapViewportState.flyToLocation(
                         latitude = lat,
                         longitude = lon,
@@ -152,7 +148,7 @@ fun AddAddressScreen(
                 MapboxMap(
                     modifier = Modifier.fillMaxSize(),
                     mapViewportState = mapViewportState,
-                    onMapClickListener = {clickedPoint ->
+                    onMapClickListener = { clickedPoint ->
                         selectedLocation = clickedPoint
                         true
                     },
@@ -184,12 +180,20 @@ fun AddAddressScreen(
                     onClick = {
                         navController.navigateUp()
                     },
-                    modifier = Modifier.padding(vertical = 30.dp, horizontal = 16.dp).size(50.dp).align(Alignment.TopStart),
+                    modifier = Modifier
+                        .padding(vertical = 30.dp, horizontal = 16.dp)
+                        .size(50.dp)
+                        .align(Alignment.TopStart),
                     shape = RoundedCornerShape(12.dp),
                     containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor = MaterialTheme.colorScheme.primary,
 
-                    ) {Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back") }
+                    ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Back"
+                    )
+                }
                 MapControlButtons(
                     modifier = Modifier.align(Alignment.TopEnd),
                     currentZoom = currentZoom,
@@ -205,7 +209,7 @@ fun AddAddressScreen(
                         )
                     },
                     onFlyToLocation = { lat, lon, zoom ->
-                        viewModel.reverseGeocode(lat, lon)
+                        viewModel.onAction(AddAddress.Action.OnReverseGeocode(lat, lon))
                         mapViewportState.flyToLocation(
                             latitude = lat,
                             longitude = lon,
@@ -225,22 +229,27 @@ fun AddAddressScreen(
                         modifier = Modifier
                             .width(300.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(12.dp)
+                            )
                             .shadow(4.dp, RoundedCornerShape(12.dp), clip = true)
                             .background(MaterialTheme.colorScheme.surface)
                             .padding(10.dp)
                     ) {
                         Text(
-                            text = addressSelected.formatAddress,
+                            text = uiState.address?.formatAddress.toString(),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                     IconButton(
                         onClick = {
-                            viewModel.onAddAddressClicked()
+                            viewModel.onAction(AddAddress.Action.OnAddAddress(uiState.address!!))
                         },
-                        modifier = Modifier.size(70.dp)
+                        modifier = Modifier
+                            .size(70.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
 
@@ -262,11 +271,6 @@ fun AddAddressScreen(
         }
 
     )
-
-
-
-
-
 
 
 }

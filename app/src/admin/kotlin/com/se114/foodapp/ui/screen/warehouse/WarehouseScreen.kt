@@ -7,19 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
@@ -31,14 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,8 +44,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Unit
-import com.example.foodapp.ui.navigation.Import
-import com.example.foodapp.ui.navigation.Material
+import com.example.foodapp.navigation.Import
+import com.example.foodapp.navigation.Material
 
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.Nothing

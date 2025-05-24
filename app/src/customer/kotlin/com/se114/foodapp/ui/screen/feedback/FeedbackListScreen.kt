@@ -49,70 +49,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.room.util.TableInfo
+import androidx.paging.compose.LazyPagingItems
 import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Feedback
-import com.example.foodapp.ui.navigation.FeedbackDetails
 import com.example.foodapp.ui.screen.components.ExpandableText
-import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LazyPagingSample
-import com.example.foodapp.ui.screen.components.NoteInput
-import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.StringUtils
 
 
 @Composable
-fun FeedbackListScreen(
-    navController: NavController,
-    foodId: Long,
-    viewModel: FeedbackListViewModel = hiltViewModel(),
+fun FeedbackList(
+    feedbacks: LazyPagingItems<Feedback>
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.setUpFoodId(foodId = foodId)
-    }
-
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        if (handle?.get<Boolean>("shouldRefresh") == true) {
-            handle["shouldRefresh"] = false
-            viewModel.getFeedbacks()
-        }
-    }
-
-    val feedbacks = viewModel.feedbacks.collectAsLazyPagingItems()
-
+    
     Column(
-        modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        HeaderDefaultView(
-            text = "Đánh giá",
-            onBack = {
-                navController.navigateUp()
-            }
-        )
-        ButtonFeedback(
-            onClick = {
-                navController.navigate(FeedbackDetails(foodId))
-            }
-        )
         LazyPagingSample(
             items = feedbacks,
             textNothing = "Không có đánh giá nào cả...",
@@ -126,7 +88,6 @@ fun FeedbackListScreen(
             FeedbackItem(it)
         }
     }
-
 
 }
 

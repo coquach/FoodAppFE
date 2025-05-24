@@ -3,7 +3,6 @@ package com.example.foodapp.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.foodapp.data.remote.FoodApi
 
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE

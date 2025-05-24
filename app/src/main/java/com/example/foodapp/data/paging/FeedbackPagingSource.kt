@@ -1,68 +1,31 @@
 package com.example.foodapp.data.paging
 
-import androidx.paging.PagingSource
-import androidx.paging.PagingState
+
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.safeApiCall
+import com.example.foodapp.data.dto.apiRequestFlow
+import com.example.foodapp.data.dto.response.PageResponse
+
 import com.example.foodapp.data.model.Feedback
-import com.example.foodapp.data.model.Staff
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
-import java.io.IOException
+import com.example.foodapp.data.remote.main_api.FeedbackApi
 
-class FeedbackPagingSource(
-    private val foodApi: FoodApi,
-    private val foodId: Long
-) : PagingSource<Int, Feedback>() {
+import com.example.foodapp.data.remote.main_api.FoodApi
+import kotlinx.coroutines.flow.Flow
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Feedback> {
-        val currentPage = params.key ?: 0
-        return try {
-            val response = safeApiCall {
-                foodApi.getFeedbacksByFoodId(
-                    foodId = foodId,
-                    page = currentPage,
-                    size = ITEMS_PER_PAGE,
-                )
-            }
-            when (response) {
-                is ApiResponse.Success -> {
-                    val body = response.body!!
-                    val endOfPaginationReached = body.content.isEmpty() || body.content.size < ITEMS_PER_PAGE
-                    if (body.content.isNotEmpty()) {
-                        LoadResult.Page(
-                            data = body.content,
-                            prevKey = if (currentPage == 0) null else currentPage - 1,
-                            nextKey = if (endOfPaginationReached) null else currentPage + 1
-                        )
-                    } else {
-                        LoadResult.Page(
-                            data = emptyList(),
-                            prevKey = null,
-                            nextKey = null
-                        )
-                    }
-                }
+import kotlinx.coroutines.flow.first
 
-                else -> {
-                    LoadResult.Error(Exception("Response body Invalid"))
-                }
-            }
+import javax.inject.Inject
 
 
-        } catch (ex: Exception) {
-            LoadResult.Error(ex)
-        } catch (ex: IOException) {
-            LoadResult.Error(ex)
-        }
-
-    }
-
-    override fun getRefreshKey(state: PagingState<Int, Feedback>): Int? {
-        return state.anchorPosition?.let { anchor ->
-            state.closestPageToPosition(anchor)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchor)?.nextKey?.minus(1)
+class FeedbackPagingSource @Inject constructor(
+    private val feedbackApi: FeedbackApi,
+    private val foodId: Long,
+) : ApiPagingSource<Feedback>() {
+    override suspend fun fetch(
+        page: Int,
+        size: Int,
+    ): Flow<ApiResponse<PageResponse<Feedback>>> {
+        return apiRequestFlow {
+            feedbackApi.getFeedbacksByFoodId(page = page, size = size, foodId = foodId)
         }
     }
 }
-

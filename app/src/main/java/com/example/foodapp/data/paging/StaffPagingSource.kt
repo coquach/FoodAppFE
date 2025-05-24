@@ -3,66 +3,33 @@ package com.example.foodapp.data.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.safeApiCall
-import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.data.dto.apiRequestFlow
+import com.example.foodapp.data.dto.response.PageResponse
+
 import com.example.foodapp.data.model.Staff
-import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
+
+import com.example.foodapp.data.remote.main_api.StaffApi
+import kotlinx.coroutines.flow.Flow
+
+import kotlinx.coroutines.flow.first
 
 
 import java.io.IOException
+import javax.inject.Inject
 
 
-class StaffPagingSource(
-    private val foodApi: FoodApi,
-) : PagingSource<Int, Staff>() {
+class StaffPagingSource @Inject constructor(
+    private val staffApi: StaffApi,
+) : ApiPagingSource<Staff>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Staff> {
-        val currentPage = params.key ?: 0
-        return try {
-            val response = safeApiCall {
-                foodApi.getStaffs(
-                    page = currentPage,
-                    size = ITEMS_PER_PAGE,
-                )
-            }
-            when (response) {
-                is ApiResponse.Success -> {
-                    val body = response.body!!
-                    val endOfPaginationReached = body.content.isEmpty() || body.content.size < ITEMS_PER_PAGE
-                    if (body.content.isNotEmpty()) {
-                        LoadResult.Page(
-                            data = body.content,
-                            prevKey = if (currentPage == 0) null else currentPage - 1,
-                            nextKey = if (endOfPaginationReached) null else currentPage + 1
-                        )
-                    } else {
-                        LoadResult.Page(
-                            data = emptyList(),
-                            prevKey = null,
-                            nextKey = null
-                        )
-                    }
-                }
-
-                else -> {
-                    LoadResult.Error(Exception("Response body Invalid"))
-                }
-            }
-
-
-        } catch (ex: Exception) {
-            LoadResult.Error(ex)
-        } catch (ex: IOException) {
-            LoadResult.Error(ex)
-        }
-
-    }
-
-    override fun getRefreshKey(state: PagingState<Int, Staff>): Int? {
-        return state.anchorPosition?.let { anchor ->
-            state.closestPageToPosition(anchor)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchor)?.nextKey?.minus(1)
+    override suspend fun fetch(
+        page: Int,
+        size: Int,
+    ): Flow<ApiResponse<PageResponse<Staff>>> {
+        return apiRequestFlow {
+            staffApi.getStaffs(
+                page = page, size = size
+            )
         }
     }
-
 }

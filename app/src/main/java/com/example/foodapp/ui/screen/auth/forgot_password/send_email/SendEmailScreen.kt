@@ -4,15 +4,11 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,11 +39,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.navigation.NavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.navigation.Auth
-import com.example.foodapp.ui.navigation.Home
+import com.example.foodapp.navigation.Auth
 import com.example.foodapp.ui.screen.components.FoodAppTextField
-import com.example.foodapp.ui.navigation.Login
-import com.example.foodapp.ui.navigation.SendEmail
+import com.example.foodapp.navigation.Login
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.utils.ValidateField

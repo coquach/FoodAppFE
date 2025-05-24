@@ -1,27 +1,17 @@
 package com.example.foodapp.ui.screen.voucher
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.PagingData
-import com.example.foodapp.BaseViewModel
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.SupplierFilter
-import com.example.foodapp.data.dto.request.SupplierRequest
 import com.example.foodapp.data.dto.request.VoucherRequest
 import com.example.foodapp.data.dto.safeApiCall
-import com.example.foodapp.data.model.Supplier
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.VoucherType
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.repository.VoucherRepository
+import com.example.foodapp.data.repository.VoucherRepoImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -31,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class VoucherListViewModel @Inject constructor(
     private val foodApi: FoodApi,
-    private val voucherRepository: VoucherRepository,
+    private val voucherRepoImpl: VoucherRepoImpl,
 ) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow<VoucherListState>(VoucherListState.Nothing)
@@ -47,7 +37,7 @@ class VoucherListViewModel @Inject constructor(
 
     private fun getVouchers() {
         viewModelScope.launch {
-            voucherRepository.getVouchers().collect {
+            voucherRepoImpl.getVouchers().collect {
                 _vouchers.value = it
             }
         }

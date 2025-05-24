@@ -21,7 +21,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
+
 class LocationManager @Inject constructor(
     private val fusedLocationProviderClient: FusedLocationProviderClient,
     @ApplicationContext val context: Context

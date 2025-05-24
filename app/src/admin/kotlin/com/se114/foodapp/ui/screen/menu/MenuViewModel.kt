@@ -6,14 +6,11 @@ import androidx.lifecycle.viewModelScope
 
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.example.foodapp.data.dto.filter.InventoryFilter
+
 import com.example.foodapp.data.dto.filter.FoodFilter
-import com.example.foodapp.data.dto.filter.OrderFilter
-import com.example.foodapp.data.model.Inventory
+
 import com.example.foodapp.data.model.Food
-import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.data.repository.FoodRepository
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -53,11 +50,11 @@ class MenuViewModel @Inject constructor(
         FoodsCache.clear()
 
     }
-    private val FoodsCache = mutableMapOf<Int, StateFlow<PagingData<Food>>>()
+    private val foodsCache = mutableMapOf<Int, StateFlow<PagingData<Food>>>()
 
 
     fun getFoodsByTab(index: Int): StateFlow<PagingData<Food>> {
-        return FoodsCache.getOrPut(index) {
+        return foodsCache.getOrPut(index) {
             val isAvailable = when (index) {
                 0 -> true
                 1 -> false

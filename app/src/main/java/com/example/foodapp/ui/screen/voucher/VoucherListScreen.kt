@@ -20,15 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -53,13 +49,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.VoucherType
-import com.example.foodapp.ui.navigation.AddFood
-import com.example.foodapp.ui.navigation.Category
 import com.example.foodapp.ui.screen.common.VoucherCard
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
-import com.example.foodapp.ui.screen.components.DatePickerSample
 import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -69,7 +61,6 @@ import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
 import com.example.foodapp.ui.screen.components.SearchField
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox

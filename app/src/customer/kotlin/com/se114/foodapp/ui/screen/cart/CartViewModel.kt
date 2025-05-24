@@ -5,60 +5,53 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
-import com.se114.foodapp.data.repository.CartRepository
+import com.example.foodapp.domain.use_case.cart.ClearCartUseCase
+import com.example.foodapp.domain.use_case.cart.GetCartUseCase
+import com.example.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
+import com.example.foodapp.domain.use_case.cart.UpdateCartItemQuantityUseCase
+import com.se114.foodapp.data.repository.CartRepoImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
 
 @HiltViewModel
 class CartViewModel @Inject constructor(
-    private val cartRepository: CartRepository,
+    private val getCartUseCase: GetCartUseCase,
+    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
+    private val clearCartUseCase: ClearCartUseCase,
+    private val getCheckOutDetailsUseCase: GetCheckOutDetailsUseCase
 ) : ViewModel() {
 
-    var errorTitle: String = ""
-    var errorMessage: String = ""
+    private val _uiState = MutableStateFlow(Cart.UiState())
+    val uiState: StateFlow<Cart.UiState> get() = _uiState.asStateFlow()
 
+    private val _event = Channel<Cart.Event>()
+    val event = _event.receiveAsFlow()
 
-
-    private val _event = MutableSharedFlow<CartEvents>()
-    val event = _event.asSharedFlow()
-
-
-    private val _cartItems = cartRepository.cartItemsFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
-    val cartItems: StateFlow<List<CartItem>> = _cartItems
-    private val _checkoutDetails = cartRepository.checkoutDetailsFlow.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = CheckoutDetails(BigDecimal(0), BigDecimal(0), BigDecimal(0), BigDecimal(0))
-    )
-    val checkoutDetails: StateFlow<CheckoutDetails> = _checkoutDetails
-
-    private val _selectedItems = mutableStateListOf<CartItem>()
-    val selectedItems: List<CartItem> get() = _selectedItems
-
-    private val _quantityMap = MutableStateFlow<Map<Long, Int>>(emptyMap())
-    val quantityMap = _quantityMap.asStateFlow()
-
+    init {
+        getCartItems()
+        getCheckoutDetails()
+    }
     fun increment(cartItem: CartItem) {
-        val current = _quantityMap.value[cartItem.id] ?: cartItem.quantity
+        val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
         val newQty = current + 1
         updateQuantity(cartItem, newQty)
     }
 
     fun decrement(cartItem: CartItem) {
-        val current = _quantityMap.value[cartItem.id] ?: cartItem.quantity
+        val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
         if (current <= 1) return
         val newQty = current - 1
         updateQuantity(cartItem, newQty)
@@ -66,64 +59,144 @@ class CartViewModel @Inject constructor(
 
     fun removeItem() {
         viewModelScope.launch {
-                try {
-                    cartRepository.clearCartItems(_selectedItems)
-                    _selectedItems.clear()
-                } catch (e: Exception) {
-                    errorTitle = "Không thể xóa"
-                    errorMessage = "Đã xảy ra lỗi khi xóa mặt hàng"
-                    _event.emit(CartEvents.OnItemRemoveError)
-                }
+            try {
+                clearCartUseCase(_uiState.value.selectedItems)
+                _uiState.update { it.copy(selectedItems = emptyList()) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message ?: "Đã xảy ra lỗi khi xóa món ăn") }
+                _event.send(Cart.Event.ShowError)
             }
+        }
+    }
+
+    private fun getCartItems(){
+        viewModelScope.launch {
+            try {
+                getCartUseCase().collect {
+                    _uiState.update { it.copy(cartItems = it.cartItems) }
+                }
+            }catch (e: Exception){
+                _uiState.update { it.copy(error = e.message ?: "Đã xảy ra lỗi khi lấy giỏ hàng") }
+                _event.send(Cart.Event.ShowError)
+            }
+        }
     }
 
 
     private fun updateQuantity(cartItem: CartItem, newQuantity: Int) {
-        // Cập nhật StateFlow để UI phản ứng ngay
-        _quantityMap.value = _quantityMap.value.toMutableMap().apply {
-            put(cartItem.id!!, newQuantity)
-        }
 
-        // Cập nhật database
+        _uiState.update {
+            it.copy(quantityMap = _uiState.value.quantityMap.toMutableMap().apply {
+                put(cartItem.id, newQuantity)
+            })
+        }
         viewModelScope.launch {
             try {
-                cartRepository.updateItemQuantity(cartItem.id!!, newQuantity)
-            } catch (_: Exception) {
-
+                updateCartItemQuantityUseCase(cartItem.id, newQuantity)
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message ?: "Đã xảy ra lỗi khi cập nhật số lượng"
+                    )
+                }
+                _event.send(Cart.Event.ShowError)
             }
         }
     }
 
-    fun toggleSelection(cartItem: CartItem) {
-        if (_selectedItems.contains(cartItem)) {
-            _selectedItems.remove(cartItem)
+    private fun toggleSelection(cartItem: CartItem) {
+        if (_uiState.value.selectedItems.contains(cartItem)) {
+            _uiState.update { it.copy(selectedItems = _uiState.value.selectedItems - cartItem) }
         } else {
-            _selectedItems.add(cartItem)
+            _uiState.update { it.copy(selectedItems = _uiState.value.selectedItems + cartItem) }
         }
     }
 
-    fun selectAllItems(cartItems: List<CartItem>, isSelectAll: Boolean) {
-        _selectedItems.clear()
-        if (isSelectAll) _selectedItems.addAll(cartItems)
+    private fun selectAllItems(cartItems: List<CartItem>, isSelectAll: Boolean) {
+        _uiState.update { it.copy(selectedItems = emptyList()) }
+        if (isSelectAll) _uiState.update { it.copy(selectedItems = cartItems) }
     }
 
-
-    fun checkout() {
+    private fun getCheckoutDetails() {
         viewModelScope.launch {
-            _event.emit(CartEvents.NavigateToCheckOut)
+            try {
+                getCheckOutDetailsUseCase.invoke().collect {
+                    _uiState.update { it.copy(checkoutDetails = it.checkoutDetails) }
+                }
+            }catch (e: Exception){
+                _uiState.update { it.copy(error = e.message ?: "Đã xảy ra lỗi khi lấy chi tiết đơn hàng") }
+                _event.send(Cart.Event.ShowError)
+            }
         }
     }
 
+    fun onAction(action: Cart.Action) {
+        when (action) {
+            is Cart.Action.OnCheckOut -> {
+                viewModelScope.launch {
+                    _event.send(Cart.Event.NavigateToCheckout)
+                }
+            }
+            is Cart.Action.OnIncreaseCartItem -> {
+                increment(action.cartItem)
+            }
+
+            is Cart.Action.OnDecreaseCartItem -> {
+                decrement(action.cartItem)
+
+            }
+
+            is Cart.Action.OnToggleSelection -> {
+                toggleSelection(action.cartItem)
+            }
+
+            is Cart.Action.OnSelectAll -> {
+                selectAllItems(_uiState.value.cartItems, action.isSelectAll)
+            }
+
+            is Cart.Action.OnRemoveItem -> {
+                removeItem()
+            }
+
+            is Cart.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(Cart.Event.OnBack)
+                }
+            }
+        }
+    }
+}
 
 
+object Cart {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val cartItems: List<CartItem> = emptyList(),
+        val checkoutDetails: CheckoutDetails = CheckoutDetails(
+            BigDecimal(0),
+            BigDecimal(0),
+            BigDecimal(0),
+            BigDecimal(0)
+        ),
+        val selectedItems: List<CartItem> = emptyList(),
+        val quantityMap: Map<Long, Int> = emptyMap(),
+        val error: String? = null,
+    )
 
+    sealed interface Event {
+        data object OnBack : Event
+        data object NavigateToCheckout : Event
+        data object ShowError : Event
+    }
 
+    sealed interface Action {
+        data object OnCheckOut : Action
+        data class OnIncreaseCartItem(val cartItem: CartItem) : Action
+        data class OnDecreaseCartItem(val cartItem: CartItem) : Action
+        data class OnToggleSelection(val cartItem: CartItem) : Action
+        data class OnSelectAll(val isSelectAll: Boolean) : Action
+        data object OnRemoveItem : Action
+        data object OnBack : Action
 
-    sealed class CartEvents {
-        data object ShowErrorDialog : CartEvents()
-        data object OnCheckOut : CartEvents()
-        data object OnQuantityUpdateError : CartEvents()
-        data object OnItemRemoveError : CartEvents()
-        data object NavigateToCheckOut : CartEvents()
     }
 }

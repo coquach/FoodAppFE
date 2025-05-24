@@ -12,14 +12,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.foodapp.data.model.CheckoutDetails
+import com.example.foodapp.data.model.Voucher
+import com.example.foodapp.data.model.enums.VoucherType
 import com.example.foodapp.utils.StringUtils
 import java.math.BigDecimal
 
 @Composable
 fun CheckoutDetailsView(
     checkoutDetails: CheckoutDetails,
-    voucherValue: BigDecimal = BigDecimal(0)
+    voucher: Voucher?=null
 ) {
+
+    val voucherValue = calculateVoucherValue(voucher, checkoutDetails)
     Column {
         CheckoutRowItem(
             title = "Tổng giá", value = checkoutDetails.subTotal
@@ -62,4 +66,24 @@ fun CheckoutRowItem(title: String, value: BigDecimal, fontWeight: FontWeight = F
         )
     }
 
+}
+
+fun calculateVoucherValue(voucher: Voucher?, checkoutDetails: CheckoutDetails): BigDecimal {
+    var voucherValue: BigDecimal = BigDecimal.ZERO
+    if (voucher != null) {
+        val type = VoucherType.valueOf(voucher.type)
+        voucherValue = when (type) {
+            VoucherType.PERCENTAGE -> {
+                val voucherByOrder = checkoutDetails.subTotal* BigDecimal(voucher.value)
+                if (voucherByOrder > voucher.maxValue) {
+                    voucher.maxValue
+                } else {
+                    voucherByOrder
+                }
+            }
+            VoucherType.AMOUNT -> BigDecimal(voucher.value)
+        }
+
+    }
+    return voucherValue
 }

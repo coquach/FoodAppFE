@@ -61,7 +61,8 @@ fun SharedTransitionScope.FoodView(
     isInSelectionMode: Boolean = false,
     isSelected: Boolean = false,
     onCheckedChange: ((Food) -> Unit)? = null,
-    isCustomer: Boolean = true
+    isCustomer: Boolean = true,
+    isFullWidth: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -77,7 +78,13 @@ fun SharedTransitionScope.FoodView(
         Column(
             modifier = Modifier
                 .padding(8.dp)
-                .width(162.dp)
+                .then(
+                    if (isFullWidth) {
+                        Modifier.fillMaxWidth()
+                    } else {
+                        Modifier.width(162.dp)
+                    }
+                )
                 .height(216.dp)
                 .graphicsLayer {
                     alpha = if (isSelected && isInSelectionMode) 0.7f else 1f
@@ -103,7 +110,7 @@ fun SharedTransitionScope.FoodView(
                     .height(147.dp)
             ) {
                 AsyncImage(
-                    model = food.imageUrl, contentDescription = null,
+                    model = food.images?.first()?.url, contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(16.dp))
@@ -219,7 +226,8 @@ fun SharedTransitionScope.FoodList(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onItemClick: (Food) -> Unit,
     onLongClick: ((Boolean) -> Unit)? = null,
-    isCustomer: Boolean = false
+    isCustomer: Boolean = false,
+    isFullWidth: Boolean = false
 ) {
         if (foods.itemCount == 0 && foods.loadState.refresh !is LoadState.Loading) {
             Nothing(
@@ -233,7 +241,7 @@ fun SharedTransitionScope.FoodList(
 
             ) {
                 gridItems(
-                    foods, 2, key = { food -> food.id },
+                    foods, if(isFullWidth) 1 else 2, key = { food -> food.id },
                     itemContent = { food ->
                         food?.let {
                             FoodView(
@@ -244,7 +252,8 @@ fun SharedTransitionScope.FoodList(
                                 onCheckedChange = onCheckedChange,
                                 onClick = { onItemClick(food) },
                                 onLongClick = onLongClick,
-                                isCustomer = isCustomer
+                                isCustomer = isCustomer,
+                                isFullWidth = isFullWidth
                             )
                         }
                     },

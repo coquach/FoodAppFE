@@ -16,7 +16,7 @@ interface OrderApi {
 
     @GET("orders/{customerId}")
     suspend fun getOrdersByCustomerId(
-        @Path("customerId") customerId: Long,
+        @Path("customerId") customerId: String,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
@@ -38,13 +38,7 @@ interface OrderApi {
 
     @POST("orders")
     suspend fun createOrder(@Body orderRequest: OrderRequest): Response<Order>
-
-    @PUT("orders/{id}")
-    suspend fun updateOrder(
-        @Path("id") id: Long,
-        @Body orderRequest: OrderRequest,
-    ): Response<Order>
-
+    
     @PATCH("orders/{id}/status")
     suspend fun updateOrderStatus(
         @Path("id") id: Long,

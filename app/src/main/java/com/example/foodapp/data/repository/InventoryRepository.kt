@@ -8,7 +8,7 @@ import com.example.foodapp.data.dto.filter.InventoryFilter
 import com.example.foodapp.data.model.Inventory
 
 import com.example.foodapp.data.paging.InventoryPagingSource
-import com.example.foodapp.data.remote.FoodApi
+import com.example.foodapp.data.remote.main_api.FoodApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
 
 import kotlinx.coroutines.flow.Flow

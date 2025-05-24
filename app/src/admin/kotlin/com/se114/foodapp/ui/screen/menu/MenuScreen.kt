@@ -3,7 +3,6 @@ package com.se114.foodapp.ui.screen.menu
 
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -44,23 +43,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.dto.filter.FoodFilter
-import com.example.foodapp.data.model.Food
 
-import com.example.foodapp.ui.navigation.AddFood
-import com.example.foodapp.ui.navigation.Category
-import com.example.foodapp.ui.navigation.Menu
-import com.example.foodapp.ui.navigation.UpdateFood
+import com.example.foodapp.navigation.AddFood
+import com.example.foodapp.navigation.Category
+import com.example.foodapp.navigation.UpdateFood
 import com.example.foodapp.ui.screen.common.FoodList
 import com.example.foodapp.ui.screen.components.DeleteBar
 
@@ -69,8 +63,6 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
-import com.example.foodapp.ui.theme.FoodAppTheme
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 

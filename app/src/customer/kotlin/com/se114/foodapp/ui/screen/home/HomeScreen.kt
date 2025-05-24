@@ -47,28 +47,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.R
-import com.example.foodapp.ui.screen.components.ItemCount
-import com.example.foodapp.ui.screen.components.MyFloatingActionButton
-import com.example.foodapp.ui.navigation.Cart
-import com.example.foodapp.ui.navigation.Feedbacks
-import com.example.foodapp.ui.navigation.FoodDetails
-import com.example.foodapp.ui.navigation.Notification
-import com.example.foodapp.ui.navigation.Voucher
-import com.example.foodapp.ui.screen.common.FoodList
 
-import com.example.foodapp.ui.screen.common.FoodView
+import com.example.foodapp.R
+import com.example.foodapp.navigation.Cart
+import com.example.foodapp.navigation.FoodDetails
+import com.example.foodapp.ui.screen.common.FoodList
+import com.example.foodapp.ui.screen.components.ItemCount
+
+
+import com.example.foodapp.ui.screen.components.MyFloatingActionButton
+
 import com.example.foodapp.ui.screen.components.SearchField
-import com.example.foodapp.ui.screen.components.gridItems
+
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
-import com.mapbox.maps.extension.style.sources.generated.vectorSource
+
 import com.se114.foodapp.ui.screen.chat_box.ChatBoxScreen
 import com.se114.foodapp.ui.screen.home.banner.Banners
-import com.se114.foodapp.ui.screen.vouchers.VouchersScreen
-import kotlinx.coroutines.flow.collectLatest
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -80,28 +79,36 @@ fun SharedTransitionScope.HomeScreen(
     notificationViewModel: NotificationViewModel,
 
     ) {
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val foods = viewModel.getFoodsByMenuId(1).collectAsLazyPagingItems()
+    val menus = viewModel.menus.collectAsLazyPagingItems()
     val unReadCount by notificationViewModel.unreadCount.collectAsStateWithLifecycle()
-    val cartSize by viewModel.cartSize.collectAsStateWithLifecycle()
-    val menuId by viewModel.menuId.collectAsStateWithLifecycle()
-    val foods = viewModel.getFoodsByMenuId(menuId).collectAsLazyPagingItems()
     var isOpenChatBox by remember { mutableStateOf(false) }
 
     Log.d("isOpenChatBox", isOpenChatBox.toString())
 
     var searchInput by remember { mutableStateOf("") }
-    LaunchedEffect(key1 = true) {
-        viewModel.navigationEvent.collectLatest {
-            when (it) {
-                HomeViewModel.HomeNavigationEvents.NavigateToDetail -> {
+    val lifecycleOwner = LocalLifecycleOwner.current
 
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle)
+            .collect { event ->
+                when (event) {
+                    Home.Event.GoToCart -> {
+                        navController.navigate(Cart)
+                    }
+                    is Home.Event.GoToDetails -> {
+                        navController.navigate(FoodDetails(event.food))
+                    }
+                    Home.Event.ShowChatBox -> {
+                        isOpenChatBox = true
+                    }
+                    Home.Event.ShowError -> {
+
+                    }
                 }
-
-                HomeViewModel.HomeNavigationEvents.NavigateToNotification -> {
-                    navController.navigate(Notification)
-                }
-
             }
-        }
     }
 
     Scaffold(
@@ -128,7 +135,7 @@ fun SharedTransitionScope.HomeScreen(
                     }
                     MyFloatingActionButton(
                         onClick = {
-                            navController.navigate(Cart)
+                            viewModel.onAction(Home.Action.OnCartClicked)
                         },
                         bgColor = MaterialTheme.colorScheme.onPrimary,
                     ) {
@@ -142,8 +149,8 @@ fun SharedTransitionScope.HomeScreen(
                                     .size(24.dp)
                             )
 
-                            if (cartSize > 0) {
-                                ItemCount(cartSize)
+                            if (uiState.cartSize > 0) {
+                                ItemCount(uiState.cartSize)
                             }
                         }
                     }
@@ -186,7 +193,7 @@ fun SharedTransitionScope.HomeScreen(
                                     .size(32.dp)
                                     .align(Center)
                                     .clickable {
-                                        viewModel.onNotificationClicked()
+
                                     }
                             )
 
@@ -229,11 +236,7 @@ fun SharedTransitionScope.HomeScreen(
                 foods = foods,
                 animatedVisibilityScope = animatedVisibilityScope,
                 onItemClick = {
-                    navController.navigate(
-                        FoodDetails(
-                            food = it
-                        )
-                    )
+                    viewModel.onAction(Home.Action.OnFoodClicked(it))
                 },
                 isCustomer = true,
                 onLongClick = {},

@@ -251,7 +251,6 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ErrorModalBottomSheet(
-    title: String,
     description: String,
     onDismiss: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -277,7 +276,7 @@ fun ErrorModalBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = title,
+                text = "Đã xảy ra lỗi",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.ExtraBold,

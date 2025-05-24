@@ -29,6 +29,7 @@ fun LoadingButton(
     modifier: Modifier = Modifier,
     text: String,
     loading: Boolean,
+    enabled: Boolean = true,
     containerColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = MaterialTheme.colorScheme.onPrimary
 ) {
@@ -36,7 +37,7 @@ fun LoadingButton(
         onClick = onClick,
         modifier = modifier.height(48.dp),
         colors = ButtonDefaults.buttonColors(containerColor = containerColor),
-        enabled = !loading,
+        enabled = enabled && !loading,
         shape = RoundedCornerShape(12.dp)
     ) {
         Box {

@@ -4,13 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.model.Food
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.repository.FoodRepository
+import com.example.foodapp.data.model.Menu
+import com.example.foodapp.domain.use_case.cart.GetCartSizeUseCase
+import com.example.foodapp.domain.use_case.food.GetFoodsByMenuIdUseCase
+import com.example.foodapp.domain.use_case.food.GetMenusUseCase
 
-import com.se114.foodapp.data.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,62 +19,113 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val foodApi: FoodApi,
-    private val cartRepository: CartRepository,
-    private val foodRepository: FoodRepository
-
-) : ViewModel() {
-
-    private val _uiState = MutableStateFlow<HomeState>(HomeState.Loading)
-    val uiState = _uiState.asStateFlow()
-
-    private val _navigationEvent = MutableSharedFlow<HomeNavigationEvents>()
-    val navigationEvent = _navigationEvent.asSharedFlow()
+    private val getFoodsByMenuIdUseCase: GetFoodsByMenuIdUseCase,
+    private val getMenusUseCase: GetMenusUseCase,
+    private val getCartSizeUseCase: GetCartSizeUseCase,
 
 
-    val cartSize: StateFlow<Int> = cartRepository.getCartSize()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    ) : ViewModel() {
 
-    private val _foods = MutableStateFlow<PagingData<Food>>(PagingData.empty())
-    val foods: StateFlow<PagingData<Food>> = _foods
 
-    private val _menuId = MutableStateFlow<Long>(1)
-    val menuId: StateFlow<Long> = _menuId
+    private val _uiState = MutableStateFlow(Home.UiState())
+    val uiState: StateFlow<Home.UiState> get() = _uiState.asStateFlow()
 
-    fun setMenuId(menuId: Long) {
-        _menuId.value = menuId
+    private val _event = Channel<Home.Event>()
+    val event = _event.receiveAsFlow()
+
+
+    init {
+        getCartSize()
     }
-    private val foodFlows = mutableMapOf<Long, Flow<PagingData<Food>>>()
 
-    fun getFoodsByMenuId(menuId: Long): Flow<PagingData<Food>> {
+    fun onAction(action: Home.Action) {
+        when (action) {
+            is Home.Action.OnMenuClicked -> {
+                getFoodsByMenuId(action.menuId)
+            }
+
+            is Home.Action.OnFoodClicked -> {
+                viewModelScope.launch {
+                    _event.send(Home.Event.GoToDetails(action.food))
+                }
+            }
+
+            is Home.Action.OnChatBoxClicked -> {
+                viewModelScope.launch {
+                    _event.send(Home.Event.ShowChatBox)
+                }
+            }
+
+            is Home.Action.OnCartClicked -> {
+                viewModelScope.launch {
+                    _event.send(Home.Event.GoToCart)
+                }
+            }
+
+        }
+    }
+
+    val foodFlows = mutableMapOf<Long, StateFlow<PagingData<Food>>>()
+
+    fun getFoodsByMenuId(menuId: Long = 1): StateFlow<PagingData<Food>> {
         return foodFlows.getOrPut(menuId) {
-            foodRepository.getFoodsByMenuId(menuId)
+            getFoodsByMenuIdUseCase.invoke(menuId)
                 .cachedIn(viewModelScope)
+                .stateIn(
+                    viewModelScope,
+                    SharingStarted.WhileSubscribed(5000),
+                    PagingData.empty()
+                )
+
         }
     }
 
+   val menus: StateFlow<PagingData<Menu>> = getMenusUseCase.invoke()
+            .cachedIn(viewModelScope).stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                PagingData.empty()
+            )
 
-    fun onNotificationClicked() {
+
+    private fun getCartSize() {
         viewModelScope.launch {
-            _navigationEvent.emit(HomeNavigationEvents.NavigateToNotification)
+            getCartSizeUseCase.invoke()
+                .collect { cartSize ->
+                    _uiState.update {
+                        it.copy(cartSize = cartSize)
+                    }
+                }
         }
     }
+}
 
+object Home {
+    data class UiState(
+        val cartSize: Int = 0,
+        val error: String? = null,
+    )
 
-    sealed class HomeState {
-        data object Loading : HomeState()
-        data object Empty : HomeState()
-        data object Success : HomeState()
+    sealed interface Event {
+        data object ShowError : Event
+        data class GoToDetails(val food: Food) : Event
+        data object ShowChatBox : Event
+        data object GoToCart : Event
     }
 
-    sealed class HomeNavigationEvents {
-        data object NavigateToDetail : HomeNavigationEvents()
-        data object NavigateToNotification : HomeNavigationEvents()
+    sealed interface Action {
+        data class OnMenuClicked(val menuId: Long) : Action
+        data class OnFoodClicked(val food: Food) : Action
+        data object OnChatBoxClicked : Action
+        data object OnCartClicked : Action
+
     }
 }

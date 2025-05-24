@@ -5,13 +5,11 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
-import com.example.foodapp.BaseViewModel
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.request.FeedbackMultipartRequest
 import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.repository.FeedbackRepository
 import com.example.foodapp.data.service.AccountService
 import com.example.foodapp.utils.ImageUtils
 import com.se114.foodapp.ui.screen.vouchers.VouchersViewModel.VouchersState

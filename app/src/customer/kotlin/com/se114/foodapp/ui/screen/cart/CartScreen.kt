@@ -32,13 +32,11 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.ShoppingCart
 
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 
@@ -56,30 +54,28 @@ import androidx.compose.ui.draw.clip
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+
 
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.foodapp.R
 import com.example.foodapp.data.model.CartItem
-import com.example.foodapp.data.model.CheckoutDetails
-import com.example.foodapp.ui.navigation.AddressListCheckout
+import com.example.foodapp.navigation.Checkout
 
-import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodItemCounter
-import com.example.foodapp.ui.navigation.Checkout
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.components.DeleteBar
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.utils.StringUtils
-import kotlinx.coroutines.flow.collectLatest
-import java.math.BigDecimal
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,12 +84,9 @@ fun CartScreen(
     navController: NavController,
     viewModel: CartViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val cartItems by viewModel.cartItems.collectAsStateWithLifecycle()
-    val quantityMap by viewModel.quantityMap.collectAsStateWithLifecycle()
-    val checkoutDetails by viewModel.checkoutDetails.collectAsStateWithLifecycle()
-
-    val showErrorDialog = remember {
+    var showErrorSheet by remember {
         mutableStateOf(
             false
         )
@@ -102,24 +95,20 @@ fun CartScreen(
     var isEditing by rememberSaveable { mutableStateOf(false) }
     var isSelectAll by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = true) {
-        viewModel.event.collectLatest {
-            when (it) {
-                is CartViewModel.CartEvents.OnItemRemoveError,
-                is CartViewModel.CartEvents.OnQuantityUpdateError,
-                is CartViewModel.CartEvents.ShowErrorDialog -> {
-                    showErrorDialog.value = true
-                }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-                is CartViewModel.CartEvents.NavigateToCheckOut -> {
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
+            when (it) {
+                Cart.Event.NavigateToCheckout -> {
                     navController.navigate(Checkout)
                 }
-
-                else -> {
-
+                Cart.Event.OnBack -> {
+                    navController.popBackStack()
                 }
-
-
+                Cart.Event.ShowError -> {
+                    showErrorSheet = true
+                }
             }
         }
     }
@@ -139,39 +128,34 @@ fun CartScreen(
             onEditToggle = { isEditing = !isEditing }
         )
 
-        if (cartItems.isNotEmpty()) {
+        if (uiState.cartItems.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                items(cartItems, key = { it.id }) { item ->
-                    val quantity = quantityMap[item.id] ?: item.quantity
+                items(uiState.cartItems, key = { it.id }) { item ->
+                    val quantity = uiState.quantityMap[item.id] ?: item.quantity
                     CartItemView(
                         cartItem = item,
                         isEditMode = isEditing,
                         quantity = quantity,
-                        isChecked = viewModel.selectedItems.contains(item),
+                        isChecked = uiState.cartItems.contains(item),
                         onCheckedChange = { cartItem ->
-                            viewModel.toggleSelection(cartItem)
+                            viewModel.onAction(Cart.Action.OnToggleSelection(cartItem))
                         },
                         onIncrement = { item ->
-                            viewModel.increment(item)
+                            viewModel.onAction(Cart.Action.OnIncreaseCartItem(item))
                         },
                         onDecrement = { item ->
-                            viewModel.decrement(item)
+                            viewModel.onAction(Cart.Action.OnDecreaseCartItem(item))
                         }
                     )
                 }
 
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
 
-            ) {
-                androidx.compose.animation.AnimatedVisibility(
+                AnimatedVisibility(
                     visible = isEditing,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
                     exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
@@ -179,32 +163,30 @@ fun CartScreen(
                     DeleteBar(
                         onSelectAll = {
                             isSelectAll = !isSelectAll
-                            viewModel.selectAllItems(cartItems, isSelectAll)
+                            viewModel.onAction(Cart.Action.OnSelectAll(isSelectAll))
                         },
                         onDeleteSelected = { viewModel.removeItem() }
                     )
                 }
-                androidx.compose.animation.AnimatedVisibility(
+                AnimatedVisibility(
                     visible = !isEditing,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
                 ) {
                     Column {
                         CheckoutRowItem(
                             title = "Tổng cộng",
-                            value = checkoutDetails.subTotal,
+                            value = uiState.checkoutDetails.subTotal,
                             fontWeight = FontWeight.Bold
                         )
                         Button(
-                            onClick = { viewModel.checkout() },
+                            onClick = { viewModel.onAction(Cart.Action.OnCheckOut)},
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(text = "Thanh toán")
                         }
                     }
                 }
-            }
-
 
         } else {
             Nothing(
@@ -215,12 +197,13 @@ fun CartScreen(
     }
 
 
-    if (showErrorDialog.value) {
-        ModalBottomSheet(onDismissRequest = { showErrorDialog.value = false }) {
-            BasicDialog(title = viewModel.errorTitle, description = viewModel.errorMessage) {
-                showErrorDialog.value = false
-            }
-        }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.error.toString(),
+            onDismiss = {
+                showErrorSheet = false
+            },
+        )
     }
 }
 

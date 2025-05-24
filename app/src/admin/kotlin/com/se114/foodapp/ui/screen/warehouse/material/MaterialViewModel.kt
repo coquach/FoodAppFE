@@ -12,7 +12,6 @@ import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.data.model.Unit
-import com.example.foodapp.data.remote.FoodApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel

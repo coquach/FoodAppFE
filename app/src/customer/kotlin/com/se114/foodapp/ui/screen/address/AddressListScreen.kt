@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,35 +47,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.room.Index
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Address
 import com.example.foodapp.data.model.Voucher
+import com.example.foodapp.navigation.AddAddress
 import com.example.foodapp.ui.screen.components.Loading
-import com.example.foodapp.ui.navigation.AddAddress
+
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-import com.example.foodapp.ui.theme.FoodAppTheme
-import com.example.foodapp.ui.theme.confirm
-import com.mapbox.maps.extension.compose.style.layers.generated.ModelLayer
-import kotlinx.coroutines.flow.collectLatest
+import com.se114.foodapp.ui.screen.address.AddressList.Action.*
+
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
 @Composable
 fun AddressListScreen(
     navController: NavController,
-    isCheckout: Boolean = false,
     viewModel: AddressListViewModel = hiltViewModel(),
 ) {
-    val state = viewModel.state.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val addressList = viewModel.addressList.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var selectedAddress by remember { mutableStateOf<String?>(null) }
-
+    var showErrorSheet by remember { mutableStateOf(false) }
 
     val address =
         navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<Address?>(
@@ -86,30 +85,34 @@ fun AddressListScreen(
 
     LaunchedEffect(key1 = address?.value) {
         address?.value?.let {
-            viewModel.addAddress(it)
+            viewModel.onAction(AddressList.Action.AddAddress(it))
         }
     }
 
-
-
-    LaunchedEffect(key1 = true) {
-        viewModel.event.collectLatest {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
 
-                is AddressListViewModel.AddressEvent.NavigateToAddAddress -> {
+                is AddressList.Event.NavigateToAddAddress -> {
                     navController.navigate(AddAddress)
                 }
 
-                AddressListViewModel.AddressEvent.OnBack -> {
+                AddressList.Event.OnBack -> {
                     navController.popBackStack()
                 }
 
-                is AddressListViewModel.AddressEvent.NavigateToCheckout -> {
+                is AddressList.Event.BackToCheckout -> {
                     navController.previousBackStackEntry?.savedStateHandle?.set(
                         "address",
                         it.address
                     )
                     navController.popBackStack()
+                }
+
+                AddressList.Event.ShowError -> {
+                    showErrorSheet = true
+
                 }
             }
         }
@@ -124,30 +127,44 @@ fun AddressListScreen(
         HeaderDefaultView(
             text = "Địa chỉ của tôi",
             onBack = {
-                viewModel.onBackClicked()
+                viewModel.onAction(AddressList.Action.OnBack)
             },
             icon = Icons.Default.AddLocationAlt,
             iconClick = {
-                viewModel.onAddAddressClicked()
+                viewModel.onAction(AddressList.Action.OnAddAddress)
             },
             tintIcon = MaterialTheme.colorScheme.primary
         )
+        when (uiState.addressesState) {
+            is AddressList.AddressesState.Error -> {
+                Column(
+                    Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    val message =
+                        (uiState.addressesState as AddressList.AddressesState.Error).message
+                    Text(text = message, style = MaterialTheme.typography.bodyMedium)
+                    Button(onClick = { viewModel.onAction(AddressList.Action.OnAddAddress) }) {
+                        Text(text = "Tải lại")
+                    }
 
-        when (state.value) {
-            is AddressListViewModel.AddressState.Loading -> {
+                }
+            }
+
+            AddressList.AddressesState.Loading -> {
                 Loading()
             }
 
-            is AddressListViewModel.AddressState.Success -> {
-
-                if (addressList.value.isNotEmpty()) {
+            AddressList.AddressesState.Success -> {
+                if (uiState.addresses.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
 
                     ) {
-                        itemsIndexed(addressList.value) { index, it ->
+                        itemsIndexed(uiState.addresses) { index, it ->
                             SwipeableActionsBox(
                                 modifier = Modifier
                                     .padding(end = 8.dp)
@@ -157,7 +174,7 @@ fun AddressListScreen(
                                         icon = rememberVectorPainter(Icons.Default.Close),
                                         background = MaterialTheme.colorScheme.error,
                                         onSwipe = {
-                                            selectedAddress = it.id
+                                            viewModel.onAction(OnSelectAddress(it.id))
                                             showDeleteDialog = true
                                         }
                                     )
@@ -167,75 +184,45 @@ fun AddressListScreen(
                                     index = index + 1,
                                     address = it.formatAddress,
                                     onClick = {
-                                        if (isCheckout) viewModel.navigateToCheckout(it.formatAddress)
+                                        if (uiState.isCheckout) viewModel.onAction(
+                                            OnSelectToBackCheckOut(
+                                                it.formatAddress
+                                            )
+                                        )
                                     },
                                 )
                             }
 
                         }
                     }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier
-                                .size(24.dp)
-                        )
-                        Text(
-                            text = "Không có địa chỉ nào",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
                 }
 
             }
 
-            is AddressListViewModel.AddressState.Error -> {
-                Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    val message = (state.value as AddressListViewModel.AddressState.Error).message
-                    Text(text = message, style = MaterialTheme.typography.bodyMedium)
-                    Button(onClick = { viewModel.getAddress() }) {
-                        Text(text = "Tải lại")
-                    }
-
-                }
-            }
+            null -> {}
         }
+
+        if (showDeleteDialog) {
+            FoodAppDialog(
+                title = "Xóa địa chỉ",
+                message = "Bạn có chắc chắn muốn xóa địa chỉ này không?",
+                onDismiss = {
+                    showDeleteDialog = false
+                    viewModel.onAction(OnSelectAddress(null))
+                },
+                onConfirm = {
+                    viewModel.onAction(AddressList.Action.OnDeleteAddress(uiState.selectedAddress!!))
+                    showDeleteDialog = false
+                    viewModel.onAction(OnSelectAddress(null))
+
+                },
+                confirmText = "Xóa",
+                dismissText = "Đóng",
+                showConfirmButton = true
+            )
+        }
+
     }
-
-    if (showDeleteDialog) {
-        FoodAppDialog(
-            title = "Xóa địa chỉ",
-            message = "Bạn có chắc chắn muốn xóa địa chỉ này không?",
-            onDismiss = {
-                showDeleteDialog = false
-                selectedAddress = null
-            },
-            onConfirm = {
-                viewModel.deleteAddress(selectedAddress!!)
-                showDeleteDialog = false
-                selectedAddress = null
-
-            },
-            confirmText = "Xóa",
-            dismissText = "Đóng",
-            showConfirmButton = true
-        )
-    }
-
-
 }
 
 

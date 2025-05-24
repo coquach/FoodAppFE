@@ -22,8 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.navigation.Home
-import com.example.foodapp.ui.navigation.OrderList
+import com.example.foodapp.navigation.Home
+import com.example.foodapp.navigation.OrderList
 
 @Composable
 fun OrderSuccessScreen(orderID: Long, navController: NavController) {

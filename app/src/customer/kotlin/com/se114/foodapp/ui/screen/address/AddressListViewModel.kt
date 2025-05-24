@@ -1,18 +1,20 @@
 package com.se114.foodapp.ui.screen.address
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.foodapp.data.model.Address
-import com.example.foodapp.data.service.AccountService
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.navigation.MyAddressList
+import com.se114.foodapp.domain.use_case.address.AddAddressUseCase
+import com.se114.foodapp.domain.use_case.address.DeleteAddressUseCase
+import com.se114.foodapp.domain.use_case.address.GetAddressUseCase
+import com.se114.foodapp.ui.screen.address.AddressList.Event.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -21,158 +23,165 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddressListViewModel @Inject constructor(
-    private val accountService: AccountService,
+    private val getAddressUseCase: GetAddressUseCase,
+    private val addAddressUseCase: AddAddressUseCase,
+    private val deleteAddressUseCase: DeleteAddressUseCase,
+    val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<AddressState>(AddressState.Loading)
-    val state = _state.asStateFlow()
+    private val isCheckout = savedStateHandle.toRoute<MyAddressList>().isCheckout
 
-    private val _event = Channel<AddressEvent>()
+    private val _uiState = MutableStateFlow(AddressList.UiState(isCheckout = isCheckout))
+    val uiState: StateFlow<AddressList.UiState> get() = _uiState.asStateFlow()
+
+    private val _event = Channel<AddressList.Event>()
     val event = _event.receiveAsFlow()
-
-    private val userId = accountService.currentUserId
-
-    private val _addressList = MutableStateFlow<List<Address>>(emptyList())
-    val addressList = _addressList.asStateFlow()
 
     init {
         getAddress()
     }
 
-
-    fun getAddress() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _state.value = AddressState.Loading
-            try {
-                val firestore = FirebaseFirestore.getInstance()
-                val addressesRef = firestore.collection("users")
-                    .document(userId ?: throw Exception("User not logged in"))
-                    .collection("addresses")
-
-                addressesRef.get()
-                    .addOnSuccessListener { querySnapshot ->
-                        val addresses = querySnapshot.documents.mapNotNull { document ->
-                            if (document.id == "init") return@mapNotNull null
-                            val id = document.getString("id")
-                            val formatted = document.getString("formatted")
-                            val lat = document.getDouble("lat")
-                            val lon = document.getDouble("lon")
-
-
-                            if (id != null && formatted != null && lat != null && lon != null) {
-                                Address(id, formatted, lat, lon)
-                            } else {
-                                null
-                            }
-                        }
-
-                        _addressList.value = addresses
-                        _state.value = AddressState.Success
+    private fun getAddress() {
+        viewModelScope.launch {
+            getAddressUseCase().collect { result ->
+                when (result) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(addressesState = AddressList.AddressesState.Loading) }
                     }
-                    .addOnFailureListener { exception ->
-                        _state.value = AddressState.Error(exception.message ?: "Lỗi khi nhận địa chỉ")
+
+                    is FirebaseResult.Success -> {
+                        _uiState.update { it.copy(addressesState = AddressList.AddressesState.Success, addresses = result.data) }
                     }
-            } catch (e: Exception) {
-                    _state.value = AddressState.Error(e.message ?: "Lỗi khi nhận địa chỉ")
+
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(addressesState = AddressList.AddressesState.Error(result.error)) }
+                    }
+
+                }
             }
-
 
         }
 
     }
 
-    fun addAddress(address: Address) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _state.value = AddressState.Loading
-            try {
-                val firestore = FirebaseFirestore.getInstance()
-                val addressRef = firestore.collection("users")
-                    .document(userId ?: throw Exception("User not logged in"))
-                    .collection("addresses")
-                    .document(address.id) // lấy ID từ Address
+    private fun addAddress(address: Address) {
+        viewModelScope.launch {
+            addAddressUseCase.invoke(address).collect { result ->
+                when (result) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(addressesState = AddressList.AddressesState.Loading) }
+                    }
 
-                val addressMap = hashMapOf(
-                    "id" to address.id,
-                    "formatted" to address.formatAddress,
-                    "lat" to address.latitude,
-                    "lon" to address.longitude
-                )
-
-                addressRef.set(addressMap)
-                    .addOnSuccessListener {
-                        _addressList.update {
-                            it + address
+                    is FirebaseResult.Success -> {
+                        _uiState.update {
+                            it.copy(
+                              addressesState = AddressList.AddressesState.Success,
+                                addresses = it.addresses + address
+                            )
                         }
-                        _state.value = AddressState.Success
-                        getAddress()
-                    }
-                    .addOnFailureListener { e ->
-                        _state.value = AddressState.Error(e.message ?: "Lỗi khi thêm địa chỉ")
+                        _event.send(AddressList.Event.NavigateToAddAddress)
                     }
 
-            } catch (e: Exception) {
-                _state.value = AddressState.Error(e.message ?: "Lỗi khi thêm địa chỉ")
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(error = result.error) }
+                        _event.send(AddressList.Event.ShowError)
+                    }
+
+                }
             }
         }
     }
 
+    private fun deleteAddress(addressId: String) {
+        viewModelScope.launch {
+            deleteAddressUseCase.invoke(addressId).collect { result ->
+                when (result) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(addressesState = AddressList.AddressesState.Loading) }
+                    }
 
-
-    fun deleteAddress(addressId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _state.value = AddressState.Loading
-            try {
-                val firestore = FirebaseFirestore.getInstance()
-                val addressRef = firestore.collection("users")
-                    .document(userId ?: throw Exception("User not logged in"))
-                    .collection("addresses")
-                    .document(addressId)
-
-                addressRef.delete()
-                    .addOnSuccessListener {
-                        _addressList.update {
-                            it.filter { it.id != addressId }
+                    is FirebaseResult.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                addressesState = AddressList.AddressesState.Success,
+                                addresses = it.addresses.filter { it.id != addressId })
                         }
-                        _state.value = AddressState.Success
-                        getAddress()
-
-                    }
-                    .addOnFailureListener { e ->
-                        _state.value = AddressState.Error(e.message ?: "Lỗi khi xóa địa chỉ")
                     }
 
-            } catch (e: Exception) {
-                _state.value = AddressState.Error(e.message ?: "Unknown error")
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(error = result.error) }
+                        _event.send(AddressList.Event.ShowError)
+                    }
+                }
             }
         }
     }
 
-    fun onBackClicked() {
-        viewModelScope.launch {
-            _event.send(AddressEvent.OnBack)
+    fun onAction(action: AddressList.Action) {
+        when (action) {
+            is AddressList.Action.OnAddAddress -> {
+                viewModelScope.launch {
+                    _event.send(AddressList.Event.NavigateToAddAddress)
+                }
+            }
+
+            is AddressList.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(AddressList.Event.OnBack)
+                }
+            }
+
+            is AddressList.Action.OnSelectAddress -> {
+                _uiState.update { it.copy(selectedAddress = action.id) }
+            }
+
+            is AddressList.Action.OnDeleteAddress -> {
+                deleteAddress(action.id)
+            }
+
+            is AddressList.Action.OnSelectToBackCheckOut -> {
+                viewModelScope.launch {
+                    _event.send(BackToCheckout(action.address))
+                }
+            }
+
+            is AddressList.Action.AddAddress -> {
+                addAddress(action.address)
+            }
         }
     }
 
-    fun onAddAddressClicked() {
-        viewModelScope.launch {
-            _event.send(AddressEvent.NavigateToAddAddress)
-        }
-    }
-    fun navigateToCheckout(address: String) {
-        viewModelScope.launch {
-            _event.send(AddressEvent.NavigateToCheckout(address))
-        }
+}
+
+object AddressList {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val addresses: List<Address> = emptyList(),
+        val addressesState: AddressesState? = null,
+        val error: String? = null,
+        val selectedAddress: String? = null,
+        val isCheckout: Boolean = false,
+    )
+
+    sealed interface AddressesState {
+        data object Success : AddressesState
+        data class Error(val message: String) : AddressesState
+        data object Loading : AddressesState
     }
 
-    sealed class AddressState {
-        data object Loading : AddressState()
-        data object Success : AddressState()
-        data class Error(val message: String) : AddressState()
+    sealed interface Event {
+        data object ShowError : Event
+        data class BackToCheckout(val address: String) : Event
+        data object NavigateToAddAddress : Event
+        data object OnBack : Event
     }
 
-    sealed class AddressEvent {
-        data object OnBack : AddressEvent()
-        data object NavigateToAddAddress : AddressEvent()
-        data class NavigateToCheckout(val address: String) : AddressEvent()
+    sealed interface Action {
+        data class AddAddress(val address: Address) : Action
+        data object OnBack : Action
+        data object OnAddAddress : Action
+        data class OnSelectAddress(val id: String?) : Action
+        data class OnDeleteAddress(val id: String) : Action
+        data class OnSelectToBackCheckOut(val address: String) : Action
     }
 }

@@ -13,7 +13,6 @@ import com.example.foodapp.data.dto.safeApiCall
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.enums.Gender
-import com.example.foodapp.data.remote.FoodApi
 import com.example.foodapp.utils.ImageUtils
 
 import com.se114.foodapp.data.dto.request.FoodMultipartRequest

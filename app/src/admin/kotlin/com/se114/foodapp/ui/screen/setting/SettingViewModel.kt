@@ -2,7 +2,7 @@ package com.se114.foodapp.ui.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.service.AccountService
+import com.example.foodapp.domain.repository.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow

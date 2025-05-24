@@ -41,6 +41,6 @@ interface VoucherApi {
     ): Response<Voucher>
 
     @DELETE("vouchers/{id}")
-    suspend fun deleteVoucher(@Path("id") id: Long): Response<Void>
+    suspend fun deleteVoucher(@Path("id") id: Long): Response<Unit>
 
 }

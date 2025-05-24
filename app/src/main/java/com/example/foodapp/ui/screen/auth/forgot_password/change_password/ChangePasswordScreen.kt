@@ -1,9 +1,6 @@
 package com.example.foodapp.ui.screen.auth.forgot_password.change_password
 
-import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -47,12 +44,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.navigation.ResetPasswordSuccess
-import com.example.foodapp.ui.screen.auth.signup.SignUpViewModel
+import com.example.foodapp.navigation.ResetPasswordSuccess
 import com.example.foodapp.ui.screen.components.BasicDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.LoadingButton
-import com.example.foodapp.ui.screen.components.OTPTextFields
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.utils.ValidateField
 import kotlinx.coroutines.flow.collectLatest

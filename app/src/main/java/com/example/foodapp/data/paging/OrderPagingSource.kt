@@ -1,30 +1,38 @@
 package com.example.foodapp.data.paging
 
-import androidx.paging.ExperimentalPagingApi
-import androidx.paging.PagingSource
-import androidx.paging.PagingState
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.apiRequestFlow
 import com.example.foodapp.data.dto.filter.OrderFilter
-import com.example.foodapp.data.dto.safeApiCall
+import com.example.foodapp.data.dto.response.PageResponse
 import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.utils.Constants
+import com.example.foodapp.data.remote.main_api.OrderApi
+
 import com.example.foodapp.utils.StringUtils
-import java.io.IOException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+
+import javax.inject.Inject
 
 
-class OrderPagingSource(
-    private val foodApi: FoodApi,
-    private val filter: OrderFilter
-) : PagingSource<Int, Order>() {
-
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Order> {
-        val currentPage = params.key ?: 0
-        return try {
-            val response = safeApiCall {
-                foodApi.getOrders(
-                    page = currentPage,
-                    size = Constants.ITEMS_PER_PAGE,
+class OrderPagingSource @Inject constructor(
+    private val orderApi: OrderApi,
+    private val filter: OrderFilter,
+    private val customerId: String?=null
+) : ApiPagingSource<Order>() {
+    override suspend fun fetch(
+        page: Int,
+        size: Int,
+    ): Flow<ApiResponse<PageResponse<Order>>> {
+        return apiRequestFlow {
+            if (customerId != null) {
+                orderApi.getOrdersByCustomerId(
+                    page = page,
+                    size = size,
+                    customerId = customerId)
+            } else {
+                orderApi.getOrders(
+                    page = page,
+                    size = size,
                     status = filter.status,
                     paymentMethod = filter.paymentMethod,
                     staffId = filter.staffId,
@@ -32,43 +40,7 @@ class OrderPagingSource(
                     endDate = StringUtils.formatLocalDate(filter.endDate)
                 )
             }
-            when (response) {
-                is ApiResponse.Success -> {
-                    val body = response.body!!
-                    val endOfPaginationReached = body.content.isEmpty() || body.content.size < Constants.ITEMS_PER_PAGE
-                    if (body.content.isNotEmpty()) {
-                        LoadResult.Page(
-                            data = body.content,
-                            prevKey = if (currentPage == 0) null else currentPage - 1,
-                            nextKey = if (endOfPaginationReached) null else currentPage + 1
-                        )
-                    } else {
-                        LoadResult.Page(
-                            data = emptyList(),
-                            prevKey = null,
-                            nextKey = null
-                        )
-                    }
-                }
 
-                else -> {
-                    LoadResult.Error(Exception("Response body Invalid"))
-                }
-            }
-
-
-        } catch (ex: Exception) {
-            LoadResult.Error(ex)
-        } catch (ex: IOException) {
-            LoadResult.Error(ex)
-        }
-
-    }
-
-    override fun getRefreshKey(state: PagingState<Int, Order>): Int? {
-        return state.anchorPosition?.let { anchor ->
-            state.closestPageToPosition(anchor)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchor)?.nextKey?.minus(1)
         }
     }
 }

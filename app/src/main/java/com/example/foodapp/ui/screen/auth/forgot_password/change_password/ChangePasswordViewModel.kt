@@ -2,8 +2,7 @@ package com.example.foodapp.ui.screen.auth.forgot_password.change_password
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.BaseViewModel
+import com.example.foodapp.domain.repository.AccountService
 import com.example.foodapp.utils.ValidateField
 import com.google.firebase.auth.FirebaseAuthException
 import dagger.hilt.android.lifecycle.HiltViewModel

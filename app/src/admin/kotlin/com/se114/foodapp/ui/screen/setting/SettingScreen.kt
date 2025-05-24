@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,10 +13,8 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Button
@@ -31,17 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
-import com.example.foodapp.ui.navigation.Auth
-
-import com.example.foodapp.ui.navigation.Supplier
-import com.example.foodapp.ui.navigation.Voucher
+import com.example.foodapp.navigation.Supplier
+import com.example.foodapp.navigation.Voucher
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.SettingGroup

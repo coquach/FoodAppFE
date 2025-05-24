@@ -2,83 +2,163 @@ package com.se114.foodapp.ui.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.safeApiCall
+
 import com.example.foodapp.data.model.Account
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.ui.screen.auth.login.LoginViewModel.LoginEvent
+import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.domain.use_case.auth.LoadProfileUseCase
+import com.example.foodapp.domain.use_case.auth.LogOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.receiveAsFlow
+
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingViewModel @Inject constructor(
-    private val accountService: AccountService,
+    private val loadProfileUseCase: LoadProfileUseCase,
+    private val logoutUseCase: LogOutUseCase,
+) : ViewModel() {
 
-    ) : ViewModel() {
+    private val _uiState = MutableStateFlow(Setting.UiState())
+    val uiState: StateFlow<Setting.UiState> get() = _uiState.asStateFlow()
 
-    private val _event = MutableSharedFlow<SettingEvents>()
-    val event = _event.asSharedFlow()
+    private val _event = Channel<Setting.Event>()
+    val event = _event.receiveAsFlow()
 
-    private val _profile = MutableStateFlow(Account())
-    val profile = _profile.asStateFlow()
     init {
         getProfile()
     }
-    fun getProfile() {
-        viewModelScope.launch {
 
-            val currentProfile = accountService.getUserProfile()
-            _profile.update {
-                it.copy(
-                    displayName = currentProfile.displayName,
-                    avatar = currentProfile.avatar
-                )
+    private fun getProfile() {
+        viewModelScope.launch {
+            loadProfileUseCase().collect { result ->
+                when (result) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+
+                    is FirebaseResult.Success -> {
+                        _uiState.update { it.copy(profile = result.data, isLoading = false) }
+                    }
+
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(error = result.error, isLoading = false) }
+                    }
+                }
             }
         }
     }
 
-    fun onLogoutClicked() {
+    private fun logout() {
         viewModelScope.launch() {
-            try {
-                accountService.signOut()
+            logoutUseCase().collect { result ->
+                when (result) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
 
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    is FirebaseResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
 
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(error = result.error, isLoading = false) }
+                    }
+                }
             }
         }
     }
 
-    fun onShowLogoutDialog() {
-        viewModelScope.launch {
-            _event.emit(SettingEvents.OnLogout)
+    fun onAction(action: Setting.Action) {
+        when (action) {
+            is Setting.Action.OnLogout -> {
+                logout()
+            }
+
+            is Setting.Action.OnProfileClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.NavigateToProfile)
+                }
+            }
+
+            is Setting.Action.OnAddressClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.NavigateToProfile)
+                }
+            }
+
+            is Setting.Action.OnVoucherClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.NavigateToProfile)
+                }
+            }
+
+            is Setting.Action.OnHelpClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.NavigateToProfile)
+                }
+            }
+
+            is Setting.Action.OnContactClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.NavigateToProfile)
+                }
+            }
+
+            is Setting.Action.OnPrivacyClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.NavigateToProfile)
+                }
+
+            }
+
+            Setting.Action.OnLoadProfile -> {
+                getProfile()
+            }
+
+            Setting.Action.OnLogOutClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.ShowLogoutDialog)
+                }
+            }
         }
-    }
-
-    fun onProfileClicked() {
-        viewModelScope.launch {
-            _event.emit(SettingEvents.NavigateToProfile)
-        }
-    }
-
-
-
-    sealed class SettingEvents {
-        data object NavigateToProfile : SettingEvents()
-        data object OnLogout : SettingEvents()
-
     }
 }
+
+    object Setting {
+        data class UiState(
+            val profile: Account = Account(),
+            val isLoading: Boolean = false,
+            val error: String? = null,
+            )
+
+        sealed interface Event {
+            data object NavigateToAddress : Event
+            data object NavigateToVoucher : Event
+            data object NavigateToHelp : Event
+            data object NavigateToContact : Event
+            data object NavigateToPrivacy : Event
+            data object NavigateToProfile : Event
+            data object ShowLogoutDialog : Event
+            data object ShowError : Event
+
+        }
+
+        sealed interface Action {
+            data object OnLogOutClicked : Action
+            data object OnLogout : Action
+            data object OnLoadProfile : Action
+            data object OnProfileClicked : Action
+            data object OnAddressClicked : Action
+            data object OnVoucherClicked : Action
+            data object OnHelpClicked : Action
+            data object OnContactClicked : Action
+            data object OnPrivacyClicked : Action
+
+        }
+    }
