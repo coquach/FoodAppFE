@@ -2,7 +2,7 @@ package com.se114.foodapp.domain.use_case.food_details
 
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.Food
-import com.se114.foodapp.domain.repository.CartRepository
+import com.example.foodapp.domain.repository.CartRepository
 
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject

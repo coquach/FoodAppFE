@@ -18,14 +18,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class OrderListViewModel @Inject constructor(
-    private val getOrdersByCustomerUseCase: GetOrdersByCustomerUseCase
+    private val getOrdersByCustomerUseCase: GetOrdersByCustomerUseCase,
 ) : ViewModel() {
-
+    private val _uiState = MutableStateFlow(OrderList.UiState())
+    val uiState: StateFlow<OrderList.UiState> get() = _uiState.asStateFlow()
 
     private val _event = Channel<OrderList.Event>()
     val event get() = _event.receiveAsFlow()
@@ -33,6 +35,7 @@ class OrderListViewModel @Inject constructor(
         ordersCache.clear()
 
     }
+
     private val ordersCache = mutableMapOf<Int, StateFlow<PagingData<Order>>>()
 
 
@@ -55,6 +58,7 @@ class OrderListViewModel @Inject constructor(
                 )
         }
     }
+
     fun onAction(action: OrderList.Action) {
         when (action) {
             is OrderList.Action.OnOrderClicked -> {
@@ -62,8 +66,9 @@ class OrderListViewModel @Inject constructor(
                     _event.send(OrderList.Event.GoToDetails(action.order))
                 }
             }
+
             is OrderList.Action.OnTabChanged -> {
-                getOrdersByTab(action.index)
+                _uiState.update { it.copy(tabIndex = action.index) }
             }
 
         }
@@ -71,11 +76,16 @@ class OrderListViewModel @Inject constructor(
     }
 }
 
-object OrderList{
+object OrderList {
+    data class UiState(
+        val tabIndex: Int = 0,
+    )
+
     sealed interface Event {
         data class GoToDetails(val order: Order) : Event
     }
-    sealed interface Action{
+
+    sealed interface Action {
         data class OnTabChanged(val index: Int) : Action
         data class OnOrderClicked(val order: Order) : Action
 

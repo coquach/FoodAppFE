@@ -1,7 +1,11 @@
 package com.example.foodapp.ui.screen.components.permissions
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.location.Location
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -20,7 +24,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -33,50 +40,59 @@ import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 fun LocationPermissionHandler(
     content: @Composable () -> Unit,
     onPermissionDenied: () -> Unit = {},
-    rationaleTitle: String = "Cần quyền truy cập vị trí",
-    rationaleMessage: String = "Ứng dụng cần quyền vị trí để hoạt động chính xác. Vui lòng cấp quyền.",
 
 ) {
-    val permissionsState = rememberMultiplePermissionsState(
-        listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-    )
+    val context = LocalContext.current
+    val activity = context as? ComponentActivity
 
     var showRationaleDialog by remember { mutableStateOf(false) }
+    var allPermissionsGranted by remember { mutableStateOf(false) }
+
+    val permissions = listOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissionsResult ->
+        val granted = permissionsResult.values.all { it }
+        allPermissionsGranted = granted
+
+        if (!granted) {
+            showRationaleDialog = true
+        }
+    }
 
     LaunchedEffect(Unit) {
-        permissionsState.launchMultiplePermissionRequest()
+        val allGranted = permissions.all { permission ->
+            ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (allGranted) {
+            allPermissionsGranted = true
+        } else {
+            permissionLauncher.launch(permissions.toTypedArray())
+        }
     }
 
-    // Xử lý khi cần hiển thị rationale
-    if (permissionsState.shouldShowRationale) {
-        showRationaleDialog = true
-    }
-
-    if (permissionsState.shouldShowRationale && !permissionsState.allPermissionsGranted) {
-        showRationaleDialog = true
-    }
-
-    if (permissionsState.allPermissionsGranted) {
+    if (allPermissionsGranted) {
         content()
     }
 
-    // Dialog hiển thị lý do
     if (showRationaleDialog) {
         FoodAppDialog(
-            title = rationaleTitle,
-            message = rationaleMessage,
+            title = "Cần quyền truy cập vị trí",
+            message = "Ứng dụng cần quyền vị trí để hoạt động chính xác. Vui lòng cấp quyền.",
             onDismiss = {
                 showRationaleDialog = false
-                onPermissionDenied
+                onPermissionDenied()
             },
             containerConfirmButtonColor = MaterialTheme.colorScheme.primary,
             labelConfirmButtonColor = MaterialTheme.colorScheme.onPrimary,
             onConfirm = {
                 showRationaleDialog = false
-                permissionsState.launchMultiplePermissionRequest()
+                permissionLauncher.launch(permissions.toTypedArray())
             },
             confirmText = "Đồng ý",
             dismissText = "Huỷ"
@@ -146,3 +162,11 @@ fun MapControlButtons(
     }
 }
 
+fun android.content.Context.findActivity(): android.app.Activity? {
+    var context = this
+    while (context is android.content.ContextWrapper) {
+        if (context is android.app.Activity) return context
+        context = context.baseContext
+    }
+    return null
+}

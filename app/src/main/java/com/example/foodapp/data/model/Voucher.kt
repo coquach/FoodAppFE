@@ -14,16 +14,16 @@ import java.time.LocalDateTime
 
 @Parcelize
 data class Voucher(
-    val id: Long,
-    val code: String,
-    val value: Double,
-    val minOrderPrice: BigDecimal,
-    val maxValue: BigDecimal,
-    val quantity: Int,
-    val type: String,
-    val startDate: LocalDate,
-    val endDate: LocalDate,
+    val id: Long? = null,
+    val code: String = "",
+    val value: Double= 0.0,
+    val minOrderPrice: BigDecimal = BigDecimal.ZERO,
+    val maxValue: BigDecimal = BigDecimal.ZERO,
+    val quantity: Int = 1,
+    val type: String = VoucherType.PERCENTAGE.name,
+    val startDate: LocalDate?= null,
+    val endDate: LocalDate? = null,
 
-    val expired: Boolean,
+    val expired: Boolean = false,
 
 ) : Parcelable

@@ -4,13 +4,15 @@ import androidx.compose.runtime.MutableState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.example.foodapp.navigation.FoodTableAdmin
 import com.example.foodapp.navigation.Setting
 import com.example.foodapp.navigation.Supplier
 import com.example.foodapp.navigation.Voucher
-import com.example.foodapp.ui.screen.voucher.VoucherListScreen
+import com.se114.foodapp.ui.screen.voucher.VoucherListScreen
 import com.example.foodapp.utils.ScreenContainer
+import com.se114.foodapp.ui.screen.food_table.FoodTableScreen
 import com.se114.foodapp.ui.screen.setting.SettingScreen
-import com.se114.foodapp.ui.screen.setting.supplier.SupplierScreen
+import com.se114.foodapp.ui.screen.supplier.SupplierScreen
 
 
 fun NavGraphBuilder.settingGraph(
@@ -37,6 +39,12 @@ fun NavGraphBuilder.settingGraph(
         shouldShowBottomNav.value = false
         ScreenContainer {
             VoucherListScreen(navController)
+        }
+    }
+    composable<FoodTableAdmin>{
+        shouldShowBottomNav.value = false
+        ScreenContainer {
+            FoodTableScreen(navController)
         }
     }
 }

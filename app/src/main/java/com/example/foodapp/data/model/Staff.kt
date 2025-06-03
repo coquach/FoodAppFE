@@ -2,6 +2,7 @@ package com.example.foodapp.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.foodapp.data.model.enums.Gender
 import com.example.foodapp.utils.Constants.STAFF_TABLE
 import com.example.foodapp.utils.json_format.LocalDateSerializer
 import kotlinx.serialization.SerialName
@@ -10,13 +11,13 @@ import java.time.LocalDate
 
 @Serializable
 data class Staff(
-    val id: Long,
-    val fullName: String? = null,
+    val id: Long?= null,
+    val fullName: String = "",
     val position: String? = null,
-    val phone: String? = null,
-    val gender: String? = null,
-    val address: String? = null,
-    val avatar: ImageInfo,
+    val phone: String = "",
+    val gender: String = Gender.MALE.name,
+    val address: String = "",
+    val avatar: ImageInfo? = null,
 
     @Serializable(with = LocalDateSerializer::class)
     val birthDate: LocalDate? = null,

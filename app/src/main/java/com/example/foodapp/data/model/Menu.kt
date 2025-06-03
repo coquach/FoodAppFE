@@ -7,7 +7,7 @@ import java.time.LocalTime
 
 @Serializable
 data class Menu(
-    val id: Long,
-    val name: String,
-    val active: Boolean
+    val id: Long?=null,
+    val name: String="",
+    val active: Boolean= true
 )

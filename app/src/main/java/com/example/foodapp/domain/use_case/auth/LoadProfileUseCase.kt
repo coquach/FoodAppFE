@@ -1,6 +1,6 @@
 package com.example.foodapp.domain.use_case.auth
 
-import android.util.Log
+
 import com.example.foodapp.data.model.Account
 import com.example.foodapp.domain.repository.AccountRepository
 import com.example.foodapp.utils.StringUtils

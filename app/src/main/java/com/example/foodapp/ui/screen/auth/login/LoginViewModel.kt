@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.screen.auth.login
 
+import android.util.Log
 import androidx.credentials.Credential
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -73,7 +74,7 @@ class LoginViewModel @Inject constructor(
         var passwordError: String? = current.passwordError
         when (type) {
             "email" -> {
-                val emailError = validateField(
+                 emailError = validateField(
                     current.email.trim(),
                     "Email không hợp lệ"
                 ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) }
@@ -82,7 +83,7 @@ class LoginViewModel @Inject constructor(
             }
 
             "password" -> {
-                val passwordError = validateField(
+                 passwordError = validateField(
                     current.password.trim(),
                     "Mật khẩu phải có ít nhất 6 ký tự"
                 ) { it.length >= 6 }
@@ -114,6 +115,7 @@ class LoginViewModel @Inject constructor(
                         is FirebaseResult.Success -> {
                             _uiState.update { it.copy(loading = false) }
                             val role = result.data
+                            Log.d("LoginViewModel", "Login successful with role: $role")
                             when (role) {
                                 "admin" -> _event.send(Login.Event.NavigateToAdmin)
                                 "staff" -> _event.send(Login.Event.NavigateToStaff)

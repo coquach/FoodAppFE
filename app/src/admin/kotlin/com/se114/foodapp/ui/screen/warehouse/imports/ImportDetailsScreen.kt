@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,7 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
@@ -40,62 +38,53 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.ImportDetail
 import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.components.ComboBoxSample
-
 import com.example.foodapp.ui.screen.components.ComboBoxSampleLazyPaging
 import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.DetailsTextRow
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.ui.theme.onConfirm
 import com.example.foodapp.utils.StringUtils
-import com.se114.foodapp.ui.screen.menu.category.EditMenuCard
-import com.se114.foodapp.ui.screen.menu.category.MenuCard
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
@@ -103,42 +92,41 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportDetailsScreen(
     navController: NavController,
     viewModel: ImportDetailsViewModel = hiltViewModel(),
-    isUpdating: Boolean = false,
-    import: Import? = null,
 ) {
-    LaunchedEffect(key1 = isUpdating) {
-        delay(100)
-        viewModel.setMode(isUpdating, import)
-    }
+
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val suppliers = viewModel.suppliers.collectAsLazyPagingItems()
     val staffs = viewModel.staffs.collectAsLazyPagingItems()
-    val ingredients by viewModel.ingredients.collectAsStateWithLifecycle()
-    val importRequest by viewModel.importRequest.collectAsStateWithLifecycle()
-    val importDetailsListRequest by viewModel.importDetailsListRequest.collectAsStateWithLifecycle()
-    val importDetailsRequest by viewModel.importDetailsRequest.collectAsStateWithLifecycle()
-    val totalCost by viewModel.totalCost.collectAsStateWithLifecycle()
 
-    var isCreating by remember { mutableStateOf(false) }
-    var isEditMode by remember { mutableStateOf(false) }
-    var editingItemId by remember { mutableStateOf<String?>(null) }
-    val isEditable = import?.importDate?.plusDays(3)?.isAfter(LocalDateTime.now()) ?: true
+
+    val totalCost by rememberSaveable {
+        derivedStateOf {
+            uiState.importDetails.sumOf { it.quantity * it.cost }
+        }
+    }
+
+    var isCreating by rememberSaveable { mutableStateOf(false) }
+    var isEditMode by rememberSaveable { mutableStateOf(false) }
+
+    
+    var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
-                is ImportDetailsViewModel.ImportDetailsEvents.GoBack -> {
+                is ImportDetailsState.Event.BackToAfterModify -> {
                     Log.d("Import goback", "Done")
-                    if (isUpdating) {
+                    if (uiState.isUpdating) {
                         Toast.makeText(
                             navController.context,
                             "Cập nhật phiếu nhập thành công",
@@ -158,7 +146,20 @@ fun ImportDetailsScreen(
 
                 }
 
+                is ImportDetailsState.Event.OnBack -> {
+                    navController.popBackStack()
+                }
 
+                ImportDetailsState.Event.ShowError -> {
+                    showErrorSheet = true
+                }
+                is ImportDetailsState.Event.NotifyCantEdit -> {
+                    Toast.makeText(
+                        navController.context,
+                        "Không thể sửa phiếu nhập này vì đã quá hạn 3 ngày",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -171,7 +172,7 @@ fun ImportDetailsScreen(
     ) {
         HeaderDefaultView(
             onBack = {
-                navController.navigateUp()
+                viewModel.onAction(ImportDetailsState.Action.OnBack)
             },
             text = "Thông tin đơn nhập"
         )
@@ -195,18 +196,18 @@ fun ImportDetailsScreen(
                         .fillMaxWidth(),
                     title = "Nhà cung cấp",
                     textPlaceholder = "Chọn nhà cung cấp",
-                    selected = import?.supplierName ?: "",
+                    selected = uiState.import.supplierName,
                     onPositionSelected = { name ->
                         val selectedSupplier = (0 until suppliers.itemCount)
                             .mapNotNull { index -> suppliers[index] }
                             .find { it.name == name }
                         val supplierId = selectedSupplier?.id
                         supplierId?.let {
-                            viewModel.onChangeSupplerId(it)
+                            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(it))
                         }
                     },
                     options = suppliers,
-                    enabled = isEditable,
+                    enabled = uiState.isEditable,
                     labelExtractor = { supplier -> supplier.name }
                 )
                 ComboBoxSampleLazyPaging(
@@ -214,26 +215,26 @@ fun ImportDetailsScreen(
                         .fillMaxWidth(),
                     title = "Nhân viên",
                     textPlaceholder = "Chọn nhân viên",
-                    selected = import?.staffName ?: "",
+                    selected = uiState.import.staffName,
                     onPositionSelected = { name ->
                         val selectedSupplier = (0 until suppliers.itemCount)
                             .mapNotNull { index -> staffs[index] }
                             .find { it.fullName == name }
                         val supplierId = selectedSupplier?.id
                         supplierId?.let {
-                            viewModel.onChangeSupplerId(it)
+                            viewModel.onAction(ImportDetailsState.Action.OnChangeStaffId(it))
                         }
                     },
                     options = suppliers,
                     fieldHeight = 80.dp,
                     labelExtractor = { supplier -> supplier.name },
-                    enabled = isEditable,
+                    enabled = uiState.isEditable,
                 )
 
             }
         }
 
-        if (importDetailsListRequest.isEmpty() && !isCreating) {
+        if (uiState.importDetails.isEmpty() && !isCreating) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -286,45 +287,61 @@ fun ImportDetailsScreen(
                     item {
                         if (isCreating) {
                             ImportDetailsEditCard(
-                                importDetail = importDetailsRequest,
-                                ingredients = ingredients,
+                                importDetail = uiState.importDetailsSelected,
+                                ingredients = uiState.ingredients,
                                 onIngredientChange = { name ->
-                                    val selectedIngredient = ingredients.find { it.name == name }
+                                    val selectedIngredient =
+                                        uiState.ingredients.find { it.name == name }
                                     selectedIngredient?.let {
-                                        viewModel.onChangeIngredient(selectedIngredient)
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeIngredient(
+                                                it
+                                            )
+                                        )
                                     }
                                 },
                                 onCostChange = {
-                                    viewModel.onChangeCost(it.toBigDecimal())
+                                    viewModel.onAction(ImportDetailsState.Action.OnChangeCost(it.toBigDecimalOrNull()))
                                 },
                                 onChangeProductionDate = {
-                                    viewModel.onChangeProductionDate(it)
+                                    viewModel.onAction(
+                                        ImportDetailsState.Action.OnChangeProductionDate(
+                                            it
+                                        )
+                                    )
                                 },
                                 onChangeExpiryDate = {
-                                    viewModel.onChangeExpiryDate(it)
+                                    viewModel.onAction(
+                                        ImportDetailsState.Action.OnChangeExpiryDate(
+                                            it
+                                        )
+                                    )
                                 },
                                 onIncrement = {
-                                    viewModel.onChangeQuantity(
-                                        importDetailsRequest.quantity + BigDecimal.ONE
+                                    viewModel.onAction(
+                                        ImportDetailsState.Action.OnChangeQuantity(
+                                            uiState.importDetailsSelected.quantity + BigDecimal.ONE
+                                        )
                                     )
                                 },
                                 onDecrement = {
-                                    viewModel.onChangeQuantity(
-                                        if (importDetailsRequest.quantity > BigDecimal.ONE)
-                                            importDetailsRequest.quantity - BigDecimal.ONE
-                                        else importDetailsRequest.quantity
+                                    viewModel.onAction(
+                                        ImportDetailsState.Action.OnChangeQuantity(
+                                            uiState.importDetailsSelected.quantity - BigDecimal.ONE
+                                        )
                                     )
                                 },
                                 onUpdate = {
-                                    viewModel.addImportDetails()
+                                    viewModel.onAction(ImportDetailsState.Action.AddImportDetails)
                                     isCreating = false
                                 },
                                 onClose = { isCreating = false },
                             )
                         }
                     }
-                    items(importDetailsListRequest) { importDetails ->
-                        val isEditing = editingItemId == importDetails.localId
+                    items(uiState.importDetails) { importDetails ->
+                        val isEditing =
+                            uiState.importDetailsSelected.localId == importDetails.localId
 
                         AnimatedContent(
                             targetState = isEditing,
@@ -337,46 +354,65 @@ fun ImportDetailsScreen(
                             if (editing) {
 
                                 ImportDetailsEditCard(
-                                    importDetail = importDetailsRequest,
-                                    ingredients = ingredients,
+                                    importDetail = uiState.importDetailsSelected,
+                                    ingredients = uiState.ingredients,
                                     onIngredientChange = { name ->
                                         val selectedIngredient =
-                                            ingredients.find { it.name == name }
+                                            uiState.ingredients.find { it.name == name }
                                         selectedIngredient?.let {
-                                            viewModel.onChangeIngredient(selectedIngredient)
+                                            viewModel.onAction(
+                                                ImportDetailsState.Action.OnChangeIngredient(
+                                                    it
+                                                )
+                                            )
                                         }
                                     },
                                     onCostChange = {
-                                        viewModel.onChangeCost(it.toBigDecimal())
+                                        viewModel.onAction(ImportDetailsState.Action.OnChangeCost(it.toBigDecimalOrNull()))
                                     },
                                     onChangeProductionDate = {
-                                        viewModel.onChangeProductionDate(it)
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeProductionDate(
+                                                it
+                                            )
+                                        )
                                     },
                                     onChangeExpiryDate = {
-                                        viewModel.onChangeExpiryDate(it)
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeExpiryDate(
+                                                it
+                                            )
+                                        )
                                     },
                                     onIncrement = {
-                                        viewModel.onChangeQuantity(
-                                            importDetailsRequest.quantity.add(
-                                                BigDecimal(1)
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeQuantity(
+                                                uiState.importDetailsSelected.quantity + BigDecimal.ONE
                                             )
                                         )
                                     },
                                     onDecrement = {
-                                        viewModel.onChangeQuantity(
-                                            if (importDetailsRequest.quantity > BigDecimal.ONE)
-                                                importDetailsRequest.quantity.subtract(
-                                                    BigDecimal(1)
-                                                ) else importDetailsRequest.quantity
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeQuantity(
+                                                uiState.importDetailsSelected.quantity - BigDecimal.ONE
+                                            )
                                         )
                                     },
                                     onUpdate = {
-                                        viewModel.updateImportDetails(importDetails.localId)
-                                        editingItemId = null
+                                        viewModel.onAction(ImportDetailsState.Action.UpdateImportDetails)
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnImportDetailsSelected(
+                                                ImportDetailUIModel()
+                                            )
+                                        )
                                         isEditMode = false
                                     },
                                     onClose = {
-                                        editingItemId = null
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnImportDetailsSelected(
+                                                ImportDetailUIModel()
+                                            )
+                                        )
                                         isEditMode = false
                                     },
                                 )
@@ -392,9 +428,13 @@ fun ImportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Edit),
                                             background = MaterialTheme.colorScheme.primary,
                                             onSwipe = {
-                                                if(isEditable) {
-                                                    editingItemId = importDetails.localId
-                                                    viewModel.loadImportDetails(importDetails)
+                                                if (uiState.isEditable) {
+                                                    viewModel.onAction(
+                                                        ImportDetailsState.Action.OnImportDetailsSelected(
+                                                            importDetails
+                                                        )
+                                                    )
+
                                                     isEditMode = true
                                                 }
 
@@ -406,8 +446,12 @@ fun ImportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Delete),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
-                                                if(isEditable){
-                                                    viewModel.deleteImportDetails(importDetails.localId)
+                                                if (uiState.isEditable) {
+                                                    viewModel.onAction(
+                                                        ImportDetailsState.Action.DeleteImportDetails(
+                                                            importDetails.localId
+                                                        )
+                                                    )
                                                 }
 
                                             }
@@ -423,7 +467,7 @@ fun ImportDetailsScreen(
 
                     }
                     item {
-                        if (isEditable && !isCreating && !isEditMode) {
+                        if (uiState.isEditable && !isCreating && !isEditMode) {
                             IconButton(
                                 onClick = {
                                     isCreating = true
@@ -453,7 +497,7 @@ fun ImportDetailsScreen(
         }
 
         AnimatedVisibility(
-            visible =isEditable && !isCreating && !isEditMode,
+            visible = uiState.isEditable && !isCreating && !isEditMode,
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },
                 animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
@@ -471,17 +515,25 @@ fun ImportDetailsScreen(
                 )
                 LoadingButton(
                     onClick = {
-                        if (isUpdating) viewModel.updateImport(import!!.id)
-                        else viewModel.addImport()
+                        if (uiState.isUpdating) viewModel.onAction(ImportDetailsState.Action.UpdateImport)
+                        else viewModel.onAction(ImportDetailsState.Action.CreateImport)
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    text = if (isUpdating) "Cập nhật" else "Tạo",
+                    text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
                     loading = false,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
+    }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.error.toString(),
+            onDismiss = {
+                showErrorSheet = false
+            },
+        )
     }
 
 }
@@ -564,7 +616,7 @@ fun ImportDetailsEditCard(
     onUpdate: () -> Unit,
     onClose: () -> Unit,
 
-) {
+    ) {
 
     Column {
         Card(

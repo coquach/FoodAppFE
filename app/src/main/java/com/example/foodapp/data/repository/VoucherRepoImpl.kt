@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.apiRequestFlow
+import com.example.foodapp.data.dto.filter.VoucherFilter
 import com.example.foodapp.data.dto.request.VoucherRequest
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.paging.VoucherPagingSource
@@ -21,7 +22,7 @@ class VoucherRepoImpl @Inject constructor(
     private val voucherApi: VoucherApi,
 ) : VoucherRepository {
 
-    override fun getVouchers(): Flow<PagingData<Voucher>> {
+    override fun getVouchers(filter: VoucherFilter): Flow<PagingData<Voucher>> {
 
         return Pager(
             config = PagingConfig(
@@ -31,12 +32,12 @@ class VoucherRepoImpl @Inject constructor(
                 enablePlaceholders = true
             ),
             pagingSourceFactory = {
-                VoucherPagingSource(voucherApi = voucherApi, isCustomer = false)
+                VoucherPagingSource(voucherApi = voucherApi, isCustomer = false, filter = filter)
             }
         ).flow
     }
 
-    override fun getVouchersForCustomer(): Flow<PagingData<Voucher>> {
+    override fun getVouchersForCustomer(filter: VoucherFilter): Flow<PagingData<Voucher>> {
         return Pager(
             config = PagingConfig(
                 pageSize = ITEMS_PER_PAGE,
@@ -45,7 +46,7 @@ class VoucherRepoImpl @Inject constructor(
                 enablePlaceholders = true
             ),
             pagingSourceFactory = {
-                VoucherPagingSource(voucherApi = voucherApi, isCustomer = true)
+                VoucherPagingSource(voucherApi = voucherApi, isCustomer = true, filter = filter)
             }
         ).flow
     }

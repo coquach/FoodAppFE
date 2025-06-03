@@ -12,7 +12,7 @@ import javax.inject.Inject
 class PlaceOrderUseCase @Inject constructor(
     private val orderRepository: OrderRepository,
 ) {
-    operator fun invoke(request: OrderRequest): Flow<ApiResponse<Order>> {
+    operator fun invoke(request: OrderRequest) : Flow<ApiResponse<Order>> {
         try {
             return orderRepository.createOrder(request)
         }catch (e: Exception){

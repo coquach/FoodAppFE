@@ -79,7 +79,7 @@ class AddressListViewModel @Inject constructor(
                                 addresses = it.addresses + address
                             )
                         }
-                        _event.send(AddressList.Event.NavigateToAddAddress)
+
                     }
 
                     is FirebaseResult.Failure -> {

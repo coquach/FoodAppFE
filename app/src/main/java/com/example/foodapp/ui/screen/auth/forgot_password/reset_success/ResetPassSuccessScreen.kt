@@ -58,8 +58,11 @@ fun ResetPassSuccessScreen(
         Spacer(modifier = Modifier.size(16.dp))
         Button(
             onClick = {
-                navController.popBackStack()
-                navController.navigate(Auth)
+                navController.navigate(Auth) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp),

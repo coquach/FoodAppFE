@@ -58,13 +58,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.ImageListPicker
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.NoteInput
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -72,6 +75,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 
@@ -79,53 +83,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedbackDetailsScreen(
     navController: NavController,
-    foodId: Long,
     viewModel: FeedbackDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val imageList by viewModel.imageList.collectAsStateWithLifecycle()
-
-
-    val multiplePhotoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenMultipleDocuments(),
-        onResult = { uris ->
-            viewModel.onUpdateImageList(uris)
-        }
-    )
-
-    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Manifest.permission.READ_MEDIA_IMAGES
-    } else {
-        Manifest.permission.READ_EXTERNAL_STORAGE
-    }
-
-    val permissionState = rememberPermissionState(permission = permission)
-
-    val scope = rememberCoroutineScope()
-    val lazyListState = rememberLazyListState()
-    val snapBehavior = rememberSnapFlingBehavior(lazyListState = lazyListState)
-    val full = LocalConfiguration.current.screenWidthDp.dp
-    val pad = (full - 200.dp) / 2
-
     var showErrorSheet by remember { mutableStateOf(false) }
-    val errorMessage = remember { mutableStateOf<String?>(null) }
 
-    val feedbackRequest by viewModel.feedbackRequest.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
-
-
-    LaunchedEffect(errorMessage.value) {
-        if (errorMessage.value != null)
-            scope.launch {
-                showErrorSheet = true
-            }
-    }
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when(it){
-                FeedbackDetailsViewModel.FeedbackDetailsEvents.BackToFeedbackList -> {
+                FeedbackDetail.Event.BackToAfterFeedback -> {
                     Toast.makeText(
                         context,
                         "Đánh giá thành công",
@@ -136,32 +105,23 @@ fun FeedbackDetailsScreen(
                         ?.set("shouldRefresh", true)
                     navController.popBackStack()
                 }
-            }
-        }
-    }
-    when(uiState){
-        FeedbackDetailsViewModel.FeedbackDetailsState.Error ->{
-            errorMessage.value = "Failed"
-            if (showErrorSheet) {
-                ErrorModalBottomSheet(
-                    title = viewModel.error,
-                    description = viewModel.errorDescription,
-                    onDismiss = { showErrorSheet = false },
-                )
-            }
-        }
-        else -> {
-            errorMessage.value = null
-        }
-    }
 
+                FeedbackDetail.Event.OnBack -> {
+                    navController.popBackStack()
+                }
+                FeedbackDetail.Event.ShowError -> {
+                    showErrorSheet = true
+                }
+            }
+        }
+    }
+   
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val rating = remember { mutableIntStateOf(5) }
         HeaderDefaultView(
             text = "",
             onBack = {
@@ -185,8 +145,8 @@ fun FeedbackDetailsScreen(
                     .clip(CircleShape)
                     .border(4.dp, MaterialTheme.colorScheme.background, CircleShape),
                 contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.avatar_placeholder),
-                error = painterResource(id = R.drawable.avatar_placeholder)
+                placeholder = painterResource(id = R.drawable.ic_placeholder),
+                error = painterResource(id = R.drawable.ic_placeholder)
             )
 
 
@@ -196,7 +156,7 @@ fun FeedbackDetailsScreen(
                 style = MaterialTheme.typography.headlineSmall
             )
             Text(
-                text = when (rating.intValue) {
+                text = when (uiState.feedback.rating) {
 
                     5 -> "Tuyệt vời"
                     4 -> "Ngon"
@@ -206,7 +166,7 @@ fun FeedbackDetailsScreen(
 
                 },
                 style = TextStyle(
-                    color = when (rating.intValue) {
+                    color = when (uiState.feedback.rating) {
                         5 -> Color(0xFF4CAF50)
                         4 -> Color(0xFF8BC34A)
                         3 -> Color(0xFFFFC107)
@@ -218,86 +178,44 @@ fun FeedbackDetailsScreen(
                 fontSize = 25.sp
             )
             StarRatingBar(
-                rating = rating.intValue,
+                rating = uiState.feedback.rating,
                 onRatingChanged = {
-                    rating.intValue = it
+                    viewModel.onAction(FeedbackDetail.Action.OnRatingChanged(it))
                 },
             )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally),
-                contentAlignment = Alignment.Center
-            ) {
-                if (imageList.isEmpty()) {
-                    // Trường hợp chưa chọn ảnh nào
-                    ImagesPlaceholder(
-                        modifier = Modifier.align(Alignment.Center)
-                    ) {
-                        if (permissionState.status.isGranted) {
-                            multiplePhotoPickerLauncher.launch(arrayOf("image/*"))
-                        } else {
-                            permissionState.launchPermissionRequest()
-                        }
-                    }
-                } else {
-                    // Trường hợp đã có ảnh
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        state = lazyListState,
-                        flingBehavior = snapBehavior,
-                        contentPadding = PaddingValues(horizontal = pad)
-                    ) {
-                        items(imageList) { uri ->
-                            Image(
-                                painter = rememberAsyncImagePainter(uri),
-                                contentDescription = "Selected image",
-                                modifier = Modifier
-                                    .size(200.dp)
-                                    .shadow(8.dp, shape = RoundedCornerShape(12.dp))
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-
-                        // Nút cuối cùng để thêm ảnh
-                        item {
-                            ImagesPlaceholder(
-                                modifier = Modifier.align(Alignment.Center)
-                            ) {
-                                if (permissionState.status.isGranted) {
-                                    multiplePhotoPickerLauncher.launch(arrayOf("image/*"))
-                                    scope.launch {
-                                        lazyListState.animateScrollToItem(0)
-                                    }
-                                } else {
-                                    permissionState.launchPermissionRequest()
-                                }
-                            }
-                        }
-                    }
+            ImageListPicker(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                imageList = uiState.feedback.images?: emptyList(),
+                onUpdateImages = {
+                    viewModel.onAction(FeedbackDetail.Action.OnImagesChanged(it))
                 }
-            }
+            )
             NoteInput(
-                note = feedbackRequest.content?: "",
+                note = uiState.feedback.content?: "",
                 onNoteChange = {
-                    viewModel.onContentChange(it)
+                    viewModel.onAction(FeedbackDetail.Action.OnContentChanged(it))
                 },
                 textHolder = "Nhập đánh giá.."
             )
         LoadingButton(
             onClick = {
-                viewModel.createFeedback(foodId)
+                viewModel.onAction(FeedbackDetail.Action.OnFeedbackClicked)
             },
             modifier = Modifier.fillMaxWidth(),
             text = "Xác nhận",
-            loading = false
+            loading = uiState.isLoading
         )
 
         }
+
     }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.error.toString(),
+            onDismiss = { showErrorSheet = false }
+        )
+    }
+
 }
 @Composable
 fun StarRatingBar(
@@ -322,35 +240,6 @@ fun StarRatingBar(
     }
 }
 
-@Composable
-fun ImagesPlaceholder(
-    modifier: Modifier = Modifier,
-    onClick: () ->Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.size(100.dp),
-        shape = CircleShape,
-        colors = ButtonDefaults.buttonColors().copy(
-            containerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-        ),
-        contentPadding = PaddingValues(20.dp),
-    ){
-        Image(
-            painter = painterResource(id = R.drawable.ic_images) ,
-            contentDescription = "Add Images",
-            colorFilter = ColorFilter.tint(Color.White)
 
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewImages(){
-    FoodAppTheme {
-        ImagesPlaceholder {  }
-    }
-}
 
 

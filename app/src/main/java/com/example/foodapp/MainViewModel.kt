@@ -18,16 +18,18 @@ class MainViewModel @Inject constructor() : ViewModel() {
     private val _event = MutableSharedFlow<HomeEvent>()
     val event = _event.asSharedFlow()
 
-    private val _deepLinkUri = MutableStateFlow<Uri?>(null)
-    val deepLinkUri: StateFlow<Uri?> = _deepLinkUri
 
-    fun setDeepLink(uri: Uri) {
-        _deepLinkUri.value = uri
+
+    fun handleDeeplink(uri: Uri) {
+        val oobCode = uri.getQueryParameter("oobCode")
+        val mode = uri.getQueryParameter("mode")
+        if (!oobCode.isNullOrBlank() && !mode.isNullOrBlank()) {
+            viewModelScope.launch {
+                _event.emit(HomeEvent.NavigateToResetPassword(oobCode, mode))
+            }
+        }
     }
 
-    fun clearDeepLink() {
-        _deepLinkUri.value = null
-    }
 
     fun navigateToOrderDetail(order: Order) {
         viewModelScope.launch {
@@ -37,5 +39,8 @@ class MainViewModel @Inject constructor() : ViewModel() {
 
     sealed class HomeEvent {
         data class NavigateToOrderDetail(val order: Order) : HomeEvent()
+        data class NavigateToResetPassword(val oobCode: String, val mode: String) : HomeEvent()
+
+
     }
 }

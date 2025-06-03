@@ -4,7 +4,6 @@ import com.example.foodapp.data.model.Address
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
 import com.example.foodapp.domain.use_case.auth.GetCustomerIdUseCase
 import com.google.firebase.firestore.FirebaseFirestore
-import com.se114.foodapp.ui.screen.address.AddressListViewModel.AddressState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn

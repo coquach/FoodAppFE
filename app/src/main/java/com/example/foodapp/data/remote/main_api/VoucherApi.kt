@@ -19,6 +19,11 @@ interface VoucherApi {
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
+        @Query("minQuantity") minQuantity: Int? = null,
+        @Query("maxQuantity") maxQuantity: Int? = null,
+        @Query("type") type: String? = null,
+        @Query("startDate") startDate: String? = null,
+        @Query("endDate") endDate: String? = null,
     ): Response<PageResponse<Voucher>>
 
     @GET("vouchers/customer")
@@ -27,6 +32,11 @@ interface VoucherApi {
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
+        @Query("minQuantity") minQuantity: Int? = null,
+        @Query("maxQuantity") maxQuantity: Int? = null,
+        @Query("type") type: String? = null,
+        @Query("startDate") startDate: String? = null,
+        @Query("endDate") endDate: String? = null,
     ): Response<PageResponse<Voucher>>
 
     @POST("vouchers")

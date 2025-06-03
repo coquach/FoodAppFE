@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -59,9 +60,9 @@ fun WarehouseScreen(
     navController: NavController,
     viewModel: WarehouseViewModel = hiltViewModel()
 ) {
-    var search by remember { mutableStateOf("") }
+   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val inventories = viewModel.inventories.collectAsLazyPagingItems()
+    val inventories = viewModel.getInventoriesByTab(uiState.tabIndex).collectAsLazyPagingItems()
 
 
 
@@ -88,10 +89,10 @@ fun WarehouseScreen(
                 navController.navigate(Import)
             }
         )
-        SearchField(
-            searchInput = search,
-            searchChange = { search = it }
-        )
+//        SearchField(
+//            searchInput = search,
+//            searchChange = { search = it }
+//        )
         TabWithPager(
             tabs = listOf("Tồn kho", "Hết hạn", "Đã dùng"),
             pages = listOf(
@@ -112,7 +113,7 @@ fun WarehouseScreen(
                 }
             ),
             onTabSelected = { index ->
-                viewModel.setTab(index)
+                viewModel.onAction(WarehouseState.Action.OnTabSelected(index))
             }
         )
 

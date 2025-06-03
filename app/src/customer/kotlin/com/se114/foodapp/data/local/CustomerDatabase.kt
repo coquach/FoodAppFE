@@ -9,7 +9,7 @@ import com.example.foodapp.data.local.entities.CartItemEntity
 import com.example.foodapp.data.local.daos.CartDao
 
 
-@Database(entities = [CartItemEntity::class], version = 1)
+@Database(entities = [CartItemEntity::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class CustomerDatabase : RoomDatabase() {
     abstract fun cartDao(): CartDao

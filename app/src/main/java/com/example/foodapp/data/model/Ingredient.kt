@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Ingredient(
-    val id: Long,
-    val name: String,
-    val unitId: Long,
+    val id: Long?= null,
+    val name: String = "",
+    val unitId: Long?= null,
 )

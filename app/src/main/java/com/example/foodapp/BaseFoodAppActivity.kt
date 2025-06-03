@@ -35,7 +35,7 @@ abstract class BaseFoodAppActivity : ComponentActivity(){
             intent.removeExtra("order_data")
         }
         intent.data?.let { uri ->
-            viewModel.setDeepLink(uri)
+            viewModel.handleDeeplink(uri)
         }
     }
 }

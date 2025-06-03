@@ -10,9 +10,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:allowBackup="true"
@@ -23,11 +23,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/SplashTheme"
-        android:windowSoftInputMode = "adjustResize"
+        android:windowSoftInputMode="adjustResize"
         android:usesCleartextTraffic="true"
         android:name=".FoodApp"
-        tools:targetApi="31"
-        >
+        tools:targetApi="31">
 
 
         <activity
@@ -48,14 +47,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:scheme="https"
-                    android:host="foodapp"
-                    android:pathPrefix="/reset-password" />
+                <data android:scheme="https" />
+                <data android:host="foodapp.com" />
+                <data android:path="/reset-password" />
             </intent-filter>
         </activity>
         <service
-            android:name=".nofication.FoodAppMessagingService"
+            android:name=".notification.FoodAppMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.example.foodapp.data.dto.filter.VoucherFilter
 import com.example.foodapp.data.model.Voucher
 
 import com.se114.foodapp.domain.use_case.voucher.GetVoucherForCustomerUseCase
@@ -29,7 +30,7 @@ class VouchersViewModel @Inject constructor(
 
 
     val vouchers: StateFlow<PagingData<Voucher>> =
-        getVoucherForCustomerUseCase().cachedIn(viewModelScope).stateIn(
+        getVoucherForCustomerUseCase(VoucherFilter()).cachedIn(viewModelScope).stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             PagingData.empty()

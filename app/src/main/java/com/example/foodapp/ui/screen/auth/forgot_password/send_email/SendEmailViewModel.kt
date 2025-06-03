@@ -1,125 +1,115 @@
 package com.example.foodapp.ui.screen.auth.forgot_password.send_email
 
-import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.domain.repository.AccountService
-import com.example.foodapp.utils.ValidateField
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.domain.use_case.auth.SendEmailResetUseCase
+import com.example.foodapp.ui.screen.components.validateField
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
+
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SendEmailViewModel @Inject constructor(
-    private val accountService: AccountService
-) : BaseViewModel() {
-    private val _uiState = MutableStateFlow<SendEmailState>(SendEmailState.Nothing)
-    val uiState = _uiState.asStateFlow()
+    private val sendEmailResetUseCase: SendEmailResetUseCase,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(SendEmailReset.UiState())
+    val uiState: StateFlow<SendEmailReset.UiState> get() = _uiState.asStateFlow()
 
-    private val _event = MutableSharedFlow<SendEmailEvents>();
-    val event = _event.asSharedFlow()
+    private val _event = Channel<SendEmailReset.Event>()
+    val event = _event.receiveAsFlow()
 
-    private val _email = MutableStateFlow("")
-    val email = _email.asStateFlow()
 
-    fun onEmailChanged(email: String) {
-        _email.value = email
-        isEmailSent.value = false
+
+    fun validate(type: String) {
+        val current = _uiState.value
+        var emailError: String? = current.emailError
+        when (type) {
+            "email" -> {
+                 emailError = validateField(
+                    current.email.trim(),
+                    "Email không hợp lệ"
+                ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) }
+
+            }
+
+        }
+        val isValid = emailError == null
+        _uiState.update {
+            it.copy(
+                emailError = emailError,
+                isValid = isValid
+            )
+        }
     }
 
-    var emailError = mutableStateOf<String?>(null)
-
-    private var lastClickTime = 0L
-
-    var isEmailSent = mutableStateOf(false)
-        private set
-
-
-    fun validate(): Boolean {
-        var isValid = true
-
-        isValid = ValidateField(
-            email.value,
-            emailError,
-            "Email không hợp lệ"
-        ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) } && isValid
-
-        return isValid
-
-    }
-    fun onSendEmailClick(){
+    private fun sendEmail() {
         viewModelScope.launch {
-
-
-            if (isEmailSent.value) {
-                _uiState.value = SendEmailState.Nothing
-                _event.emit(SendEmailEvents.ShowAlreadySent)
-                return@launch
-            }
-
-            // Tránh spam: cooldown 3s
-            if (System.currentTimeMillis() - lastClickTime < 3000) {
-                _uiState.value = SendEmailState.Nothing
-                _event.emit(SendEmailEvents.ShowTooFast)
-                return@launch
-            }
-            lastClickTime = System.currentTimeMillis()
-            _uiState.value = SendEmailState.Loading
-            try {
-                if (validate()) {
-                    delay(3000)
-                    accountService.forgetPassword(email.value)
-                    isEmailSent.value = true
-                    _uiState.value = SendEmailState.Success
-                    _event.emit(SendEmailEvents.ShowSuccess)
-                }else {
-                    error = "Email không hợp lệ"
-                    errorDescription = "Vui lòng nhập email chính xác."
-                    _uiState.value = SendEmailState.Error
+            sendEmailResetUseCase(uiState.value.email).collect {response ->
+                when (response) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                    is FirebaseResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _event.send(SendEmailReset.Event.ShowSuccess)
+                    }
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(isLoading = false, error = response.error) }
+                        _event.send(SendEmailReset.Event.ShowError)
+                    }
                 }
-
-                _uiState.value = SendEmailState.Nothing
-            }catch (e: FirebaseAuthInvalidUserException) {
-                error = "Email chưa được đăng ký."
-                errorDescription = "Vui lòng nhập email khác"
-                _uiState.value =  SendEmailState.Error
-
-            } catch (e: Exception) {
-                error = "Lỗi không xác định"
-                errorDescription = "Vui lòng thử lại"
-                _uiState.value = SendEmailState.Error
             }
         }
     }
 
 
-
-    fun onLoginClick() {
-       viewModelScope.launch {
-           _event.emit(SendEmailEvents.NavigateToLogin)
-       }
+    fun onAction(action: SendEmailReset.Action) {
+        when (action) {
+            is SendEmailReset.Action.OnEmailChanged -> {
+                _uiState.update { it.copy(email = action.email) }
+            }
+            is SendEmailReset.Action.SendEmail -> {
+                    sendEmail()
+            }
+            is SendEmailReset.Action.Login -> {
+                viewModelScope.launch {
+                    _event.send(SendEmailReset.Event.NavigateToLogin)
+                }
+            }
     }
 
 
 
+}
+}
 
-    sealed class SendEmailState {
-        data object Nothing : SendEmailState()
-        data object Success : SendEmailState()
-        data object Error : SendEmailState()
-        data object Loading : SendEmailState()
+object SendEmailReset {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val isValid: Boolean = false,
+        val email: String = "",
+        val emailError: String? = null,
+        val error: String? = null,
+    )
+
+    sealed interface Event {
+        data object NavigateToLogin : Event
+        data object ShowSuccess : Event
+        data object ShowError : Event
     }
 
-    sealed class SendEmailEvents{
-        data object NavigateToLogin : SendEmailEvents()
-        data object ShowSuccess : SendEmailEvents()
-        data object ShowAlreadySent: SendEmailEvents()
-        data object  ShowTooFast : SendEmailEvents()
-        data object  ShowError : SendEmailEvents()
+    sealed interface Action {
+        data class OnEmailChanged(val email: String) : Action
+        data object SendEmail : Action
+        data object Login : Action
     }
 }

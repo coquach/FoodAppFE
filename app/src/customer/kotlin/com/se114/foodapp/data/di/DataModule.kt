@@ -6,13 +6,18 @@ import com.example.foodapp.data.remote.OpenCageApi
 import com.example.foodapp.data.remote.main_api.FeedbackApi
 import com.se114.foodapp.data.local.CustomerDatabase
 import com.se114.foodapp.data.repository.CartRepoImpl
+import com.example.foodapp.data.repository.OrderRepoImpl
+import com.example.foodapp.data.repository.VoucherRepoImpl
 import com.se114.foodapp.data.repository.ChatBoxRepoImpl
 import com.se114.foodapp.data.repository.FeedbackRepoImpl
 import com.se114.foodapp.data.repository.OpenCageRepoImpl
-import com.se114.foodapp.domain.repository.CartRepository
+import com.example.foodapp.domain.repository.CartRepository
+import com.example.foodapp.domain.repository.OrderRepository
+import com.example.foodapp.domain.repository.VoucherRepository
 import com.se114.foodapp.domain.repository.ChatBoxRepository
 import com.se114.foodapp.domain.repository.FeedbackRepository
 import com.se114.foodapp.domain.repository.OpenCageRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,28 +26,24 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DataModule {
-    @Provides
-    @Singleton
-    fun provideCartRepository(customerDatabase: CustomerDatabase): CartRepository {
-        return CartRepoImpl(customerDatabase)
-    }
+abstract class DataModule {
+    @Binds
+    abstract fun provideCartRepository(cartRepoImpl: CartRepoImpl): CartRepository
 
-    @Provides
-    @Singleton
-    fun provideFeedbackRepository(feedbackApi: FeedbackApi): FeedbackRepository {
-        return FeedbackRepoImpl(feedbackApi)
-    }
 
-    @Provides
-    @Singleton
-    fun provideOpenCageRepository(openCageApi: OpenCageApi): OpenCageRepository {
-        return OpenCageRepoImpl(openCageApi)
-    }
+    @Binds
+    abstract fun provideFeedbackRepository(feedbackRepoImpl: FeedbackRepoImpl): FeedbackRepository
 
-    @Provides
-    @Singleton
-    fun provideChatBoxRepository(aiApi: AiApi): ChatBoxRepository {
-        return ChatBoxRepoImpl(aiApi)
-    }
+
+    @Binds
+    abstract fun provideOpenCageRepository(openCageRepoImpl: OpenCageRepoImpl): OpenCageRepository
+
+    @Binds
+    abstract fun provideChatBoxRepository(chatBoxRepoImpl: ChatBoxRepoImpl): ChatBoxRepository
+
+    @Binds
+    abstract fun provideVoucherRepository(voucherRepoImpl: VoucherRepoImpl): VoucherRepository
+
+    @Binds
+    abstract fun provideOrderRepository(orderRepoImpl: OrderRepoImpl): OrderRepository
 }

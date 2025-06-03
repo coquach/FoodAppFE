@@ -13,11 +13,12 @@ import com.example.foodapp.navigation.FoodAppNavHost
 import com.example.foodapp.navigation.NavRoute
 import com.example.foodapp.navigation.Welcome
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
-import com.se114.foodapp.ui.app_nav.auth.authGraph
-import com.se114.foodapp.app_nav.home.homeGraph
-import com.se114.foodapp.ui.app_nav.order.orderGraph
-import com.se114.foodapp.ui.app_nav.setting.settingGraph
+import com.se114.foodapp.navigation.auth.authGraph
+import com.se114.foodapp.navigation.home.homeGraph
+import com.se114.foodapp.navigation.order.orderGraph
+import com.se114.foodapp.navigation.setting.settingGraph
 import com.example.foodapp.ui.screen.welcome.WelcomeScreen
+import com.se114.foodapp.navigation.notification.notificationGraph
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -39,7 +40,7 @@ fun AppNavGraph(
             authGraph(navController, shouldShowBottomNav)
             homeGraph(navController, shouldShowBottomNav, notificationViewModel, sharedTransitionScope)
             orderGraph(navController, shouldShowBottomNav)
-            
+            notificationGraph(navController, shouldShowBottomNav, notificationViewModel)
             settingGraph(navController, shouldShowBottomNav, isDarkMode, onThemeUpdated)
             composable<Welcome> {
                 shouldShowBottomNav.value = false

@@ -4,11 +4,14 @@ package com.example.foodapp.domain.use_case.auth
 import com.example.foodapp.data.model.Account
 import com.example.foodapp.domain.repository.AccountRepository
 import com.example.foodapp.utils.StringUtils
+import com.google.firebase.Firebase
 
 
-import com.google.firebase.firestore.FirebaseFirestore
+
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.ktx.firestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -17,7 +20,6 @@ import javax.inject.Inject
 
 class UpdateProfileUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
-    private val firestore: FirebaseFirestore,
 ) {
     operator fun invoke(profile: Account) = flow<FirebaseResult<Unit>> {
         emit(FirebaseResult.Loading)
@@ -42,7 +44,7 @@ class UpdateProfileUseCase @Inject constructor(
         )
 
         try {
-            firestore.collection("users").document(uid)
+            Firebase.firestore.collection("users").document(uid)
                 .set(userMap, SetOptions.merge())
                 .await() // Use await
             //Create an initial empty address document for the user.
@@ -55,7 +57,7 @@ class UpdateProfileUseCase @Inject constructor(
                 "lon" to 0.0
             )
 
-            firestore.collection("users")
+            Firebase.firestore.collection("users")
                 .document(uid)
                 .collection("addresses")
                 .document("init")

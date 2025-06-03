@@ -6,18 +6,15 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Menu
-import com.example.foodapp.domain.use_case.cart.GetCartSizeUseCase
+import com.se114.foodapp.domain.use_case.cart.GetCartSizeUseCase
 import com.example.foodapp.domain.use_case.food.GetFoodsByMenuIdUseCase
 import com.example.foodapp.domain.use_case.food.GetMenusUseCase
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -49,7 +46,7 @@ class HomeViewModel @Inject constructor(
     fun onAction(action: Home.Action) {
         when (action) {
             is Home.Action.OnMenuClicked -> {
-                getFoodsByMenuId(action.menuId)
+                _uiState.update { it.copy(menuIdSelected = action.menuId) }
             }
 
             is Home.Action.OnFoodClicked -> {
@@ -110,6 +107,7 @@ class HomeViewModel @Inject constructor(
 
 object Home {
     data class UiState(
+        val menuIdSelected: Long = 1,
         val cartSize: Int = 0,
         val error: String? = null,
     )

@@ -35,7 +35,6 @@ import com.example.foodapp.BaseFoodAppActivity
 import com.example.foodapp.MainViewModel
 import com.example.foodapp.SplashViewModel
 
-import com.example.foodapp.data.model.ResetPasswordArgs
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
@@ -97,7 +96,8 @@ class MainActivity : BaseFoodAppActivity() {
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
 
-            val screen by splashViewModel.startDestination
+            val startDestination by splashViewModel.startDestination
+            val isLoading by splashViewModel.isLoading.collectAsState()
 
             FoodAppTheme(darkTheme = isDarkMode) {
 
@@ -115,20 +115,7 @@ class MainActivity : BaseFoodAppActivity() {
                 val notificationViewModel: NotificationViewModel = hiltViewModel()
                 val unreadCount = notificationViewModel.unreadCount.collectAsStateWithLifecycle()
                 val navController = rememberNavController()
-                val deepLinkUri by viewModel.deepLinkUri.collectAsState()
-                LaunchedEffect(deepLinkUri) {
-                    deepLinkUri?.let { uri ->
-                        Log.d("reset pass", "check")
-                        val oobCode = uri.getQueryParameter("oobCode")
-                        val mode = uri.getQueryParameter("mode")
 
-                        if (!oobCode.isNullOrBlank() && !mode.isNullOrBlank()) {
-                            val route = ResetPassword(ResetPasswordArgs(oobCode, mode))
-                            navController.navigate(route)
-                        }
-                        viewModel.clearDeepLink()
-                    }
-                }
                 LaunchedEffect(key1 = true) {
                     viewModel.event.collectLatest {
                         when (it) {
@@ -136,6 +123,15 @@ class MainActivity : BaseFoodAppActivity() {
                                 navController.navigate(
                                     OrderDetails(
                                         it.order
+                                    )
+                                )
+                            }
+
+                            is MainViewModel.HomeEvent.NavigateToResetPassword -> {
+                                navController.navigate(
+                                    ResetPassword(
+                                        it.oobCode,
+                                        it.mode
                                     )
                                 )
                             }
@@ -155,34 +151,36 @@ class MainActivity : BaseFoodAppActivity() {
                         }
                     }
                 }
+                if(!isLoading){
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        containerColor = MaterialTheme.colorScheme.background,
+                        bottomBar = {
+                            AnimatedVisibility(visible = shouldShowBottomNav.value) {
+                                BottomNavigationBar(navController, navItems, unreadCount)
+                            }
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.background,
-                    bottomBar = {
-                        AnimatedVisibility(visible = shouldShowBottomNav.value) {
-                            BottomNavigationBar(navController, navItems, unreadCount)
                         }
 
-                    }
+                    ) { innerPadding ->
 
-                ) { innerPadding ->
-
-                    SharedTransitionLayout {
-                        AppNavGraph(
-                            navController = navController,
-                            innerPadding = innerPadding,
-                            shouldShowBottomNav = shouldShowBottomNav,
-                            notificationViewModel = notificationViewModel,
-                            startDestination = screen,
-                            isDarkMode = isDarkMode,
-                            onThemeUpdated = {
-                                isDarkMode = !isDarkMode
-                            },
-                            sharedTransitionScope = this
-                        )
+                        SharedTransitionLayout {
+                            AppNavGraph(
+                                navController = navController,
+                                innerPadding = innerPadding,
+                                shouldShowBottomNav = shouldShowBottomNav,
+                                notificationViewModel = notificationViewModel,
+                                startDestination = startDestination,
+                                isDarkMode = isDarkMode,
+                                onThemeUpdated = {
+                                    isDarkMode = !isDarkMode
+                                },
+                                sharedTransitionScope = this
+                            )
+                        }
                     }
                 }
+
             }
 
         }

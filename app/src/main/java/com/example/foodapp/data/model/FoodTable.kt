@@ -8,5 +8,5 @@ data class FoodTable(
     val id: Long? = null,
     val tableNumber: Int = 0,
     val seatCapacity: Int = 0,
-    val active: Boolean
+    val active: Boolean= true
 )

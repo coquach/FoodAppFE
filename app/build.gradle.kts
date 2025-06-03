@@ -145,6 +145,7 @@ secrets {
 
 dependencies {
 
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -167,7 +168,7 @@ dependencies {
 
     implementation(libs.core.splashscreen)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
-
+    implementation("com.google.accompanist:accompanist-flowlayout:0.27.0")
 
     //Dagger - Hilt
     implementation(libs.hilt.android)

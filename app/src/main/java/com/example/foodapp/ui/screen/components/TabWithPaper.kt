@@ -35,11 +35,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import com.se114.foodapp.data.di.DataModule
 
 import kotlinx.coroutines.launch
 
 @Composable
 fun TabWithPager(
+    modifier: Modifier = Modifier,
     tabs: List<String>,
     pages: List<@Composable () -> Unit>,
     scrollable: Boolean = false,
@@ -51,7 +53,7 @@ fun TabWithPager(
     val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = 0)
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         val tabRow: @Composable (@Composable () -> Unit) -> Unit = { content ->

@@ -39,10 +39,11 @@ class FoodRepoImpl @Inject constructor(
         ).flow
     }
 
+
     override fun addFood(
         menuId: Long,
         request: Map<String, @JvmSuppressWildcards RequestBody>,
-        images: List<MultipartBody.Part>?,
+        images: List<MultipartBody.Part?>?,
     ): Flow<ApiResponse<Food>> {
         return apiRequestFlow {
             foodApi.createFood(
@@ -57,7 +58,7 @@ class FoodRepoImpl @Inject constructor(
         foodId: Long,
         menuId: Long,
         request: Map<String, @JvmSuppressWildcards RequestBody>,
-        images: List<MultipartBody.Part>?,
+        images: List<MultipartBody.Part?>?,
     ): Flow<ApiResponse<Food>> {
         return apiRequestFlow {
             foodApi.updateFood(

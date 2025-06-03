@@ -6,10 +6,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.math.BigDecimal
 
 data class FoodMultipartRequest(
-    val name: String,
-    val description: String,
-    val price: BigDecimal,
-    val defaultQuantity: Int
+    val name: String= "",
+    val description: String= "",
+    val price: BigDecimal= BigDecimal.ZERO,
+    val defaultQuantity: Int = 1
 ) {
     fun toPartMap(): Map<String, @JvmSuppressWildcards RequestBody> {
         val map = mutableMapOf<String, RequestBody>()

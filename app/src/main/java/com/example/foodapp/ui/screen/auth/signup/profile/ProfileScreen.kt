@@ -231,7 +231,7 @@ fun ProfileScreen(
 
 
             LoadingButton(
-                onClick = { if (uiState.isUpdating) viewModel.updateProfile(isUpdating = true) else viewModel.updateProfile() },
+                onClick = { viewModel.onAction(Profile.Action.OnUpdateProfile) },
                 modifier = Modifier.fillMaxWidth(),
                 text = if (uiState.isUpdating) "Cập nhật" else "Xác nhận",
                 loading = uiState.isLoading,
@@ -263,10 +263,12 @@ fun ProfileScreen(
 
 
     }
-    ImagePickerBottomSheet(
-        showSheet = showSheetImage,
-        onDismiss = { showSheetImage = false },
-        onImageSelected = { uri -> viewModel.onAction(Profile.Action.OnAvatarChanged(uri)) })
+    if (showSheetImage){
+        ImagePickerBottomSheet(
+            onDismiss = { showSheetImage = false },
+            onImageSelected = { uri -> viewModel.onAction(Profile.Action.OnAvatarChanged(uri)) })
+    }
+
 
     if (showErrorSheet) {
         ErrorModalBottomSheet(

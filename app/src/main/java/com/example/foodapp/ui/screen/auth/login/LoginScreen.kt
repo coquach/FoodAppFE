@@ -86,15 +86,18 @@ fun LoginScreen(
                     Login.Event.NavigateSignUp -> {
                         navController.navigate(SignUp)
                     }
-                    Login.Event.NavigateToAdmin,
+                    Login.Event.NavigateToAdmin ->{
+                        navController.navigate(Statistics){
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                        }
+                    }
                     Login.Event.NavigateToCustomer,
                     Login.Event.NavigateToStaff -> {
 
-                        val destination = when (event) {
-                            Login.Event.NavigateToAdmin -> Statistics
-                            else -> Home
-                        }
-                        navController.navigate(destination) {
+
+                        navController.navigate(Home) {
                             popUpTo(navController.graph.startDestinationId) {
                                 inclusive = true
                             }
@@ -127,11 +130,10 @@ fun LoginScreen(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 )
-            Spacer(modifier = Modifier.size(20.dp))
+
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -202,8 +204,9 @@ fun LoginScreen(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.size(16.dp))
+             
                 LoadingButton(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         viewModel.onAction(Login.Action.LoginClicked)
                     },
@@ -214,7 +217,7 @@ fun LoginScreen(
             }
 
 
-            Spacer(modifier = Modifier.size(16.dp))
+
             if (isCustomer) {
                 Text(
                     text = stringResource(id = R.string.dont_have_account),
@@ -225,7 +228,7 @@ fun LoginScreen(
                         }
                         .fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
+
 
                 )
                 GoogleLoginButton(

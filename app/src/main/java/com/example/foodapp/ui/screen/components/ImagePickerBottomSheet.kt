@@ -44,7 +44,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ImagePickerBottomSheet(
-    showSheet: Boolean,
     onDismiss: () -> Unit,
     onImageSelected: (Uri) -> Unit
 ) {
@@ -80,7 +79,7 @@ fun ImagePickerBottomSheet(
         uri?.let { cameraLauncher.launch(it) }
     }
 
-    if (showSheet) {
+
         ModalBottomSheet(
             onDismissRequest = { onDismiss() },
             sheetState = sheetState
@@ -152,22 +151,19 @@ fun ImagePickerBottomSheet(
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
-    }
 
-    // Optional: Hiện thông báo nếu user từ chối quyền
-    LaunchedEffect(cameraPermissionState.status) {
-        if (cameraPermissionState.status.shouldShowRationale) {
-            Toast.makeText(
-                context,
-                "Ứng dụng cần quyền máy ảnh để chụp ảnh",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 
-    if (galleryPermissionState != null) {
-        LaunchedEffect(galleryPermissionState.status) {
-            if (galleryPermissionState.status.shouldShowRationale) {
+    LaunchedEffect(cameraPermissionState.status, galleryPermissionState?.status) {
+        when {
+            cameraPermissionState.status.shouldShowRationale -> {
+                Toast.makeText(
+                    context,
+                    "Ứng dụng cần quyền máy ảnh để chụp ảnh",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            galleryPermissionState?.status?.shouldShowRationale == true -> {
                 Toast.makeText(
                     context,
                     "Ứng dụng cần quyền đọc ảnh để chọn từ thư viện",

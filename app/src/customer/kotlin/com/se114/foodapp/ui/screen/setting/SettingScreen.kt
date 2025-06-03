@@ -190,7 +190,7 @@ fun SettingScreen(
                 items = listOf(
                     {
                         SettingItem(Icons.Default.LocationOn, "Địa chỉ", onClick = {viewModel.onAction(Setting.Action.OnAddressClicked)})
-                        SettingItem(Icons.Default.CardGiftcard, "Voucher của tôi")
+                        SettingItem(Icons.Default.CardGiftcard, "Voucher của tôi", onClick = {viewModel.onAction(Setting.Action.OnVoucherClicked)})
                     }
                 )
             )

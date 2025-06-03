@@ -1,22 +1,19 @@
 package com.se114.foodapp.ui.screen.feedback.feedback_details
 
-import android.content.Context
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
+import androidx.navigation.toRoute
+
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.request.FeedbackMultipartRequest
-import com.example.foodapp.data.dto.safeApiCall
-import com.example.foodapp.data.model.Feedback
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.utils.ImageUtils
-import com.se114.foodapp.ui.screen.vouchers.VouchersViewModel.VouchersState
+import com.example.foodapp.data.model.FeedbackUi
+import com.example.foodapp.navigation.FeedbackDetails
+
+import com.se114.foodapp.domain.use_case.feedback.CreateFeedbackUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
+
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,87 +24,88 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FeedbackDetailsViewModel @Inject constructor(
-    private val foodApi: FoodApi,
-    private val accountService: AccountService,
-    @ApplicationContext val context: Context
-) : BaseViewModel() {
-    private val _uiState = MutableStateFlow<FeedbackDetailsState>(FeedbackDetailsState.Nothing)
-    val uiState = _uiState.asStateFlow()
+    val savedStateHandle: SavedStateHandle,
+    private val createFeedbackUseCase: CreateFeedbackUseCase,
+) : ViewModel() {
 
-    private val _event = Channel<FeedbackDetailsEvents>()
+    private val orderItemId = savedStateHandle.toRoute<FeedbackDetails>().orderItemId
+
+    private val _uiState = MutableStateFlow(FeedbackDetail.UiState())
+    val uiState: StateFlow<FeedbackDetail.UiState> get() = _uiState.asStateFlow()
+
+    private val _event = Channel<FeedbackDetail.Event>()
     val event = _event.receiveAsFlow()
 
-
-    private val _feedbackRequest = MutableStateFlow(
-        FeedbackMultipartRequest(
-            foodId = null,
-            content = "",
-            rating = 5
-        )
-    )
-    val feedbackRequest = _feedbackRequest.asStateFlow()
-
-    fun onContentChange(content: String) {
-        _feedbackRequest.update { it.copy(content = content) }
-
-    }
-    private val _foodId = MutableStateFlow<Long?>(null)
-    
-    
-    private val _imageList = MutableStateFlow<List<Uri>>(emptyList())
-    val imageList = _imageList.asStateFlow()
-
-    fun onUpdateImageList(imageList: List<Uri>?){
-       _imageList.value = imageList ?: emptyList()
-    }
-
-
-    fun createFeedback(foodId: Long) {
+    private fun createFeedback() {
         viewModelScope.launch {
-            _uiState.value = FeedbackDetailsState.Loading
-            try {
-                _feedbackRequest.update { it.copy(foodId = foodId) }
-                val request =_feedbackRequest.value
-                val partMap = request.toPartMap()
-                val imageListPart = if(_imageList.value.isNotEmpty()) _imageList.value.map {
-                    ImageUtils.getImagePart(context, it)!!
-                }
-                else null
-
-
-                val response = safeApiCall { foodApi.createFeedback(partMap, imageListPart) }
-                when(response){
-                    is ApiResponse.Error -> {
-                        error = "Lỗi khi tạo đánh giá"
-                        errorDescription = response.message
-                        _uiState.value = FeedbackDetailsState.Error
-                    }
-                    is ApiResponse.Exception -> {
-                        error = "Lỗi khi tạo đánh giá"
-                        errorDescription = response.exception.toString()
-                        _uiState.value = FeedbackDetailsState.Error
-                    }
+            createFeedbackUseCase(orderItemId, uiState.value.feedback).collect { result ->
+                when (result) {
                     is ApiResponse.Success -> {
-                        _uiState.value = FeedbackDetailsState.Success
-                        _event.send(FeedbackDetailsEvents.BackToFeedbackList)
+                        _event.send(FeedbackDetail.Event.BackToAfterFeedback)
+                    }
+
+                    is ApiResponse.Failure -> {
+                        _uiState.update { it.copy(error = result.errorMessage) }
+                        _event.send(FeedbackDetail.Event.ShowError)
+                    }
+
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
 
+    fun onAction(action: FeedbackDetail.Action) {
+        when (action) {
+            is FeedbackDetail.Action.OnFeedbackClicked -> {
+                createFeedback()
+            }
 
-    sealed class FeedbackDetailsState {
-        data object Nothing : FeedbackDetailsState()
-        data object Loading : FeedbackDetailsState()
-        data object Success : FeedbackDetailsState()
-        data object Error : FeedbackDetailsState()
+            is FeedbackDetail.Action.OnRatingChanged -> {
+                _uiState.update { it.copy(feedback = it.feedback.copy(rating = action.rating)) }
+            }
+
+            is FeedbackDetail.Action.OnContentChanged -> {
+                _uiState.update { it.copy(feedback = it.feedback.copy(content = action.content)) }
+            }
+
+            is FeedbackDetail.Action.OnImagesChanged -> {
+                _uiState.update { it.copy(feedback = it.feedback.copy(images = action.images)) }
+            }
+
+            is FeedbackDetail.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(FeedbackDetail.Event.OnBack)
+                }
+            }
+
+        }
     }
 
-    sealed class FeedbackDetailsEvents {
-        data object BackToFeedbackList : FeedbackDetailsEvents()
+}
+
+object FeedbackDetail {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val error: String? = null,
+        val feedback: FeedbackUi = FeedbackUi(),
+    )
+
+    sealed interface Event {
+        data object BackToAfterFeedback : Event
+        data object ShowError : Event
+        data object OnBack : Event
+
+    }
+
+    sealed interface Action {
+        data object OnFeedbackClicked : Action
+        data class OnRatingChanged(val rating: Int) : Action
+        data class OnContentChanged(val content: String) : Action
+        data class OnImagesChanged(val images: List<Uri>?) : Action
+        data object OnBack : Action
 
     }
 }

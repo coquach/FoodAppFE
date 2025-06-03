@@ -1,6 +1,7 @@
 package com.example.foodapp.ui.screen.auth.forgot_password.change_password
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -41,15 +42,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import com.example.foodapp.R
+import com.example.foodapp.navigation.Auth
+import com.example.foodapp.navigation.Login
 import com.example.foodapp.navigation.ResetPasswordSuccess
+import com.example.foodapp.ui.screen.auth.signup.SignUp
 import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.LoadingButton
+import com.example.foodapp.ui.screen.components.PasswordTextField
 import com.example.foodapp.ui.theme.FoodAppTheme
-import com.example.foodapp.utils.ValidateField
+
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -57,43 +65,25 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChangePasswordScreen(
     navController: NavController,
-    oobCode: String = "",
-    method: String = "",
     viewModel: ChangePasswordViewModel = hiltViewModel()
 ) {
-    val password = viewModel.password.collectAsStateWithLifecycle()
-    val confirmPassword = viewModel.confirmPassword.collectAsStateWithLifecycle()
-
-
-    val passwordError = viewModel.passwordError
-    val conFirmPasswordError = viewModel.confirmPasswordError
-
-    var isTouched by remember { mutableStateOf(false) }
-
-    var showPassword by remember { mutableStateOf(false) }
-    val errorMessage = remember { mutableStateOf<String?>(null) }
-    val loading = remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
+val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showErrorSheet by remember { mutableStateOf(false) }
 
 
-
-    LaunchedEffect(errorMessage.value) {
-        if (errorMessage.value != null)
-            scope.launch {
-                showErrorSheet = true
-            }
-    }
-    LaunchedEffect(oobCode, method) {
-        viewModel.setResetPasswordArgs(oobCode, method)
-    }
-
-    LaunchedEffect(key1 = true) {
-        viewModel.event.collectLatest {
+val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collectLatest {
             when (it) {
-                ChangePasswordViewModel.ChangePasswordEvents.NavigateToSuccess -> {
+                ChangePasswordState.Event.NavigateToSuccess -> {
                     navController.navigate(ResetPasswordSuccess)
+                }
+
+                ChangePasswordState.Event.NavigateToAuth ->{
+                    navController.popBackStack(route = Auth, inclusive = false)
+                }
+                ChangePasswordState.Event.ShowError -> {
+                    showErrorSheet = true
                 }
             }
         }
@@ -103,24 +93,8 @@ fun ChangePasswordScreen(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-        when (uiState.value) {
-            is ChangePasswordViewModel.ChangePasswordState.Error -> {
 
-                loading.value = false
-                errorMessage.value = "Failed"
-            }
 
-            is ChangePasswordViewModel.ChangePasswordState.Loading -> {
-                loading.value = true
-                errorMessage.value = null
-            }
-
-            else -> {
-                loading.value = false
-                errorMessage.value = null
-            }
-        }
         Text(
             text = stringResource(R.string.reset_password),
             style = MaterialTheme.typography.headlineLarge,
@@ -146,116 +120,52 @@ fun ChangePasswordScreen(
 
             Column(
                 modifier = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                FoodAppTextField(
-                    labelText = "Nhập mật khẩu mới",
-                    value = password.value,
+                PasswordTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = uiState.password,
                     onValueChange = {
-                        viewModel.onPasswordChanged(it)
-                        if (!isTouched) isTouched = true
+                        viewModel.onAction(ChangePasswordState.Action.OnPasswordChanged(it))
                     },
-                    isError = passwordError.value != null,
-                    errorText = passwordError.value,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { focusState ->
-                            if (isTouched && !focusState.isFocused) {
-                                ValidateField(
-                                    password.value,
-                                    passwordError,
-                                    "Mật khẩu phải có ít nhất 6 ký tự"
-                                ) { it.length >= 6 }
-                            }
-                        },
-                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-
-                        IconButton(
-                            onClick = {
-                                showPassword = !showPassword
-                            },
-                        ) {
-                            if (!showPassword) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_eye),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            } else {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_slash_eye),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
+                    errorMessage = uiState.passwordError,
+                    validate = {
+                        viewModel.validate("password")
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Next
                     ),
+                    label = stringResource(R.string.password)
                 )
-
-                FoodAppTextField(
-                    labelText = "Xác nhận mật khẩu",
-                    value = confirmPassword.value,
-                    isError = conFirmPasswordError.value != null,
-                    errorText = conFirmPasswordError.value,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onFocusChanged { focusState ->
-                            if (isTouched && !focusState.isFocused) {
-                                ValidateField(
-                                    confirmPassword.value,
-                                    conFirmPasswordError,
-                                    "Mật khẩu không trùng khớp"
-                                ) { it == password.value }
-                            }
-                        },
+                PasswordTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = uiState.confirmPassword,
                     onValueChange = {
-                        viewModel.onConfirmPasswordChanged(it)
-                        if (!isTouched) isTouched = true
+                        viewModel.onAction(ChangePasswordState.Action.OnConfirmPasswordChanged(it))
                     },
-                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-
-                        IconButton(
-                            onClick = {
-                                showPassword = !showPassword
-                            },
-                        ) {
-                            if (!showPassword) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_eye),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            } else {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_slash_eye),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
+                    errorMessage = uiState.confirmPasswordError,
+                    validate = {
+                        viewModel.validate("confirmPassword")
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
                     ),
+                    label = stringResource(R.string.confirm_password)
                 )
 
 
-                Spacer(modifier = Modifier.size(20.dp))
+
                 LoadingButton(
-                    onClick = viewModel::resetPassword,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        viewModel.onAction(ChangePasswordState.Action.ResetPassword)
+                    },
                     text = "Xác nhận",
-                    loading = loading.value
+                    loading = uiState.isLoading,
+                    enabled = uiState.isValid
                 )
 
 
@@ -266,18 +176,10 @@ fun ChangePasswordScreen(
 
     }
     if (showErrorSheet) {
-        ModalBottomSheet(onDismissRequest = { showErrorSheet = false }, sheetState = sheetState) {
-            BasicDialog(
-                title = viewModel.error,
-                description = viewModel.errorDescription,
-                onClick = {
-                    scope.launch {
-                        sheetState.hide()
-                        showErrorSheet = false
-                    }
-                }
-            )
-        }
+        ErrorModalBottomSheet(
+            description = uiState.error.toString(),
+            onDismiss = { showErrorSheet = false },
+        )
     }
 }
 

@@ -84,7 +84,7 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
 }
 
 @Composable
-fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomNavItem>, unreadCount: State<Int>) {
+fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomNavItem>, unreadCount: State<Int>?=null) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
@@ -137,7 +137,7 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
                     tint = if (selectedIndex == index) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.inversePrimary,
                             modifier = Modifier.align(Alignment.Center)
                 )
-                if(item.route == Notification && unreadCount.value > 0) {
+                if(item.route == Notification && unreadCount?.value!! > 0) {
                     ItemCount(unreadCount.value)
                 }
             }

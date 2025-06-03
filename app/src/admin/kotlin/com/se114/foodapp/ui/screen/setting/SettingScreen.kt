@@ -17,8 +17,10 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,43 +33,77 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.flowWithLifecycle
+import com.example.foodapp.navigation.FoodTableAdmin
 
 import com.example.foodapp.navigation.Supplier
 import com.example.foodapp.navigation.Voucher
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.SettingGroup
 import com.example.foodapp.ui.screen.components.SettingItem
 import com.example.foodapp.ui.screen.components.ThemeSwitcher
 
-import kotlinx.coroutines.flow.collectLatest
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     navController: NavController,
     darkTheme: Boolean,
     onThemeUpdated: () -> Unit,
-    viewModel: SettingViewModel = hiltViewModel()
+    viewModel: SettingViewModel = hiltViewModel(),
 ) {
+    remember { mutableStateOf(false) }
+    var showErrorSheet by remember { mutableStateOf(false) }
     val isNotificationMode = rememberSaveable { mutableStateOf(false) }
 
-    val showDialogLogout = remember { mutableStateOf(false) }
+    var showDialogLogout by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val activity = context as? Activity
 
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     BackHandler {
         activity?.moveTaskToBack(true)
     }
     LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
-                is SettingViewModel.SettingEvents.OnLogout -> {
-                    showDialogLogout.value = true
+                is SettingState.Event.ShowError -> {
+                    showErrorSheet = true
                 }
 
+                is SettingState.Event.NavigateToSupplier -> {
+                    navController.navigate(Supplier)
+                }
+
+                is SettingState.Event.NavigateToVoucher -> {
+                    navController.navigate(Voucher)
+                }
+
+                is SettingState.Event.NavigateToFoodTable -> {
+                    navController.navigate(FoodTableAdmin)
+                }
+
+                SettingState.Event.NavigateToContact -> {
+
+                }
+
+                SettingState.Event.NavigateToHelp -> {
+
+                }
+
+                SettingState.Event.NavigateToPrivacy -> {
+
+                }
             }
         }
     }
@@ -118,9 +154,17 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(Icons.Default.LocalShipping, "Nhà cung cấp", onClick = { navController.navigate(Supplier)})
-                        SettingItem(Icons.Default.CardGiftcard, "Voucher & Khuyến mãi", onClick = {navController.navigate(Voucher)})
-
+                        SettingItem(
+                            Icons.Default.LocalShipping,
+                            "Nhà cung cấp",
+                            onClick = { viewModel.onAction(SettingState.Action.OnSupplierClicked) })
+                        SettingItem(
+                            Icons.Default.CardGiftcard,
+                            "Voucher & Khuyến mãi",
+                            onClick = { viewModel.onAction(SettingState.Action.OnVoucherClicked) })
+                        SettingItem(Icons.Default.TableRestaurant, "Bàn tại quán", onClick = {
+                            viewModel.onAction(SettingState.Action.OnFoodTableClicked)
+                        })
                     }
                 )
             )
@@ -135,7 +179,7 @@ fun SettingScreen(
             )
             Button(
                 onClick = {
-                    viewModel.onShowLogoutDialog()
+                    showDialogLogout = true
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),
@@ -146,7 +190,7 @@ fun SettingScreen(
         }
 
     }
-    if (showDialogLogout.value) {
+    if (showDialogLogout) {
 
         FoodAppDialog(
             title = "Đăng xuất",
@@ -154,11 +198,11 @@ fun SettingScreen(
             message = "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không?",
             onDismiss = {
 
-                showDialogLogout.value = false
+                showDialogLogout = false
             },
             onConfirm = {
-                viewModel.onLogoutClicked()
-                showDialogLogout.value = false
+                viewModel.onAction(SettingState.Action.OnLogout)
+                showDialogLogout = false
 
             },
             confirmText = "Đăng xuất",
@@ -167,6 +211,15 @@ fun SettingScreen(
         )
 
 
+    }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.error.toString(),
+            onDismiss = {
+                showErrorSheet = false
+            },
+
+            )
     }
 }
 

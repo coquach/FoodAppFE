@@ -1,5 +1,6 @@
 package com.example.foodapp.domain.use_case.auth
 
+import android.util.Log
 import com.example.foodapp.BuildConfig
 import com.example.foodapp.domain.repository.AccountRepository
 import com.google.firebase.auth.FirebaseAuthException
@@ -22,8 +23,10 @@ class LoginByEmailUseCase @Inject constructor(
             if (role != currentFlavor) {
                 accountRepository.signOut()
                 emit(FirebaseResult.Failure("Bạn đang dùng app dành cho '$currentFlavor' nhưng tài khoản này là '$role'."))
+                return@flow
             }
-            FirebaseResult.Success(role)
+            Log.d("LoginByEmailUseCase", "Login successful with role: $role")
+            emit(FirebaseResult.Success(role))
         } catch (e: FirebaseAuthInvalidUserException) {
            emit(FirebaseResult.Failure("Tài khoản không tồn tại"))
 

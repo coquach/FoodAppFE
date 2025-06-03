@@ -48,6 +48,7 @@ class SettingViewModel @Inject constructor(
 
                     is FirebaseResult.Failure -> {
                         _uiState.update { it.copy(error = result.error, isLoading = false) }
+                        _event.send(Setting.Event.ShowError)
                     }
                 }
             }
@@ -68,6 +69,8 @@ class SettingViewModel @Inject constructor(
 
                     is FirebaseResult.Failure -> {
                         _uiState.update { it.copy(error = result.error, isLoading = false) }
+                        _event.send(Setting.Event.ShowError)
+
                     }
                 }
             }

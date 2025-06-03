@@ -66,7 +66,7 @@ class SignUpViewModel @Inject constructor(
                 emailError = validateField(
                     current.email.trim(),
                     "Email không hợp lệ"
-                ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) }
+                ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) }
 
 
             }

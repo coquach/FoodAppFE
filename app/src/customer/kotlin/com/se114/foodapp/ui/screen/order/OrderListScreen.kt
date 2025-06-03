@@ -12,7 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
-
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -29,7 +30,8 @@ fun OrderListScreen(
     navController: NavController,
     viewModel: OrderListViewModel = hiltViewModel(),
 ) {
-    val orders = viewModel.getOrdersByTab(0).collectAsLazyPagingItems()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val orders = viewModel.getOrdersByTab(uiState.tabIndex).collectAsLazyPagingItems()
 
     val handle = navController.currentBackStackEntry?.savedStateHandle
     LaunchedEffect(handle) {

@@ -22,6 +22,8 @@ interface StaffApi {
         @Query("size") size: Int,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
+        @Query("fullName") fullName: String? = null,
+        @Query("gender") gender: String? = null,
     ): Response<PageResponse<Staff>>
 
     @Multipart

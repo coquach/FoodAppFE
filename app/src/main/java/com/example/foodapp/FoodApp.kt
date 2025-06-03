@@ -1,7 +1,7 @@
 package com.example.foodapp
 
 import android.app.Application
-import com.example.foodapp.nofication.FoodAppNotificationManager
+import com.example.foodapp.notification.FoodAppNotificationManager
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

@@ -44,6 +44,7 @@ import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.utils.StringUtils
+import java.math.BigDecimal
 
 @Composable
 fun OrderDetailsText(order: Order) {
@@ -117,7 +118,7 @@ fun OrderDetailsText(order: Order) {
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
-                text = "Tổng giá: ${StringUtils.formatCurrency(order.totalPrice)}",
+                text = "Tổng giá: ${StringUtils.formatCurrency(BigDecimal.ZERO)}",
                 color = Color.Yellow,
                 fontWeight = FontWeight.Bold
             )

@@ -4,7 +4,6 @@ import com.example.foodapp.data.model.Export
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.model.ResetPasswordArgs
 import com.example.foodapp.data.model.Staff
 
 import kotlinx.serialization.Serializable
@@ -62,7 +61,7 @@ data class Checkout(val isCustomer: Boolean) : NavRoute
 data class OrderSuccess(val orderId: Long) : NavRoute
 
 @Serializable
-data class OrderDetails(val order: Order) : NavRoute
+data class OrderDetails(val order: Order, val isStaff: Boolean = false) : NavRoute
 
 @Serializable
 object Setting : NavRoute
@@ -79,7 +78,7 @@ object SendEmail: NavRoute
 object ResetPasswordSuccess : NavRoute
 
 @Serializable
-data class ResetPassword(val resetPasswordArgs: ResetPasswordArgs) : NavRoute
+data class ResetPassword(val oobCode: String, val mode: String) : NavRoute
 
 @Serializable
 object Statistics : NavRoute
@@ -91,19 +90,14 @@ object Warehouse : NavRoute
 object Employee : NavRoute
 
 @Serializable
-data class UpdateEmployee(val staff: Staff) : NavRoute
+data class EmployeeDetails(val staff: Staff, val isUpdating: Boolean) : NavRoute
 
-@Serializable
-object AddEmployee : NavRoute
 
 @Serializable
 object Menu : NavRoute
 
 @Serializable
-data class UpdateFood(val food: Food) : NavRoute
-
-@Serializable
-object AddFood : NavRoute
+data class FoodDetailsAdmin(val food: Food, val isUpdating: Boolean) : NavRoute
 
 @Serializable
 object Category: NavRoute
@@ -117,11 +111,10 @@ object Material: NavRoute
 @Serializable
 object Import: NavRoute
 
-@Serializable
-object AddImportDetails : NavRoute
+
 
 @Serializable
-data class UpdateImportDetails(val import: Import) : NavRoute
+data class ImportDetails(val import: Import, val isUpdating: Boolean) : NavRoute
 
 @Serializable
 object Export: NavRoute
@@ -143,10 +136,10 @@ object VoucherCheck : NavRoute
 
 
 @Serializable
-data class Feedbacks(val foodId: Long) : NavRoute
+data class FeedbackDetails(val orderItemId: Long) : NavRoute
 
 @Serializable
-data class FeedbackDetails(val foodId: Long) : NavRoute
+object FoodTableAdmin: NavRoute
 
 
 

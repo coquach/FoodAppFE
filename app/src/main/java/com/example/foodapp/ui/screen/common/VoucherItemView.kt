@@ -174,7 +174,7 @@ fun VoucherCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         DetailsTextRow(
-                            text = "SL: ${voucher.total}",
+                            text = "SL: ${voucher.quantity}",
                             icon = Icons.Default.Numbers,
                             color = MaterialTheme.colorScheme.onSecondary,
                             modifier = Modifier.size(20.dp)

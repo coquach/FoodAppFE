@@ -7,12 +7,10 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.UserProfileChangeRequest
 
-
-import com.google.firebase.auth.auth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
+
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +19,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class AccountRepoImpl @Inject constructor() : AccountRepository{
+class AccountRepoImpl @Inject constructor(
+
+) : AccountRepository{
     override val currentUser: Flow<Account?>
         get() = callbackFlow {
             val listener =
@@ -41,7 +41,7 @@ class AccountRepoImpl @Inject constructor() : AccountRepository{
     }
 
     override fun isEmailVerified(): Boolean {
-        return Firebase.auth.currentUser?.isEmailVerified ?: false
+        return Firebase.auth.currentUser?.isEmailVerified == true
     }
 
     override fun sendVerifyEmail() {
@@ -56,6 +56,10 @@ class AccountRepoImpl @Inject constructor() : AccountRepository{
 
     override fun getUserProfile(): Account {
         return Firebase.auth.currentUser?.toAppUser() ?: Account()
+    }
+
+    override suspend fun updatePassword(newPassword: String) {
+        Firebase.auth.currentUser?.updatePassword(newPassword)?.await()
     }
 
     override suspend fun createAccountWithEmail(email: String, password: String) {
@@ -75,13 +79,24 @@ class AccountRepoImpl @Inject constructor() : AccountRepository{
         Firebase.auth.sendPasswordResetEmail(email).await()
     }
 
+    override suspend fun reAuthenticateWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        Firebase.auth.currentUser?.reauthenticate(credential)?.await()
+    }
+
     override suspend fun resetPassword(obb: String, newPassword: String) {
+
         Firebase.auth.confirmPasswordReset(obb, newPassword).await()
     }
 
     override suspend fun linkAccountWithGoogle(idToken: String) {
         val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
         Firebase.auth.currentUser?.linkWithCredential(firebaseCredential)?.await()
+    }
+
+    override suspend fun reAuthenticateWithEmail(email: String, password: String) {
+        val credential = EmailAuthProvider.getCredential(email, password)
+        Firebase.auth.currentUser?.reauthenticate(credential)?.await()
     }
 
     override suspend fun linkAccountWithEmail(email: String, password: String) {
@@ -99,6 +114,7 @@ class AccountRepoImpl @Inject constructor() : AccountRepository{
     }
 
     override suspend fun signOut() {
+
         Firebase.auth.signOut()
     }
 

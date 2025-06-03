@@ -1,21 +1,18 @@
 package com.se114.foodapp.ui.screen.warehouse.imports
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -29,6 +26,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -44,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -52,26 +49,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Import
-import com.example.foodapp.navigation.AddImportDetails
-
-import com.example.foodapp.navigation.UpdateImportDetails
+import com.example.foodapp.navigation.ImportDetails
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
-import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
-import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
 import kotlinx.coroutines.flow.collectLatest
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 import java.time.LocalDateTime
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportScreen(
     navController: NavController,
@@ -79,77 +77,87 @@ fun ImportScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val importList = viewModel.importList.collectAsLazyPagingItems()
+    val imports = viewModel.imports.collectAsLazyPagingItems()
     var search by remember { mutableStateOf("") }
+    var showDialogDelete by rememberSaveable { mutableStateOf(false) }
+    var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
-    var selectedImportId by rememberSaveable { mutableStateOf<Long?>(null) }
-    var isDeleted by rememberSaveable { mutableStateOf(true) }
-    val showDialogDelete = rememberSaveable { mutableStateOf(false) }
-    var loading by rememberSaveable { mutableStateOf(false) }
+    var isDeletable by rememberSaveable { mutableStateOf(false) }
 
     val handle = navController.currentBackStackEntry?.savedStateHandle
     LaunchedEffect(handle) {
         val condition = handle?.get<Boolean>("updated") == true
         if (condition) {
-            handle?.set("updated", false)
-            viewModel.refreshImports()
+            handle["updated"] = false
+            imports.refresh()
         }
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        viewModel.event.collectLatest {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collectLatest {
             when (it) {
-                ImportViewModel.ImportEvents.ShowDeleteDialog -> {
-                    showDialogDelete.value = true
+                is ImportState.Event.GoToImportDetails -> {
+                    navController.navigate(ImportDetails(it.import, true))
                 }
 
-                is ImportViewModel.ImportEvents.ShowSuccessToast -> {
+                ImportState.Event.Refresh -> {
+                    imports.refresh()
+                }
 
+                ImportState.Event.ShowError -> {
+                    showErrorSheet = true
+                }
+
+                is ImportState.Event.ShowSuccess -> {
+                    Toast.makeText(
+                        context,
+                        it.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                ImportState.Event.AddImport -> {
+                    navController.navigate(ImportDetails(import = Import(),isUpdating = false))
+                }
+
+                ImportState.Event.OnBack -> {
+                    navController.popBackStack()
+                }
+
+                ImportState.Event.NotifyCantDelete -> {
+                    Toast.makeText(
+                        context,
+                        "Không thể xóa phiếu nhập vì đã quá hạn 3 ngày",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
-    when (uiState) {
-        is ImportViewModel.ImportState.Loading -> {
-            loading = true
-        }
 
-        is ImportViewModel.ImportState.Error -> {
-            loading = false
-            val message = (uiState as ImportViewModel.ImportState.Error).message
-            Toast.makeText(
-                context,
-                message,
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-
-        else -> {
-            loading = false
-        }
-    }
 
     Scaffold(
         floatingActionButton =
-        {
-            MyFloatingActionButton(
-                onClick = {
-                    navController.navigate(AddImportDetails)
-                },
-                bgColor = MaterialTheme.colorScheme.primary,
-            ) {
-                Box(modifier = Modifier.size(56.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Center)
-                            .size(35.dp)
-                    )
+            {
+                MyFloatingActionButton(
+                    onClick = {
+                        viewModel.onAction(ImportState.Action.AddImport)
+                    },
+                    bgColor = MaterialTheme.colorScheme.primary,
+                ) {
+                    Box(modifier = Modifier.size(56.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Center)
+                                .size(35.dp)
+                        )
+                    }
                 }
             }
-        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -172,7 +180,7 @@ fun ImportScreen(
                     onBack = {
                         navController.navigateUp()
                     },
-                    text = "Phiếu nhập hàng",
+                    text = "Đơn nhập hàng",
 
                     )
                 SearchField(
@@ -181,85 +189,66 @@ fun ImportScreen(
                 )
 
             }
-            if (importList.itemSnapshotList.items.isEmpty() && importList.loadState.refresh !is LoadState.Loading) {
 
-                Nothing(
-                    text = "Không có phiếu nào",
-                    icon = Icons.Default.Description,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                LazyColumn(
+            LazyPagingSample(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                items = imports,
+                textNothing = "Không có đơn nào",
+                iconNothing = Icons.Default.Description,
+                columns = 2,
+                key = {
+                    it.id!!
+                }
+            ) {
+                SwipeableActionsBox(
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
+                        .padding(
+                            8.dp,
+                        )
+                        .clip(RoundedCornerShape(12.dp)),
+                    endActions = listOf(
+                        SwipeAction(
+                            icon = rememberVectorPainter(Icons.Default.Delete),
+                            background = MaterialTheme.colorScheme.error,
+                            onSwipe = {
+                                isDeletable = it.importDate?.plusDays(3)?.isAfter(LocalDateTime.now()) == true
 
-                ) {
-                    gridItems(
-                        importList, 1, key = { import -> import.id },
-                        itemContent = { import ->
-                            import?.let { it ->
-                                SwipeableActionsBox(
-                                    modifier = Modifier
-                                        .padding(
-                                            8.dp,
-                                        )
-                                        .clip(RoundedCornerShape(12.dp)),
-                                    endActions = listOf(
-                                        SwipeAction(
-                                            icon = rememberVectorPainter(Icons.Default.Delete),
-                                            background = MaterialTheme.colorScheme.error,
-                                            onSwipe = {
-                                                isDeleted = it.importDate.plusDays(3)?.isAfter(LocalDateTime.now()) == true
-                                                if(isDeleted) {
-                                                    selectedImportId = it.id
-                                                    viewModel.onRemoveSwipe()
-                                                }
-
-                                            }
-                                        ))
-                                ) {
-                                    ImportCard(
-                                        import = it,
-                                        onClick = {
-                                            navController.navigate(UpdateImportDetails(import))
-                                        }
-                                    )
+                                if(isDeletable){
+                                    viewModel.onAction(ImportState.Action.OnImportSelected(it.id!!))
+                                    showDialogDelete = true
+                                } else {
+                                    viewModel.onAction(ImportState.Action.NotifyCantDelete)
                                 }
 
                             }
-
-                        },
-                        placeholderContent = {
-                            Box(
-                                modifier = Modifier
-                                    .aspectRatio(1f)
-                                    .fillMaxWidth()
-                                    .background(Color.Gray.copy(alpha = 0.3f))
-                            )
-                        }
-                    )
-
+                        ))
+                ) {
+                    ImportCard(
+                        import = it,
+                        onClick = {
+                            viewModel.onAction(ImportState.Action.OnImportClick(it))
+                        })
                 }
             }
 
 
         }
     }
-    if (showDialogDelete.value) {
+    if (showDialogDelete) {
 
         FoodAppDialog(
             title = "Xóa phiếu nhập",
             titleColor = MaterialTheme.colorScheme.error,
-            message = "Bạn có chắc chắn muốn xóa phiếu đã chọn khỏi danh sách không?",
+            message = "Bạn có chắc chắn muốn xóa đơn đã chọn khỏi danh sách không?",
             onDismiss = {
 
-                showDialogDelete.value = false
+                showDialogDelete = false
             },
             onConfirm = {
-                viewModel.removeImport(selectedImportId!!)
-                showDialogDelete.value = false
-                selectedImportId = null
+                viewModel.onAction(ImportState.Action.OnDelete)
+                showDialogDelete = false
 
             },
             confirmText = "Xóa",
@@ -268,6 +257,12 @@ fun ImportScreen(
         )
 
 
+    }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.error ?: "Lỗi không xác định",
+            onDismiss = { showErrorSheet = false },
+        )
     }
 }
 
@@ -343,7 +338,7 @@ fun ImportDetails(import: Import) {
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = StringUtils.formatDateTime(import.importDate)?: "",
+                        text = StringUtils.formatDateTime(import.importDate)!!,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }

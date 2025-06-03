@@ -35,7 +35,7 @@ interface FoodApi {
     suspend fun createFood(
         @Path("menuId") menuId: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part images: List<MultipartBody.Part>? = null
+        @Part images: List<MultipartBody.Part?>? = null
     ): Response<Food>
 
     @Multipart
@@ -44,7 +44,7 @@ interface FoodApi {
         @Path("menuId") menuId: Long,
         @Path("foodId") foodId: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part images: List<MultipartBody.Part>? = null
+        @Part images: List<MultipartBody.Part?>? = null
     ): Response<Food>
 
 

@@ -3,13 +3,10 @@ package com.example.foodapp.navigation
 import android.os.Bundle
 import androidx.navigation.NavType
 import com.example.foodapp.data.model.Export
-
 import com.example.foodapp.data.model.Food
-import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.model.ResetPasswordArgs
-import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.model.Import
-
+import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.Staff
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -20,7 +17,11 @@ val FoodNavType = object : NavType<Food>(false) {
 
         val food = parseValue(foodJson)
         return food.copy(
-            imageUrl = food.imageUrl?.let { URLDecoder.decode(it, "UTF-8") }
+            images = food.images?.map {image ->
+                image.copy(
+                    url = URLDecoder.decode(image.url, "UTF-8")
+                )
+            }
         )
     }
 
@@ -31,7 +32,11 @@ val FoodNavType = object : NavType<Food>(false) {
     override fun serializeAsValue(value: Food): String {
         return Json.encodeToString(
             Food.serializer(), value.copy(
-                imageUrl = value.imageUrl?.let { URLEncoder.encode(it, "UTF-8") }
+                images = value.images?.map {image ->
+                    image.copy(
+                        url = URLEncoder.encode(image.url, "UTF-8")
+                    )
+                }
             )
         )
     }
@@ -61,25 +66,7 @@ val orderNavType = object : NavType<Order>(false) {
     }
 }
 
-val resetPasswordNavType = object : NavType<ResetPasswordArgs>(false) {
-    override fun get(bundle: Bundle, key: String): ResetPasswordArgs? {
-        return parseValue(bundle.getString(key).orEmpty())
-    }
 
-    override fun parseValue(value: String): ResetPasswordArgs {
-        val decoded = URLDecoder.decode(value, "UTF-8")
-        return Json.decodeFromString(decoded)
-    }
-
-    override fun put(bundle: Bundle, key: String, value: ResetPasswordArgs) {
-        val encoded = URLEncoder.encode(Json.encodeToString(value), "UTF-8")
-        bundle.putString(key, encoded)
-    }
-
-    override fun serializeAsValue(value: ResetPasswordArgs): String {
-        return URLEncoder.encode(Json.encodeToString(value), "UTF-8")
-    }
-}
 
 val staffNavType = object : NavType<Staff>(false) {
     override fun get(bundle: Bundle, key: String): Staff {
@@ -87,7 +74,9 @@ val staffNavType = object : NavType<Staff>(false) {
 
         val staff = parseValue(staffJson)
         return staff.copy(
-            imageUrl = staff.imageUrl?.let { URLDecoder.decode(it, "UTF-8") }
+            avatar = staff.avatar?.copy(
+                url = URLDecoder.decode(staff.avatar.url, "UTF-8")
+            )
         )
     }
 
@@ -98,7 +87,9 @@ val staffNavType = object : NavType<Staff>(false) {
     override fun serializeAsValue(value: Staff): String {
         return Json.encodeToString(
             Staff.serializer(), value.copy(
-                imageUrl = value.imageUrl?.let { URLEncoder.encode(it, "UTF-8") }
+                avatar = value.avatar?.copy(
+                    url = URLEncoder.encode(value.avatar.url, "UTF-8")
+                )
             )
         )
     }

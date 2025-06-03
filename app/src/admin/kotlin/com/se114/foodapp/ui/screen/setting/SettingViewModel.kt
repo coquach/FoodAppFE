@@ -2,46 +2,118 @@ package com.se114.foodapp.ui.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.domain.repository.AccountService
+
+import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.domain.use_case.auth.LogOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.channels.Channel
+
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingViewModel @Inject constructor(
-    private val accountService: AccountService
+    private val logOutUseCase: LogOutUseCase
 
 ) : ViewModel() {
 
-    private val _event = MutableSharedFlow<SettingEvents>()
-    val event = _event.asSharedFlow()
 
-    fun onLogoutClicked() {
+    private val _uiState = MutableStateFlow(SettingState.UiSate())
+    val uiState get() = _uiState.asStateFlow()
+
+    private val _event = Channel<SettingState.Event>()
+    val event get() = _event.receiveAsFlow()
+
+    private fun logout() {
         viewModelScope.launch() {
-            try {
+            logOutUseCase().collect { result ->
+                when (result) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
 
-                accountService.signOut()
+                    is FirebaseResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
 
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(error = result.error, isLoading = false) }
+                        _event.send(SettingState.Event.ShowError)
+                    }
+                }
             }
         }
     }
 
-    fun onShowLogoutDialog() {
-        viewModelScope.launch {
-            _event.emit(SettingEvents.OnLogout)
+    fun onAction(action: SettingState.Action){
+        when(action){
+            SettingState.Action.OnLogout -> {
+                logout()
+            }
+
+            SettingState.Action.OnContactClicked -> {
+                viewModelScope.launch {
+                    _event.send(SettingState.Event.NavigateToContact)
+                }
+            }
+            SettingState.Action.OnFoodTableClicked -> {
+                viewModelScope.launch {
+                    _event.send(SettingState.Event.NavigateToFoodTable)
+                }
+            }
+            SettingState.Action.OnHelpClicked -> {
+                viewModelScope.launch {
+                    _event.send(SettingState.Event.NavigateToHelp)
+                }
+            }
+            SettingState.Action.OnPrivacyClicked -> {
+                viewModelScope.launch {
+                    _event.send(SettingState.Event.NavigateToPrivacy)
+                }
+            }
+            SettingState.Action.OnSupplierClicked -> {
+                viewModelScope.launch {
+                    _event.send(SettingState.Event.NavigateToSupplier)
+                }
+            }
+            SettingState.Action.OnVoucherClicked -> {
+                viewModelScope.launch {
+                    _event.send(SettingState.Event.NavigateToVoucher)
+                }
+            }
         }
     }
 
 
+}
 
-    sealed class SettingEvents {
+object SettingState{
+    data class UiSate(
+        val isLoading: Boolean = false,
+        val error: String? = null,
+    )
+    sealed interface Event{
+        data object ShowError : Event
+        data object NavigateToSupplier : Event
+        data object NavigateToVoucher : Event
+        data object NavigateToFoodTable : Event
+        data object NavigateToHelp : Event
+        data object NavigateToContact : Event
+        data object NavigateToPrivacy : Event
 
-        data object OnLogout : SettingEvents()
-
+    }
+    sealed interface Action{
+        data object OnLogout : Action
+        data object OnSupplierClicked : Action
+        data object OnVoucherClicked : Action
+        data object OnFoodTableClicked : Action
+        data object OnHelpClicked : Action
+        data object OnContactClicked : Action
+        data object OnPrivacyClicked : Action
     }
 }

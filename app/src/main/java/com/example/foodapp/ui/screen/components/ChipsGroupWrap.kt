@@ -124,7 +124,8 @@ fun ChipsGroupWrap(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             containerColor = containerColor
                         ),
-                        border = BorderStroke(0.dp, Color.Transparent)
+                        border = BorderStroke(0.dp, Color.Transparent),
+                        modifier = Modifier.padding(3.dp)
                     )
                 }
             if (isFlowLayout && !isExpanded && options.size > thresholdExpend) {

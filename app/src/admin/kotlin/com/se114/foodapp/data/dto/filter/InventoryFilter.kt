@@ -4,6 +4,6 @@ import java.time.LocalDate
 
 data class InventoryFilter(
     val ingredientId: Long? = null,
-    val expiryDate: LocalDate? = null,
+    val expiryDate: String? = null,
     val isOutOfStock: Boolean?= null
 )

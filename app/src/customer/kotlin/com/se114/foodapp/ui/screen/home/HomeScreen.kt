@@ -81,14 +81,12 @@ fun SharedTransitionScope.HomeScreen(
     ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foods = viewModel.getFoodsByMenuId(1).collectAsLazyPagingItems()
+    val foods = viewModel.getFoodsByMenuId(uiState.menuIdSelected).collectAsLazyPagingItems()
     val menus = viewModel.menus.collectAsLazyPagingItems()
-    val unReadCount by notificationViewModel.unreadCount.collectAsStateWithLifecycle()
     var isOpenChatBox by remember { mutableStateOf(false) }
 
     Log.d("isOpenChatBox", isOpenChatBox.toString())
-
-    var searchInput by remember { mutableStateOf("") }
+    
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
@@ -174,41 +172,11 @@ fun SharedTransitionScope.HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
 
-                    ) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        Box(modifier = Modifier.size(50.dp)) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_nofication),
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .align(Center)
-                                    .clickable {
 
-                                    }
-                            )
-
-                            if (unReadCount > 0) {
-                                ItemCount(unReadCount)
-                            }
-
-                        }
-                    }
-                    Spacer(modifier = Modifier.size(8.dp))
-                    SearchField(
-                        searchInput = searchInput,
-                        searchChange = { searchInput = it }
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
+                    Spacer(modifier = Modifier.size(20.dp))
                     Banners(onClick = {
                     })
                 }
@@ -239,8 +207,6 @@ fun SharedTransitionScope.HomeScreen(
                     viewModel.onAction(Home.Action.OnFoodClicked(it))
                 },
                 isCustomer = true,
-                onLongClick = {},
-                onCheckedChange = {},
             )
 
 

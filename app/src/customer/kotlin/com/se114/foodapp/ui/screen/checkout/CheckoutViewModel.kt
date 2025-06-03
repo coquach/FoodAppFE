@@ -1,6 +1,5 @@
 package com.se114.foodapp.ui.screen.checkout
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,8 +15,8 @@ import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.data.model.enums.ServingType
 
-import com.example.foodapp.domain.use_case.cart.GetCartUseCase
-import com.example.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
+import com.se114.foodapp.domain.use_case.cart.GetCartUseCase
+import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
 import com.example.foodapp.domain.use_case.order.PlaceOrderUseCase
 import com.example.foodapp.utils.StringUtils
 import dagger.hilt.android.lifecycle.HiltViewModel

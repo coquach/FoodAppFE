@@ -6,6 +6,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +23,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.NoMeals
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -50,6 +53,8 @@ import com.example.foodapp.ui.screen.components.CustomCheckbox
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -57,24 +62,10 @@ fun SharedTransitionScope.FoodView(
     food: Food,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: (Food) -> Unit,
-    onLongClick: ((Boolean) -> Unit)? = null,
-    isInSelectionMode: Boolean = false,
-    isSelected: Boolean = false,
-    onCheckedChange: ((Food) -> Unit)? = null,
     isCustomer: Boolean = true,
     isFullWidth: Boolean = false
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-        AnimatedVisibility(visible = isInSelectionMode) {
-            CustomCheckbox(
-                checked = isSelected,
-                onCheckedChange = { onCheckedChange?.invoke(food) },
-            )
-        }
+
         Column(
             modifier = Modifier
                 .padding(8.dp)
@@ -86,9 +77,6 @@ fun SharedTransitionScope.FoodView(
                     }
                 )
                 .height(216.dp)
-                .graphicsLayer {
-                    alpha = if (isSelected && isInSelectionMode) 0.7f else 1f
-                }
                 .shadow(
                     elevation = 16.dp,
                     shape = RoundedCornerShape(16.dp),
@@ -96,11 +84,8 @@ fun SharedTransitionScope.FoodView(
                     spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
                 )
                 .background(color = MaterialTheme.colorScheme.surface)
-                .combinedClickable(
+                .clickable(
                     onClick = { onClick.invoke(food) },
-                    onLongClick = {
-                        onLongClick?.invoke(true)
-                    }
                 )
                 .clip(RoundedCornerShape(16.dp))
         ) {
@@ -132,23 +117,23 @@ fun SharedTransitionScope.FoodView(
                         .padding(horizontal = 16.dp)
                         .align(Alignment.TopStart)
                 )
-//            Box(
-//                modifier = Modifier
-//                    .padding(8.dp)
-//                    .align(Alignment.TopEnd)
-//                    .size(30.dp)
-//                    .clip(CircleShape)
-//                    .background(color = MaterialTheme.colorScheme.primary)
-//                    .padding(4.dp),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.Favorite,
-//                    contentDescription = null,
-//                    modifier = Modifier.size(25.dp),
-//                    tint = MaterialTheme.colorScheme.onPrimary
-//                )
-//            }
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.TopEnd)
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(color = if(food.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    modifier = Modifier.size(25.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
 
 
                 if (isCustomer) {
@@ -162,7 +147,7 @@ fun SharedTransitionScope.FoodView(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "4.5", style = MaterialTheme.typography.titleSmall, maxLines = 1
+                            text = "${food.totalRating}", style = MaterialTheme.typography.titleSmall, maxLines = 1
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                         Icon(
@@ -173,7 +158,7 @@ fun SharedTransitionScope.FoodView(
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(
-                            text = "(21)",
+                            text = "(${food.totalFeedback})",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray,
                             maxLines = 1
@@ -212,7 +197,7 @@ fun SharedTransitionScope.FoodView(
                 )
             }
         }
-    }
+
 
 }
 
@@ -220,14 +205,11 @@ fun SharedTransitionScope.FoodView(
 @Composable
 fun SharedTransitionScope.FoodList(
     foods: LazyPagingItems<Food>,
-    isInSelectionMode: Boolean = false,
-    isSelected: (Food) -> Boolean = { false },
-    onCheckedChange: (Food) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onItemClick: (Food) -> Unit,
-    onLongClick: ((Boolean) -> Unit)? = null,
     isCustomer: Boolean = false,
-    isFullWidth: Boolean = false
+    isFullWidth: Boolean = false,
+    endAction: (@Composable (Food) -> SwipeAction)? = null,
 ) {
         if (foods.itemCount == 0 && foods.loadState.refresh !is LoadState.Loading) {
             Nothing(
@@ -244,17 +226,36 @@ fun SharedTransitionScope.FoodList(
                     foods, if(isFullWidth) 1 else 2, key = { food -> food.id },
                     itemContent = { food ->
                         food?.let {
-                            FoodView(
-                                food = food,
-                                animatedVisibilityScope = animatedVisibilityScope,
-                                isInSelectionMode = isInSelectionMode,
-                                isSelected = isSelected(food),
-                                onCheckedChange = onCheckedChange,
-                                onClick = { onItemClick(food) },
-                                onLongClick = onLongClick,
-                                isCustomer = isCustomer,
-                                isFullWidth = isFullWidth
-                            )
+                            if(!isCustomer){
+
+                                    SwipeableActionsBox(
+                                        modifier = Modifier
+                                            .padding(
+                                                8.dp,
+                                            )
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        endActions = endAction?.let { listOf(it(food)) } ?: emptyList()
+                                    ){
+                                        FoodView(
+                                            food = food,
+                                            animatedVisibilityScope = animatedVisibilityScope,
+                                            onClick = { onItemClick(food) },
+                                            isCustomer = isCustomer,
+                                            isFullWidth = isFullWidth
+                                        )
+                                    }
+
+
+                            } else {
+                                FoodView(
+                                    food = food,
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    onClick = { onItemClick(food) },
+                                    isCustomer = isCustomer,
+                                    isFullWidth = isFullWidth
+                                )
+                            }
+
                         }
                     },
                     placeholderContent = {
