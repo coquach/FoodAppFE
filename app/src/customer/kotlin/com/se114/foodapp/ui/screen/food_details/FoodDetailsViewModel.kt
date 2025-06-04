@@ -14,7 +14,6 @@ import com.se114.foodapp.domain.use_case.food_details.AddToCartUseCase
 import com.se114.foodapp.domain.use_case.food_details.ToggleLikecUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +22,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,52 +55,53 @@ class FoodDetailsViewModel @Inject constructor(
 
     private fun addToCart(food: Food) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            delay(2000L)
-            try {
-                val result = addToCartUseCase(food, _uiState.value.quantity)
-                when (result) {
-                    AddToCartUseCase.Result.ItemAdded -> {
-                        _uiState.update { it.copy(isLoading = false, error = null) }
-                        _event.send(FoodDetails.Event.OnAddToCart)
-                    }
 
-                    AddToCartUseCase.Result.ItemUpdated -> {
-                        _uiState.update { it.copy(isLoading = false, error = null) }
-                        _event.send(FoodDetails.Event.OnItemAlreadyInCart)
-                    }
-                }
 
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
-                _event.send(FoodDetails.Event.ShowError)
-            }
+               addToCartUseCase(food, _uiState.value.quantity).collect{result ->
+                   when (result) {
+                       AddToCartUseCase.Result.ItemAdded -> {
+                           _uiState.update { it.copy(isLoading = false, error = null) }
+                           _event.send(FoodDetails.Event.OnAddToCart)
+                       }
+
+                       AddToCartUseCase.Result.ItemUpdated -> {
+                           _uiState.update { it.copy(isLoading = false, error = null) }
+                           _event.send(FoodDetails.Event.OnItemAlreadyInCart)
+                       }
+                       AddToCartUseCase.Result.Loading -> {
+                           _uiState.update { it.copy(isLoading = true, error = null) }
+                       }
+                       is AddToCartUseCase.Result.Failure -> {
+                           _uiState.update { it.copy(isLoading = false, error = result.errorMessage) }
+                           _event.send(FoodDetails.Event.ShowError)
+                       }
+                   }
+               }
+
+
+
         }
     }
 
 
     private fun toggleLike(foodId: Long) {
         viewModelScope.launch {
-            try {
-                toggleLikecUseCase.invoke(foodId).collect { result ->
+
+                val result = toggleLikecUseCase.invoke(foodId)
                     when (result) {
                         is ApiResponse.Failure -> {
                             _uiState.update { it.copy(error = result.errorMessage) }
                             _event.send(FoodDetails.Event.ShowError)
                         }
 
-                        ApiResponse.Loading -> {
-
-                        }
-
                         is ApiResponse.Success -> {
                             _uiState.update { it.copy(error = null) }
                         }
+
+                        ApiResponse.Loading -> {
+
+                        }
                     }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
-            }
 
 
         }

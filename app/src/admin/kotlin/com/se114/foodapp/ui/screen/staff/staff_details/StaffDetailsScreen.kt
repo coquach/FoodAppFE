@@ -188,7 +188,7 @@ fun StaffDetailsScreen(
             RadioGroupWrap(
                 text = "Giới tính",
                 options = Gender.entries.map { it.display },
-                selectedOption = uiState.staff.gender,
+                selectedOption = Gender.fromName(uiState.staff.gender).display,
                 onOptionSelected = {
                     Log.d("GenderSelect", "Selected: $it")
                     viewModel.onAction(StaffDetails.Action.OnChangeGender(it))

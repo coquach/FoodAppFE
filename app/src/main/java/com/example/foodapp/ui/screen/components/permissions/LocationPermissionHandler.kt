@@ -1,8 +1,12 @@
 package com.example.foodapp.ui.screen.components.permissions
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,19 +38,18 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
+import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun LocationPermissionHandler(
     content: @Composable () -> Unit,
-    onPermissionDenied: () -> Unit = {},
-
+    onPermissionDenied: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val activity = context as? ComponentActivity
-
     var showRationaleDialog by remember { mutableStateOf(false) }
+    var showNeverAskAgainDialog by remember { mutableStateOf(false) }
     var allPermissionsGranted by remember { mutableStateOf(false) }
+    var shouldRequestPermission by remember { mutableStateOf(false) }
 
     val permissions = listOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -60,19 +63,38 @@ fun LocationPermissionHandler(
         allPermissionsGranted = granted
 
         if (!granted) {
-            showRationaleDialog = true
+            // Check xem có đang bị "Never ask again" không
+            val shouldShowRationale = permissions.any { permission ->
+                androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale(
+                    context as Activity, permission
+                )
+            }
+            showRationaleDialog = shouldShowRationale
+            showNeverAskAgainDialog = !shouldShowRationale
+        } else {
+            showRationaleDialog = false
+            showNeverAskAgainDialog = false
+
         }
+        shouldRequestPermission = false
     }
 
     LaunchedEffect(Unit) {
         val allGranted = permissions.all { permission ->
             ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         }
-
         if (allGranted) {
             allPermissionsGranted = true
-        } else {
+        } else{
+                permissionLauncher.launch(permissions.toTypedArray())
+            }
+
+    }
+
+    LaunchedEffect(shouldRequestPermission) {
+        if (shouldRequestPermission) {
             permissionLauncher.launch(permissions.toTypedArray())
+            shouldRequestPermission = false
         }
     }
 
@@ -83,22 +105,45 @@ fun LocationPermissionHandler(
     if (showRationaleDialog) {
         FoodAppDialog(
             title = "Cần quyền truy cập vị trí",
+            titleColor = MaterialTheme.colorScheme.error,
             message = "Ứng dụng cần quyền vị trí để hoạt động chính xác. Vui lòng cấp quyền.",
             onDismiss = {
                 showRationaleDialog = false
                 onPermissionDenied()
             },
-            containerConfirmButtonColor = MaterialTheme.colorScheme.primary,
-            labelConfirmButtonColor = MaterialTheme.colorScheme.onPrimary,
             onConfirm = {
                 showRationaleDialog = false
-                permissionLauncher.launch(permissions.toTypedArray())
+                shouldRequestPermission = true
             },
             confirmText = "Đồng ý",
             dismissText = "Huỷ"
         )
     }
+
+    if (showNeverAskAgainDialog) {
+        FoodAppDialog(
+            title = "Quyền bị từ chối vĩnh viễn",
+            titleColor = MaterialTheme.colorScheme.error,
+            message = "Bạn đã từ chối quyền truy cập vị trí và chọn không hỏi lại. Vui lòng vào Cài đặt để bật quyền thủ công.",
+            onDismiss = {
+                showNeverAskAgainDialog = false
+                onPermissionDenied()
+            },
+            onConfirm = {
+                context.startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                )
+                showNeverAskAgainDialog = false
+            },
+            confirmText = "Mở Cài đặt",
+            dismissText = "Huỷ"
+        )
+    }
 }
+
 fun MapViewportState.flyToLocation(
     latitude: Double,
     longitude: Double,
@@ -162,11 +207,3 @@ fun MapControlButtons(
     }
 }
 
-fun android.content.Context.findActivity(): android.app.Activity? {
-    var context = this
-    while (context is android.content.ContextWrapper) {
-        if (context is android.app.Activity) return context
-        context = context.baseContext
-    }
-    return null
-}

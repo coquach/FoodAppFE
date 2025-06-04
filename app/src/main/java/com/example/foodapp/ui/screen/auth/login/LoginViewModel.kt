@@ -92,7 +92,7 @@ class LoginViewModel @Inject constructor(
             }
 
         }
-        val isValid = emailError == null && passwordError == null
+        val isValid = current.email.isNotBlank() && current.password.isNotBlank() && emailError == null && passwordError == null
         _uiState.update {
             it.copy(
                 emailError = emailError,

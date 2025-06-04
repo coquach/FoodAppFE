@@ -54,6 +54,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -105,7 +106,7 @@ fun ImportDetailsScreen(
     val staffs = viewModel.staffs.collectAsLazyPagingItems()
 
 
-    val totalCost by rememberSaveable {
+    val totalCost by remember {
         derivedStateOf {
             uiState.importDetails.sumOf { it.quantity * it.cost }
         }
@@ -285,62 +286,76 @@ fun ImportDetailsScreen(
 
                 ) {
                     item {
-                        if (isCreating) {
-                            ImportDetailsEditCard(
-                                importDetail = uiState.importDetailsSelected,
-                                ingredients = uiState.ingredients,
-                                onIngredientChange = { name ->
-                                    val selectedIngredient =
-                                        uiState.ingredients.find { it.name == name }
-                                    selectedIngredient?.let {
+                        AnimatedContent(
+                            targetState = isCreating,
+                            transitionSpec = {
+                                (slideInVertically { it } + fadeIn()) togetherWith
+                                        (slideOutVertically { -it } + fadeOut())
+                            },
+                            label = "Creating Switch"
+                        ){creating ->
+                            if (creating) {
+                                ImportDetailsEditCard(
+                                    importDetail = uiState.importDetailsSelected,
+                                    ingredients = uiState.ingredients,
+                                    onIngredientChange = { name ->
+                                        val selectedIngredient =
+                                            uiState.ingredients.find { it.name == name }
+                                        selectedIngredient?.let {
+                                            viewModel.onAction(
+                                                ImportDetailsState.Action.OnChangeIngredient(
+                                                    it
+                                                )
+                                            )
+                                        }
+                                    },
+                                    onCostChange = {
+                                        viewModel.onAction(ImportDetailsState.Action.OnChangeCost(it.toBigDecimalOrNull()))
+                                    },
+                                    onChangeProductionDate = {
                                         viewModel.onAction(
-                                            ImportDetailsState.Action.OnChangeIngredient(
+                                            ImportDetailsState.Action.OnChangeProductionDate(
                                                 it
                                             )
                                         )
-                                    }
-                                },
-                                onCostChange = {
-                                    viewModel.onAction(ImportDetailsState.Action.OnChangeCost(it.toBigDecimalOrNull()))
-                                },
-                                onChangeProductionDate = {
-                                    viewModel.onAction(
-                                        ImportDetailsState.Action.OnChangeProductionDate(
-                                            it
+                                    },
+                                    onChangeExpiryDate = {
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeExpiryDate(
+                                                it
+                                            )
                                         )
-                                    )
-                                },
-                                onChangeExpiryDate = {
-                                    viewModel.onAction(
-                                        ImportDetailsState.Action.OnChangeExpiryDate(
-                                            it
+                                    },
+                                    onIncrement = {
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeQuantity(
+                                                uiState.importDetailsSelected.quantity + BigDecimal.ONE
+                                            )
                                         )
-                                    )
-                                },
-                                onIncrement = {
-                                    viewModel.onAction(
-                                        ImportDetailsState.Action.OnChangeQuantity(
-                                            uiState.importDetailsSelected.quantity + BigDecimal.ONE
+                                    },
+                                    onDecrement = {
+                                        viewModel.onAction(
+                                            ImportDetailsState.Action.OnChangeQuantity(
+                                                uiState.importDetailsSelected.quantity - BigDecimal.ONE
+                                            )
                                         )
-                                    )
-                                },
-                                onDecrement = {
-                                    viewModel.onAction(
-                                        ImportDetailsState.Action.OnChangeQuantity(
-                                            uiState.importDetailsSelected.quantity - BigDecimal.ONE
-                                        )
-                                    )
-                                },
-                                onUpdate = {
-                                    viewModel.onAction(ImportDetailsState.Action.AddImportDetails)
-                                    isCreating = false
-                                },
-                                onClose = { isCreating = false },
-                            )
-                        }
+                                    },
+                                    onUpdate = {
+                                        viewModel.onAction(ImportDetailsState.Action.AddImportDetails)
+                                        isCreating = false
+                                    },
+                                    onClose = { isCreating = false },
+                                )
+                            }
+
+
+
+
+                    }
+
                     }
                     items(uiState.importDetails) { importDetails ->
-                        val isEditing =
+                        val isEditing = isEditMode &&
                             uiState.importDetailsSelected.localId == importDetails.localId
 
                         AnimatedContent(
@@ -400,11 +415,6 @@ fun ImportDetailsScreen(
                                     },
                                     onUpdate = {
                                         viewModel.onAction(ImportDetailsState.Action.UpdateImportDetails)
-                                        viewModel.onAction(
-                                            ImportDetailsState.Action.OnImportDetailsSelected(
-                                                ImportDetailUIModel()
-                                            )
-                                        )
                                         isEditMode = false
                                     },
                                     onClose = {
@@ -428,13 +438,13 @@ fun ImportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Edit),
                                             background = MaterialTheme.colorScheme.primary,
                                             onSwipe = {
-                                                if (uiState.isEditable) {
+                                                if (uiState.isEditable && !isCreating) {
+
                                                     viewModel.onAction(
                                                         ImportDetailsState.Action.OnImportDetailsSelected(
                                                             importDetails
                                                         )
                                                     )
-
                                                     isEditMode = true
                                                 }
 
@@ -446,7 +456,7 @@ fun ImportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Delete),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
-                                                if (uiState.isEditable) {
+                                                if (uiState.isEditable && !isCreating) {
                                                     viewModel.onAction(
                                                         ImportDetailsState.Action.DeleteImportDetails(
                                                             importDetails.localId
@@ -471,6 +481,7 @@ fun ImportDetailsScreen(
                             IconButton(
                                 onClick = {
                                     isCreating = true
+                                    viewModel.onAction(ImportDetailsState.Action.OnImportDetailsSelected(ImportDetailUIModel()))
                                     coroutineScope.launch {
                                         listState.animateScrollToItem(0)
                                     }

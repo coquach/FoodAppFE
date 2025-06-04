@@ -42,7 +42,9 @@ fun NavGraphBuilder.warehouseGraph(
     }
 
     composable<ImportDetails>(
-        typeMap = mapOf(typeOf<com.example.foodapp.data.model.Import>() to importNavType),
+        typeMap = mapOf(
+            typeOf<com.example.foodapp.data.model.Import>() to importNavType
+        ),
 
     ) {
         shouldShowBottomNav.value = false

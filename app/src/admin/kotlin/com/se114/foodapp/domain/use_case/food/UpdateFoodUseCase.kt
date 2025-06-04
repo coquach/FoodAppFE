@@ -20,9 +20,9 @@ class UpdateFoodUseCase @Inject constructor(
     @ApplicationContext val context: android.content.Context,
 ) {
     operator fun invoke(food: FoodAddUi) = flow<ApiResponse<Food>> {
-        emit(ApiResponse.Loading)
-        try {
 
+        try {
+            emit(ApiResponse.Loading)
             val request = FoodMultipartRequest(
                 name = food.name,
                 description = food.description,

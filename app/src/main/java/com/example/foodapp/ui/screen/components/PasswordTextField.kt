@@ -63,14 +63,14 @@ fun PasswordTextField(
             ) {
                 if (!showPassword) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_eye),
+                        painter = painterResource(id = R.drawable.ic_slash_eye),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_slash_eye),
+                        painter = painterResource(id = R.drawable.ic_eye),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(24.dp)

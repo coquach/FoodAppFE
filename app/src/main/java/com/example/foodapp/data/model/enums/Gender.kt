@@ -10,11 +10,11 @@ enum class Gender(val display: String) {
     override fun toString(): String = name
 
     companion object {
-        fun fromDisplay(display: String): Gender? {
-            return entries.firstOrNull { it.display == display }
+        fun fromDisplay(display: String): Gender {
+            return entries.first { it.display == display }
         }
-        fun fromName(name: String): Gender? {
-            return entries.firstOrNull { it.name == name }
+        fun fromName(name: String): Gender {
+            return entries.first { it.name == name }
         }
     }
 }

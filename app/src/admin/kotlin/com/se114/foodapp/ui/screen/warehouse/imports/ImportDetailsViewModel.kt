@@ -13,6 +13,7 @@ import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.model.Supplier
 import com.example.foodapp.navigation.ImportDetails
+import com.example.foodapp.navigation.importNavType
 import com.se114.foodapp.data.dto.filter.StaffFilter
 import com.se114.foodapp.data.dto.filter.SupplierFilter
 import com.se114.foodapp.domain.use_case.imports.CreateImportUseCase
@@ -21,6 +22,7 @@ import com.se114.foodapp.domain.use_case.ingredient.GetActiveIngredientsUseCase
 import com.se114.foodapp.domain.use_case.staff.GetStaffUseCase
 import com.se114.foodapp.domain.use_case.supplier.GetSupplierUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +38,7 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.reflect.typeOf
 
 @HiltViewModel
 class ImportDetailsViewModel @Inject constructor(
@@ -46,7 +49,9 @@ class ImportDetailsViewModel @Inject constructor(
     private val getIngredientUseCase: GetActiveIngredientsUseCase,
     val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val arguments = savedStateHandle.toRoute<ImportDetails>()
+    private val arguments = savedStateHandle.toRoute<ImportDetails>(
+        typeMap = mapOf( typeOf<com.example.foodapp.data.model.Import>() to importNavType)
+    )
     private val import = arguments.import
     private val mode = arguments.isUpdating
     private val isEditable = import.importDate?.plusDays(3)?.isAfter(LocalDateTime.now()) == true
@@ -245,9 +250,6 @@ class ImportDetailsViewModel @Inject constructor(
             is ImportDetailsState.Action.UpdateImport -> {
                 updateImport()}
 
-            is ImportDetailsState.Action.OnUpdateStatus -> {
-                _uiState.update { it.copy(isUpdating = action.isUpdating) }
-            }
             is ImportDetailsState.Action.NotifyCantEdit -> {
                 viewModelScope.launch {
                     _event.send(ImportDetailsState.Event.NotifyCantEdit)
@@ -289,7 +291,6 @@ class ImportDetailsViewModel @Inject constructor(
 
         sealed interface Action {
             data object OnBack : Action
-            data class OnUpdateStatus(val isUpdating: Boolean) : Action
             data class OnImportDetailsSelected(val importDetails: ImportDetailUIModel) : Action
             data class OnChangeSupplierId(val supplierId: Long) : Action
             data class OnChangeStaffId(val staffId: Long) : Action

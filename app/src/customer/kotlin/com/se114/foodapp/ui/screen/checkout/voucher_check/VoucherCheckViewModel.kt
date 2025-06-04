@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
+import com.example.foodapp.data.dto.filter.VoucherFilter
 import com.example.foodapp.data.model.Voucher
 import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
 import com.se114.foodapp.domain.use_case.voucher.GetVoucherForCustomerUseCase
@@ -42,7 +43,9 @@ class VoucherCheckViewModel @Inject constructor(
             val checkout = getCheckoutDetailsUseCase().first()
             val totalAmount = checkout.subTotal
 
-            getVoucherForCustomerUseCase()
+            getVoucherForCustomerUseCase(
+                filter = VoucherFilter()
+            )
                 .map { pagingData ->
                     pagingData.filter { it.minOrderPrice <= totalAmount }
                 }

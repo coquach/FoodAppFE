@@ -19,21 +19,15 @@ import dagger.hilt.components.SingletonComponent
 abstract class MainDataModule {
 
 
- @Binds
-abstract fun provideAccountRepository(accountRepoImpl: AccountRepoImpl): AccountRepository
+    @Binds
+    abstract fun provideAccountRepository(accountRepoImpl: AccountRepoImpl): AccountRepository
 
-@Binds
-abstract fun provideFoodRepository(foodRepoImpl: FoodRepoImpl): FoodRepository
-
-
-@Binds
-abstract fun provideMenuRepository(menuRepoImpl: MenuRepoImpl): MenuRepository
-
-@Binds
-abstract fun provideOrderRepository(orderRepoImpl: OrderRepoImpl): OrderRepository
+    @Binds
+    abstract fun provideFoodRepository(foodRepoImpl: FoodRepoImpl): FoodRepository
 
 
-
+    @Binds
+    abstract fun provideMenuRepository(menuRepoImpl: MenuRepoImpl): MenuRepository
 
 
 }

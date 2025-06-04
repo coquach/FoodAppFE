@@ -8,9 +8,11 @@ import androidx.navigation.toRoute
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.domain.use_case.food.GetMenusUseCase
 import com.example.foodapp.navigation.FoodDetailsAdmin
+import com.example.foodapp.navigation.FoodNavType
 import com.se114.foodapp.data.mapper.toFoodAddUi
 import com.se114.foodapp.domain.use_case.food.CreateFoodUseCase
 import com.se114.foodapp.domain.use_case.food.UpdateFoodUseCase
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
+import kotlin.reflect.typeOf
 
 @HiltViewModel
 class FoodDetailsAdminViewModel @Inject constructor(
@@ -35,7 +38,9 @@ class FoodDetailsAdminViewModel @Inject constructor(
     private val updateFoodUseCase: UpdateFoodUseCase,
     private val getMenusUseCase: GetMenusUseCase,
 ) : ViewModel() {
-    private val foodArgument: FoodDetailsAdmin = savedStateHandle.toRoute()
+    private val foodArgument  = savedStateHandle.toRoute<FoodDetailsAdmin>(
+        typeMap = mapOf(typeOf<Food>() to FoodNavType)
+    )
     private val food = foodArgument.food
     private val isUpdating = foodArgument.isUpdating
 

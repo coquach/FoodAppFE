@@ -118,7 +118,7 @@ fun ImportScreen(
                 }
 
                 ImportState.Event.AddImport -> {
-                    navController.navigate(ImportDetails(import = Import(),isUpdating = false))
+                    navController.navigate(ImportDetails(import = Import(importDate = LocalDateTime.now()),isUpdating = false))
                 }
 
                 ImportState.Event.OnBack -> {
@@ -178,7 +178,7 @@ fun ImportScreen(
             ) {
                 HeaderDefaultView(
                     onBack = {
-                        navController.navigateUp()
+                        viewModel.onAction(ImportState.Action.OnBack)
                     },
                     text = "Đơn nhập hàng",
 

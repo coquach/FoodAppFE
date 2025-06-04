@@ -191,7 +191,8 @@ fun CartScreen(
         } else {
             Nothing(
                 icon = Icons.Default.ShoppingCart,
-                text = "Không có món nào trong giỏ hàng"
+                text = "Không có món nào trong giỏ hàng",
+                modifier = Modifier.fillMaxSize()
             )
         }
     }

@@ -210,6 +210,7 @@ fun AddAddressScreen(
                     },
                     onFlyToLocation = { lat, lon, zoom ->
                         viewModel.onAction(AddAddress.Action.OnReverseGeocode(lat, lon))
+                        selectedLocation = Point.fromLngLat(lon, lat)
                         mapViewportState.flyToLocation(
                             latitude = lat,
                             longitude = lon,

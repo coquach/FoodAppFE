@@ -13,8 +13,8 @@ import com.example.foodapp.navigation.OrderList
 import com.example.foodapp.navigation.OrderSuccess
 import com.example.foodapp.navigation.orderNavType
 import com.se114.foodapp.ui.screen.order.OrderListScreen
-import com.example.foodapp.ui.screen.order.order_detail.OrderDetailScreen
 import com.example.foodapp.ui.screen.order.order_success.OrderSuccessScreen
+import com.example.foodapp.ui.screen.order_detail.OrderDetailScreen
 import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.orderGraph(

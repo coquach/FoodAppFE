@@ -61,10 +61,12 @@ import com.example.foodapp.ui.screen.components.Loading
 
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.Nothing
 import com.se114.foodapp.ui.screen.address.AddressList.Action.*
 
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
+import kotlin.Nothing
 
 @Composable
 fun AddressListScreen(
@@ -145,7 +147,7 @@ fun AddressListScreen(
                     val message =
                         (uiState.addressesState as AddressList.AddressesState.Error).message
                     Text(text = message, style = MaterialTheme.typography.bodyMedium)
-                    Button(onClick = { viewModel.onAction(AddressList.Action.OnAddAddress) }) {
+                    Button(onClick = {  }) {
                         Text(text = "Tải lại")
                     }
 
@@ -195,6 +197,12 @@ fun AddressListScreen(
 
                         }
                     }
+                }else{
+                    Nothing(
+                        icon = Icons.Default.LocationOn,
+                        text = "Không có địa chỉ nào",
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
             }

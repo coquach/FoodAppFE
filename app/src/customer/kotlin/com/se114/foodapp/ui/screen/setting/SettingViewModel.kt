@@ -7,6 +7,8 @@ import com.example.foodapp.data.model.Account
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
 import com.example.foodapp.domain.use_case.auth.LoadProfileUseCase
 import com.example.foodapp.domain.use_case.auth.LogOutUseCase
+import com.se114.foodapp.domain.use_case.cart.ClearAllCartUseCase
+import com.se114.foodapp.domain.use_case.cart.ClearCartUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,7 @@ import javax.inject.Inject
 class SettingViewModel @Inject constructor(
     private val loadProfileUseCase: LoadProfileUseCase,
     private val logoutUseCase: LogOutUseCase,
+    private val clearAllCartUseCase: ClearAllCartUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(Setting.UiState())
@@ -64,6 +67,18 @@ class SettingViewModel @Inject constructor(
                     }
 
                     is FirebaseResult.Success -> {
+                        try {
+                            clearAllCartUseCase() // <-- sẽ throw nếu có lỗi
+                        } catch (e: Exception) {
+                            _uiState.update {
+                                it.copy(
+                                    error = e.message ?: "Đã có lỗi xảy khi xóa giỏ hàng",
+                                    isLoading = false
+                                )
+                            }
+                            _event.send(Setting.Event.ShowError)
+                            return@collect
+                        }
                         _uiState.update { it.copy(isLoading = false) }
                     }
 
@@ -91,25 +106,25 @@ class SettingViewModel @Inject constructor(
 
             is Setting.Action.OnAddressClicked -> {
                 viewModelScope.launch {
-                    _event.send(Setting.Event.NavigateToProfile)
+                    _event.send(Setting.Event.NavigateToAddress)
                 }
             }
 
             is Setting.Action.OnVoucherClicked -> {
                 viewModelScope.launch {
-                    _event.send(Setting.Event.NavigateToProfile)
+                    _event.send(Setting.Event.NavigateToVoucher)
                 }
             }
 
             is Setting.Action.OnHelpClicked -> {
                 viewModelScope.launch {
-                    _event.send(Setting.Event.NavigateToProfile)
+                    _event.send(Setting.Event.NavigateToHelp)
                 }
             }
 
             is Setting.Action.OnContactClicked -> {
                 viewModelScope.launch {
-                    _event.send(Setting.Event.NavigateToProfile)
+                    _event.send(Setting.Event.NavigateToContact)
                 }
             }
 

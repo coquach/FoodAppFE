@@ -12,6 +12,7 @@ import com.example.foodapp.data.model.ImageInfo
 
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.navigation.EmployeeDetails
+import com.example.foodapp.navigation.staffNavType
 
 import com.se114.foodapp.domain.use_case.staff.CreateStaffUseCase
 import com.se114.foodapp.domain.use_case.staff.UpdateStaffUseCase
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import kotlin.reflect.typeOf
 
 @HiltViewModel
 class StaffDetailsViewModel @Inject constructor(
@@ -35,7 +37,9 @@ class StaffDetailsViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val arguments = savedStateHandle.toRoute<EmployeeDetails>()
+    private val arguments = savedStateHandle.toRoute<EmployeeDetails>(
+        typeMap = mapOf(typeOf<Staff>() to staffNavType)
+    )
 
     private val mode = arguments.isUpdating
     private val staff = arguments.staff

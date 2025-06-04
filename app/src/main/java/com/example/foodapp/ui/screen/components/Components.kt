@@ -521,7 +521,7 @@ fun FoodAppDialog(
     title: String,
     titleColor: Color = MaterialTheme.colorScheme.scrim,
     message: String,
-    messageColor: Color = MaterialTheme.colorScheme.onBackground,
+    messageColor: Color = MaterialTheme.colorScheme.outline,
     onDismiss: () -> Unit,
     containerConfirmButtonColor: Color = MaterialTheme.colorScheme.error,
     labelConfirmButtonColor: Color = MaterialTheme.colorScheme.onError,
@@ -537,7 +537,9 @@ fun FoodAppDialog(
                 text = title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = titleColor
+                color = titleColor,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         },
         text = { Text(text = message, fontSize = 16.sp, color = messageColor, lineHeight = 24.sp) },
@@ -560,10 +562,11 @@ fun FoodAppDialog(
             Button(onClick = onDismiss,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.outline
+                    containerColor = Color.Transparent
                 ),
+                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline)
                 ) {
-                Text(dismissText)
+                Text(text =dismissText, color =MaterialTheme.colorScheme.outline)
             }
         }
     )
