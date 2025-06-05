@@ -187,7 +187,8 @@ fun SharedTransitionScope.MenuScreen(
                                         showStatusDialog = true
                                     }
                                 )
-                            }
+                            },
+                            isSwipeAction = true
 
                         )
 
@@ -209,7 +210,8 @@ fun SharedTransitionScope.MenuScreen(
                                         showStatusDialog = true
                                     }
                                 )
-                            }
+                            },
+                            isSwipeAction = true
                         )
                     }),
                 onTabSelected = { index ->

@@ -6,10 +6,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.foodapp.navigation.AddAddress
 import com.example.foodapp.navigation.MyAddressList
-import com.example.foodapp.navigation.MyVoucher
 import com.example.foodapp.navigation.Setting
+import com.example.foodapp.navigation.VoucherPublic
+import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.address.AddressListScreen
-
 import com.se114.foodapp.ui.screen.address.addAddress.AddAddressScreen
 import com.se114.foodapp.ui.screen.setting.SettingScreen
 import com.se114.foodapp.ui.screen.vouchers.VouchersScreen
@@ -23,18 +23,30 @@ fun NavGraphBuilder.settingGraph(
 ) {
     composable<Setting> {
         shouldShowBottomNav.value = true
-        SettingScreen(navController, isDarkMode, onThemeUpdated)
+        ScreenContainer {
+            SettingScreen(navController, isDarkMode, onThemeUpdated)
+        }
+
     }
-    composable<MyVoucher> {
+    composable<VoucherPublic> {
         shouldShowBottomNav.value = false
-        VouchersScreen(navController)
+        ScreenContainer {
+            VouchersScreen(navController)
+        }
+
     }
     composable<MyAddressList> {
         shouldShowBottomNav.value = false
-        AddressListScreen(navController)
+        ScreenContainer {
+            AddressListScreen(navController)
+        }
+
     }
     composable<AddAddress>{
         shouldShowBottomNav.value = false
-        AddAddressScreen(navController)
+        ScreenContainer {
+            AddAddressScreen(navController)
+        }
+
     }
 }

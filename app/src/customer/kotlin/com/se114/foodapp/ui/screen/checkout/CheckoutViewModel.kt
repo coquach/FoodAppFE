@@ -3,22 +3,19 @@ package com.se114.foodapp.ui.screen.checkout
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
-import com.example.foodapp.data.model.CartItem
-import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.request.OrderItemRequest
 import com.example.foodapp.data.dto.request.OrderRequest
-
+import com.example.foodapp.data.model.CartItem
+import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.model.CheckoutUiModel
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.data.model.enums.ServingType
-
-import com.se114.foodapp.domain.use_case.cart.GetCartUseCase
-import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
 import com.example.foodapp.domain.use_case.order.PlaceOrderUseCase
 import com.example.foodapp.utils.StringUtils
+import com.se114.foodapp.domain.use_case.cart.GetCartUseCase
+import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,12 +32,10 @@ class CheckoutViewModel @Inject constructor(
     private val getCartUseCase: GetCartUseCase,
     private val getCheckoutDetailsUseCase: GetCheckOutDetailsUseCase,
     private val placeOrderUseCase: PlaceOrderUseCase,
-    val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val isCustomerArgument =
-        savedStateHandle.toRoute<com.example.foodapp.navigation.Checkout>().isCustomer
-    private val _uiState = MutableStateFlow(Checkout.UiState(isCustomer = isCustomerArgument))
+
+    private val _uiState = MutableStateFlow(Checkout.UiState())
     val uiState = _uiState.asStateFlow()
 
     private val _event = Channel<Checkout.Event>()
@@ -210,7 +205,7 @@ object Checkout {
             note = "",
             address = null,
         ),
-        val isCustomer: Boolean = true,
+
     )
 
     sealed interface Event {

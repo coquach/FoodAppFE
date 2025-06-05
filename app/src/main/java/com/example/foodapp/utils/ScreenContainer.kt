@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ScreenContainer(
+    isBottomBarVisible: Boolean = false,
     applyStatusBarInset: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -21,9 +23,8 @@ fun ScreenContainer(
         Modifier
             .fillMaxSize()
             .padding(
-                WindowInsets.statusBars
-                    .only(WindowInsetsSides.Top)
-                    .asPaddingValues()
+                top = 40.dp,
+                bottom = if (isBottomBarVisible) 0.dp else 25.dp
             )
     } else {
         Modifier

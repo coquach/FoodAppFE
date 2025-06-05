@@ -38,6 +38,6 @@ data class CheckoutUiModel(
     val voucher: Voucher? = null,
     val method: String,
     val type: String,
-    val note: String? = null,
+    val note: String = "",
     val address: String? = null,
 )

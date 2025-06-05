@@ -229,7 +229,8 @@ fun ImportScreen(
                         import = it,
                         onClick = {
                             viewModel.onAction(ImportState.Action.OnImportClick(it))
-                        })
+                        }
+                    )
                 }
             }
 

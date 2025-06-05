@@ -6,7 +6,7 @@ import com.example.foodapp.data.dto.request.ImportRequest
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Inventory
 import com.se114.foodapp.data.dto.filter.ImportFilter
-import com.se114.foodapp.data.dto.filter.InventoryFilter
+import com.example.foodapp.data.dto.filter.InventoryFilter
 import kotlinx.coroutines.flow.Flow
 
 interface ImportRepository {
@@ -14,5 +14,4 @@ interface ImportRepository {
     fun createImport(request: ImportRequest): Flow<ApiResponse<Import>>
     fun updateImport(id: Long, request: ImportRequest): Flow<ApiResponse<Import>>
     fun deleteImport(id: Long): Flow<ApiResponse<Unit>>
-    fun getInventories(filter: InventoryFilter): Flow<PagingData<Inventory>>
 }

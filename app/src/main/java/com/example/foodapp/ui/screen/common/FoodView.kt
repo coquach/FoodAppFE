@@ -1,17 +1,14 @@
 package com.example.foodapp.ui.screen.common
 
-import androidx.compose.animation.AnimatedVisibility
+
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -38,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,9 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import coil.compose.AsyncImage
-import com.example.foodapp.R.*
+import com.example.foodapp.R.drawable
 import com.example.foodapp.data.model.Food
-import com.example.foodapp.ui.screen.components.CustomCheckbox
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
@@ -63,140 +58,145 @@ fun SharedTransitionScope.FoodView(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: (Food) -> Unit,
     isCustomer: Boolean = true,
-    isFullWidth: Boolean = false
+    isFullWidth: Boolean = false,
 ) {
+
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+            .then(
+                if (isFullWidth) {
+                    Modifier.fillMaxWidth()
+                } else {
+                    Modifier.width(162.dp)
+                }
+            )
+            .height(216.dp)
+            .shadow(
+                elevation = 16.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
+                spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
+            )
+            .background(color = MaterialTheme.colorScheme.surface)
+            .clickable(
+                onClick = { onClick.invoke(food) },
+            )
+            .clip(RoundedCornerShape(16.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(147.dp)
+        ) {
+            AsyncImage(
+                model = food.images?.firstOrNull()?.url, contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .sharedElement(
+                        state = rememberSharedContentState(key = "image/${food.id}"),
+                        animatedVisibilityScope
+                    ),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(drawable.ic_placeholder),
+                error = painterResource(drawable.ic_placeholder)
+            )
+            Text(
+                text = StringUtils.formatCurrency(food.price),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(color = MaterialTheme.colorScheme.outlineVariant)
+                    .padding(horizontal = 16.dp)
+                    .align(Alignment.TopStart)
+            )
+            if (isCustomer) {
+                Box(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .align(Alignment.TopEnd)
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(color = if (food.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+                        .padding(4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = null,
+                        modifier = Modifier.size(25.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+
+
+
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(color = MaterialTheme.colorScheme.outlineVariant)
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${food.totalRating}",
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = Color.Yellow
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = "(${food.totalFeedback})",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    maxLines = 1
+                )
+            }
+
+
+        }
 
         Column(
             modifier = Modifier
                 .padding(8.dp)
-                .then(
-                    if (isFullWidth) {
-                        Modifier.fillMaxWidth()
-                    } else {
-                        Modifier.width(162.dp)
-                    }
-                )
-                .height(216.dp)
-                .shadow(
-                    elevation = 16.dp,
-                    shape = RoundedCornerShape(16.dp),
-                    ambientColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
-                    spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
-                )
-                .background(color = MaterialTheme.colorScheme.surface)
-                .clickable(
-                    onClick = { onClick.invoke(food) },
-                )
-                .clip(RoundedCornerShape(16.dp))
+                .fillMaxWidth()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(147.dp)
-            ) {
-                AsyncImage(
-                    model = food.images?.first()?.url, contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(16.dp))
-                        .sharedElement(
-                            state = rememberSharedContentState(key = "image/${food.id}"),
-                            animatedVisibilityScope
-                        ),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(drawable.ic_placeholder),
-                    error = painterResource(drawable.ic_placeholder)
+            Text(
+                text = food.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                modifier = Modifier.sharedElement(
+                    state = rememberSharedContentState(key = "title/${food.id}"),
+                    animatedVisibilityScope
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = food.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.sharedElement(
+                    state = rememberSharedContentState(key = "description/${food.id}"),
+                    animatedVisibilityScope
                 )
-                Text(
-                    text = StringUtils.formatCurrency(food.price),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.outlineVariant)
-                        .padding(horizontal = 16.dp)
-                        .align(Alignment.TopStart)
-                )
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .align(Alignment.TopEnd)
-                    .size(30.dp)
-                    .clip(CircleShape)
-                    .background(color = if(food.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    modifier = Modifier.size(25.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-
-
-                if (isCustomer) {
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(8.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(color = MaterialTheme.colorScheme.outlineVariant)
-                            .padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${food.totalRating}", style = MaterialTheme.typography.titleSmall, maxLines = 1
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = Color.Yellow
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = "(${food.totalFeedback})",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            maxLines = 1
-                        )
-                    }
-                }
-
-            }
-
-            Column(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    text = food.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    modifier = Modifier.sharedElement(
-                        state = rememberSharedContentState(key = "title/${food.id}"),
-                        animatedVisibilityScope
-                    ),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = food.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.sharedElement(
-                        state = rememberSharedContentState(key = "description/${food.id}"),
-                        animatedVisibilityScope
-                    )
-                )
-            }
+            )
         }
+    }
 
 
 }
@@ -208,45 +208,35 @@ fun SharedTransitionScope.FoodList(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onItemClick: (Food) -> Unit,
     isCustomer: Boolean = false,
+    isSwipeAction: Boolean = false,
     isFullWidth: Boolean = false,
     endAction: (@Composable (Food) -> SwipeAction)? = null,
 ) {
-        if (foods.itemCount == 0 && foods.loadState.refresh !is LoadState.Loading) {
-            Nothing(
-                text = "Không có món ăn nào",
-                icon = Icons.Default.NoMeals,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.heightIn(max = 10000.dp)
+    if (foods.itemCount == 0 && foods.loadState.refresh !is LoadState.Loading) {
+        Nothing(
+            text = "Không có món ăn nào",
+            icon = Icons.Default.NoMeals,
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
+        LazyColumn(
+            modifier = Modifier.heightIn(max = 10000.dp)
 
-            ) {
-                gridItems(
-                    foods, if(isFullWidth) 1 else 2, key = { food -> food.id },
-                    itemContent = { food ->
-                        food?.let {
-                            if(!isCustomer){
+        ) {
+            gridItems(
+                foods, if (isFullWidth) 1 else 2, key = { food -> food.id },
+                itemContent = { food ->
+                    food?.let {
+                        if (isSwipeAction) {
 
-                                    SwipeableActionsBox(
-                                        modifier = Modifier
-                                            .padding(
-                                                8.dp,
-                                            )
-                                            .clip(RoundedCornerShape(12.dp)),
-                                        endActions = endAction?.let { listOf(it(food)) } ?: emptyList()
-                                    ){
-                                        FoodView(
-                                            food = food,
-                                            animatedVisibilityScope = animatedVisibilityScope,
-                                            onClick = { onItemClick(food) },
-                                            isCustomer = isCustomer,
-                                            isFullWidth = isFullWidth
-                                        )
-                                    }
-
-
-                            } else {
+                            SwipeableActionsBox(
+                                modifier = Modifier
+                                    .padding(
+                                        8.dp,
+                                    )
+                                    .clip(RoundedCornerShape(12.dp)),
+                                endActions = endAction?.let { listOf(it(food)) } ?: emptyList()
+                            ) {
                                 FoodView(
                                     food = food,
                                     animatedVisibilityScope = animatedVisibilityScope,
@@ -256,21 +246,31 @@ fun SharedTransitionScope.FoodList(
                                 )
                             }
 
+
+                        } else {
+                            FoodView(
+                                food = food,
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                onClick = { onItemClick(food) },
+                                isCustomer = isCustomer,
+                                isFullWidth = isFullWidth
+                            )
                         }
-                    },
-                    placeholderContent = {
 
-                        Box(
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .fillMaxWidth()
-                                .background(Color.Gray.copy(alpha = 0.3f))
-                        )
                     }
-                )
-            }
-        }
+                },
+                placeholderContent = {
 
+                    Box(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .fillMaxWidth()
+                            .background(Color.Gray.copy(alpha = 0.3f))
+                    )
+                }
+            )
+        }
+    }
 
 
 }

@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.export.export_detail
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -14,24 +15,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -41,10 +38,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.NoMeals
 import androidx.compose.material.icons.filled.Outbox
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,35 +52,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.model.Export
-import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Inventory
-import com.example.foodapp.ui.screen.common.CheckoutRowItem
-import com.example.foodapp.ui.screen.common.FoodView
-import com.example.foodapp.ui.screen.components.ComboBoxSample
 import com.example.foodapp.ui.screen.components.ComboBoxSampleLazyPaging
-import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.DetailsTextRow
-import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LoadingButton
@@ -95,46 +80,73 @@ import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.ui.theme.onConfirm
 import com.example.foodapp.utils.StringUtils
-import com.se114.foodapp.ui.screen.export.ExportViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 
 @Composable
 fun ExportDetailsScreen(
     navController: NavController,
     viewModel: ExportDetailsViewModel = hiltViewModel(),
-    isUpdating: Boolean = false,
-    export: Export? = null,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val staffs = viewModel.staffs.collectAsLazyPagingItems()
     val inventories = viewModel.inventories.collectAsLazyPagingItems()
-    val exportRequest by viewModel.exportRequest.collectAsStateWithLifecycle()
-    val exportDetailsListRequest by viewModel.exportDetailsListRequest.collectAsStateWithLifecycle()
-    val exportDetailsRequest by viewModel.exportDetailsRequest.collectAsStateWithLifecycle()
 
-    var isCreating by remember { mutableStateOf(false) }
-    var isEditMode by remember { mutableStateOf(false) }
-    var editingItemId by remember { mutableStateOf<String?>(null) }
-    var ingredientSelected by remember { mutableStateOf<Inventory?>(null) }
-    val isEditable = export?.exportDate?.plusDays(3)?.isAfter(LocalDate.now()) ?: true
+
+    var isCreating by rememberSaveable { mutableStateOf(false) }
+    var isEditMode by rememberSaveable { mutableStateOf(false) }
+    var showErrorSheet by rememberSaveable { mutableStateOf(false) }
+
+
+
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    var isInventoryDialog by remember { mutableStateOf(false) }
+    var isInventoryDialog by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = isUpdating) {
-        delay(100)
-        viewModel.setMode(isUpdating, export)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect { event ->
+            when (event) {
+                ExportDetailsState.Event.GoBack -> {
+                    navController.popBackStack()
+                }
+                ExportDetailsState.Event.ShowError -> {
+                   showErrorSheet = true
+                    }
+                ExportDetailsState.Event.BackToAfterModify -> {
+                    if (uiState.isUpdating) {
+                        Toast.makeText(
+                            navController.context,
+                            "Cập nhật đơn xuất thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    } else {
+                        Toast.makeText(
+                            navController.context,
+                            "Tạo đơn xuất thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    }
+                    navController.previousBackStackEntry?.savedStateHandle?.set("updated", true)
+                    navController.popBackStack()
+                }
+
+                ExportDetailsState.Event.NotifyCantEdit -> {
+                    Toast.makeText(
+                        navController.context,
+                        "Không thể sửa đơn xuất vì quá hạn 1 ngày",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -144,7 +156,7 @@ fun ExportDetailsScreen(
     ) {
         HeaderDefaultView(
             onBack = {
-                navController.navigateUp()
+                viewModel.onAction(ExportDetailsState.Action.OnBack)
             },
             text = "Thông tin đơn xuất"
         )
@@ -166,24 +178,24 @@ fun ExportDetailsScreen(
                         .fillMaxWidth(),
                     title = "Nhân viên",
                     textPlaceholder = "Chọn nhân viên",
-                    selected = export?.staffName ?: "",
+                    selected = uiState.export.staffName,
                     onPositionSelected = { name ->
                         val selectedSupplier = (0 until staffs.itemCount)
                             .mapNotNull { index -> staffs[index] }
                             .find { it.fullName == name }
                         val supplierId = selectedSupplier?.id
                         supplierId?.let {
-                            viewModel.onChangStaffId(it)
+                            viewModel.onAction(ExportDetailsState.Action.OnChangeStaffId(it))
                         }
                     },
                     options = staffs,
-                    labelExtractor = { staff -> staff.fullName!! },
-                    enabled = isEditable,
+                    labelExtractor = { staff -> staff.fullName },
+                    enabled = uiState.isEditable,
                 )
             }
         }
 
-        if (exportDetailsListRequest.isEmpty() && !isCreating) {
+        if (uiState.exportDetails.isEmpty() && !isCreating) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -193,6 +205,7 @@ fun ExportDetailsScreen(
                 ) {
                     IconButton(
                         onClick = {
+                            viewModel.onAction(ExportDetailsState.Action.OnExportDetailsSelected(ExportDetailUIModel()))
                             isCreating = true
                             isInventoryDialog = true
                         },
@@ -211,7 +224,7 @@ fun ExportDetailsScreen(
                         )
                     }
                     Text(
-                        text = "Thêm chi tiết phiếu",
+                        text = "Thêm chi tiết đơn",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(top = 8.dp)
@@ -237,34 +250,36 @@ fun ExportDetailsScreen(
 
                 ) {
                     item {
-                        if (isCreating) {
-                            ExportDetailsCard(
-                                exportDetail = exportDetailsRequest,
-                                onIncrement = {
-                                    viewModel.onChangeQuantity(
-                                        if (exportDetailsRequest.quantity < exportDetailsRequest.quantityMaximum)
-                                            exportDetailsRequest.quantity + BigDecimal.ONE
-                                        else exportDetailsRequest.quantity
-                                    )
-                                },
-                                onDecrement = {
-                                    viewModel.onChangeQuantity(
-                                        if (exportDetailsRequest.quantity > BigDecimal.ONE)
-                                            exportDetailsRequest.quantity - BigDecimal.ONE
-                                        else exportDetailsRequest.quantity
-                                    )
-                                },
-                                onUpdate = {
-                                    viewModel.addExportDetails()
-                                    isCreating = false
-                                },
-                                onClose = { isCreating = false },
-                                isUpdating = true
-                            )
+                        AnimatedContent(
+                            targetState = isCreating,
+                            transitionSpec = {
+                                (slideInVertically { it } + fadeIn()) togetherWith
+                                        (slideOutVertically { -it } + fadeOut())
+                            },
+                            label = "Creating Switch"){creating ->
+                            if (creating) {
+                                ExportDetailsCard(
+                                    exportDetail = uiState.exportDetailsSelected,
+                                    onIncrement = {
+                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity + BigDecimal.ONE))
+                                    },
+                                    onDecrement = {
+                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity - BigDecimal.ONE))
+                                    },
+                                    onUpdate = {
+                                        viewModel.onAction(ExportDetailsState.Action.AddExportDetails)
+                                        isCreating = false
+                                    },
+                                    onClose = { isCreating = false },
+                                    isUpdating = false
+                                )
+                            }
+
                         }
+
                     }
-                    items(exportDetailsListRequest) { exportDetails ->
-                        val isEditing = editingItemId == exportDetails.localId
+                    items(uiState.exportDetails, key = { exportDetails -> exportDetails.localId }) { exportDetails ->
+                        val isEditing = isEditMode && uiState.exportDetailsSelected.localId == exportDetails.localId
 
                         AnimatedContent(
                             targetState = isEditing,
@@ -277,29 +292,18 @@ fun ExportDetailsScreen(
                             if (editing) {
 
                                 ExportDetailsCard(
-                                    exportDetail = exportDetailsRequest,
+                                    exportDetail = uiState.exportDetailsSelected,
                                     onIncrement = {
-                                        viewModel.onChangeQuantity(
-                                            exportDetailsRequest.quantity.add(
-                                                BigDecimal(1)
-                                            )
-                                        )
+                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity + BigDecimal.ONE))
                                     },
                                     onDecrement = {
-                                        viewModel.onChangeQuantity(
-                                            if (exportDetailsRequest.quantity > BigDecimal.ONE)
-                                                exportDetailsRequest.quantity.subtract(
-                                                    BigDecimal(1)
-                                                ) else exportDetailsRequest.quantity
-                                        )
+                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity - BigDecimal.ONE))
                                     },
                                     onUpdate = {
-                                        viewModel.updateExportDetails(exportDetails.localId)
-                                        editingItemId = null
+                                        viewModel.onAction(ExportDetailsState.Action.UpdateExportDetails)
                                         isEditMode = false
                                     },
                                     onClose = {
-                                        editingItemId = null
                                         isEditMode = false
                                     },
                                     isUpdating = true
@@ -316,10 +320,12 @@ fun ExportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Edit),
                                             background = MaterialTheme.colorScheme.primary,
                                             onSwipe = {
-                                                if (isEditable) {
-                                                    editingItemId = exportDetails.localId
-                                                    viewModel.loadExportDetails(exportDetails)
+                                                if (uiState.isEditable && !isCreating) {
+                                                   viewModel.onAction(ExportDetailsState.Action.OnExportDetailsSelected(exportDetails))
                                                     isEditMode = true
+                                                }else{
+                                                    viewModel.onAction(ExportDetailsState.Action.NotifyCantEdit)
+
                                                 }
 
                                             }
@@ -330,8 +336,11 @@ fun ExportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Delete),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
-                                                if (isEditable) {
-                                                    viewModel.deleteExportDetails(exportDetails.localId)
+                                                if (uiState.isEditable && !isCreating) {
+                                                    viewModel.onAction(ExportDetailsState.Action.DeleteExportDetails(exportDetails.localId))
+                                                }
+                                                else{
+                                                    viewModel.onAction(ExportDetailsState.Action.NotifyCantEdit)
                                                 }
 
                                             }
@@ -347,7 +356,7 @@ fun ExportDetailsScreen(
 
                     }
                     item {
-                        if (isEditable && !isCreating && !isEditMode) {
+                        if (uiState.isEditable && !isCreating && !isEditMode) {
                             IconButton(
                                 onClick = {
                                     isInventoryDialog = true
@@ -378,7 +387,7 @@ fun ExportDetailsScreen(
         }
 
         AnimatedVisibility(
-            visible = isEditable && !isCreating && !isEditMode,
+            visible = uiState.isEditable  && !isEditMode,
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },
                 animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
@@ -388,19 +397,18 @@ fun ExportDetailsScreen(
                 animationSpec = tween(durationMillis = 300)
             )
         ) {
-            Column {
                 LoadingButton(
                     onClick = {
-                        if (isUpdating) viewModel.updateExport(export!!.id)
-                        else viewModel.addExport()
+                        if (uiState.isUpdating) viewModel.onAction(ExportDetailsState.Action.UpdateExport)
+                        else viewModel.onAction(ExportDetailsState.Action.CreateExport)
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    text = if (isUpdating) "Cập nhật" else "Tạo",
+                    text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
                     loading = false,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
-            }
+
         }
     }
     if (isInventoryDialog) {
@@ -451,7 +459,7 @@ fun ExportDetailsScreen(
                                         InventoryPick(
                                             inventory = inventory,
                                             onClick = {
-                                                ingredientSelected = it
+                                                viewModel.onAction(ExportDetailsState.Action.OnChangeInventory(inventory))
                                                 isInventoryDialog = false
                                             }
                                         )
@@ -478,7 +486,6 @@ fun ExportDetailsScreen(
                     ) {
                         Text(text = "Đóng", modifier = Modifier.padding(horizontal = 16.dp))
                     }
-
 
                 }
             }

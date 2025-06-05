@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface FoodTableRepository {
     fun getFoodTables(): Flow<PagingData<FoodTable>>
     fun createFoodTable(request: FoodTableRequest): Flow<ApiResponse<FoodTable>>
-    fun updateFoodTable(id: Long, request: FoodTableRequest): Flow<ApiResponse<FoodTable>>
-    fun deleteFoodTable(id: Long): Flow<ApiResponse<Unit>>
-    fun updateFoodTableStatus(id: Long, status: Boolean): Flow<ApiResponse<Unit>>
+    fun updateFoodTable(id: Int, request: FoodTableRequest): Flow<ApiResponse<FoodTable>>
+    fun deleteFoodTable(id: Int): Flow<ApiResponse<Unit>>
+    fun updateFoodTableStatus(id: Int, status: Boolean): Flow<ApiResponse<Unit>>
 }

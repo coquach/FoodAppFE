@@ -11,7 +11,7 @@ import javax.inject.Inject
 class UpdateFoodTableStatusUseCase @Inject constructor(
     private val foodTableRepository: FoodTableRepository
 ) {
-    operator fun invoke(id: Long, status: Boolean) = flow<ApiResponse<Unit>> {
+    operator fun invoke(id: Int, status: Boolean) = flow<ApiResponse<Unit>> {
         try {
             foodTableRepository.updateFoodTableStatus(id, status).collect{
                 emit(it)

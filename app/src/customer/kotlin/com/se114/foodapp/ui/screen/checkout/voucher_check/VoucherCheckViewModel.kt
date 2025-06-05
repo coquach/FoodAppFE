@@ -8,7 +8,7 @@ import androidx.paging.filter
 import com.example.foodapp.data.dto.filter.VoucherFilter
 import com.example.foodapp.data.model.Voucher
 import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
-import com.se114.foodapp.domain.use_case.voucher.GetVoucherForCustomerUseCase
+import com.example.foodapp.domain.use_case.voucher.GetVoucherForCustomerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

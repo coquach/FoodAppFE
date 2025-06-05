@@ -1,7 +1,7 @@
 package com.se114.foodapp.domain.use_case.staff
 
 import com.example.foodapp.data.dto.ApiResponse
-import com.se114.foodapp.domain.repository.StaffRepository
+import com.example.foodapp.domain.repository.StaffRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn

@@ -7,13 +7,10 @@ import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.apiRequestFlow
 import com.example.foodapp.data.dto.request.ImportRequest
 import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.remote.main_api.ImportApi
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
 import com.se114.foodapp.data.dto.filter.ImportFilter
-import com.se114.foodapp.data.dto.filter.InventoryFilter
 import com.se114.foodapp.data.paging.ImportPagingSource
-import com.se114.foodapp.data.paging.InventoryPagingSource
 import com.se114.foodapp.domain.repository.ImportRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -73,19 +70,6 @@ class ImportRepoImpl @Inject constructor(
         }
     }
 
-    override fun getInventories(filter: InventoryFilter): Flow<PagingData<Inventory>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = ITEMS_PER_PAGE,
-                initialLoadSize = ITEMS_PER_PAGE,
-                prefetchDistance = 2,
-                enablePlaceholders = true
-            ),
-            pagingSourceFactory = {
-                InventoryPagingSource(importApi = importApi, filter = filter)
-            }
-        ).flow
-    }
 
 
 }

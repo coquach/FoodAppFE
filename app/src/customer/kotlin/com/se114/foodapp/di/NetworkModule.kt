@@ -3,6 +3,7 @@ package com.se114.foodapp.di
 import com.example.foodapp.data.remote.AiApi
 import com.example.foodapp.data.remote.OpenCageApi
 import com.example.foodapp.data.remote.main_api.FeedbackApi
+import com.example.foodapp.data.remote.main_api.OrderApi
 
 import dagger.Module
 import dagger.Provides
@@ -33,5 +34,10 @@ object NetworkModule {
     @Singleton
     fun provideFeedbackApi(@Named("MainApi") retrofit: Retrofit): FeedbackApi {
         return retrofit.create(FeedbackApi::class.java)
+    }
+    @Provides
+    @Singleton
+    fun provideOrderApi(@Named("MainApi") retrofit: Retrofit): OrderApi {
+        return retrofit.create(OrderApi::class.java)
     }
 }

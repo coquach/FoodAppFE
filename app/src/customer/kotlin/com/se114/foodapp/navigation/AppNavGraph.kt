@@ -38,7 +38,7 @@ fun AppNavGraph(
             modifier = Modifier.padding(innerPadding)
         ) {
             authGraph(navController, shouldShowBottomNav)
-            homeGraph(navController, shouldShowBottomNav, notificationViewModel, sharedTransitionScope)
+            homeGraph(navController, shouldShowBottomNav, sharedTransitionScope)
             orderGraph(navController, shouldShowBottomNav)
             notificationGraph(navController, shouldShowBottomNav, notificationViewModel)
             settingGraph(navController, shouldShowBottomNav, isDarkMode, onThemeUpdated)

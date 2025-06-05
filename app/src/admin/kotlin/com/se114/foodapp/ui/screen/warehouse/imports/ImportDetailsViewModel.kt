@@ -8,18 +8,19 @@ import androidx.navigation.toRoute
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.StaffFilter
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.model.Supplier
 import com.example.foodapp.navigation.ImportDetails
 import com.example.foodapp.navigation.importNavType
-import com.se114.foodapp.data.dto.filter.StaffFilter
 import com.se114.foodapp.data.dto.filter.SupplierFilter
+import com.se114.foodapp.data.mapper.toImportDetailUiModel
 import com.se114.foodapp.domain.use_case.imports.CreateImportUseCase
 import com.se114.foodapp.domain.use_case.imports.UpdateImportUseCase
 import com.se114.foodapp.domain.use_case.ingredient.GetActiveIngredientsUseCase
-import com.se114.foodapp.domain.use_case.staff.GetStaffUseCase
+import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
 import com.se114.foodapp.domain.use_case.supplier.GetSupplierUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 
@@ -53,12 +54,15 @@ class ImportDetailsViewModel @Inject constructor(
         typeMap = mapOf( typeOf<com.example.foodapp.data.model.Import>() to importNavType)
     )
     private val import = arguments.import
+    private val importDetails = import.importDetails.map{
+        it.toImportDetailUiModel()
+    }
     private val mode = arguments.isUpdating
     private val isEditable = import.importDate?.plusDays(3)?.isAfter(LocalDateTime.now()) == true
 
 
     private val _uiState =
-        MutableStateFlow(ImportDetailsState.UiState(import = import, isUpdating = mode, isEditable = isEditable))
+        MutableStateFlow(ImportDetailsState.UiState(import = import, isUpdating = mode, isEditable = isEditable, importDetails = importDetails))
     val uiState get() = _uiState.asStateFlow()
 
     private val _event = Channel<ImportDetailsState.Event>()
@@ -136,7 +140,7 @@ class ImportDetailsViewModel @Inject constructor(
 
     private fun createImport() {
         viewModelScope.launch {
-            createImportUseCase.invoke(_uiState.value.import).collect { response ->
+            createImportUseCase.invoke(_uiState.value.import, _uiState.value.importDetails).collect { response ->
                 when (response) {
                     is ApiResponse.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
@@ -163,7 +167,7 @@ class ImportDetailsViewModel @Inject constructor(
 
     private fun updateImport() {
         viewModelScope.launch {
-            updateImportUseCase(_uiState.value.import).collect { response ->
+            updateImportUseCase(_uiState.value.import, _uiState.value.importDetails).collect { response ->
                 when (response) {
                     is ApiResponse.Success -> {
                         _uiState.update { it.copy(isLoading = false) }

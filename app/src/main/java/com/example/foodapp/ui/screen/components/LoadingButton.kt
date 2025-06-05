@@ -38,7 +38,7 @@ fun LoadingButton(
         modifier = modifier.height(48.dp),
         colors = ButtonDefaults.buttonColors(containerColor = containerColor),
         enabled = enabled && !loading,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
     ) {
         Box {
             AnimatedContent(

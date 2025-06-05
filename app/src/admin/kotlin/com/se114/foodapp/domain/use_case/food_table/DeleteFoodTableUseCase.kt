@@ -12,7 +12,7 @@ class DeleteFoodTableUseCase @Inject constructor(
 ) {
     operator fun invoke(id: Long) = flow<ApiResponse<Unit>> {
         try {
-            foodTableRepository.deleteFoodTable(id).collect {
+            foodTableRepository.deleteFoodTable(id.toInt()).collect {
                 emit(it)
             }
         } catch (e: Exception) {

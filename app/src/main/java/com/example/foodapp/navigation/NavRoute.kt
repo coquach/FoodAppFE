@@ -55,7 +55,10 @@ data class MyAddressList(val isCheckout: Boolean) : NavRoute
 object AddAddress : NavRoute
 
 @Serializable
-data class Checkout(val isCustomer: Boolean) : NavRoute
+object CheckoutCustomer : NavRoute
+
+@Serializable
+object CheckoutStaff : NavRoute
 
 @Serializable
 data class OrderSuccess(val orderId: Long) : NavRoute
@@ -119,17 +122,15 @@ data class ImportDetails(val import: Import, val isUpdating: Boolean) : NavRoute
 @Serializable
 object Export: NavRoute
 
-@Serializable
-object  AddExportDetails: NavRoute
 
 @Serializable
-data class  UpdateExportDetails(val export: Export) : NavRoute
+data class ExportDetails(val export: Export, val isUpdating: Boolean) : NavRoute
 
 @Serializable
 object  Voucher : NavRoute
 
 @Serializable
-object MyVoucher : NavRoute
+object VoucherPublic : NavRoute
 
 @Serializable
 object VoucherCheck : NavRoute
@@ -140,6 +141,9 @@ data class FeedbackDetails(val orderItemId: Long) : NavRoute
 
 @Serializable
 object FoodTableAdmin: NavRoute
+
+@Serializable
+object FoodTableStaff: NavRoute
 
 
 

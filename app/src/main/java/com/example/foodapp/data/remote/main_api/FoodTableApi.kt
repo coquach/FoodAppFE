@@ -27,18 +27,18 @@ interface FoodTableApi {
     @PUT("food-tables/{id}")
     suspend fun updateFoodTable(
         @Body request: FoodTableRequest,
-        @Query("id") id: Long,
+        @Query("id") id: Int,
     ): Response<FoodTable>
 
     @PATCH("food-tables/{id}/status")
     suspend fun updateFoodTableStatus(
         @Body status: Map<String, Boolean>,
-        @Query("id") id: Long,
+        @Query("id") id: Int,
     ): Response<Unit>
 
     @DELETE("food-tables/{id}")
     suspend fun deleteFoodTable(
-        @Query("id") id: Long,
+        @Query("id") id: Int,
     ): Response<Unit>
 
 

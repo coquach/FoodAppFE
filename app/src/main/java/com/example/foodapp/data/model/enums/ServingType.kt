@@ -1,7 +1,7 @@
 package com.example.foodapp.data.model.enums
 
 enum class ServingType(val display: String) {
-    TAKEAWAY("Mang về"), ONLINE("Trực tuyến"), INSTORE("Tại chỗ");
+    TAKEAWAY("Mang về"), ONLINE("Trực tuyến"), INSTORE("Tại quán");
 
 
     override fun toString(): String = name

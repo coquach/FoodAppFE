@@ -1,6 +1,5 @@
 package com.se114.foodapp.ui.screen.warehouse
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -8,9 +7,8 @@ import androidx.paging.cachedIn
 
 import com.example.foodapp.data.model.Inventory
 
-import com.se114.foodapp.data.dto.filter.InventoryFilter
-import com.se114.foodapp.data.dto.filter.SupplierFilter
-import com.se114.foodapp.domain.use_case.inventory.GetInventoriesUseCase
+import com.example.foodapp.data.dto.filter.InventoryFilter
+import com.example.foodapp.domain.use_case.inventory.GetInventoriesUseCase
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

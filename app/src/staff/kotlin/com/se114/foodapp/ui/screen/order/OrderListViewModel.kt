@@ -1,31 +1,20 @@
 package com.se114.foodapp.ui.screen.order
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
-import com.example.foodapp.BaseViewModel
-import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.data.repository.OrderRepository
-
+import com.example.foodapp.domain.use_case.order.GetOrdersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -36,22 +25,19 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 class OrderListViewModel
 @Inject constructor(
-    private val orderRepository: OrderRepository,
-) : BaseViewModel() {
+    private val getOrdersUseCase: GetOrdersUseCase
+) : ViewModel() {
 
-    private val _state = MutableStateFlow<OrderListState>(OrderListState.Loading)
+    private val _state = MutableStateFlow(OrderListState.UiState())
     val state get() = _state.asStateFlow()
 
-    private val _event = Channel<OrderListEvent>()
+    private val _event = Channel<OrderListState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    private val _tabIndex = MutableStateFlow(0)
-    val tabIndex: StateFlow<Int> = _tabIndex
 
-    fun setTab(index: Int) {
-        _tabIndex.value = index
-    }
-    fun refreshAllTabs() {
+
+
+    private fun refreshAllTabs() {
         ordersCache.clear()
 
     }
@@ -63,37 +49,59 @@ class OrderListViewModel
             val status = when (index) {
                 0 -> OrderStatus.PENDING
                 1 -> OrderStatus.CONFIRMED
-                2 -> OrderStatus.DELIVERED
-                3 -> OrderStatus.COMPLETED
-                4 -> OrderStatus.CANCELLED
+                2 -> OrderStatus.READY
+                3 -> OrderStatus.SHIPPING
+                4 -> OrderStatus.COMPLETED
+                5 -> OrderStatus.CANCELLED
                 else -> null
             }
 
             val filter = OrderFilter(status = status?.name)
 
-            orderRepository.getOrdersByFilter(filter)
+            getOrdersUseCase.invoke(filter)
                 .cachedIn(viewModelScope)
                 .stateIn(
                     viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
+                    SharingStarted.Lazily ,
                     PagingData.empty()
                 )
         }
     }
-    fun navigateToDetails(it: Order) {
-        viewModelScope.launch {
-            _event.send(OrderListEvent.NavigateToOrderDetailScreen(it))
+
+    fun onAction(action: OrderListState.Action){
+        when(action){
+            is OrderListState.Action.OnTabSelected -> {
+                _state.update { it.copy(tabIndex = action.index) }
+            }
+            is OrderListState.Action.OnOrderClicked -> {
+                viewModelScope.launch {
+                    _event.send(OrderListState.Event.GoToDetail(action.order))
+                }
+            }
+            OrderListState.Action.OnRefresh -> {
+                refreshAllTabs()
+            }
         }
     }
 
-    sealed class OrderListEvent {
-        data class NavigateToOrderDetailScreen(val order: Order) : OrderListEvent()
-        data object NavigateBack : OrderListEvent()
+
+
+}
+
+object OrderListState{
+    data class UiState(
+        val tabIndex: Int = 0,
+    )
+    sealed interface Event{
+        data class GoToDetail(val order: Order): Event
+        data object Refresh: Event
     }
 
-    sealed class OrderListState {
-        data object Loading : OrderListState()
-        data class Success(val orderList: List<Order>) : OrderListState()
-        data class Error(val message: String) : OrderListState()
+    sealed interface Action{
+        data class OnTabSelected(val index: Int): Action
+        data class OnOrderClicked(val order: Order): Action
+        data object OnRefresh: Action
+
     }
+
 }

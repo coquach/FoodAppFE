@@ -23,7 +23,7 @@ fun NavGraphBuilder.warehouseGraph(
 ) {
     composable<Warehouse>{
         shouldShowBottomNav.value = true
-        ScreenContainer {
+        ScreenContainer(isBottomBarVisible = true) {
             WarehouseScreen(navController)
         }
 

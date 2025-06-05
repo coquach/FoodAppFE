@@ -28,7 +28,7 @@ fun NavGraphBuilder.menuGraph(
 
         composable<Menu> {
             shouldShowBottomNav.value = true
-            ScreenContainer {
+            ScreenContainer(isBottomBarVisible = true) {
                 MenuScreen(navController, this)
             }
 

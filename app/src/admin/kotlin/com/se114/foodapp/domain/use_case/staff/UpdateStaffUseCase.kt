@@ -7,7 +7,7 @@ import com.example.foodapp.data.model.Staff
 import com.example.foodapp.utils.ImageUtils
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.data.dto.request.StaffMultipartRequest
-import com.se114.foodapp.domain.repository.StaffRepository
+import com.example.foodapp.domain.repository.StaffRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow

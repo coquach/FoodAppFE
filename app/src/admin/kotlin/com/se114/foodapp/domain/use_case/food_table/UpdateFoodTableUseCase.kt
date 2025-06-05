@@ -19,7 +19,7 @@ class UpdateFoodTableUseCase @Inject constructor(
                 tableNumber = foodTable.tableNumber,
                 seatCapacity = foodTable.seatCapacity
             )
-            val id = foodTable.id!!
+            val id = foodTable.id!!.toInt()
             foodTableRepository.updateFoodTable(id, request).collect {
                 emit(it)
             }

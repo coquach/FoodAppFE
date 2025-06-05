@@ -38,6 +38,8 @@ import com.example.foodapp.navigation.BottomNavigationBar
 import com.example.foodapp.navigation.OrderDetails
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.se114.foodapp.navigation.AppNavGraph
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -48,7 +50,7 @@ class MainActivity : BaseFoodAppActivity() {
 
     private val splashViewModel: SplashViewModel by viewModels()
 
-    @RequiresApi(Build.VERSION_CODES.R)
+    
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -88,7 +90,11 @@ class MainActivity : BaseFoodAppActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
+            val systemUiController: SystemUiController = rememberSystemUiController()
+            LaunchedEffect(Unit) {
+                systemUiController.isNavigationBarVisible = false
+                systemUiController.isStatusBarVisible = false
+            }
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
 

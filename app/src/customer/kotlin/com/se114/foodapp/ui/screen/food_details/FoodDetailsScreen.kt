@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
@@ -70,7 +71,7 @@ import kotlinx.coroutines.launch
 fun SharedTransitionScope.FoodDetailsScreen(
     navController: NavController,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    viewModel: FoodDetailsViewModel = hiltViewModel()
+    viewModel: FoodDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val feedbacks = viewModel.getFeedbacks().collectAsLazyPagingItems()
@@ -83,22 +84,26 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {event->
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect { event ->
             when (event) {
                 FoodDetails.Event.GoToCart -> {
                     navController.navigate(Cart)
                 }
+
                 FoodDetails.Event.OnAddToCart -> {
                     successMessage.value = "Đã thêm món trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
+
                 FoodDetails.Event.OnBack -> {
                     navController.popBackStack()
                 }
+
                 FoodDetails.Event.OnItemAlreadyInCart -> {
                     successMessage.value = "Món đã có trong giỏ hàng"
                     showSuccessDialog.value = true
                 }
+
                 FoodDetails.Event.ShowError -> {
                     showErrorSheet = true
                 }
@@ -111,10 +116,10 @@ fun SharedTransitionScope.FoodDetailsScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val images = uiState.food.images?.map {
-            it.url!!
+            it.url
         }
         MenuHeader(
-            images = images?: emptyList(),
+            images = images ?: emptyList(),
             foodId = uiState.food.id,
             onBackButton = {
                 navController.popBackStack()
@@ -127,10 +132,15 @@ fun SharedTransitionScope.FoodDetailsScreen(
             isFavorite = uiState.food.liked
         )
         FoodDetail(
+            modifier = Modifier.fillMaxWidth()
+                .padding(16.dp),
             title = uiState.food.name,
             description = uiState.food.description,
             foodId = uiState.food.id,
             animatedVisibilityScope = animatedVisibilityScope,
+            totalRating = uiState.food.totalRating,
+            totalFeedbacks = uiState.food.totalFeedback,
+            totalLikes = uiState.food.totalLikes,
         )
         Row(
             modifier = Modifier
@@ -147,10 +157,10 @@ fun SharedTransitionScope.FoodDetailsScreen(
             FoodItemCounter(
                 count = uiState.quantity,
                 onCounterIncrement = {
-                    viewModel.onAction(FoodDetails.Action.IncreaseQuantity)
+                    viewModel.onAction(FoodDetails.Action.OnChangeQuantity(uiState.quantity + 1))
                 },
                 onCounterDecrement = {
-                    viewModel.onAction(FoodDetails.Action.DecreaseQuantity)
+                    viewModel.onAction(FoodDetails.Action.OnChangeQuantity(uiState.quantity - 1))
                 }
             )
 
@@ -194,10 +204,10 @@ fun SharedTransitionScope.FoodDetailsScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
-                                   .size(30.dp)
-                                   .clip(CircleShape)
-                                   .background(MaterialTheme.colorScheme.background)
-                                   .padding(4.dp),
+                                    .size(30.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(4.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -277,15 +287,17 @@ fun SharedTransitionScope.FoodDetailsScreen(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.FoodDetail(
+    modifier: Modifier = Modifier,
     title: String,
     description: String,
     foodId: Long,
+    totalRating: Double,
+    totalFeedbacks: Int,
+    totalLikes: Int,
     animatedVisibilityScope: AnimatedVisibilityScope,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
@@ -297,33 +309,56 @@ fun SharedTransitionScope.FoodDetail(
             )
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Icon(
                 imageVector = Icons.Filled.Star,
-                contentDescription = null,
+                contentDescription = "Rating",
                 modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.size(8.dp))
+
             Text(
-                text = "4.5",
+                text = "$totalRating",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.align(Alignment.CenterVertically)
 
             )
-            Spacer(modifier = Modifier.size(8.dp))
+
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = "Liked",
+                modifier = Modifier.size(24.dp),
+                tint = Color.Red
+            )
+
             Text(
-                text = "(30+)",
+                text = "$totalLikes",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.CenterVertically)
+
+            )
+
+            Icon(
+                imageVector = Icons.Filled.Feedback,
+                contentDescription = "Feedback",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.outline
+            )
+            Text(
+                text = "($totalFeedbacks+)",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
-            Spacer(modifier = Modifier.size(8.dp))
+
 
         }
 
         HorizontalDivider(
             thickness = 0.3.dp,
-            color = MaterialTheme.colorScheme.outline
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
         )
         Text(
             text = description,
@@ -331,7 +366,8 @@ fun SharedTransitionScope.FoodDetail(
             modifier = Modifier.padding(top = 8.dp)
                 .sharedElement(
                     state = rememberSharedContentState(key = "description/${foodId}"),
-                    animatedVisibilityScope)
+                    animatedVisibilityScope
+                )
         )
     }
 }
@@ -344,7 +380,7 @@ fun SharedTransitionScope.MenuHeader(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onBackButton: () -> Unit,
     onFavoriteButton: () -> Unit,
-    isFavorite: Boolean
+    isFavorite: Boolean,
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         ImageCarousel(
@@ -382,7 +418,7 @@ fun SharedTransitionScope.MenuHeader(
                 .padding(16.dp)
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(if(isFavorite)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+                .background(if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 .align(Alignment.TopEnd)
 
         ) {

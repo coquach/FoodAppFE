@@ -22,7 +22,7 @@ fun NavGraphBuilder.authGraph(
     }
     composable<Login> {
         shouldShowBottomNav.value = false
-        ScreenContainer {
+        ScreenContainer() {
             LoginScreen(navController, isCustomer = false)
         }
 

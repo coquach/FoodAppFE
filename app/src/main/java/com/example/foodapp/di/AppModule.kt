@@ -112,11 +112,7 @@ object AppModule {
             .build()
     }
 
-    @Provides
-    @Singleton
-    fun provideOrderApi(@Named("MainApi") retrofit: Retrofit): OrderApi {
-        return retrofit.create(OrderApi::class.java)
-    }
+
 
     @Provides
     @Singleton

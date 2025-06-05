@@ -39,15 +39,6 @@ interface   ImportApi {
     suspend fun deleteImport(@Path("id") id: Long): Response<Unit>
 
 
-    @GET("inventories")
-    suspend fun getInventories(
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10,
-        @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
-        @Query("ingredientId") ingredientId: Long? = null,
-        @Query("expiryDate") expiryDate: String? = null,
-        @Query("isOutOfStock") isOutOfStock: Boolean? = null,
-    ): Response<PageResponse<Inventory>>
+
 
 }

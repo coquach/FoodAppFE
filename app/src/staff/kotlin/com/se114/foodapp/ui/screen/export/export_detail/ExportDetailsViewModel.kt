@@ -1,326 +1,274 @@
 package com.se114.foodapp.ui.screen.export.export_detail
 
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.example.foodapp.BaseViewModel
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.filter.InventoryFilter
-import com.example.foodapp.data.dto.filter.SupplierFilter
-import com.example.foodapp.data.dto.request.ExportDetailRequest
-import com.example.foodapp.data.dto.request.ExportRequest
-import com.example.foodapp.data.dto.request.ImportDetailRequest
-import com.example.foodapp.data.dto.request.ImportRequest
-import com.example.foodapp.data.dto.safeApiCall
+import com.example.foodapp.data.dto.filter.StaffFilter
 import com.example.foodapp.data.model.Export
-import com.example.foodapp.data.model.Import
-import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Staff
-import com.example.foodapp.data.model.Supplier
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.repository.InventoryRepository
-import com.example.foodapp.data.repository.StaffRepository
-import com.example.foodapp.utils.StringUtils
+import com.example.foodapp.domain.use_case.inventory.GetInventoriesUseCase
+import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
+import com.example.foodapp.navigation.ExportDetails
+import com.example.foodapp.navigation.exportNavType
+import com.se114.foodapp.data.mapper.toExportDetailUiModel
+import com.se114.foodapp.domain.use_case.export.CreateExportUseCase
+import com.se114.foodapp.domain.use_case.export.UpdateExportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.reflect.typeOf
 
 @HiltViewModel
 class ExportDetailsViewModel @Inject constructor(
-    private val foodApi: FoodApi,
-    private val staffRepository: StaffRepository,
-    private val inventoryRepository: InventoryRepository,
-) : BaseViewModel() {
-    private val _uiState = MutableStateFlow<ExportDetailsState>(ExportDetailsState.Nothing)
-    val uiState = _uiState.asStateFlow()
 
-    private val _event = Channel<ExportDetailsEvents>()
-    val event = _event.receiveAsFlow()
+    private val getStaffUseCase: GetStaffUseCase,
+    private val getInventoriesUseCase: GetInventoriesUseCase,
+    private val createExportUseCase: CreateExportUseCase,
+    private val updateExportUseCase: UpdateExportUseCase,
+    val savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val arguments = savedStateHandle.toRoute<ExportDetails>(
+        typeMap = mapOf(typeOf<Export>() to exportNavType)
+    )
+    private val export = arguments.export
+    private val exportDetails = export.exportDetails.map {
+        it.toExportDetailUiModel()
+    }
+    val isEditable = export.exportDate?.plusDays(1)?.isAfter(LocalDate.now()) == true
 
 
-    private val _staffs = MutableStateFlow<PagingData<Staff>>(PagingData.empty())
-    val staffs = _staffs
-
-    private val _inventories = MutableStateFlow<PagingData<Inventory>>(PagingData.empty())
-    val inventories = _inventories
-
-    private val _exportRequest = MutableStateFlow(
-        ExportRequest(
-            staffId = null,
-            exportDate = "",
-            exportDetails = emptyList()
+    private val isUpdated = arguments.isUpdating
+    private val _uiState = MutableStateFlow(
+        ExportDetailsState.UiState(
+            export = export,
+            exportDetails = exportDetails,
+            isUpdating = isUpdated,
+            isEditable = isEditable
         )
     )
-    val exportRequest = _exportRequest.asStateFlow()
+    val uiState get() = _uiState.asStateFlow()
+
+    private val _event = Channel<ExportDetailsState.Event>()
+    val event get() = _event.receiveAsFlow()
 
 
-    fun onChangStaffId(staffId: Long) {
-        _exportRequest.update { it.copy(staffId = staffId) }
-    }
+    val staffs: StateFlow<PagingData<Staff>> =
+        getStaffUseCase.invoke(StaffFilter()).cachedIn(viewModelScope).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000), PagingData.empty()
+        )
+
+    val inventories: StateFlow<PagingData<Inventory>> =
+        getInventoriesUseCase.invoke(InventoryFilter()).cachedIn(viewModelScope).stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000), PagingData.empty()
+        )
 
 
-    private val _exportDetailsListRequest = MutableStateFlow<List<ExportDetailUIModel>>(emptyList())
-    val exportDetailsListRequest = _exportDetailsListRequest.asStateFlow()
-
-
-    private val _exportDetailsRequest = MutableStateFlow(
-        ExportDetailUIModel()
-    )
-    val exportDetailsRequest = _exportDetailsRequest.asStateFlow()
-
-    fun onChangeQuantity(quantity: BigDecimal) {
-        _exportDetailsRequest.update { it.copy(quantity = quantity) }
-
-    }
-
-    fun onChangeInventory(inventory: Inventory) {
-        _exportDetailsRequest.update {
+    private fun addExportDetails() {
+        val newExportDetails = _uiState.value.exportDetailsSelected
+        _uiState.update {
             it.copy(
-                inventoryId = inventory.id,
-                ingredientName = inventory.ingredientName,
-                expiryDate = inventory.expiryDate?: LocalDate.now(),
-                quantityMaximum = inventory.quantityRemaining
+                exportDetails = it.exportDetails + newExportDetails
             )
         }
-
     }
 
-    fun loadExportDetails(exportDetail: ExportDetailUIModel? = null) {
-        if (exportDetail != null) {
-            _exportDetailsRequest.update {
-                it.copy(
-                    localId = exportDetail.localId,
-                    id = exportDetail.id,
-                    ingredientName = exportDetail.ingredientName,
-                    expiryDate = exportDetail.expiryDate,
-                    quantity = exportDetail.quantity,
-                    quantityMaximum = exportDetail.quantityMaximum,
-                    cost = exportDetail.cost
-                )
-            }
-        } else {
-            _exportDetailsRequest.update {
-                it.copy(
-                    localId = UUID.randomUUID().toString(),
-                    id = null,
-                    ingredientName = null,
-                    expiryDate = LocalDate.now(),
-                    quantity = BigDecimal(1),
-                    quantityMaximum = BigDecimal(1),
-                    cost = BigDecimal(0)
-                )
-            }
-        }
-    }
-
-    private var isUpdating by mutableStateOf(false)
-
-    init {
-        viewModelScope.launch {
-            coroutineScope {
-                val inventoriesDeferred = async { getInventories() }
-                val staffsDeferred = async { getStaffs() }
-
-                // Chờ các API hoàn thành
-                inventoriesDeferred.await()
-                staffsDeferred.await()
-            }
-        }
-
-    }
-
-    fun setMode(mode: Boolean, export: Export?) {
-        isUpdating = mode
-
-        if (isUpdating && export != null) {
-            loadInitialData(export)
-        }
-    }
-
-    private fun loadInitialData(export: Export) {
-        _exportRequest.update {
+    private fun updateExportDetails() {
+        val updatedExportDetails = _uiState.value.exportDetailsSelected
+        _uiState.update {
             it.copy(
+                exportDetails = it.exportDetails.map { exportDetails ->
+                    if (exportDetails.localId == _uiState.value.exportDetailsSelected.localId) {
+                        updatedExportDetails
+                    } else {
+                        exportDetails
+                    }
+                })
+        }
 
-                staffId = export.staffId,
-                exportDate = StringUtils.formatLocalDate(export.exportDate)?: "",
+    }
+
+    private fun deleteExportDetails(exportDetailsId: String) {
+        _uiState.update {
+            it.copy(
+                exportDetails = it.exportDetails.filter { exportDetails ->
+                    exportDetails.localId != exportDetailsId
+                }
             )
         }
-        _exportDetailsListRequest.update {
-            export.exportDetails.map { detail ->
-                ExportDetailUIModel(
-                    localId = UUID.randomUUID().toString(),
-                    id = detail.id,
-                    ingredientName = detail.ingredientName,
-                    expiryDate = detail.expiryDate,
-                    quantity = detail.quantity,
-                    cost = detail.cost
-                )
-            }
-        }
     }
 
-    private fun getStaffs() {
+    private fun addExport() {
         viewModelScope.launch {
-            staffRepository.getAllStaffs().cachedIn(viewModelScope).collect {
-                _staffs.value = it
-            }
-        }
-    }
+            createExportUseCase.invoke(_uiState.value.export, _uiState.value.exportDetails)
+                .collect { response ->
+                    when (response) {
+                        is ApiResponse.Success -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _event.send(ExportDetailsState.Event.BackToAfterModify)
+                        }
 
-    private fun getInventories() {
-        viewModelScope.launch {
-            inventoryRepository.getInventoriesByFilter(InventoryFilter(isOutOfStock = false))
-                .cachedIn(viewModelScope).collect {
-                    _inventories.value = it
+                        is ApiResponse.Failure -> {
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = response.errorMessage
+                                )
+                            }
+                            _event.send(ExportDetailsState.Event.ShowError)
+                        }
+
+                        is ApiResponse.Loading -> {
+                            _uiState.update { it.copy(isLoading = true) }
+                        }
+                    }
                 }
         }
     }
 
-
-    fun addExportDetails() {
-        val newExportDetails = _exportDetailsRequest.value
-        _exportDetailsListRequest.update { oldList ->
-            oldList + newExportDetails
-        }
-        loadExportDetails()
-    }
-
-    fun updateExportDetails(exportDetailsId: String) {
-        val updatedExportDetails = _exportDetailsRequest.value
-        _exportDetailsListRequest.update { oldList ->
-            oldList.map { exportDetails ->
-                if (exportDetails.localId == exportDetailsId) updatedExportDetails else exportDetails
-            }
-        }
-        loadExportDetails()
-    }
-
-    fun deleteExportDetails(exportDetailsId: String) {
-        _exportDetailsListRequest.update { oldList ->
-            oldList.filterNot { exportDetails ->
-                exportDetails.localId == exportDetailsId
-            }
-        }
-    }
-
-    fun addExport() {
+    private fun updateExport() {
         viewModelScope.launch {
-            _uiState.value = ExportDetailsState.Loading
-            _exportRequest.update {
-                it.copy(
-                    exportDate = StringUtils.getFormattedCurrentVietnamDate(),
-                    exportDetails = _exportDetailsListRequest.value.map { exportDetails ->
-                        ExportDetailRequest(
-                            id = exportDetails.id,
-                            inventoryId = exportDetails.inventoryId,
-                            quantity = exportDetails.quantity,
+            updateExportUseCase.invoke(_uiState.value.export, _uiState.value.exportDetails)
+                .collect { response ->
+                    when (response) {
+                        is ApiResponse.Success -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _event.send(ExportDetailsState.Event.BackToAfterModify)
+                        }
+
+                        is ApiResponse.Failure -> {
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = response.errorMessage
+                                )
+                            }
+                            _event.send(ExportDetailsState.Event.ShowError)
+                        }
+
+                        is ApiResponse.Loading -> {
+                            _uiState.update { it.copy(isLoading = true) }
+                        }
+
+                    }
+                }
+        }
+    }
+
+    fun onAction(action: ExportDetailsState.Action) {
+        when (action) {
+            is ExportDetailsState.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(ExportDetailsState.Event.GoBack)
+                }
+            }
+
+            is ExportDetailsState.Action.OnChangeInventory -> {
+                _uiState.update {
+                    it.copy(
+                        exportDetailsSelected = it.exportDetailsSelected.copy(
+                            inventoryId = action.inventory.id,
+                            ingredientName = action.inventory.ingredientName
                         )
-                    }
-                )
-            }
-            val request = _exportRequest.value
-            delay(3000)
-
-            try {
-                val response = safeApiCall { foodApi.createExport(request) }
-                when (response) {
-                    is ApiResponse.Success -> {
-
-                        _uiState.value = ExportDetailsState.Success
-                        _event.send(ExportDetailsEvents.GoBack)
-                    }
-
-                    is ApiResponse.Error -> {
-                        _uiState.value = ExportDetailsState.Error("Tạo phiếu xuất thất bại")
-                        Log.d("Add import", response.message)
-                    }
-
-                    else -> {
-                        _uiState.value = ExportDetailsState.Error("Tạo phiếu xuất thất bại")
-                    }
+                    )
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.value = ExportDetailsState.Error("Tạo phiếu xuất thất bại")
-                Log.d("Add import:", e.message.toString())
             }
-        }
-    }
 
-    fun updateExport(exportId: Long) {
-        viewModelScope.launch {
-            _uiState.value = ExportDetailsState.Loading
-            _exportRequest.update {
-                it.copy(
-                    exportDate = StringUtils.getFormattedCurrentVietnamDate(),
-                    exportDetails = _exportDetailsListRequest.value.map { exportDetails ->
-                        ExportDetailRequest(
-                            id = exportDetails.id,
-                            inventoryId = exportDetails.inventoryId,
-                            quantity = exportDetails.quantity,
+            is ExportDetailsState.Action.OnChangeQuantity -> {
+                _uiState.update {
+                    it.copy(
+                        exportDetailsSelected = it.exportDetailsSelected.copy(
+                            quantity =
+                                if (action.quantity < BigDecimal.ONE) {
+                                    BigDecimal.ONE
+                                } else if (action.quantity > it.exportDetailsSelected.quantityMaximum) {
+                                    it.exportDetailsSelected.quantityMaximum
+                                } else {
+                                    action.quantity
+                                }
                         )
-                    }
-                )
-            }
-            val request = _exportRequest.value
-            delay(3000)
-
-            try {
-                val response = safeApiCall { foodApi.updateExport(exportId, request) }
-                when (response) {
-                    is ApiResponse.Success -> {
-
-                        _uiState.value = ExportDetailsState.Success
-                        _event.send(ExportDetailsEvents.GoBack)
-                    }
-
-                    is ApiResponse.Error -> {
-                        _uiState.value = ExportDetailsState.Error("Cập nhật phiếu xuất thất bại")
-                        Log.d("Update import", response.message)
-                    }
-
-                    else -> {
-                        _uiState.value = ExportDetailsState.Error("Cập nhật phiếu xuất thất bại")
-                    }
+                    )
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.value = ExportDetailsState.Error("Cập nhật phiếu xuất thất bại")
-                Log.d("Update import:", e.message.toString())
             }
+
+            is ExportDetailsState.Action.OnChangeStaffId -> {
+                _uiState.update {
+                    it.copy(
+                        export = it.export.copy(staffId = action.staffId)
+                    )
+                }
+            }
+
+            is ExportDetailsState.Action.OnChangeExpiryDate -> {
+                _uiState.update {
+                    it.copy(
+                        exportDetailsSelected = it.exportDetailsSelected.copy(expiryDate = action.expiryDate)
+                    )
+                }
+            }
+
+            is ExportDetailsState.Action.OnChangeCost -> {
+                _uiState.update {
+                    it.copy(
+                        exportDetailsSelected = it.exportDetailsSelected.copy(
+                            cost = action.cost ?: BigDecimal.ZERO
+                        )
+                    )
+                }
+            }
+
+            is ExportDetailsState.Action.AddExportDetails -> {
+                addExportDetails()
+            }
+
+            is ExportDetailsState.Action.UpdateExportDetails -> {
+                updateExportDetails()
+            }
+
+            is ExportDetailsState.Action.DeleteExportDetails -> {
+                deleteExportDetails(exportDetailsId = action.exportDetailsId)
+            }
+
+            is ExportDetailsState.Action.CreateExport -> {
+                addExport()
+            }
+
+            is ExportDetailsState.Action.UpdateExport -> {
+                updateExport()
+            }
+            is ExportDetailsState.Action.NotifyCantEdit -> {
+                viewModelScope.launch {
+                    _event.send(ExportDetailsState.Event.NotifyCantEdit)
+                }
+            }
+            is ExportDetailsState.Action.OnExportDetailsSelected -> {
+                _uiState.update {
+                    it.copy(
+                        exportDetailsSelected = action.exportDetails
+                    )
+                }
+            }
+
         }
-    }
 
-    sealed class ExportDetailsState {
-        data object Nothing : ExportDetailsState()
-        data object Loading : ExportDetailsState()
-        data object Success : ExportDetailsState()
-        data class Error(val message: String) : ExportDetailsState()
-    }
-
-    sealed class ExportDetailsEvents {
-        data object GoBack : ExportDetailsEvents()
     }
 }
 
@@ -334,3 +282,38 @@ data class ExportDetailUIModel(
     val quantityMaximum: BigDecimal = BigDecimal(1),
     val cost: BigDecimal = BigDecimal.ZERO,
 )
+
+object ExportDetailsState {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val error: String? = null,
+        val exportDetails: List<ExportDetailUIModel> = emptyList(),
+        val export: Export,
+        val exportDetailsSelected: ExportDetailUIModel = ExportDetailUIModel(),
+        val isUpdating: Boolean = false,
+        val isEditable: Boolean = true,
+    )
+
+    sealed interface Event {
+        data object GoBack : Event
+        data object ShowError : Event
+        data object BackToAfterModify : Event
+        data object NotifyCantEdit : Event
+    }
+
+    sealed interface Action {
+        data object OnBack : Action
+        data class OnExportDetailsSelected(val exportDetails: ExportDetailUIModel) : Action
+        data class OnChangeStaffId(val staffId: Long) : Action
+        data class OnChangeInventory(val inventory: Inventory) : Action
+        data class OnChangeQuantity(val quantity: BigDecimal) : Action
+        data class OnChangeExpiryDate(val expiryDate: LocalDate) : Action
+        data class OnChangeCost(val cost: BigDecimal?) : Action
+        data object AddExportDetails : Action
+        data object UpdateExportDetails : Action
+        data class DeleteExportDetails(val exportDetailsId: String) : Action
+        data object CreateExport : Action
+        data object UpdateExport : Action
+        data object NotifyCantEdit : Action
+    }
+}

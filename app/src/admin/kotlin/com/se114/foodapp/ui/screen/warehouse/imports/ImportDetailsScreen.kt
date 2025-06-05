@@ -130,14 +130,14 @@ fun ImportDetailsScreen(
                     if (uiState.isUpdating) {
                         Toast.makeText(
                             navController.context,
-                            "Cập nhật phiếu nhập thành công",
+                            "Cập nhật đơn nhập thành công",
                             Toast.LENGTH_SHORT
                         ).show()
 
                     } else {
                         Toast.makeText(
                             navController.context,
-                            "Tạo món ăn thành công",
+                            "Tạo đơn nhập thành công",
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -244,7 +244,9 @@ fun ImportDetailsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     IconButton(
-                        onClick = { isCreating = true },
+                        onClick = {
+                            viewModel.onAction(ImportDetailsState.Action.OnImportDetailsSelected(ImportDetailUIModel()))
+                            isCreating = true },
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
@@ -260,7 +262,7 @@ fun ImportDetailsScreen(
                         )
                     }
                     Text(
-                        text = "Thêm chi tiết phiếu",
+                        text = "Thêm chi tiết đơn",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(top = 8.dp)
@@ -354,7 +356,7 @@ fun ImportDetailsScreen(
                     }
 
                     }
-                    items(uiState.importDetails) { importDetails ->
+                    items(uiState.importDetails, key = { importDetails -> importDetails.localId }) { importDetails ->
                         val isEditing = isEditMode &&
                             uiState.importDetailsSelected.localId == importDetails.localId
 
@@ -446,6 +448,8 @@ fun ImportDetailsScreen(
                                                         )
                                                     )
                                                     isEditMode = true
+                                                }else{
+                                                    viewModel.onAction(ImportDetailsState.Action.NotifyCantEdit)
                                                 }
 
                                             }
@@ -458,11 +462,15 @@ fun ImportDetailsScreen(
                                             onSwipe = {
                                                 if (uiState.isEditable && !isCreating) {
                                                     viewModel.onAction(
+
                                                         ImportDetailsState.Action.DeleteImportDetails(
                                                             importDetails.localId
                                                         )
                                                     )
+                                                }else{
+                                                    viewModel.onAction(ImportDetailsState.Action.NotifyCantEdit)
                                                 }
+
 
                                             }
                                         )

@@ -410,7 +410,7 @@ fun StatisticsScreen(
                                 is StaticsState.DailyReportState.Error -> {
                                     Retry(
                                         onClicked = {
-                                            viewModel.onAction(StaticsState.Action.GetMonthlyReport)
+                                            viewModel.onAction(StaticsState.Action.GetDailyReport)
                                         },
                                         message = (uiState.dailyReportState as StaticsState.DailyReportState.Error).message,
                                     )

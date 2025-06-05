@@ -52,13 +52,13 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.navigation.MyAddressList
-import com.example.foodapp.navigation.MyVoucher
 import com.example.foodapp.navigation.Profile
+import com.example.foodapp.navigation.VoucherPublic
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
-import com.example.foodapp.ui.screen.components.ThemeSwitcher
 import com.example.foodapp.ui.screen.components.SettingGroup
 import com.example.foodapp.ui.screen.components.SettingItem
+import com.example.foodapp.ui.screen.components.ThemeSwitcher
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,7 +102,7 @@ fun SettingScreen(
                 Setting.Event.NavigateToHelp -> {}
                 Setting.Event.NavigateToPrivacy -> {}
                 Setting.Event.NavigateToVoucher -> {
-                    navController.navigate(MyVoucher)
+                    navController.navigate(VoucherPublic)
                 }
 
                 Setting.Event.ShowError -> {

@@ -38,7 +38,7 @@ class FoodTableRepoImpl @Inject constructor(
     }
 
     override fun updateFoodTable(
-        id: Long,
+        id: Int,
         request: FoodTableRequest,
     ): Flow<ApiResponse<FoodTable>> {
         return apiRequestFlow {
@@ -46,14 +46,14 @@ class FoodTableRepoImpl @Inject constructor(
         }
     }
 
-    override fun deleteFoodTable(id: Long): Flow<ApiResponse<Unit>> {
+    override fun deleteFoodTable(id: Int): Flow<ApiResponse<Unit>> {
         return apiRequestFlow {
             foodTableApi.deleteFoodTable(id)
         }
     }
 
     override fun updateFoodTableStatus(
-        id: Long,
+        id: Int,
         status: Boolean,
     ): Flow<ApiResponse<Unit>> {
         return apiRequestFlow {

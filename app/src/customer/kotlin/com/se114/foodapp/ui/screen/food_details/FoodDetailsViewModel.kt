@@ -10,7 +10,7 @@ import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.model.Food
 import com.se114.foodapp.domain.use_case.feedback.GetFeedbacksUseCase
-import com.se114.foodapp.domain.use_case.food_details.AddToCartUseCase
+import com.se114.foodapp.domain.use_case.cart.AddToCartUseCase
 import com.se114.foodapp.domain.use_case.food_details.ToggleLikecUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -44,14 +44,7 @@ class FoodDetailsViewModel @Inject constructor(
 
 
 
-    private fun incrementQuantity() {
-        _uiState.update { it.copy(quantity = it.quantity + 1) }
-    }
 
-    private fun decrementQuantity() {
-        if (_uiState.value.quantity == 1) return
-        _uiState.update { it.copy(quantity = it.quantity - 1) }
-    }
 
     private fun addToCart(food: Food) {
         viewModelScope.launch {
@@ -128,13 +121,6 @@ class FoodDetailsViewModel @Inject constructor(
                 }
             }
 
-            is FoodDetails.Action.IncreaseQuantity -> {
-                incrementQuantity()
-            }
-
-            is FoodDetails.Action.DecreaseQuantity -> {
-                decrementQuantity()
-            }
 
             is FoodDetails.Action.OnBack -> {
                 viewModelScope.launch {
@@ -146,6 +132,13 @@ class FoodDetailsViewModel @Inject constructor(
                 toggleLike(action.foodId)
             }
 
+            is FoodDetails.Action.OnChangeQuantity -> {
+                _uiState.update { it.copy(quantity =
+                        if(action.quantity < 1) 1
+                    else if(action.quantity > it.food.remainingQuantity) it.food.remainingQuantity
+                    else action.quantity
+                ) }
+            }
         }
     }
 }
@@ -170,8 +163,7 @@ object FoodDetails {
     sealed interface Action {
         data object OnAddToCart : Action
         data object GoToCart : Action
-        data object IncreaseQuantity : Action
-        data object DecreaseQuantity : Action
+       data class OnChangeQuantity(val quantity: Int) : Action
         data object OnBack : Action
         data class OnFavorite(val foodId: Long) : Action
 

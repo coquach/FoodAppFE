@@ -76,7 +76,6 @@ fun SharedTransitionScope.HomeScreen(
     navController: NavController,
     animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: HomeViewModel = hiltViewModel(),
-    notificationViewModel: NotificationViewModel,
 
     ) {
 
@@ -183,21 +182,6 @@ fun SharedTransitionScope.HomeScreen(
             }
 
 
-//            val uiSate = viewModel.uiState.collectAsStateWithLifecycle()
-//            when (uiSate.value) {
-//                is HomeViewModel.HomeState.Loading -> {
-//                    CircularProgressIndicator()
-//                }
-//
-//                is HomeViewModel.HomeState.Empty -> {
-//                    // Show empty state message
-//                }
-//
-//                is HomeViewModel.HomeState.Success -> {
-//                    val categories = viewModel.categories
-//                    CategoriesList(categories = categories, onCategorySelected = {
-//
-//                    })
 
 
             FoodList(

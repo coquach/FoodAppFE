@@ -21,7 +21,7 @@ fun NavGraphBuilder.statisticsGraph(
 ) {
     composable<Statistics> {
         shouldShowBottomNav.value = true
-        ScreenContainer {
+        ScreenContainer(isBottomBarVisible = true) {
             StatisticsScreen(navController, notificationViewModel = notificationViewModel)
         }
 

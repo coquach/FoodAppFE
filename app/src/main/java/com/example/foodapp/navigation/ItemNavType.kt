@@ -1,5 +1,6 @@
 package com.example.foodapp.navigation
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.navigation.NavType
 import com.example.foodapp.data.model.Export
@@ -119,7 +120,7 @@ val importNavType = object : NavType<Import>(false) {
 
 }
 
-val exportNavItem = object : NavType<Export>(false) {
+val exportNavType = object : NavType<Export>(false) {
     override fun get(bundle: Bundle, key: String): Export {
         return parseValue(bundle.getString(key).orEmpty())
     }

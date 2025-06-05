@@ -19,6 +19,7 @@ import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailSc
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
 import com.example.foodapp.ui.screen.auth.signup.profile.ProfileScreen
+import com.example.foodapp.utils.ScreenContainer
 
 fun NavGraphBuilder.authGraph(
     navController: NavHostController,
@@ -26,16 +27,25 @@ fun NavGraphBuilder.authGraph(
 ) {
     composable<Auth> {
         shouldShowBottomNav.value = false
-        AuthScreen(navController)
+        ScreenContainer(applyStatusBarInset = false) {
+            AuthScreen(navController)
+        }
+
     }
     composable<SignUp> {
         shouldShowBottomNav.value = false
-        SignUpScreen(navController)
+        ScreenContainer{
+            SignUpScreen(navController)
+        }
+
     }
     composable<Profile>(
     ) {
         shouldShowBottomNav.value = false
-        ProfileScreen(navController)
+        ScreenContainer{
+            ProfileScreen(navController)
+        }
+
     }
     composable<Login> {
         shouldShowBottomNav.value = false
@@ -43,16 +53,24 @@ fun NavGraphBuilder.authGraph(
     }
     composable<SendEmail> {
         shouldShowBottomNav.value = false
-        SendEmailScreen(navController)
+        ScreenContainer{
+            SendEmailScreen(navController)
+        }
+
     }
     composable<ResetPassword>{
         shouldShowBottomNav.value = false
-        ChangePasswordScreen(
-            navController,
-        )
+        ScreenContainer{
+            ChangePasswordScreen(navController)
+        }
+
     }
     composable<ResetPasswordSuccess> {
         shouldShowBottomNav.value = false
-        ResetPassSuccessScreen(navController)
+        ScreenContainer{
+            ResetPassSuccessScreen(navController)
+
+        }
+
     }
 }

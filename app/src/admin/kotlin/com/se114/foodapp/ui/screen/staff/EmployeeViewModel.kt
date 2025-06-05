@@ -1,25 +1,21 @@
 package com.se114.foodapp.ui.screen.staff
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.StaffFilter
 import com.example.foodapp.data.model.Staff
-import com.example.foodapp.data.model.Supplier
-import com.se114.foodapp.data.dto.filter.StaffFilter
+import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
 import com.se114.foodapp.domain.use_case.staff.DeleteStaffUseCase
-import com.se114.foodapp.domain.use_case.staff.GetStaffUseCase
-import com.se114.foodapp.ui.screen.staff.EmployeeSate.Event.*
+import com.se114.foodapp.ui.screen.staff.EmployeeSate.Event.GoToDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
