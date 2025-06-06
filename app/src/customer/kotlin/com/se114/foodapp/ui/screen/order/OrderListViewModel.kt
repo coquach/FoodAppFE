@@ -2,132 +2,92 @@ package com.example.foodapp.ui.screen.order
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.data.model.Address
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
-import com.example.foodapp.data.model.OrderItem
+import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.data.repository.OrderRepoImpl
+import com.example.foodapp.domain.use_case.auth.GetCustomerIdUseCase
+import com.example.foodapp.domain.use_case.order.GetOrdersByCustomerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class OrderListViewModel @Inject constructor() : ViewModel() {
+class OrderListViewModel @Inject constructor(
+    private val getOrdersByCustomerUseCase: GetOrdersByCustomerUseCase,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(OrderList.UiState())
+    val uiState: StateFlow<OrderList.UiState> get() = _uiState.asStateFlow()
 
-    private val _state = MutableStateFlow<OrderListState>(OrderListState.Loading)
-    val state get() = _state.asStateFlow()
+    private val _event = Channel<OrderList.Event>()
+    val event get() = _event.receiveAsFlow()
+    fun refreshAllTabs() {
+        ordersCache.clear()
 
-    private val _event = MutableSharedFlow<OrderListEvent>()
-    val event get() = _event.asSharedFlow()
-
-    init {
-        getOrders()
     }
 
-    fun getOrders() {
-        viewModelScope.launch {
-            delay(1000) // Giả lập thời gian tải dữ liệu
-//            val  sampleOrders = emptyList<Order>()
-            val sampleOrders = listOf(
-                Order(
-                    id = "1",
-                    userId = "user_123",
-                    createdAt = "2025-03-23T10:00:00Z",
-                    updatedAt = "2025-03-23T10:30:00Z",
-                    status = "PENDING_ACCEPTANCE",
-                    totalAmount = 150.0f,
-                    paymentMethod = "Credit Card",
-                    address = Address(
-                        addressLine1 = "123 Main St",
-                        city = "New York",
-                        state = "NY",
-                        zipCode = "10001",
-                        country = "USA"
-                    ),
-                    items = listOf(
-                        OrderItem(
-                            id = "item_1",
-                            menuItemId = "menu_123",
-                            orderId = "1",
-                            quantity = 2,
-                            menuItemName = "Espresso"
-                        )
-                    )
-                ),
-                Order(
-                    id = "2",
-                    userId = "user_456",
-                    createdAt = "2025-03-23T11:00:00Z",
-                    updatedAt = "2025-03-23T11:15:00Z",
-                    status = "CANCELLED",
-                    totalAmount = 250.0f,
-                    paymentMethod = "PayPal",
-                    address = Address(
-                        addressLine1 = "456 Elm St",
-                        city = "Los Angeles",
-                        state = "CA",
-                        zipCode = "90001",
-                        country = "USA"
-                    ),
-                    items = listOf(
-                        OrderItem(
-                            id = "item_2",
-                            menuItemId = "menu_456",
-                            orderId = "2",
-                            quantity = 1,
-                            menuItemName = "Cappuccino"
-                        )
-                    )
-                ),
-                Order(
-                    id = "2",
-                    userId = "user_456",
-                    createdAt = "2025-03-23T11:00:00Z",
-                    updatedAt = "2025-03-23T11:15:00Z",
-                    status = "ACCEPTED",
-                    totalAmount = 250.0f,
-                    paymentMethod = "PayPal",
-                    address = Address(
-                        addressLine1 = "456 Elm St",
-                        city = "Los Angeles",
-                        state = "CA",
-                        zipCode = "90001",
-                        country = "USA"
-                    ),
-                    items = listOf(
-                        OrderItem(
-                            id = "item_2",
-                            menuItemId = "menu_456",
-                            orderId = "2",
-                            quantity = 1,
-                            menuItemName = "Cappuccino"
-                        )
-                    )
+    private val ordersCache = mutableMapOf<Int, StateFlow<PagingData<Order>>>()
+
+
+    fun getOrdersByTab(index: Int): StateFlow<PagingData<Order>> {
+        return ordersCache.getOrPut(index) {
+            val status = when (index) {
+                0 -> OrderStatus.PENDING
+                1 -> null
+                else -> null
+            }
+
+            val filter = OrderFilter(status = status?.name)
+
+            getOrdersByCustomerUseCase.invoke(filter)
+                .cachedIn(viewModelScope)
+                .stateIn(
+                    viewModelScope,
+                    SharingStarted.WhileSubscribed(5000),
+                    PagingData.empty()
                 )
-            )
-
-            _state.value = OrderListState.Success(sampleOrders)
         }
     }
 
+    fun onAction(action: OrderList.Action) {
+        when (action) {
+            is OrderList.Action.OnOrderClicked -> {
+                viewModelScope.launch {
+                    _event.send(OrderList.Event.GoToDetails(action.order))
+                }
+            }
 
-    fun navigateToDetails(it: Order) {
-        viewModelScope.launch {
-            _event.emit(OrderListEvent.NavigateToOrderDetailScreen(it))
+            is OrderList.Action.OnTabChanged -> {
+                _uiState.update { it.copy(tabIndex = action.index) }
+            }
+
         }
+
+    }
+}
+
+object OrderList {
+    data class UiState(
+        val tabIndex: Int = 0,
+    )
+
+    sealed interface Event {
+        data class GoToDetails(val order: Order) : Event
     }
 
-    sealed class OrderListEvent {
-        data class NavigateToOrderDetailScreen(val order: Order) : OrderListEvent()
-        data object NavigateBack : OrderListEvent()
-    }
+    sealed interface Action {
+        data class OnTabChanged(val index: Int) : Action
+        data class OnOrderClicked(val order: Order) : Action
 
-    sealed class OrderListState {
-        data object Loading : OrderListState()
-        data class Success(val orderList: List<Order>) : OrderListState()
-        data class Error(val message: String) : OrderListState()
     }
 }

@@ -1,0 +1,46 @@
+package com.se114.foodapp.data.di
+
+import com.example.foodapp.data.repository.FoodTableRepoImpl
+import com.example.foodapp.data.repository.InventoryRepoImpl
+import com.example.foodapp.data.repository.OrderRepoImpl
+import com.example.foodapp.data.repository.StaffRepoImpl
+import com.example.foodapp.data.repository.VoucherRepoImpl
+import com.example.foodapp.domain.repository.FoodTableRepository
+import com.example.foodapp.domain.repository.InventoryRepository
+import com.example.foodapp.domain.repository.OrderRepository
+import com.example.foodapp.domain.repository.StaffRepository
+import com.example.foodapp.domain.repository.VoucherRepository
+import com.se114.foodapp.data.repository.CartRepoImpl
+import com.se114.foodapp.data.repository.ExportRepoImpl
+import com.se114.foodapp.domain.repository.CartRepository
+import com.se114.foodapp.domain.repository.ExportRepository
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class DataModule {
+
+    @Binds
+    abstract fun provideCartRepository(cartRepoImpl: CartRepoImpl): CartRepository
+
+    @Binds
+    abstract fun provideOrderRepository(orderRepoImpl: OrderRepoImpl): OrderRepository
+
+    @Binds
+    abstract fun provideExportRepository(exportRepoImpl: ExportRepoImpl): ExportRepository
+
+    @Binds
+    abstract fun provideFoodTableRepository(foodTableRepoImpl: FoodTableRepoImpl): FoodTableRepository
+
+    @Binds
+    abstract fun provideStaffRepository(staffRepoImpl: StaffRepoImpl): StaffRepository
+
+    @Binds
+    abstract fun provideInventoryRepository(inventoryRepoImpl: InventoryRepoImpl): InventoryRepository
+
+    @Binds
+    abstract fun provideVoucherRepository(voucherRepoImpl: VoucherRepoImpl): VoucherRepository
+}

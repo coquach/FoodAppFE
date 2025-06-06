@@ -32,10 +32,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerSample(
+    modifier: Modifier = Modifier.fillMaxWidth(),
     text: String,
     selectedDate: LocalDate?,
     onDateSelected: (LocalDate) -> Unit
@@ -63,8 +63,8 @@ fun DatePickerSample(
             Icon(Icons.Default.DateRange, contentDescription = null)
         },
         interactionSource = interactionSource,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+
 
     )
 

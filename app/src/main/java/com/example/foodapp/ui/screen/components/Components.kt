@@ -20,15 +20,18 @@ import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,11 +43,13 @@ import androidx.compose.material.icons.filled.Add
 
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 
 import androidx.compose.material3.HorizontalDivider
@@ -53,25 +58,36 @@ import androidx.compose.material3.IconButton
 
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -82,9 +98,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import co.yml.charts.common.extensions.isNotNull
 
 import com.example.foodapp.R
+import com.example.foodapp.data.model.Order
+import com.example.foodapp.ui.screen.common.OrderItemView
 import com.example.foodapp.ui.theme.FoodAppTheme
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -92,6 +114,7 @@ fun FoodAppTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    fieldHeight: Dp = 56.dp,
     enabled: Boolean = true,
     readOnly: Boolean = false,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -122,10 +145,16 @@ fun FoodAppTextField(
         focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
 
-    )
+    ),
 ) {
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+
         labelText?.let {
+
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.outline,
@@ -133,15 +162,23 @@ fun FoodAppTextField(
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
             )
+
+
         }
-        Spacer(modifier = Modifier.size(8.dp))
+        val actualTextStyle = when {
+            fieldHeight < 52.dp -> textStyle.copy(fontSize = 14.sp)
+            fieldHeight in 52.dp..60.dp -> textStyle.copy(fontSize = 16.sp)
+            fieldHeight in 61.dp..70.dp -> textStyle.copy(fontSize = 18.sp)
+            else -> textStyle.copy(fontSize = 20.sp)
+        }
+
         OutlinedTextField(
             value = value,
             onValueChange,
-            modifier,
+            modifier = modifier.heightIn(min = 56.dp),
             enabled,
             readOnly,
-            textStyle.copy(fontWeight = FontWeight.SemiBold),
+            textStyle = actualTextStyle,
             null,
             placeholder,
             leadingIcon,
@@ -178,27 +215,29 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(color = MaterialTheme.colorScheme.surface)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = title,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = description,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.size(16.dp))
             Button(
                 onClick = onClick,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
 
-                ) {
+            ) {
                 Text(
                     text = stringResource(id = R.string.ok),
                     color = MaterialTheme.colorScheme.onPrimary,
@@ -209,15 +248,73 @@ fun BasicDialog(title: String, description: String, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ErrorModalBottomSheet(
+    description: String,
+    onDismiss: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+) {
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            scope.launch {
+                sheetState.hide()
+                onDismiss()
+            }
+        },
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 4.dp,
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Đã xảy ra lỗi",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        sheetState.hide()
+                        onDismiss()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Đóng")
+            }
+        }
+    }
+}
 
 @Composable
 fun FoodItemCounter(
+    modifier: Modifier = Modifier,
     onCounterIncrement: () -> Unit,
     onCounterDecrement: () -> Unit,
-    count: Int
+    count: Int,
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
     ) {
         IconButton(
             onClick = {
@@ -279,7 +376,7 @@ fun FoodItemCounter(
 fun MyFloatingActionButton(
     onClick: () -> Unit,
     bgColor: Color,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     FloatingActionButton(
         onClick = onClick,
@@ -333,27 +430,32 @@ fun Loading() {
 @Composable
 fun HeaderDefaultView(
     text: String,
+    onBackIcon: ImageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
     onBack: (() -> Unit)? = null,
     icon: ImageVector? = null,
     iconClick: (() -> Unit)? = null,
-    tintIcon: Color = MaterialTheme.colorScheme.primary
+    tintIcon: Color = MaterialTheme.colorScheme.primary,
 
     ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if(onBack != null){
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = null,
+        if (onBack != null) {
+            IconButton(
+                onClick = onBack,
                 modifier = Modifier
                     .padding(end = 16.dp)
-                    .size(30.dp)
+                    .size(40.dp) // size to rộng xíu cho dễ bấm
                     .clip(CircleShape)
-                    .clickable { onBack() },
-                tint = MaterialTheme.colorScheme.primary
-            )
+            ) {
+                Icon(
+                    imageVector = onBackIcon,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp) // icon nhỏ hơn để căn giữa trong button
+                )
+            }
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
         }
@@ -361,25 +463,31 @@ fun HeaderDefaultView(
         Text(
             text = text,
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
+            color = tintIcon,
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier
                 .weight(1f),
             textAlign = TextAlign.Center
         )
 
-        if(icon != null){
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
+        if (icon != null) {
+            IconButton(
+                onClick = { iconClick?.invoke() },
                 modifier = Modifier
-                    .size(30.dp)
-                    .clickable {
-                        iconClick?.invoke()
-                    },
-                tint = tintIcon
+                    .padding(start = 16.dp)
+                    .size(40.dp) // size to rộng xíu cho dễ bấm
+                    .clip(CircleShape)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp),
+                    tint = tintIcon
 
-            )
+                )
+            }
+
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
         }
@@ -392,7 +500,7 @@ fun HeaderDefaultView(
 @Composable
 fun Retry(
     message: String,
-    onClicked: () -> Unit
+    onClicked: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize(),
@@ -413,12 +521,14 @@ fun FoodAppDialog(
     title: String,
     titleColor: Color = MaterialTheme.colorScheme.scrim,
     message: String,
-    messageColor: Color = MaterialTheme.colorScheme.onBackground,
+    messageColor: Color = MaterialTheme.colorScheme.outline,
     onDismiss: () -> Unit,
+    containerConfirmButtonColor: Color = MaterialTheme.colorScheme.error,
+    labelConfirmButtonColor: Color = MaterialTheme.colorScheme.onError,
     onConfirm: (() -> Unit)? = null,
     confirmText: String = "Ok",
     dismissText: String = "Đóng",
-    showConfirmButton: Boolean = true
+    showConfirmButton: Boolean = true,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -427,21 +537,36 @@ fun FoodAppDialog(
                 text = title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = titleColor
+                color = titleColor,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         },
         text = { Text(text = message, fontSize = 16.sp, color = messageColor, lineHeight = 24.sp) },
         containerColor = MaterialTheme.colorScheme.background,
         confirmButton = {
             if (showConfirmButton) {
-                TextButton(onClick = { onConfirm?.invoke(); onDismiss() }) {
+                Button(
+                    onClick = { onConfirm?.invoke(); onDismiss() },
+                    colors = ButtonDefaults.buttonColors().copy(
+                        containerColor = containerConfirmButtonColor,
+                        contentColor = labelConfirmButtonColor
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text(confirmText)
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(dismissText)
+            Button(onClick = onDismiss,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent
+                ),
+                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline)
+                ) {
+                Text(text =dismissText, color =MaterialTheme.colorScheme.outline)
             }
         }
     )
@@ -456,7 +581,7 @@ fun ThemeSwitcher(
     parentShape: Shape = CircleShape,
     toggleShape: Shape = CircleShape,
     animationSpec: AnimationSpec<Dp> = tween(durationMillis = 300),
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val offset by animateDpAsState(
         targetValue = if (darkTheme) 0.dp else size / 1.5f,
@@ -525,7 +650,7 @@ fun CustomPagerIndicator(
     dotSize: Dp = 8.dp,
     dotSpacing: Dp = 6.dp,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
-    unselectedColor: Color = MaterialTheme.colorScheme.outline
+    unselectedColor: Color = MaterialTheme.colorScheme.outline,
 ) {
     Row(
         modifier = modifier,
@@ -544,71 +669,206 @@ fun CustomPagerIndicator(
 }
 
 
-fun LazyListScope.gridItems(
-    count: Int,
+fun <T : Any> LazyListScope.gridItems(
+    data: LazyPagingItems<T>,
     nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    itemContent: @Composable BoxScope.(Int) -> Unit,
-) {
-    gridItems(
-        data = List(count) { it },
-        nColumns = nColumns,
-        horizontalArrangement = horizontalArrangement,
-        itemContent = itemContent,
-    )
-}
-
-fun <T> LazyListScope.gridItems(
-    data: List<T>,
-    nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     key: ((item: T) -> Any)? = null,
-    itemContent: @Composable BoxScope.(T) -> Unit,
+    itemContent: @Composable BoxScope.(T?) -> Unit,
+    placeholderContent: @Composable BoxScope.() -> Unit = {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+        )
+    },
 ) {
-    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
-    items(rows) { rowIndex ->
+    val rowCount = if (data.itemCount == 0) 0 else (data.itemCount + nColumns - 1) / nColumns
+    items(rowCount) { rowIndex ->
         Row(horizontalArrangement = horizontalArrangement) {
             for (columnIndex in 0 until nColumns) {
                 val itemIndex = rowIndex * nColumns + columnIndex
-                if (itemIndex < data.count()) {
+                if (itemIndex < data.itemCount) {
                     val item = data[itemIndex]
-                    androidx.compose.runtime.key(key?.invoke(item)) {
-                        Box(
-                            modifier = Modifier.weight(1f, fill = true),
-                            propagateMinConstraints = true
-                        ) {
-                            itemContent.invoke(this, item)
+                    Box(
+                        modifier = Modifier.weight(1f, fill = true),
+                        propagateMinConstraints = true
+                    ) {
+                        if (item != null) {
+                            if (key != null) {
+                                key(key(item)) {
+                                    itemContent(this, item)
+                                }
+                            } else {
+                                itemContent(this, item)
+                            }
+                        } else {
+                            placeholderContent()
                         }
                     }
                 } else {
-                    Spacer(Modifier.weight(1f, fill = true))
+                    Spacer(modifier = Modifier.weight(1f, fill = true))
                 }
             }
         }
     }
 }
 
-fun showComposeToast(context: Context, message: String) {
-    val toast = Toast(context)
-    toast.duration = Toast.LENGTH_SHORT
+@Composable
+fun DetailsTextRow(
+    modifier: Modifier = Modifier,
+    text: String,
+    icon: ImageVector,
+    color: Color = MaterialTheme.colorScheme.outline,
 
-    val composeView = ComposeView(context).apply {
-        setContent {
-            FoodAppTheme {
-                Box(
-                    modifier = Modifier
-                        .background(Color.Black, shape = RoundedCornerShape(12.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+fun <T : Any> LazyPagingSample(
+    modifier: Modifier = Modifier,
+    items: LazyPagingItems<T>,
+    textNothing: String,
+    iconNothing: ImageVector,
+    columns: Int = 1,
+    key: ((item: T) -> Any)? = null,
+    itemContent: @Composable (T) -> Unit,
+) {
+    val isEmpty = items.itemSnapshotList.items.isEmpty()
+    val isNotLoading = items.loadState.refresh !is LoadState.Loading
+
+    Box(modifier = modifier) {
+        when {
+            isEmpty && isNotLoading -> {
+                Nothing(
+                    text = textNothing,
+                    icon = iconNothing,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Text(text = message, color = Color.White, fontSize = 16.sp)
+                    gridItems(
+                        data = items,
+                        nColumns = columns,
+                        key = key,
+                        itemContent = { item ->
+                            item?.let{itemContent(item)}
+
+
+                        }
+                    )
                 }
             }
         }
     }
-
-    toast.view = composeView
-    toast.show()
 }
+@Composable
+fun NoteInput(
+    modifier: Modifier = Modifier.height(200.dp),
+    note: String,
+    onNoteChange: (String) -> Unit,
+    maxLines: Int = 5 ,
+    textHolder: String,
+    readOnly: Boolean = false
+) {
+    OutlinedTextField(
+        value = note,
+        onValueChange = {
+            onNoteChange(it)
+        },
+        readOnly = readOnly,
+        modifier = modifier
+            .fillMaxWidth(),
+        placeholder = {
+            Text(
+                text = textHolder,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors().copy(
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+            cursorColor = MaterialTheme.colorScheme.primary,
+        ),
+        textStyle = MaterialTheme.typography.bodyMedium,
+        shape = RoundedCornerShape(8.dp),
+        maxLines = maxLines
+    )
+}
+@Composable
+fun ExpandableText(
+    modifier: Modifier = Modifier,
+    text: String,
+    minimizedMaxLines: Int,
+    style: TextStyle
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var hasVisualOverflow by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        Text(
+            text = text,
+            maxLines = if (expanded) Int.MAX_VALUE else minimizedMaxLines,
+            onTextLayout = { hasVisualOverflow = it.hasVisualOverflow },
+            style = style
+        )
+        if (hasVisualOverflow) {
+            Row(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                val lineHeightDp: Dp = with(LocalDensity.current) { style.lineHeight.toDp() }
+                Spacer(
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(lineHeightDp)
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                            )
+                        )
+                )
+                Text(
+                    modifier = Modifier
+                        .background(Color.White)
+                        .padding(start = 4.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = { expanded = !expanded }
+                        ),
+                    text = "Xem thêm",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = style
+                )
+            }
+        }
+    }
+}
+
 
 
 

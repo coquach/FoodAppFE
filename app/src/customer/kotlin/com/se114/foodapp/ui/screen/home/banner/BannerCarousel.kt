@@ -1,6 +1,7 @@
 package com.se114.foodapp.ui.screen.home.banner
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -29,19 +30,21 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun Banners(
+    onClick: () -> Unit
 ) {
     val pages = listOf(
         Slider.First,
         Slider.Second,
         Slider.Third
     )
-    AutoSlidingCarousel(pages = pages)
+    AutoSlidingCarousel(pages = pages, onClick = onClick)
 }
 
 @Composable
 fun AutoSlidingCarousel(
     modifier: Modifier = Modifier,
-    pages: List<Slider>
+    pages: List<Slider>,
+    onClick: () -> Unit
 ) {
 
     val pagerState = rememberPagerState(pageCount = { pages.size }, initialPage = 0)
@@ -79,7 +82,8 @@ fun AutoSlidingCarousel(
                         .graphicsLayer(
                             scaleX = 1.2f,
                             scaleY = 1.2f
-                        ),
+                        )
+                        .clickable { onClick.invoke() },
                     contentScale = ContentScale.Crop,
                 )
         }
@@ -98,13 +102,3 @@ fun AutoSlidingCarousel(
 
 
 
-@Preview
-@Composable
-fun PreviewBannerScreen() {
-    val pages = listOf(
-        Slider.First,
-        Slider.Second,
-        Slider.Third
-    )
-    AutoSlidingCarousel(pages = pages)
-}

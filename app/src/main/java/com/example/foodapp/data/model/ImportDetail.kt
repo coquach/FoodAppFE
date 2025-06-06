@@ -9,20 +9,19 @@ import java.time.LocalDateTime
 
 @Serializable
 data class ImportDetail(
-    val id: Long? = null,
-    val anImport: Import,
+    val id: Long,
     val ingredient: Ingredient,
 
     @Serializable(with = LocalDateTimeSerializer::class)
-    val expiryDate: LocalDateTime? = null,
+    val expiryDate: LocalDateTime,
 
     @Serializable(with = LocalDateTimeSerializer::class)
-    val productionDate: LocalDateTime? = null,
+    val productionDate: LocalDateTime,
 
     @Serializable(with = BigDecimalSerializer::class)
     val quantity: BigDecimal,
 
     @Serializable(with = BigDecimalSerializer::class)
     val cost: BigDecimal,
-    val isDeleted: Boolean = false
+
 )

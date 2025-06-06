@@ -9,8 +9,9 @@ import java.time.LocalDate
 
 @Serializable
 data class Inventory(
-    val id: Long? = null,
-    val ingredient: Ingredient,
+    val id: Long,
+    val ingredientName: String,
+    val unit: String,
 
     @Serializable(with = LocalDateSerializer::class)
     val expiryDate: LocalDate?= null,  // Ngày hết hạn
@@ -22,5 +23,4 @@ data class Inventory(
 
     @Serializable(with = BigDecimalSerializer::class)
     val quantityRemaining: BigDecimal,
-    val isDeleted: Boolean = false
 )

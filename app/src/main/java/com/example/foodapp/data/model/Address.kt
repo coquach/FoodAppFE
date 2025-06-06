@@ -1,17 +1,15 @@
 package com.example.foodapp.data.model
 
+import android.os.Parcelable
+import com.mapbox.maps.extension.style.expressions.dsl.generated.random
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
-@Serializable
+@Parcelize
 data class Address(
-    val id: String? = null,
-    val userId: String? = null,
-    val addressLine1: String,
-    val addressLine2: String? = null,
-    val city: String,
-    val state: String,
-    val zipCode: String,
-    val country: String,
-    val latitude: Double? = null,
-    val longitude: Double? = null
-)
+    val id : String = UUID.randomUUID().toString(),
+    val formatAddress: String,
+    val latitude: Double?,
+    val longitude: Double?,
+    ) : Parcelable

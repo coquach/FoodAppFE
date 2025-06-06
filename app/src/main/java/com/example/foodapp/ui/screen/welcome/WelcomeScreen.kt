@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.foodapp.ui.screen.components.CustomPagerIndicator
-import com.example.foodapp.ui.navigation.Auth
+import com.example.foodapp.navigation.Auth
 
 import com.example.foodapp.ui.screen.welcome.on_boarding_page.OnBoardingPage
 

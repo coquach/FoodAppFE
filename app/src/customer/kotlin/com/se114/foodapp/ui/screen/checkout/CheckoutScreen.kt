@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,169 +17,222 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import com.example.foodapp.data.model.Address
-import com.example.foodapp.data.model.Payment
-import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.data.model.Voucher
+import com.example.foodapp.data.model.enums.PaymentMethod
+import com.example.foodapp.navigation.MyAddressList
+import com.example.foodapp.navigation.OrderSuccess
+import com.example.foodapp.navigation.VoucherCheck
+import com.example.foodapp.ui.screen.common.CartItemView
+import com.example.foodapp.ui.screen.common.CheckoutDetailsView
+import com.example.foodapp.ui.screen.common.CheckoutRowItem
+import com.example.foodapp.ui.screen.common.calculateVoucherValue
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-import com.example.foodapp.ui.screen.components.Loading
-import com.example.foodapp.ui.screen.components.Retry
-import com.example.foodapp.ui.navigation.AddressList
-import com.example.foodapp.ui.navigation.OrderSuccess
-import com.example.foodapp.ui.screen.common.ItemView
+import com.example.foodapp.ui.screen.components.LoadingButton
+import com.example.foodapp.ui.screen.components.NoteInput
+import com.example.foodapp.ui.screen.components.RadioGroupWrap
 
-import com.se114.foodapp.ui.screen.cart.CartViewModel
-import com.se114.foodapp.ui.screen.cart.CheckoutDetailsView
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
     navController: NavController,
-    viewModel: CheckoutViewModel = hiltViewModel()
+    viewModel: CheckoutViewModel = hiltViewModel(),
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val showErrorDialog = remember {
+    var showErrorSheet by remember {
         mutableStateOf(
             false
         )
     }
-
-    LaunchedEffect(key1 = true) {
-        viewModel.event.collectLatest {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
-                is CheckoutViewModel.CheckoutEvents.OnAddress -> {
-                    navController.navigate(AddressList)
+                Checkout.Event.ChooseAddress -> {
+                    navController.navigate(MyAddressList(isCheckout = true))
                 }
 
-                CheckoutViewModel.CheckoutEvents.OnCheckOut -> {
-
+                Checkout.Event.ChooseVoucher -> {
+                    navController.navigate(VoucherCheck)
                 }
 
-                CheckoutViewModel.CheckoutEvents.ShowErrorDialog -> {
-                    showErrorDialog.value = true
+                Checkout.Event.OnBack -> {
+                    navController.popBackStack()
                 }
 
-                is CheckoutViewModel.CheckoutEvents.OrderSuccess -> {
-                    navController.navigate(OrderSuccess("orderId"))
+                is Checkout.Event.OrderSuccess -> {
+                    navController.navigate(OrderSuccess(it.orderId))
+                }
+
+                Checkout.Event.ShowError -> {
+                    showErrorSheet = true
                 }
             }
         }
     }
+
+    val voucher =
+        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<Voucher?>(
+            "voucher",
+            null
+        )
+            ?.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = voucher?.value) {
+        voucher?.value?.let {
+            viewModel.onAction(Checkout.Action.OnVoucherChanged(it))
+        }
+    }
+
+    val address =
+        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<String?>(
+            "address",
+            null
+        )
+            ?.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = address?.value) {
+        address?.value?.let {
+            viewModel.onAction(Checkout.Action.OnAddressChanged(it))
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
 
     ) {
         HeaderDefaultView(
             onBack = {
-                navController.popBackStack()
+              viewModel.onAction(Checkout.Action.OnBack)
             },
             text = "Xác nhận đơn hàng"
         )
         AddressCard(
-            null,
+            uiState.checkout.address,
             onAddressClicked = {
-                viewModel.onAddressClicked()
+                viewModel.onAction(Checkout.Action.OnChooseAddress)
             }
         )
-        Spacer(modifier = Modifier.size(8.dp))
-
-        when (uiState.value) {
-            is CheckoutViewModel.CheckoutState.Loading -> {
-                Spacer(modifier = Modifier.size(16.dp))
-                Loading()
-            }
-
-            is CheckoutViewModel.CheckoutState.Success -> {
-                val cartItems = (uiState.value as CheckoutViewModel.CheckoutState.Success).cartItems
-                val checkoutDetails =
-                    (uiState.value as CheckoutViewModel.CheckoutState.Success).checkoutDetails
-                Surface(
+        NoteInput(
+            note = uiState.checkout.note?: "",
+            onNoteChange = {
+                viewModel.onAction(Checkout.Action.OnNoteChanged(it))
+            },
+            maxLines = 2,
+            textHolder = "Nhập ghi chú",
+            modifier = Modifier.height(100.dp)
+        )
+        Surface(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.background,
+            shadowElevation = 6.dp,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp)
+            ) {
+                LazyColumn(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        items(cartItems, key = { it.id }) { item ->
-                            ItemView(
-                                cartItem = item
-                            )
-                        }
+                    items(uiState.cartItems, key = { it.id }) { item ->
+                        CartItemView(
+                            cartItem = item
+                        )
+                    }
 
+                    item {
+                        CheckoutDetailsView(
+                            checkoutDetails = uiState.checkoutDetails,
+                            voucher = uiState.checkout.voucher
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.size(8.dp))
-                PaymentMethod()
-                Spacer(modifier = Modifier.size(8.dp))
-                CheckoutDetailsView(checkoutDetails = checkoutDetails)
-                Button(
-                    onClick = {
-                        viewModel.onConfirmClicked()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Đặt món")
-                }
 
 
             }
-
-
-            is CheckoutViewModel.CheckoutState.Error -> {
-                val message = (uiState.value as CartViewModel.CartState.Error).message
-                Retry(
-                    message,
-                    onClicked = {}
-                )
-            }
-
-            is CheckoutViewModel.CheckoutState.Nothing -> {}
 
         }
+        VoucherCard(
+            voucher = uiState.checkout.voucher,
+            onVoucherClicked = {
+                viewModel.onAction(Checkout.Action.OnChooseVoucher)
+            }
+        )
+        Payment(
+            method = uiState.checkout.method,
+            onSelected = {
+                val method = PaymentMethod.fromDisplay(it)!!.name
+                viewModel.onAction(Checkout.Action.OnPaymentMethodChanged(method))
+            }
+        )
+        CheckoutRowItem(
+            title = "Tổng cộng",
+            value =  uiState.checkoutDetails.totalAmount + calculateVoucherValue(uiState.checkout.voucher,uiState.checkoutDetails),
+            fontWeight = FontWeight.Bold
+        )
+        LoadingButton(
+            onClick = {
+                viewModel.onAction(Checkout.Action.PlaceOrder)
+            },
+            text = "Hoàn thành",
+            loading = uiState.isLoading,
+            modifier = Modifier.fillMaxWidth()
+
+        )
     }
-    if (showErrorDialog.value) {
-        ModalBottomSheet(onDismissRequest = { showErrorDialog.value = false }) {
-            BasicDialog(title = viewModel.errorTitle, description = viewModel.errorMessage) {
-                showErrorDialog.value = false
-            }
-        }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.error ?: "Đã xảy ra lỗi",
+            onDismiss = {
+                showErrorSheet = false
+            },
+
+        )
     }
 }
 
 @Composable
-fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
+fun AddressCard(address: String?, onAddressClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,32 +244,89 @@ fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
             .padding(16.dp)
 
     ) {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Icon(
                 imageVector = Icons.Default.LocationOn,
                 contentDescription = "Vị trí của bạn",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(30.dp)
+            )
+
+
+            if (address != null) {
+
+                Text(
+                    text = address,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+
+                )
+
+            } else {
+                Text(
+                    text = "Chọn địa chỉ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Next",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(30.dp)
+            )
+        }
+
+    }
+
+}
+
+@Composable
+fun VoucherCard(voucher: Voucher?, onVoucherClicked: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable {
+                onVoucherClicked.invoke()
+            }
+            .padding(16.dp)
+
+    ) {
+        Row {
+            Icon(
+                imageVector = Icons.Default.LocalOffer,
+                contentDescription = "Voucher của bạn",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
 
             Spacer(modifier = Modifier.size(8.dp))
-            if (address != null) {
+            if (voucher != null) {
                 Column {
                     Text(
-                        text = address.addressLine1,
+                        text = voucher.code,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.size(4.dp))
                     Text(
-                        text = "${address.city}, ${address.state}, ${address.country}",
+                        text = "${voucher.value}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             } else {
                 Text(
-                    text = "Chọn địa chỉ",
+                    text = "Chọn voucher",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -233,60 +344,27 @@ fun AddressCard(address: Address?, onAddressClicked: () -> Unit) {
 }
 
 
-
 @Composable
-fun PaymentMethod(payment: Payment = Payment()) {
-    Surface(
+fun Payment(method: String, onSelected: (String) -> Unit) {
+    Box(
         modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(10.dp),
+        contentAlignment = Alignment.Center
+
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Phương thức thanh toán",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clickable { /*TODO*/ },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    painter = painterResource(id = payment.paymentImage),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
 
-                Spacer(modifier = Modifier.size(8.dp))
-
-                Text(
-                    text = payment.paymentMethod,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.outline
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Next",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+        RadioGroupWrap(
+            modifier = Modifier,
+            text = "Phương thức thanh toán",
+            options = PaymentMethod.entries.map { it.display },
+            selectedOption = method,
+            onOptionSelected = onSelected,
+            optionIcons = listOf(Icons.Default.Money, Icons.Default.Payment),
+        )
 
 
-        }
     }
 }

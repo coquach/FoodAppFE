@@ -4,14 +4,32 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import java.util.UUID
 
 object ImageUtils {
+    fun getImagePart(context: Context, imageUrl: Uri?): MultipartBody.Part? {
+        val imageFile = if (imageUrl != null && !imageUrl.toString().startsWith("https")) {
+            getFileFromUri(context, imageUrl)
+        } else {
+            null
+        }
+
+        return imageFile?.toMultipartBodyPartOrNull()
+    }
 
     /**
      * Chuyển Uri thành File
      */
-    fun getFileFromUri(context: Context, uri: Uri): File {
+    private fun getFileFromUri(context: Context, uri: Uri): File {
         try {
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: throw IllegalArgumentException("Unable to open input stream from URI.")
@@ -32,6 +50,12 @@ object ImageUtils {
         } catch (e: Exception) {
             e.printStackTrace()
             throw RuntimeException("Failed to create file from URI", e)
+        }
+    }
+    private fun File?.toMultipartBodyPartOrNull(partName: String = "imageUrl"): MultipartBody.Part? {
+        return this?.let {
+            val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData(partName, it.name, requestFile)
         }
     }
 
@@ -60,4 +84,6 @@ object ImageUtils {
             contentValues
         )
     }
+
+
 }

@@ -1,122 +1,146 @@
 package com.example.foodapp.ui.screen.auth.forgot_password.change_password
 
-import androidx.compose.runtime.mutableStateOf
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
-import com.example.foodapp.ui.screen.auth.signup.SignUpViewModel.SignUpEvent
-import com.example.foodapp.utils.ValidateField
-import com.google.firebase.auth.FirebaseAuthException
+import androidx.navigation.toRoute
+
+import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.domain.use_case.auth.ResetPasswordUseCase
+import com.example.foodapp.navigation.ResetPassword
+import com.example.foodapp.ui.screen.components.validateField
+
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ChangePasswordViewModel @Inject constructor(
-    private val accountService: AccountService
-) : BaseAuthViewModel() {
-    private val _uiState = MutableStateFlow<ChangePasswordState>(ChangePasswordState.Nothing)
-    val uiState = _uiState.asStateFlow()
+    private val resetPasswordUseCase: ResetPasswordUseCase,
+    val savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val navArgs = savedStateHandle.toRoute<ResetPassword>()
+    private val _oobCode = navArgs.oobCode
 
-    private val _event = MutableSharedFlow<ChangePasswordEvents>()
-    val event = _event.asSharedFlow()
+    private val _uiState = MutableStateFlow(ChangePasswordState.UiState())
+    val uiState: StateFlow<ChangePasswordState.UiState>  get()= _uiState.asStateFlow()
+
+    private val _event = Channel<ChangePasswordState.Event>()
+    val event = _event.receiveAsFlow()
 
 
-    private val _password = MutableStateFlow("")
-    val password = _password.asStateFlow()
 
-    private val _confirmPassword = MutableStateFlow("")
-    val confirmPassword = _confirmPassword.asStateFlow()
+    fun validate(type: String) {
+        val current = _uiState.value
+        var passwordError: String? = current.passwordError
+        var confirmPasswordError: String? = current.confirmPasswordError
+        when (type) {
 
-    var passwordError = mutableStateOf<String?>(null)
-    var confirmPasswordError = mutableStateOf<String?>(null)
 
-    fun onPasswordChanged(password: String) {
-        _password.value = password
+            "password" -> {
+                passwordError = validateField(
+                    current.password.trim(),
+                    "Mật khẩu phải có ít nhất 6 ký tự"
+                ) { it.length >= 6 }
+
+            }
+
+            "confirmPassword" -> {
+                confirmPasswordError = validateField(
+                    current.confirmPassword.trim(),
+                    "Mật khẩu không khớp"
+
+                ) { it == current.password }
+            }
+
+        }
+        val isValid =  passwordError == null && confirmPasswordError == null
+        _uiState.update {
+            it.copy(
+                passwordError = passwordError,
+                confirmPasswordError = confirmPasswordError,
+                isValid = isValid
+            )
+        }
     }
 
-    fun onConfirmPasswordChanged(confirmPassword: String) {
-        _confirmPassword.value = confirmPassword
-    }
 
-    private val _oobCode = mutableStateOf<String?>(null)
-    private val _mode = mutableStateOf<String?>(null)
 
-    fun validate(): Boolean {
-        var isValid = true
-
-        isValid = ValidateField(
-            password.value,
-            passwordError,
-            "Mật khẩu phải có ít nhất 6 ký tự"
-        ) { it.length >= 6 } && isValid
-
-        isValid = ValidateField(
-            confirmPassword.value,
-            confirmPasswordError,
-            "Mật khẩu không trùng khớp"
-        ) { it == password.value } && isValid
-
-        return isValid
-    }
-
-    fun setResetPasswordArgs(oobCode: String, mode: String) {
-        _oobCode.value = oobCode
-        _mode.value = mode
-    }
-
-    fun resetPassword() {
+    private fun resetPassword() {
         viewModelScope.launch {
-            val oobCode = _oobCode.value
-            if (oobCode == null) {
-                error = "Lỗi mã xác thực"
-                errorDescription = "Mã xác thực không hợp lệ hoặc bị thiếu. Vui lòng thử lại."
-                _uiState.value = ChangePasswordState.Error
-                return@launch
-            }
+            resetPasswordUseCase(oobCode = _oobCode, newPassword = _uiState.value.password).collect { response ->
+                when (response) {
+                    is FirebaseResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                    is FirebaseResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _event.send(ChangePasswordState.Event.NavigateToSuccess)
 
-            _uiState.value = ChangePasswordState.Loading
-            try {
-                if (validate()) {
-                    delay(3000)
-                    accountService.resetPassword(oobCode, password.value)
-                    _uiState.value = ChangePasswordState.Success
-                    _event.emit(ChangePasswordEvents.NavigateToSuccess)
-                }else {
-                    error = "Mật khẩu không hợp lệ"
-                    errorDescription = "Vui lòng nhập mật khẩu chính xác."
-                    _uiState.value = ChangePasswordState.Error
+                    }
+                    is FirebaseResult.Failure -> {
+                        _uiState.update { it.copy(isLoading = false, error = response.error) }
+                        _event.send(ChangePasswordState.Event.ShowError)
+                    }
+
                 }
-
-            } catch (e: FirebaseAuthException) {
-                error = "Lỗi xác thực"
-                errorDescription = e.localizedMessage ?: "Đã xảy ra lỗi trong quá trình tạo lại mật khẩu."
-                _uiState.value = ChangePasswordState.Error
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                error = "Lỗi không xác định"
-                errorDescription = e.localizedMessage ?: "Vui lòng thử lại sau."
-                _uiState.value = ChangePasswordState.Error
             }
+
         }
 
     }
-    sealed class ChangePasswordState {
-        data object Nothing : ChangePasswordState()
-        data object Success : ChangePasswordState()
-        data object Error : ChangePasswordState()
-        data object Loading : ChangePasswordState()
+    fun onAction(action: ChangePasswordState.Action) {
+        when (action) {
+            is ChangePasswordState.Action.OnPasswordChanged -> {
+                _uiState.update { it.copy(password = action.password) }
+            }
+            is ChangePasswordState.Action.OnConfirmPasswordChanged -> {
+                _uiState.update { it.copy(confirmPassword = action.confirmPassword) }
+            }
 
+            is ChangePasswordState.Action.ResetPassword -> {
+
+                    resetPassword()
+
+            }
+            is ChangePasswordState.Action.Auth -> {
+                viewModelScope.launch {
+                    _event.send(ChangePasswordState.Event.NavigateToAuth)
+                }
+            }
+        }
     }
 
-    sealed class ChangePasswordEvents{
-        object NavigateToSuccess : ChangePasswordEvents()
+}
+
+object ChangePasswordState {
+    data class UiState(
+        val isLoading: Boolean = false,
+        val isValid: Boolean = false,
+        val password: String = "",
+        val confirmPassword: String = "",
+        val passwordError: String? = null,
+        val confirmPasswordError: String? = null,
+        val error: String? = null,
+    )
+
+    sealed interface Event{
+        data object NavigateToAuth : Event
+        data object NavigateToSuccess : Event
+        data object ShowError : Event
+    }
+    sealed interface Action{
+        data class OnPasswordChanged(val password: String) : Action
+        data class OnConfirmPasswordChanged(val confirmPassword: String) : Action
+        data object ResetPassword : Action
+        data object Auth : Action
+
     }
 }

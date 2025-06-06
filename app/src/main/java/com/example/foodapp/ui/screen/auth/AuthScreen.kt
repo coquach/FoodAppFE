@@ -1,12 +1,6 @@
 package com.example.foodapp.ui.screen.auth
 
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import android.util.Log
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,7 +31,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,33 +38,40 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.R
-import com.example.foodapp.ui.navigation.Login
-import com.example.foodapp.ui.navigation.SignUp
+import com.example.foodapp.navigation.Login
+import com.example.foodapp.navigation.SignUp
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
+
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AuthScreen(
     navController: NavController,
-    isCustomer: Boolean = true
+    isCustomer: Boolean = true,
 ) {
-    val context = LocalContext.current
 
-    val requestPermissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                Log.d("Notification", "Người dùng đã cấp quyền!")
-            } else {
-                Log.e("Notification", "Người dùng từ chối quyền!")
+
+    val notificationPermissionState =
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
+            permission = Manifest.permission.POST_NOTIFICATIONS
+        ) else null
+
+    if (notificationPermissionState != null) {
+        LaunchedEffect(Unit) {
+
+            if (!notificationPermissionState.status.isGranted) {
+                notificationPermissionState.launchPermissionRequest()
             }
-            Log.d("Notification", "Trạng thái quyền sau khi yêu cầu: $isGranted")
+
         }
-    LaunchedEffect(Unit) {
-        requestNotificationPermission(context, requestPermissionLauncher)
     }
+
 
     val imageSize = remember { mutableStateOf(IntSize.Zero) }
     val brush = Brush.verticalGradient(
@@ -80,22 +80,30 @@ fun AuthScreen(
         ),
         startY = imageSize.value.height.toFloat() / 3,
     )
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Black)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
 
     ) {
-        Image(painter = painterResource(id = R.drawable.background), contentDescription = null,
-            modifier = Modifier.onGloballyPositioned {
-                imageSize.value = it.size
-            }.alpha(0.5f),
-            contentScale = ContentScale.FillBounds)
+        Image(
+            painter = painterResource(id = R.drawable.background), contentDescription = null,
+            modifier = Modifier
+                .onGloballyPositioned {
+                    imageSize.value = it.size
+                }
+                .alpha(0.5f),
+            contentScale = ContentScale.FillBounds
+        )
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(brush = brush)
         )
-        Column(modifier = Modifier.fillMaxWidth().padding(top = 110.dp).padding(16.dp)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 110.dp)
+            .padding(16.dp)) {
             Text(
                 text = stringResource(id = R.string.welcome),
                 color = Color.White,
@@ -110,6 +118,7 @@ fun AuthScreen(
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 50.sp,
+                lineHeight = 50.sp,
                 modifier = Modifier
             )
             Text(
@@ -128,20 +137,20 @@ fun AuthScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-           if(isCustomer) {
-               Spacer(modifier = Modifier.height(16.dp))
-               Button(
-                   onClick = {
-                       navController.navigate(SignUp)
-                   },
-                   modifier = Modifier.fillMaxWidth(),
-                   colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.2f)),
-                   shape = RoundedCornerShape(32.dp),
-                   border = BorderStroke(1.dp, Color.White)
-               ) {
-                   Text(text = stringResource(id = R.string.sign_with_email), color = Color.White)
-               }
-           }
+            if (isCustomer) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        navController.navigate(SignUp)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.2f)),
+                    shape = RoundedCornerShape(32.dp),
+                    border = BorderStroke(1.dp, Color.White)
+                ) {
+                    Text(text = stringResource(id = R.string.sign_with_email), color = Color.White)
+                }
+            }
             TextButton(onClick = {
                 navController.navigate(Login)
             }) {
@@ -153,19 +162,6 @@ fun AuthScreen(
 
 }
 
-fun requestNotificationPermission(
-    context: Context,
-    launcher: ManagedActivityResultLauncher<String, Boolean>
-) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        if (ContextCompat.checkSelfPermission(
-                context, android.Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            launcher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
