@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.LocalDate
@@ -39,27 +40,25 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangePickerSample(
-    modifier: Modifier = Modifier,
-    onDateRangeSelected: (LocalDate?, LocalDate?) -> Unit // Callback để trả lại ngày đã chọn
+    startDateText: String = "Ngày bắt đầu",
+    endDateText: String = "Ngày kết thúc",
+    startDate: LocalDate?,
+    endDate: LocalDate?,
+    modifier: Modifier = Modifier.width(200.dp),
+    fieldHeight: Dp = 56.dp,
+    isColumn: Boolean = false, // Thêm tham số này
+    onDateRangeSelected: (LocalDate?, LocalDate?) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    val dateRangePickerState = rememberDateRangePickerState()
-
-    // State lưu trữ ngày bắt đầu và ngày kết thúc
-    var selectedStartDate by remember { mutableStateOf<LocalDate?>(null) }
-    var selectedEndDate by remember { mutableStateOf<LocalDate?>(null) }
-
-
-    LaunchedEffect(Unit) {
-        val today = LocalDate.now()
-        selectedStartDate = selectedStartDate ?: today
-        selectedEndDate = selectedEndDate ?: today
-    }
-
+    val dateRangePickerState = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = startDate?.atStartOfDay(ZoneId.systemDefault())
+            ?.toInstant()?.toEpochMilli(),
+        initialSelectedEndDateMillis = endDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()
+            ?.toEpochMilli()
+    )
     val interactionSource = remember { MutableInteractionSource() }
 
     LaunchedEffect(interactionSource) {
@@ -70,40 +69,36 @@ fun DateRangePickerSample(
         }
     }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // TextField cho ngày bắt đầu
-        FoodAppTextField(
-            value = selectedStartDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
-            onValueChange = {},
-            readOnly = true,
-            labelText = "Ngày bắt đầu",
-            trailingIcon = {
-                Icon(Icons.Default.DateRange, contentDescription = null)
-            },
-            interactionSource = interactionSource,
-            modifier = Modifier
-                .clickable { showDialog = true }
-                .width(200.dp)
-        )
 
-        // TextField cho ngày kết thúc
-        FoodAppTextField(
-            value = selectedEndDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
-            onValueChange = {},
-            readOnly = true,
-            labelText = "Ngày kết thúc",
-            trailingIcon = {
-                Icon(Icons.Default.DateRange, contentDescription = null)
-            },
-            interactionSource = interactionSource,
-            modifier = Modifier
-                .clickable { showDialog = true }
-                .width(200.dp)
-        )
+
+    if (isColumn) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            DateFields(
+                modifier,
+                fieldHeight,
+                startDateText,
+                endDateText,
+                startDate,
+                endDate,
+                interactionSource
+            ) {
+                showDialog = true
+            }
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DateFields(
+                modifier,
+                fieldHeight,
+                startDateText,
+                endDateText,
+                startDate,
+                endDate,
+                interactionSource
+            ) {
+                showDialog = true
+            }
+        }
     }
 
     // Dialog chọn phạm vi ngày
@@ -111,27 +106,17 @@ fun DateRangePickerSample(
         DatePickerDialog(
             onDismissRequest = { showDialog = false },
             confirmButton = {
-                TextButton(
-                    onClick = {
-
-                        val startDate = dateRangePickerState.selectedStartDateMillis?.let {
-                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                        }
-                        val endDate = dateRangePickerState.selectedEndDateMillis?.let {
-                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                        }
-
-
-                        selectedStartDate = startDate
-                        selectedEndDate = endDate
-
-
-                        onDateRangeSelected(startDate, endDate)
-
-
-                        showDialog = false
+                TextButton(onClick = {
+                    val pickedStartDate = dateRangePickerState.selectedStartDateMillis?.let {
+                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
-                ) {
+                    val pickedEndDate = dateRangePickerState.selectedEndDateMillis?.let {
+                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                    }
+
+                    onDateRangeSelected(pickedStartDate, pickedEndDate)
+                    showDialog = false
+                }) {
                     Text("Xác nhận")
                 }
             },
@@ -141,7 +126,6 @@ fun DateRangePickerSample(
                 }
             }
         ) {
-
             DateRangePicker(
                 state = dateRangePickerState,
                 title = {
@@ -157,7 +141,6 @@ fun DateRangePickerSample(
                     val startDate = dateRangePickerState.selectedStartDateMillis?.let {
                         Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
-
                     val endDate = dateRangePickerState.selectedEndDateMillis?.let {
                         Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
@@ -172,22 +155,54 @@ fun DateRangePickerSample(
                     ) {
                         Text(
                             text = startDate?.format(dateFormatter) ?: "__/__/____",
-
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyLarge
                         )
-
-                        Text(
-                            text = "  →  ",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-
+                        Text(text = "  →  ", style = MaterialTheme.typography.bodyLarge)
                         Text(
                             text = endDate?.format(dateFormatter) ?: "__/__/____",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                 },
             )
         }
     }
+}
+
+@Composable
+private fun DateFields(
+    modifier: Modifier,
+    fieldHeight: Dp,
+    startDateText: String,
+    endDateText: String,
+    startDate: LocalDate?,
+    endDate: LocalDate?,
+    interactionSource: MutableInteractionSource,
+    onClick: () -> Unit,
+) {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val startText = startDate?.format(formatter) ?: LocalDate.now().format(formatter)
+    val endText = endDate?.format(formatter) ?: LocalDate.now().format(formatter)
+
+    FoodAppTextField(
+        value = startText,
+        onValueChange = {},
+        readOnly = true,
+        labelText = startDateText,
+        trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+        interactionSource = interactionSource,
+        modifier = modifier.clickable { onClick() },
+        fieldHeight = fieldHeight
+    )
+
+    FoodAppTextField(
+        value = endText,
+        onValueChange = {},
+        readOnly = true,
+        labelText = endDateText,
+        trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+        interactionSource = interactionSource,
+        modifier = modifier.clickable { onClick() },
+        fieldHeight = fieldHeight
+    )
 }

@@ -1,147 +1,155 @@
 package com.example.foodapp.ui.screen.auth.signup
 
-import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
-import com.example.foodapp.data.remote.FoodApi
-import com.example.foodapp.data.dto.request.SignUpRequest
-import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.safeApiCall
-import com.example.foodapp.data.service.AccountService
-import com.example.foodapp.ui.screen.auth.BaseAuthViewModel
-import com.example.foodapp.utils.ValidateField
-import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.domain.use_case.auth.RegisterUseCase
+import com.example.foodapp.ui.screen.components.validateField
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-   private val accountService: AccountService
-) : BaseAuthViewModel() {
+    private val registerUseCase: RegisterUseCase,
 
-    private val _uiState = MutableStateFlow<SignUpState>(SignUpState.Nothing)
-    val uiState = _uiState.asStateFlow()
+    ) : ViewModel() {
 
-    private val _event = MutableSharedFlow<SignUpEvent>()
-    val event = _event.asSharedFlow()
+    private val _uiState = MutableStateFlow(SignUp.UiState())
+    val uiState: StateFlow<SignUp.UiState> get() = _uiState.asStateFlow()
 
-
-
-    private val _email = MutableStateFlow("")
-    val email = _email.asStateFlow()
-
-    private val _password = MutableStateFlow("")
-    val password = _password.asStateFlow()
-
-    private val _confirmPassword = MutableStateFlow("")
-    val confirmPassword = _confirmPassword.asStateFlow()
+    private val _event = Channel<SignUp.Event>()
+    val event = _event.receiveAsFlow()
 
 
+    fun onAction(action: SignUp.Action) {
+        when (action) {
+            is SignUp.Action.EmailChanged -> {
+                _uiState.value = _uiState.value.copy(email = action.email)
+            }
 
-    fun onEmailChanged(email: String) {
-        _email.value = email
-    }
+            is SignUp.Action.PasswordChanged -> {
+                _uiState.value = _uiState.value.copy(password = action.password)
+            }
 
-    fun onPasswordChanged(password: String) {
-        _password.value = password
-    }
+            is SignUp.Action.ConfirmPasswordChanged -> {
+                _uiState.value = _uiState.value.copy(confirmPassword = action.confirmPassword)
+            }
 
-    fun onConfirmPasswordChanged(confirmPassword: String) {
-        _confirmPassword.value = confirmPassword
-    }
-
-
-    var emailError = mutableStateOf<String?>(null)
-    var passwordError = mutableStateOf<String?>(null)
-    var confirmPasswordError = mutableStateOf<String?>(null)
-
-    fun validate(): Boolean {
-        var isValid = true
-
-        isValid = ValidateField(
-            email.value,
-            emailError,
-            "Email không hợp lệ"
-        ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$")) } && isValid
-
-        isValid = ValidateField(
-            password.value,
-            passwordError,
-            "Mật khẩu phải có ít nhất 6 ký tự"
-        ) { it.length >= 6 } && isValid
-
-        isValid = ValidateField(
-            confirmPassword.value,
-            confirmPasswordError,
-            "Mật khẩu không trùng khớp"
-        ) { it == password.value } && isValid
-
-        return isValid
-    }
-
-
-    fun onSignUpClick() {
-        viewModelScope.launch {
-            _uiState.value = SignUpState.Loading
-            try {
-                if (validate()) {
-                    accountService.createAccountWithEmail(email.value, password.value)
-                    _event.emit(SignUpEvent.ShowSuccessDialog)
-                    _uiState.value = SignUpState.Success
-                } else {
-                    error = "Thông tin không hợp lệ"
-                    errorDescription = "Vui lòng nhập thông tin chính xác."
-                    _uiState.value = SignUpState.Error
+            is SignUp.Action.LoginClicked -> {
+                viewModelScope.launch {
+                    _event.send(SignUp.Event.NavigateToLogin)
                 }
+            }
 
-            } catch (e: FirebaseAuthUserCollisionException) {
-                // Email đã tồn tại
-                error = "Tài khoản đã tồn tại"
-                errorDescription = "Email đã được đăng ký, vui lòng đăng kí bằng email khác."
-                _uiState.value = SignUpState.Error
+            is SignUp.Action.SignUpClicked -> {
+                signUp()
+            }
+        }
 
-            } catch (e: FirebaseAuthException) {
-                // Các lỗi xác thực khác
-                error = "Lỗi xác thực"
-                errorDescription = e.localizedMessage ?: "Không thể tạo tài khoản."
-                _uiState.value = SignUpState.Error
+    }
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-                error = "Lỗi không xác định"
-                errorDescription = e.localizedMessage ?: "Vui lòng thử lại sau."
-                _uiState.value = SignUpState.Error
+    fun validate(type: String) {
+        val current = _uiState.value
+        var emailError: String? = current.emailError
+        var passwordError: String? = current.passwordError
+        var confirmPasswordError: String? = current.confirmPasswordError
+        when (type) {
+            "email" -> {
+                emailError = validateField(
+                    current.email.trim(),
+                    "Email không hợp lệ"
+                ) { it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) }
+
+
+            }
+
+            "password" -> {
+                passwordError = validateField(
+                    current.password.trim(),
+                    "Mật khẩu phải có ít nhất 6 ký tự"
+                ) { it.length >= 6 }
+
+            }
+
+            "confirmPassword" -> {
+                confirmPasswordError = validateField(
+                    current.confirmPassword.trim(),
+                    "Mật khẩu không khớp"
+
+                ) { it == current.password }
             }
 
         }
-    }
-
-
-    fun onLoginClick() {
-        viewModelScope.launch {
-            _event.emit(SignUpEvent.NavigateLogin)
+        val isValid = emailError == null && passwordError == null && confirmPasswordError == null
+        _uiState.update {
+            it.copy(
+                emailError = emailError,
+                passwordError = passwordError,
+                confirmPasswordError = confirmPasswordError,
+                isValid = isValid
+            )
         }
     }
 
 
-    sealed class SignUpEvent {
-        data object NavigateLogin : SignUpEvent()
-        data object NavigateHome : SignUpEvent()
-        data object ShowSuccessDialog: SignUpEvent()
-        data object ShowError : SignUpEvent()
+    private fun signUp() { // No longer returns the Flow directly if you handle it here
+        viewModelScope.launch {
+            registerUseCase.invoke(_uiState.value.email, _uiState.value.password)
+                .collect { result ->
+                    when (result) {
+                        is FirebaseResult.Loading -> {
+                            _uiState.update { it.copy(loading = true) }
+                        }
+                        is FirebaseResult.Success -> {
+                            _uiState.update { it.copy(loading = false) }
+                            _event.send(SignUp.Event.NavigateToProfile)
+                        }
+                        is FirebaseResult.Failure -> {
+                            _uiState.update { it.copy(loading = false, error = result.error) }
+                            _event.send(SignUp.Event.ShowError)
+                        }
+                    }
+                }
+        }
     }
 
-    sealed class SignUpState {
-        data object Nothing : SignUpState()
-        data object Success : SignUpState()
-        data object Error : SignUpState()
-        data object Loading : SignUpState()
+}
+
+object SignUp {
+    data class UiState(
+        val email: String = "",
+        val emailError: String? = null,
+        val password: String = "",
+        val passwordError: String? = null,
+        val confirmPassword: String = "",
+        val confirmPasswordError: String? = null,
+        val loading: Boolean = false,
+        val error: String? = null,
+        val isValid: Boolean = false,
+    )
+
+    sealed interface Event {
+        data object NavigateToLogin : Event
+        data object NavigateToProfile : Event
+        data object ShowError: Event
+    }
+
+    sealed interface Action {
+        data class EmailChanged(val email: String) : Action
+        data class PasswordChanged(val password: String) : Action
+        data class ConfirmPasswordChanged(val confirmPassword: String) : Action
+        data object LoginClicked : Action
+        data object SignUpClicked : Action
+   
+
     }
 }
+

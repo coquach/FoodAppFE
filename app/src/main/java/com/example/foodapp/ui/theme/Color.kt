@@ -1,5 +1,8 @@
 package com.example.foodapp.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 
@@ -50,6 +53,8 @@ val surfaceContainerLight = Color(0xFFFCE9E5)
 val surfaceContainerHighLight = Color(0xFFF5DFDC)
 val surfaceContainerHighestLight = Color(0xFFEEE0DE)
 
+val confirmGreenLight = Color(0xFF2E7D32)
+
 val primaryDark = Color(0xFFFF8C42) // Cam nổi bật
 val onPrimaryDark = Color(0xFF2D1B0C) // Màu chữ trên primary
 val primaryContainerDark = Color(0xFFC25E00) // Cam đậm hơn
@@ -94,4 +99,16 @@ val surfaceContainerLowDark = Color(0xFF1A1A1A)
 val surfaceContainerDark = Color(0xFF252525)
 val surfaceContainerHighDark = Color(0xFF303030)
 val surfaceContainerHighestDark = Color(0xFF3A3A3A)
+
+val confirmGreenDark = Color(0xFF66BB6A)
+
+val onConfirmGreen = Color.White
+
+val ColorScheme.confirm: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) confirmGreenDark else confirmGreenLight
+
+val ColorScheme.onConfirm: Color
+    @Composable
+    get() = onConfirmGreen
 

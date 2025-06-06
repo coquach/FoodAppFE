@@ -1,51 +1,73 @@
 package com.example.foodapp.ui.screen.components
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.DropdownMenuItem
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
 import com.example.foodapp.ui.theme.FoodAppTheme
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComboBoxSample(
-    title:  String,
+    modifier: Modifier = Modifier,
+    title:  String?= null,
+    textPlaceholder: String,
     selected: String?,
     onPositionSelected: (String?) -> Unit,
-    options: List<String> = listOf("staff", "admin", "seller")
+    options: List<String>,
+    fieldHeight : Dp = 56.dp,
+    enabled: Boolean = true
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
+    LaunchedEffect(selected, options) {
+        if (selected == null && options.isNotEmpty()) {
+            onPositionSelected(options.first())
+        }
+    }
+
+
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = { if (enabled) expanded = !expanded }
     ) {
         FoodAppTextField(
             value = selected ?: "",
             onValueChange = {},
             readOnly = true,
             labelText = title,
+
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth()
+            modifier = modifier
+                .menuAnchor(MenuAnchorType.PrimaryEditable, true)
+                .onGloballyPositioned { coordinates ->
+                    textFieldSize = coordinates.size
+                },
+
+            fieldHeight = fieldHeight
 
         )
 
@@ -53,16 +75,12 @@ fun ComboBoxSample(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                )
+                .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+
         ) {
             // Thêm mục rỗng
             DropdownMenuItem(
-                text = { Text("Chọn chức vụ...") },
+                text = { Text(textPlaceholder) },
                 onClick = {
                     onPositionSelected(null)
                     expanded = false
@@ -82,17 +100,91 @@ fun ComboBoxSample(
     }
 }
 
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Preview() {
-    FoodAppTheme {
-        var position by remember { mutableStateOf<String?>("Staff") }
+fun <T : Any> ComboBoxSampleLazyPaging(
+    modifier: Modifier = Modifier,
+    title: String,
+    textPlaceholder: String,
+    selected: String?,
+    onPositionSelected: (String?) -> Unit,
+    options: LazyPagingItems<T>,
+    fieldHeight: Dp = 56.dp,
+    width: Dp = 200.dp,
+    labelExtractor: (T) -> String,
+    enabled: Boolean = true
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
 
-        ComboBoxSample(
-            title = "Chức vụ",
-            selected = position,
-            onPositionSelected = { position = it }
+    LaunchedEffect(selected, options.itemSnapshotList.items) {
+        if (selected == null && options.itemCount > 0) {
+            options.itemSnapshotList.items.firstOrNull()?.let { firstItem ->
+                onPositionSelected(labelExtractor(firstItem))
+            }
+        }
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { if (enabled) expanded = !expanded }
+    ) {
+        FoodAppTextField(
+            value = selected ?: "",
+            onValueChange = {},
+            readOnly = true,
+            labelText = title,
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    textFieldSize = coordinates.size
+                }
+                ,
+            fieldHeight = fieldHeight,
+            enabled = enabled
+
         )
 
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .height(300.dp)
+            ) {
+                // Mục placeholder đầu tiên
+                item {
+                    DropdownMenuItem(
+                        text = { Text(textPlaceholder) },
+                        onClick = {
+                            onPositionSelected(null)
+                            expanded = false
+                        }
+                    )
+                }
+
+                items(options.itemCount) { index ->
+                    val item = options[index]
+                    if (item != null) {
+                        val label = labelExtractor(item)
+                        DropdownMenuItem(
+                            text = { Text(label) },
+                            onClick = {
+                                onPositionSelected(label)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 }
+

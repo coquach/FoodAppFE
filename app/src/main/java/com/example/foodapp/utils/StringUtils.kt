@@ -2,6 +2,12 @@ package com.example.foodapp.utils
 
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -18,25 +24,77 @@ object StringUtils {
     }
     private val vietnamTimeZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh")
 
-    fun formatDateTime(input: String, inputPattern: String = "yyyy-MM-dd'T'HH:mm:ss'Z'", outputPattern: String = "dd/MM/yyyy HH:mm"): String {
+    fun formatDateTime(
+        input: LocalDateTime?,
+        outputPattern: String = "dd/MM/yyyy HH:mm:ss"
+    ): String? {
         return try {
-            val inputFormat = SimpleDateFormat(inputPattern, Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
+            input?.let {
+                val outputFormatter = DateTimeFormatter.ofPattern(outputPattern).withLocale(Locale("vi", "VN"))
+                outputFormatter.format(it.atZone(ZoneOffset.UTC).toLocalDateTime())
             }
-            val outputFormat = SimpleDateFormat(outputPattern, Locale("vi", "VN")).apply {
-                timeZone = vietnamTimeZone
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun formatLocalDate(
+        date: LocalDate?,
+        pattern: String = "dd-MM-yyyy"
+    ): String? {
+        return try {
+            date?.format(DateTimeFormatter.ofPattern(pattern))
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun parseLocalDate(
+        dateString: String?,
+        pattern: String = "dd-MM-yyyy"
+    ): LocalDate? {
+        return try {
+            dateString?.let {
+                LocalDate.parse(it, DateTimeFormatter.ofPattern(pattern))
             }
-            val date = inputFormat.parse(input) ?: return "Invalid date"
-            outputFormat.format(date)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getFormattedCurrentVietnamDate(pattern: String = "dd-MM-yyyy"): String {
+        return try {
+            val currentDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))
+            val formatter = DateTimeFormatter.ofPattern(pattern)
+            currentDate.format(formatter)
+        } catch (e: Exception) {
+            "Ngày không hợp lệ!"
+        }
+    }
+
+    fun getCurrentVietnamLocalTime(): String {
+        val timeNow = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+        return timeNow.format(formatter)
+    }
+
+    fun getFormattedCurrentVietnamDateTime(pattern: String = "dd-MM-yyyy HH:mm:ss"): String {
+        return try {
+            val formatter = DateTimeFormatter.ofPattern(pattern)
+            LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(formatter)
         } catch (e: Exception) {
             "Thời gian không hợp lệ!"
         }
     }
 
-    fun getCurrentDateTime(outputPattern: String = "dd/MM/yyyy HH:mm"): String {
-        val dateFormat = SimpleDateFormat(outputPattern, Locale("vi", "VN"))
-        dateFormat.timeZone = vietnamTimeZone
-        return dateFormat.format(Date())
+
+    fun parseLocalDate(input: String): LocalDate? {
+        return try {
+            val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            LocalDate.parse(input, formatter)
+        } catch (e: Exception) {
+            null
+        }
     }
 }
 

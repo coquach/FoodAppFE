@@ -89,7 +89,7 @@ fun GoogleLoginButton(
             Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = stringResource(id = R.string.log_in_with_google),
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }

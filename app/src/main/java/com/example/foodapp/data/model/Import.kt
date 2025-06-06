@@ -1,17 +1,22 @@
 package com.example.foodapp.data.model
 
 import com.example.foodapp.utils.json_format.LocalDateTimeSerializer
+
+import com.example.foodapp.utils.json_format.BigDecimalSerializer
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Serializable
 data class Import(
-    val id: Long? = null,
-    var supplier: Supplier,
-
-    var staff: Staff,
+    val id: Long?= null,
+    var supplierId: Long?=null,
+    val supplierName: String = "",
+    val staffId: Long?=null,
+    val staffName: String="",
     @Serializable(with = LocalDateTimeSerializer::class)
-    var importDate: LocalDateTime,
-    var isDeleted: Boolean = false,
-    var importDetails: MutableList<ImportDetail> = mutableListOf()
+    val importDate: LocalDateTime?=null,
+    @Serializable(with = BigDecimalSerializer::class)
+    val totalPrice: BigDecimal = BigDecimal.ZERO,
+    val importDetails: List<ImportDetail> = emptyList()
 )

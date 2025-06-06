@@ -25,31 +25,43 @@ import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.foodapp.ui.theme.FoodAppTheme
 
 @Composable
-fun LineChartSample() {
-    val pointsData: List<Point> =
-        listOf(Point(0f, 40f), Point(1f, 90f), Point(2f, 0f), Point(3f, 60f), Point(4f, 10f))
+fun <T> LineChartFromEntries(
+    modifier: Modifier = Modifier,
+    entries: List<ChartEntry<T>>,
+    maxY: Float = entries.maxOfOrNull { it.toFloat(it.value) }  ?: 100f,
+    steps: Int = 5,
+
+) {
+
+    val paddedMaxY = (maxY * 1.1f).let {
+        if (it == 0f) 100f else it // đề phòng tất cả đều là 0
+    }
+    val pointsData = entries.mapIndexed { index, entry ->
+        Point(index.toFloat(), entry.toFloat(entry.value))
+    }
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(100.dp)
+        .axisStepSize(40.dp)
         .backgroundColor(Color.Transparent)
-        .steps(pointsData.size - 1)
-        .labelData { i -> i.toString() }
+        .steps(entries.size - 1)
+        .labelData { i -> entries.getOrNull(i)?.xLabel ?: "" }
         .labelAndAxisLinePadding(15.dp)
         .axisLineColor(MaterialTheme.colorScheme.tertiary)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary)
         .build()
-    val steps = 5
+
     val yAxisData = AxisData.Builder()
         .steps(steps)
         .backgroundColor(Color.Transparent)
         .labelAndAxisLinePadding(25.dp)
         .labelData { i ->
-            val yScale = 100 / steps
-            (i * yScale).toString()
+            val step = paddedMaxY / steps
+            ((i * step).toInt()).toString()
         }
         .axisLineColor(MaterialTheme.colorScheme.tertiary)
         .axisLabelColor(MaterialTheme.colorScheme.tertiary)
         .build()
+
     val lineChartData = LineChartData(
         linePlotData = LinePlotData(
             lines = listOf(
@@ -76,25 +88,26 @@ fun LineChartSample() {
                     ),
                     SelectionHighlightPopUp()
                 )
-            ),
+            )
         ),
         xAxisData = xAxisData,
         yAxisData = yAxisData,
         gridLines = GridLines(color = MaterialTheme.colorScheme.outline),
         backgroundColor = MaterialTheme.colorScheme.surface,
-
     )
+
     LineChart(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(300.dp),
         lineChartData = lineChartData
     )
 }
-@Preview(showBackground = true)
-@Composable
-fun PreviewLineChart() {
-    FoodAppTheme {
-        LineChartSample()
-    }
-}
+
+
+data class ChartEntry<T>(
+    val xLabel: String,
+    val value: T,
+    val toFloat: (T) -> Float = { (it as Number).toFloat() }, // fallback default
+    val labelFormatter: ((T) -> String)? = null // optional tooltip format
+)

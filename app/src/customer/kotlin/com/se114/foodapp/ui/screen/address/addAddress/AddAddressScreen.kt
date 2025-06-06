@@ -1,202 +1,278 @@
 package com.se114.foodapp.ui.screen.address.addAddress
 
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.AddLocationAlt
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
+
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
+
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import com.example.foodapp.ui.screen.components.Loading
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
 
-@OptIn(FlowPreview::class)
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.navigation.NavController
+import com.example.foodapp.R
+import com.example.foodapp.ui.screen.components.permissions.LocationPermissionHandler
+import com.example.foodapp.ui.screen.components.permissions.MapControlButtons
+import com.example.foodapp.ui.screen.components.permissions.flyToLocation
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+
+
+import com.mapbox.maps.extension.compose.MapEffect
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
+
+import com.mapbox.maps.extension.compose.annotation.rememberIconImage
+import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.plugin.PuckBearing
+import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
+import com.mapbox.maps.plugin.locationcomponent.location
+
+
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AddAddressScreen(
     navController: NavController,
-    viewModel: AddAddressViewModel = hiltViewModel()
+    viewModel: AddAddressViewModel = hiltViewModel(),
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showErrorSheet by remember { mutableStateOf(false) }
 
-    val isPermissionGranted = remember {
-        mutableStateOf(false)
-    }
-    RequestLocationPermission(
-        onPermissionGranted = {
-            isPermissionGranted.value = true
-            viewModel.getLocation()
-        },
-        onPermissionRejected = {
-            Toast.makeText(navController.context, "Permission denied", Toast.LENGTH_SHORT).show()
-            navController.popBackStack()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
+            when (it) {
+                is AddAddress.Event.BackToAddressList -> {
+                    val address = it.address
+                    navController.previousBackStackEntry?.savedStateHandle?.set("address", address)
+                    navController.popBackStack()
+                }
+
+                AddAddress.Event.OnBack -> {
+                    navController.popBackStack()
+                }
+
+                AddAddress.Event.ShowError -> {
+                    showErrorSheet = true
+                }
+            }
         }
-    )
+    }
 
-    if (!isPermissionGranted.value) {
-        Loading()
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-            val location = viewModel.getLocation().collectAsStateWithLifecycle(initialValue = null)
-            location.value?.let {
-                val cameraState = rememberCameraPositionState()
-                LaunchedEffect(key1 = Unit) {
-                    cameraState.position =
-                        CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 13f)
+    LocationPermissionHandler(
+        content = {
+            var selectedLocation by remember { mutableStateOf<Point?>(null) }
 
+            val marker = rememberIconImage(
+                key = "markerResourceId",
+                painter = painterResource(R.drawable.red_marker)
+            )
+
+            var currentZoom by remember { mutableDoubleStateOf(16.0) }
+            val mapViewportState = rememberMapViewportState {
+                setCameraOptions {
+                    zoom(currentZoom)
                 }
-                val centerScreenMarker = remember {
-                    mutableStateOf(LatLng(it.latitude, it.longitude))
+            }
+
+            LaunchedEffect(mapViewportState.cameraState?.zoom) {
+                mapViewportState.cameraState?.zoom?.let {
+                    currentZoom = it
                 }
-                LaunchedEffect(key1 = cameraState) {
-                    snapshotFlow {
-                        cameraState.position.target
-                    }.debounce(500)
-                        .collectLatest {
-                            centerScreenMarker.value = cameraState.position.target
-                            if (!cameraState.isMoving) {
-                                viewModel.reverseGeoCode(
-                                    centerScreenMarker.value.latitude,
-                                    centerScreenMarker.value.longitude
-                                )
-                            }
-                        }
-                }
-                GoogleMap(
-                    cameraPositionState = cameraState,
-                    modifier = Modifier.fillMaxSize(),
-                    uiSettings = MapUiSettings(
-                        zoomControlsEnabled = true,
-                        myLocationButtonEnabled = true,
-                        compassEnabled = true
-                    ),
-                    properties = MapProperties(
-                        isMyLocationEnabled = true
+            }
+
+            val currentLocation by viewModel.currentLocation.collectAsState(initial = null)
+
+            LaunchedEffect(currentLocation) {
+                currentLocation?.let {
+                    viewModel.onAction(AddAddress.Action.OnReverseGeocode(it.latitude, it.longitude))
+                    mapViewportState.flyToLocation(
+                        latitude = it.latitude,
+                        longitude = it.longitude,
+                        zoom = currentZoom
                     )
-                ) {
-                    centerScreenMarker.value.let {
-                        Marker(
-                            state = MarkerState(
-                                position = LatLng(it.latitude, it.longitude)
-                            )
-                        )
-                    }
                 }
-                val address = viewModel.address.collectAsStateWithLifecycle()
-                address.value?.let {
-                    Box(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                        .shadow(8.dp)
-                        .clip(
-                            RoundedCornerShape(8.dp)
-                        )
-                        .background(Color.White)
-                        .clickable { }
-                        .padding(16.dp)
-                        .align(Alignment.BottomCenter)
+            }
+            LaunchedEffect(selectedLocation) {
+                selectedLocation?.let { point ->
+                    val lat = point.latitude()
+                    val lon = point.longitude()
+                    viewModel.onAction(AddAddress.Action.OnReverseGeocode(lat, lon))
+                    mapViewportState.flyToLocation(
+                        latitude = lat,
+                        longitude = lon,
+                        zoom = currentZoom
+                    )
+                }
+            }
+            Box(modifier = Modifier.fillMaxSize()) {
+                MapboxMap(
+                    modifier = Modifier.fillMaxSize(),
+                    mapViewportState = mapViewportState,
+                    onMapClickListener = { clickedPoint ->
+                        selectedLocation = clickedPoint
+                        true
+                    },
+                    style = { MapStyle(style = "mapbox://styles/mapbox/streets-v12") }
+                ) {
+                    if (selectedLocation != null) {
+                        PointAnnotation(point = selectedLocation!!) {
+                            iconImage = marker
+                        }
+                    }
+
+
+                    MapEffect(Unit) { mapView ->
+
+
+                        mapView.location.updateSettings {
+                            locationPuck = createDefault2DPuck(withBearing = false)
+                            puckBearing = PuckBearing.HEADING
+                            puckBearingEnabled = true
+                            enabled = true
+                        }
+
+                    }
+
+                }
+
+
+                FloatingActionButton(
+                    onClick = {
+                        navController.navigateUp()
+                    },
+                    modifier = Modifier
+                        .padding(vertical = 30.dp, horizontal = 16.dp)
+                        .size(50.dp)
+                        .align(Alignment.TopStart),
+                    shape = RoundedCornerShape(12.dp),
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    contentColor = MaterialTheme.colorScheme.primary,
 
                     ) {
-
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Column {
-                                when (uiState.value) {
-                                    is AddAddressViewModel.AddAddressState.AddressStoring -> {}
-                                    is AddAddressViewModel.AddAddressState.Error -> {
-                                        Text(
-                                            text = (uiState.value as AddAddressViewModel.AddAddressState.Error).message,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                    }
-
-                                    AddAddressViewModel.AddAddressState.Loading -> {
-                                        CircularProgressIndicator()
-                                    }
-
-                                    AddAddressViewModel.AddAddressState.Success -> {
-                                        Text(
-                                            text = it.addressLine1,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                        Spacer(modifier = Modifier.size(4.dp))
-                                        Text(
-                                            text = "${it.city}, ${it.state}, ${it.country}",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.Gray
-                                        )
-                                    }
-                                }
-                            }
-                            Button(onClick = { viewModel.onAddAddressClicked() }) {
-                                Text(text = "Thêm địa chỉ")
-                            }
-                        }
-                    }
-
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Back"
+                    )
                 }
+                MapControlButtons(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    currentZoom = currentZoom,
+                    currentLocation = currentLocation,
+                    onZoomIn = { zoom ->
+                        mapViewportState.setCameraOptions(
+                            CameraOptions.Builder().zoom(zoom + 1).build()
+                        )
+                    },
+                    onZoomOut = { zoom ->
+                        mapViewportState.setCameraOptions(
+                            CameraOptions.Builder().zoom(zoom - 1).build()
+                        )
+                    },
+                    onFlyToLocation = { lat, lon, zoom ->
+                        viewModel.onAction(AddAddress.Action.OnReverseGeocode(lat, lon))
+                        selectedLocation = Point.fromLngLat(lon, lat)
+                        mapViewportState.flyToLocation(
+                            latitude = lat,
+                            longitude = lon,
+                            zoom = zoom
+                        )
+                    }
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 25.dp)
+                        .align(Alignment.BottomCenter),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(300.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .shadow(4.dp, RoundedCornerShape(12.dp), clip = true)
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = uiState.address?.formatAddress.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            viewModel.onAction(AddAddress.Action.OnAddAddress(uiState.address!!))
+                        },
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.AddLocationAlt,
+                            contentDescription = "Send Location",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
+
             }
+
+        },
+        onPermissionDenied = {
+            navController.popBackStack()
         }
-    }
+
+    )
+
+
 }
 
-@Composable
-fun RequestLocationPermission(onPermissionGranted: () -> Unit, onPermissionRejected: () -> Unit) {
-    val context = LocalContext.current
-    if (context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(
-            android.Manifest.permission.ACCESS_FINE_LOCATION
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-    ) {
-        onPermissionGranted()
-        return
-    }
-    val permission = listOf(
-        android.Manifest.permission.ACCESS_FINE_LOCATION,
-        android.Manifest.permission.ACCESS_COARSE_LOCATION
-    )
-    val permissionLauncher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { result ->
-            if (result.values.all { it }) {
-                onPermissionGranted()
-            } else {
-                onPermissionRejected()
-            }
-        }
-    LaunchedEffect(key1 = Unit) {
-        permissionLauncher.launch(permission.toTypedArray())
-    }
-}

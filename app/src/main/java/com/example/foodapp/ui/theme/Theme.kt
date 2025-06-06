@@ -128,8 +128,7 @@ fun FoodAppTheme(
 
     if (!view.isInEditMode) {
         SideEffect {
-            val activity = view.context as Activity
-            val window = activity.window
+            val window = (view.context as Activity).window
 
             val insetsController = WindowInsetsControllerCompat(window, view)
             insetsController.isAppearanceLightStatusBars = !darkTheme

@@ -35,12 +35,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.foodapp.utils.ImageUtils
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ImagePickerBottomSheet(
-    showSheet: Boolean,
     onDismiss: () -> Unit,
     onImageSelected: (Uri) -> Unit
 ) {
@@ -48,6 +51,13 @@ fun ImagePickerBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     val imageUri = remember { mutableStateOf<Uri?>(null) }
+
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+    val galleryPermissionState = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(Manifest.permission.READ_MEDIA_IMAGES)
+    } else {
+        null // API < 33 không cần
+    }
 
     val galleryLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -68,22 +78,8 @@ fun ImagePickerBottomSheet(
         imageUri.value = uri
         uri?.let { cameraLauncher.launch(it) }
     }
-    val permissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                launchCameraWithNewUri()
-            } else {
-                Toast.makeText(
-                    context,
-                    "Ứng dụng cần có quyền truy cập máy ảnh",
-                    Toast.LENGTH_SHORT
-                ).show()
-                onDismiss()
-            }
-        }
 
 
-    if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = { onDismiss() },
             sheetState = sheetState
@@ -95,12 +91,20 @@ fun ImagePickerBottomSheet(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("Chọn ảnh", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Button chọn từ thư viện
                 Button(
                     onClick = {
-                        galleryLauncher.launch("image/*")
+                        if (galleryPermissionState != null) {
+                            if (galleryPermissionState.status.isGranted) {
+                                galleryLauncher.launch("image/*")
+                            } else {
+                                galleryPermissionState.launchPermissionRequest()
+                            }
+                        } else {
+                            galleryLauncher.launch("image/*")
+                        }
                     },
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -109,16 +113,16 @@ fun ImagePickerBottomSheet(
                     Text("Chọn ảnh từ thư viện")
                 }
 
+
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Button chụp ảnh
                 Button(
                     onClick = {
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                            == PackageManager.PERMISSION_GRANTED
-                        ) {
+                        if (cameraPermissionState.status.isGranted) {
                             launchCameraWithNewUri()
                         } else {
-                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                            cameraPermissionState.launchPermissionRequest()
                         }
                     },
                     modifier = Modifier
@@ -145,6 +149,26 @@ fun ImagePickerBottomSheet(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
+
+    LaunchedEffect(cameraPermissionState.status, galleryPermissionState?.status) {
+        when {
+            cameraPermissionState.status.shouldShowRationale -> {
+                Toast.makeText(
+                    context,
+                    "Ứng dụng cần quyền máy ảnh để chụp ảnh",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            galleryPermissionState?.status?.shouldShowRationale == true -> {
+                Toast.makeText(
+                    context,
+                    "Ứng dụng cần quyền đọc ảnh để chọn từ thư viện",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

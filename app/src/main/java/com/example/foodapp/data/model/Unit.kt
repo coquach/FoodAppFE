@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Unit(
-    val id: Long? = null,
-    val name: String
+    val id: Long?= null,
+    val name: String= ""
 )
