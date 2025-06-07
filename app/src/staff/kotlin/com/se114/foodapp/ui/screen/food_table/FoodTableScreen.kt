@@ -160,28 +160,29 @@ fun FoodTableSection(
         columns = 2,
         key = {
             it.id!!
-        }
-    ) {
-        SwipeableActionsBox(
-            modifier = Modifier
-                .padding(
-                    8.dp,
+        },
+        itemContent = {
+            SwipeableActionsBox(
+                modifier = Modifier
+                    .padding(
+                        8.dp,
+                    )
+                    .clip(RoundedCornerShape(12.dp)),
+                endActions = listOf(
+                    SwipeAction(
+                        icon = rememberVectorPainter(Icons.Default.FiberManualRecord),
+                        background = if (isActive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.confirm,
+                        onSwipe = {
+                            onSwipe.invoke(it.id!!.toInt())
+                        }
+                    ))
+            ) {
+                FoodTableCard(
+                    foodTable = it,
                 )
-                .clip(RoundedCornerShape(12.dp)),
-            endActions = listOf(
-                SwipeAction(
-                    icon = rememberVectorPainter(Icons.Default.FiberManualRecord),
-                    background = if (isActive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.confirm,
-                    onSwipe = {
-                        onSwipe.invoke(it.id!!.toInt())
-                    }
-                ))
-        ) {
-            FoodTableCard(
-                foodTable = it,
-            )
+            }
         }
-    }
+    )
 }
 
 

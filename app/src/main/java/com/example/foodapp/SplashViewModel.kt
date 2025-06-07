@@ -13,9 +13,11 @@ import com.example.foodapp.navigation.Welcome
 import com.example.foodapp.data.datastore.WelcomeRepository
 import com.example.foodapp.data.model.Account
 import com.example.foodapp.domain.repository.AccountRepository
+import com.example.foodapp.navigation.OrderList
 
 
 import com.example.foodapp.navigation.Statistics
+import com.example.foodapp.navigation.Tracking
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -76,6 +78,9 @@ class SplashViewModel @Inject constructor(
                 _startDestination.value = if (user == null) Auth else Home
             }
 
+            "shipper" -> {
+                _startDestination.value = if (user == null) Tracking else OrderList
+            }
             else -> {
                 val completed = welcomeRepository.readOnBoardingState().firstOrNull() == true
                 if (completed) {

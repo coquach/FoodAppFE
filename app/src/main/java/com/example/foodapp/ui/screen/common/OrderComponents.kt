@@ -9,23 +9,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LockClock
-import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,17 +37,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.ui.screen.components.DetailsTextRow
-import com.example.foodapp.ui.screen.components.Nothing
-import com.example.foodapp.ui.screen.components.gridItems
+import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.utils.StringUtils
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 @Composable
@@ -175,37 +178,51 @@ fun OrderItemView(order: Order, onClick: () -> Unit) {
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderListSection(
+    modifier: Modifier = Modifier,
     orders: LazyPagingItems<Order>,
     onItemClick: (Order) -> Unit,
+    onRefresh: (() -> Unit)? = null,
+
 ) {
-    if (orders.itemSnapshotList.items.isEmpty() && orders.loadState.refresh !is LoadState.Loading) {
-        Nothing(
-            text = "Không có đơn hàng nào",
-            icon = Icons.Default.Receipt,
-            modifier = Modifier.fillMaxSize()
-        )
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.Top
-        ) {
-            gridItems(
-                orders, 1, key = { order -> order.id },
+    val state = rememberPullToRefreshState()
+    val coroutineScope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
+    
+    PullToRefreshBox(
+        isRefreshing =isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                onRefresh?.invoke()
+                isRefreshing = false
+            }
+        },
+        modifier = modifier,
+        state = state,
+       content = {
+           LazyPagingSample(
+               modifier = Modifier.fillMaxSize(),
+               items = orders,
+               textNothing = "Không có đơn hàng nào",
+               iconNothing = Icons.Default.Receipt,
+               columns = 1,
+               key = {
+                       order -> order.id
+               },
+               itemContent = {
+                   OrderItemView(
+                       order = it,
+                       onClick = {
+                           onItemClick(it)
+                       }
+                   )
+               },
 
-                itemContent = { order ->
-                    order?.let {
-                        OrderItemView(
-                            order = order,
-                            onClick = { onItemClick(order) }
-                        )
+               )
+       }
+    )
 
-                    } },
-
-            )  
-            
-        }
-    }
 }

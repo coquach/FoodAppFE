@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,13 +23,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.foodapp.data.model.Order
 import com.example.foodapp.navigation.Home
-import com.example.foodapp.navigation.OrderDetails
+import com.example.foodapp.navigation.OrderDetailsStaff
 import com.example.foodapp.ui.screen.common.OrderListSection
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.TabWithPager
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun OrderListScreen(
@@ -40,7 +48,9 @@ fun OrderListScreen(
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    val orders = viewModel.getOrdersByTab(uiState.tabIndex).collectAsLazyPagingItems()
+    val orders by viewModel.ordersTabManager.tabDataMap.collectAsStateWithLifecycle()
+    var isRefreshing by remember { mutableStateOf(false) }
+
 
     val handle = navController.currentBackStackEntry?.savedStateHandle
     LaunchedEffect(handle) {
@@ -49,7 +59,6 @@ fun OrderListScreen(
         if (condition) {
             handle["updated"] = false
             viewModel.onAction(OrderListState.Action.OnRefresh)
-            orders.refresh()
         }
     }
 
@@ -58,20 +67,17 @@ fun OrderListScreen(
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
                 is OrderListState.Event.GoToDetail -> {
-                    navController.navigate(OrderDetails(it.order))
+                    navController.navigate(OrderDetailsStaff(it.order))
                 }
 
-                OrderListState.Event.Refresh -> {
-                    viewModel.onAction(OrderListState.Action.OnRefresh)
-                    orders.refresh()
-                }
             }
         }
     }
+    val emptyOrders = MutableStateFlow<PagingData<Order>>(PagingData.empty()).collectAsLazyPagingItems()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+        modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
 
     ) {
@@ -80,54 +86,103 @@ fun OrderListScreen(
         )
         TabWithPager(
             modifier = Modifier.fillMaxWidth().weight(1f),
-            tabs = listOf("Đang chờ", "Đã xác nhận", "Đã giao hàng", "Đã hoàn thành", "Đã hủy"),
+            tabs = listOf("Đang chờ", "Đã xác nhận","Đã sẵn sàng", "Đang giao hàng", "Đã hoàn thành", "Đã hủy"),
             pages = listOf(
                 {
 
                     OrderListSection(
-                        orders = orders,
+                        modifier = Modifier.fillMaxSize(),
+                        orders = orders[0]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
                         onItemClick = {
-                            navController.navigate(OrderDetails(it))
-                        }
+                            viewModel.onAction(
+                                OrderListState.Action.OnOrderClicked(it)
+                            )
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
+
                     )
 
                 },
                 {
                     OrderListSection(
-                        orders = orders,
+                        modifier = Modifier.fillMaxSize(),
+                        orders = orders[1]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
                         onItemClick = {
-                            navController.navigate(OrderDetails(it))
-                        }
+                            viewModel.onAction(
+                                OrderListState.Action.OnOrderClicked(it)
+                            )
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
+
                     )
                 },
                 {
                     OrderListSection(
-                        orders = orders,
+                        modifier = Modifier.fillMaxSize(),
+                        orders = orders[2]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
                         onItemClick = {
-                            navController.navigate(OrderDetails(it))
-                        }
+                            viewModel.onAction(
+                                OrderListState.Action.OnOrderClicked(it)
+                            )
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
+
                     )
                 },
                 {
                     OrderListSection(
-                        orders = orders,
+                        modifier = Modifier.fillMaxSize(),
+                        orders = orders[3]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
                         onItemClick = {
-                            navController.navigate(OrderDetails(it))
-                        }
+                            viewModel.onAction(
+                                OrderListState.Action.OnOrderClicked(it)
+                            )
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
+
                     )
                 },
                 {
                     OrderListSection(
-                        orders = orders,
+                        modifier = Modifier.fillMaxSize(),
+                        orders = orders[4]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
                         onItemClick = {
-                            navController.navigate(OrderDetails(it))
-                        }
+                            viewModel.onAction(
+                                OrderListState.Action.OnOrderClicked(it)
+                            )
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
+                    )
+                },
+                {
+                    OrderListSection(
+                        modifier = Modifier.fillMaxSize(),
+                        orders = orders[5]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
+                        onItemClick = {
+                            viewModel.onAction(
+                                OrderListState.Action.OnOrderClicked(it)
+                            )
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                     )
                 }
             ),
             scrollable = true,
             onTabSelected = {
                 viewModel.onAction(OrderListState.Action.OnTabSelected(it))
+                viewModel.getOrdersFlow(it)
             }
         )
 

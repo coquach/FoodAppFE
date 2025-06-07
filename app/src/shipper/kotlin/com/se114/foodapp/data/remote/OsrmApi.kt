@@ -1,12 +1,8 @@
-package com.example.foodapp.data.remote
+package com.se114.foodapp.data.remote
 
 import com.example.foodapp.data.dto.response.OsrmRouteResponse
-
 import retrofit2.Response
-
-
 import retrofit2.http.GET
-
 import retrofit2.http.Path
 import retrofit2.http.Query
 

@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.order
+package com.se114.foodapp.ui.screen.order
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,8 +7,6 @@ import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.data.repository.OrderRepoImpl
-import com.example.foodapp.domain.use_case.auth.GetCustomerIdUseCase
 import com.example.foodapp.domain.use_case.order.GetOrdersByCustomerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel

@@ -18,7 +18,7 @@ enum class OrderStatus(val display: String, val color: Color,
     PENDING("Đang chờ",  Color(0xFF2196F3), Icons.Default.Schedule),
     CONFIRMED("Đã xác nhận", Color(0xFF42A5F5), Icons.Default.CheckCircle),
     READY("Đã sẵn sàng", Color(0xFFFF9800), Icons.Default.PendingActions),
-    SHIPPING("Đã vận chuyển",   Color(0xFFAB47BC), Icons.Default.LocalShipping),
+    SHIPPING("Đang vận chuyển",   Color(0xFFAB47BC), Icons.Default.LocalShipping),
     COMPLETED("Đã hoàn thành", Color(0xFF2E7D32), Icons.Default.DoneAll),
     CANCELLED("Đã hủy", Color(0xFFE57373), Icons.Default.Cancel);
 

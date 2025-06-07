@@ -60,7 +60,7 @@ sealed class BottomNavItem(val route: NavRoute, val icon: Int) {
     data object Setting :
         BottomNavItem(
             com.example.foodapp.navigation.Setting,
-            if (BuildConfig.FLAVOR == "admin") R.drawable.ic_setting else R.drawable.ic_user_circle
+            if (BuildConfig.FLAVOR == "admin" || BuildConfig.FLAVOR == "staff" || BuildConfig.FLAVOR == "shipper") R.drawable.ic_setting else R.drawable.ic_user_circle
         )
 
     //Admin

@@ -31,7 +31,7 @@ import com.example.foodapp.data.model.Notification
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Retry
-import com.example.foodapp.navigation.OrderDetails
+import com.example.foodapp.navigation.OrderDetailsStaff
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -45,7 +45,7 @@ fun NotificationListScreen(
         viewModel.event.collectLatest {
             when (it) {
                 is NotificationViewModel.NotificationEvent.NavigateToOrderDetail -> {
-                    navController.navigate(OrderDetails(it.order))
+                    navController.navigate(OrderDetailsStaff(it.order))
                 }
             }
         }

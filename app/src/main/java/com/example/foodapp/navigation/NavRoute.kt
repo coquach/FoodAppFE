@@ -64,7 +64,10 @@ object CheckoutStaff : NavRoute
 data class OrderSuccess(val orderId: Long) : NavRoute
 
 @Serializable
-data class OrderDetails(val order: Order, val isStaff: Boolean = false) : NavRoute
+data class OrderDetailsCustomer(val order: Order) : NavRoute
+
+@Serializable
+data class OrderDetailsStaff(val order: Order) : NavRoute
 
 @Serializable
 object Setting : NavRoute
@@ -144,6 +147,9 @@ object FoodTableAdmin: NavRoute
 
 @Serializable
 object FoodTableStaff: NavRoute
+
+@Serializable
+object Tracking: NavRoute
 
 
 

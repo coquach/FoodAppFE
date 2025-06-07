@@ -17,7 +17,7 @@ data class Order(
     val id: Long,
     val tableNumber: Int? = null,
     val voucherDiscount: Double? = null,
-    val createdBy: String,
+    val createdBy: String?=null,
     val status: String,
     val method: String,
     val type: String,

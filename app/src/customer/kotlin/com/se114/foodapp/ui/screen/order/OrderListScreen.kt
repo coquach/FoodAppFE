@@ -3,27 +3,23 @@ package com.se114.foodapp.ui.screen.order
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.navigation.OrderDetails
+import com.example.foodapp.navigation.OrderDetailsCustomer
 import com.example.foodapp.ui.screen.common.OrderListSection
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-
 import com.example.foodapp.ui.screen.components.TabWithPager
-import com.example.foodapp.ui.screen.order.OrderList
-import com.example.foodapp.ui.screen.order.OrderListViewModel
 
 @Composable
 fun OrderListScreen(
@@ -46,7 +42,7 @@ fun OrderListScreen(
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
                 is OrderList.Event.GoToDetails -> {
-                    navController.navigate(OrderDetails(it.order))
+                    navController.navigate(OrderDetailsCustomer(it.order))
                 }
             }
         }
@@ -70,7 +66,7 @@ fun OrderListScreen(
                     OrderListSection(
                         orders = orders,
                         onItemClick = {
-                            navController.navigate(OrderDetails(it))
+                            viewModel.onAction(OrderList.Action.OnOrderClicked(it))
                         }
                     )
                 },
@@ -78,7 +74,7 @@ fun OrderListScreen(
                     OrderListSection(
                         orders = orders,
                         onItemClick = {
-                            navController.navigate(OrderDetails(it))
+                            viewModel.onAction(OrderList.Action.OnOrderClicked(it))
                         }
                     )
                 }

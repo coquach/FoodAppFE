@@ -5,10 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.foodapp.data.dto.ApiResponse
-
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.domain.use_case.order.UpdateStatusOrderUseCase
-import com.example.foodapp.navigation.OrderDetails
+import com.example.foodapp.navigation.OrderDetailsStaff
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,11 +24,11 @@ class OrderDetailsViewModel @Inject constructor(
     private val updateStatusOrderUseCase: UpdateStatusOrderUseCase,
     val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val navArgs = savedStateHandle.toRoute<OrderDetails>()
+    private val navArgs = savedStateHandle.toRoute<OrderDetailsStaff>()
     private val orderLoad = navArgs.order
-    private val isStaff = navArgs.isStaff
 
-    private val _state = MutableStateFlow(OrderDetailsState.UiState(order = orderLoad, isStaff = isStaff))
+
+    private val _state = MutableStateFlow(OrderDetailsState.UiState(order = orderLoad))
     val state : StateFlow<OrderDetailsState.UiState> get() = _state.asStateFlow()
 
     private val _event = Channel<OrderDetailsState.Event>()
@@ -59,6 +58,11 @@ class OrderDetailsViewModel @Inject constructor(
             is OrderDetailsState.Action.UpdateStatusOrder -> {
                 updateStatusOrder(action.status)
             }
+            OrderDetailsState.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(OrderDetailsState.Event.OnBack)
+                }
+            }
         }
     }
 
@@ -66,20 +70,19 @@ class OrderDetailsViewModel @Inject constructor(
 
 object OrderDetailsState{
     data class UiState(
-
         val order: Order,
         val isLoading: Boolean = false,
         val error: String? = null,
-        val isStaff: Boolean = false
     )
     sealed interface Event {
         data object ShowError : Event
         data object UpdateOrder : Event
-
+        data object OnBack : Event
     }
 
     sealed interface Action{
         data class UpdateStatusOrder(val status: String) : Action
+        data object OnBack : Action
 
     }
 }

@@ -67,6 +67,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -501,14 +504,15 @@ fun HeaderDefaultView(
 fun Retry(
     message: String,
     onClicked: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(12.dp , Alignment.CenterVertically)
     ) {
 
-        Text(text = message, style = MaterialTheme.typography.bodyMedium)
+        Text(text = message, style = MaterialTheme.typography.bodyMedium, modifier= Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
         Button(onClick = onClicked) {
             Text(text = "Tải lại")
         }
@@ -743,6 +747,7 @@ fun DetailsTextRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T : Any> LazyPagingSample(
     modifier: Modifier = Modifier,
@@ -752,39 +757,90 @@ fun <T : Any> LazyPagingSample(
     columns: Int = 1,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable (T) -> Unit,
+
 ) {
-    val isEmpty = items.itemSnapshotList.items.isEmpty()
-    val isNotLoading = items.loadState.refresh !is LoadState.Loading
+    val loadState = items.loadState
 
-    Box(modifier = modifier) {
-        when {
-            isEmpty && isNotLoading -> {
-                Nothing(
-                    text = textNothing,
-                    icon = iconNothing,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+     Box(modifier = modifier){
+         when {
+             // 1. Lỗi khi load lần đầu
+             loadState.refresh is LoadState.Error -> {
+                 val error = (loadState.refresh as LoadState.Error).error
+//                ErrorState(
+//                    message = error.localizedMessage ?: "Lỗi không xác định",
+//                    onRetry = { items.retry() },
+//                    modifier = Modifier.align(Alignment.Center)
+//                )
+                 Retry(
+                     message = error.localizedMessage ?: "Lỗi không xác định",
+                     onClicked = {
+                         items.retry()
+                     },
+                     modifier = Modifier.fillMaxSize()
+                 )
+             }
 
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    gridItems(
-                        data = items,
-                        nColumns = columns,
-                        key = key,
-                        itemContent = { item ->
-                            item?.let{itemContent(item)}
+             // 2. Đang loading lần đầu
+             loadState.refresh is LoadState.Loading -> {
+                 Loading()
+             }
+
+             // 3. Danh sách rỗng
+             items.itemSnapshotList.items.isEmpty() -> {
+                 Nothing(
+                     text = textNothing,
+                     icon = iconNothing,
+                     modifier = Modifier.align(Alignment.Center)
+                 )
+             }
+
+             // 4. Bình thường: hiển thị danh sách
+             else -> {
+                 LazyColumn(
+                     modifier = Modifier.fillMaxSize(),
+                     verticalArrangement = Arrangement.Top
+                 ) {
+                     gridItems(
+                         data = items,
+                         nColumns = columns,
+                         key = key,
+                         itemContent = { item ->
+                             item?.let { itemContent(it) }
+                         }
+                     )
+
+                     // 5. Hiển thị loading cuối trang
+                     if (loadState.append is LoadState.Loading) {
+                         item {
+                             CircularProgressIndicator(
+                                 modifier = Modifier
+                                     .fillMaxWidth()
+                                     .padding(16.dp)
+                                     .wrapContentWidth(Alignment.CenterHorizontally)
+                             )
+                         }
+                     }
+
+                     // 6. Hiển thị lỗi cuối trang
+                     if (loadState.append is LoadState.Error) {
+                         val error = (loadState.append as LoadState.Error).error
+                         item {
+                             Retry(
+                                 message = error.localizedMessage ?: "Lỗi khi tải thêm",
+                                 onClicked = { items.retry() },
+                                 modifier = Modifier
+                                     .fillMaxWidth()
+                                     .padding(16.dp)
+                             )
+                         }
+                     }
+                 }
+             }
+         }
+     }
 
 
-                        }
-                    )
-                }
-            }
-        }
-    }
+
 }
 @Composable
 fun NoteInput(

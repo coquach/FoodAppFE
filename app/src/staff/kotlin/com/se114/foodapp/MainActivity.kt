@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +34,7 @@ import com.example.foodapp.SplashViewModel
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
-import com.example.foodapp.navigation.OrderDetails
+import com.example.foodapp.navigation.OrderDetailsStaff
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -127,7 +126,7 @@ class MainActivity : BaseFoodAppActivity() {
 
                             is MainViewModel.HomeEvent.NavigateToOrderDetail -> {
                                 navController.navigate(
-                                    OrderDetails(
+                                    OrderDetailsStaff(
                                         it.order
                                     )
                                 )

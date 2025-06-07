@@ -16,6 +16,9 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +38,13 @@ fun TabWithPager(
 
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { tabs.size }, initialPage = 0)
-
+    val selectedTabIndex = remember { mutableIntStateOf(pagerState.currentPage) }
+    LaunchedEffect(pagerState.currentPage) {
+        if (selectedTabIndex.intValue != pagerState.currentPage) {
+            selectedTabIndex.intValue = pagerState.currentPage
+            onTabSelected(pagerState.currentPage)
+        }
+    }
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -79,7 +88,6 @@ fun TabWithPager(
                             .clickable {
                                 coroutineScope.launch {
                                     pagerState.animateScrollToPage(index)
-                                    onTabSelected(index)
                                 }
                             }
                             .padding(horizontal = 16.dp, vertical = 8.dp),

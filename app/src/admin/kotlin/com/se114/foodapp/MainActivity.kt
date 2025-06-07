@@ -2,14 +2,12 @@ package com.se114.foodapp
 
 
 import android.animation.ObjectAnimator
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -27,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.BaseFoodAppActivity
 import com.example.foodapp.MainViewModel
@@ -35,7 +32,6 @@ import com.example.foodapp.SplashViewModel
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
-import com.example.foodapp.navigation.OrderDetails
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.google.accompanist.systemuicontroller.SystemUiController
@@ -119,11 +115,7 @@ class MainActivity : BaseFoodAppActivity() {
                     viewModel.event.collectLatest {
                         when (it) {
                             is MainViewModel.HomeEvent.NavigateToOrderDetail -> {
-                                navController.navigate(
-                                    OrderDetails(
-                                        it.order
-                                    )
-                                )
+
                             }
 
                             is MainViewModel.HomeEvent.NavigateToResetPassword -> {

@@ -197,38 +197,38 @@ fun ExportScreen(
                 key = {
                     it.id!!
                 },
-            ) {
-                SwipeableActionsBox(
-                    modifier = Modifier
-                        .padding(
-                            8.dp,
-                        )
-                        .clip(RoundedCornerShape(12.dp)),
-                    endActions = listOf(
-                        SwipeAction(
-                            icon = rememberVectorPainter(Icons.Default.Delete),
-                            background = MaterialTheme.colorScheme.error,
-                            onSwipe = {
-                                isDeletable =
-                                    it.exportDate?.plusDays(1)?.isAfter(LocalDate.now()) == true
-                                if (isDeletable) {
-                                    viewModel.onAction(ExportState.Action.OnExportSelected(it))
-                                    showDialogDelete = true
-                                } else {
-                                    viewModel.onAction(ExportState.Action.NotifyCantDelete)
+                itemContent = {
+                    SwipeableActionsBox(
+                        modifier = Modifier
+                            .padding(
+                                8.dp,
+                            )
+                            .clip(RoundedCornerShape(12.dp)),
+                        endActions = listOf(
+                            SwipeAction(
+                                icon = rememberVectorPainter(Icons.Default.Delete),
+                                background = MaterialTheme.colorScheme.error,
+                                onSwipe = {
+                                    isDeletable =
+                                        it.exportDate?.plusDays(1)?.isAfter(LocalDate.now()) == true
+                                    if (isDeletable) {
+                                        viewModel.onAction(ExportState.Action.OnExportSelected(it))
+                                        showDialogDelete = true
+                                    } else {
+                                        viewModel.onAction(ExportState.Action.NotifyCantDelete)
+                                    }
                                 }
+                            ))
+                    ) {
+                        ExportCard(
+                            export = it,
+                            onClick = {
+                                viewModel.onAction(ExportState.Action.OnExportClicked(it))
                             }
-                        ))
-                ) {
-                    ExportCard(
-                        export = it,
-                        onClick = {
-                            viewModel.onAction(ExportState.Action.OnExportClicked(it))
-                        }
-                    )
+                        )
+                    }
                 }
-
-            }
+            )
         }
 
 

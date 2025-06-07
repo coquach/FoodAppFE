@@ -13,11 +13,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Timer
-
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,20 +31,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-
 import com.example.foodapp.data.model.Order
-
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
-
 import com.example.foodapp.ui.screen.common.OrderItemView
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -82,6 +78,9 @@ fun OrderDetailScreen(
                 OrderDetailsState.Event.ShowError -> {
                     showErrorSheet = true
                 }
+                OrderDetailsState.Event.OnBack -> {
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -93,12 +92,13 @@ fun OrderDetailScreen(
     ) {
         HeaderDefaultView(
             onBack = {
-                navController.navigateUp()
+                viewModel.onAction(OrderDetailsState.Action.OnBack)
             },
-            text = "Chi tiết đơn hàng"
+            text = "Chi tiết đơn hàng",
+
         )
 
-        OrderDetails(uiState.order, uiState.isStaff)
+        OrderDetails(uiState.order)
 
         LazyColumn(
             modifier = Modifier
@@ -109,27 +109,14 @@ fun OrderDetailScreen(
             items(uiState.order.orderItems, key = { it.id }) { item ->
                 OrderItemView(
                     orderItem = item,
-                    onReviewClick = {}
+                    isCustomer = false
                 )
             }
 
         }
         CheckoutRowItem("Tổng cộng", BigDecimal.ZERO, FontWeight.ExtraBold)
 
-        if (!uiState.isStaff) {
-            if (uiState.order.status == OrderStatus.PENDING.name) {
-                LoadingButton(
-                    onClick = {
-                        viewModel.onAction(OrderDetailsState.Action.UpdateStatusOrder(OrderStatus.CANCELLED.name))
-                    },
-                    text = "Hủy đơn hàng",
-                    loading = uiState.isLoading,
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        } else {
+
             when (uiState.order.status) {
                 OrderStatus.PENDING.name-> {
                     Row(
@@ -215,11 +202,11 @@ fun OrderDetailScreen(
         }
 
 
-    }
+
 }
 
 @Composable
-fun OrderDetails(order: Order, isStaff: Boolean = false) {
+fun OrderDetails(order: Order) {
     val orderStatus = OrderStatus.valueOf(order.status)
     Column(
         modifier = Modifier
@@ -233,12 +220,12 @@ fun OrderDetails(order: Order, isStaff: Boolean = false) {
             color = MaterialTheme.colorScheme.primary,
             text = "Mã đơn hàng: ${order.id}"
         )
-//        if (isStaff) {
-//            order.staffName?.let {
+
+//            order.createdBy?.let {
 //                OrderDetailsRow(
 //                    icon = Icons.Default.SupervisorAccount,
 //                    color = MaterialTheme.colorScheme.secondary,
-//                    text = "Tên nhân viên: ${order.staffName}"
+//                    text = "Tên nhân viên: ${order.createdBy}"
 //                )
 //            }
 //            OrderDetailsRow(
@@ -246,7 +233,7 @@ fun OrderDetails(order: Order, isStaff: Boolean = false) {
 //                color = MaterialTheme.colorScheme.tertiary,
 //                text = "Tên khách hàng: ${order.customerName}"
 //            )
-//        }
+
         DetailsTextRow(
             icon = orderStatus.icon,
             color = orderStatus.color,
@@ -291,13 +278,13 @@ fun OrderDetails(order: Order, isStaff: Boolean = false) {
             color = MaterialTheme.colorScheme.onBackground,
             text = "Phuơng thức thanh toán: ${PaymentMethod.fromName(order.method)!!.getDisplayName()}"
         )
-//        if (isStaff) {
-//            DetailsTextRow(
-//                icon = Icons.Default.Category,
-//                color = MaterialTheme.colorScheme.secondary,
-//                text = "Loại phục vụ: ${order.servingType}"
-//            )
-//        }
+
+            DetailsTextRow(
+                icon = Icons.Default.Category,
+                color = MaterialTheme.colorScheme.secondary,
+                text = "Loại phục vụ: ${order.type}"
+            )
+
     }
 
     Column(

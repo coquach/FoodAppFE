@@ -116,7 +116,7 @@ android {
             resValue(
                 "string",
                 "app_description",
-                "Quản lý đơn hàng, theo dõi doanh thu, tối ưu vận hành."
+                "Quản lý quán ăn, theo dõi doanh thu, tối ưu vận hành."
             )
         }
         create("staff") {
@@ -132,6 +132,20 @@ android {
                 "string",
                 "app_description",
                 "Hỗ trợ khách hàng, xử lý đơn hàng nhanh chóng."
+            )
+        }
+        create("shipper") {
+            dimension = "environment"
+            applicationIdSuffix = ".shipper"
+            resValue(
+                type = "string",
+                name = "app_name",
+                value = "FA Shipper"
+            )
+            resValue(
+                "string",
+                "app_description",
+                "Theo dõi đơn hàng, giao hàng nhanh chóng."
             )
         }
     }
@@ -204,7 +218,6 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
-
 
 
     //Google Auth
