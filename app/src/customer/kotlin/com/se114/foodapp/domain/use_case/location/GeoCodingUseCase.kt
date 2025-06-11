@@ -3,6 +3,7 @@ package com.se114.foodapp.domain.use_case.location
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.response.GeocodingResponse
 import com.example.foodapp.data.model.Address
+import com.example.foodapp.data.model.AddressUI
 
 import com.se114.foodapp.domain.repository.OpenCageRepository
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,7 @@ import javax.inject.Inject
 class GeoCodingUseCase @Inject constructor(
     private val openCageRepository: OpenCageRepository,
 ) {
-    operator fun invoke(address: String) = flow<ApiResponse<Address>> {
+    operator fun invoke(address: String) = flow<ApiResponse<AddressUI>> {
         try {
             openCageRepository.geoCoding(address).collect { result ->
                 when (result) {
@@ -24,7 +25,7 @@ class GeoCodingUseCase @Inject constructor(
 //
                             emit(
                                 ApiResponse.Success(
-                                    Address(
+                                    AddressUI(
                                         formatAddress = address,
                                         latitude = geometry.lat,
                                         longitude = geometry.lng

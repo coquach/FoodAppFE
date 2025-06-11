@@ -53,21 +53,9 @@ class CartRepoImpl @Inject constructor(
                     acc + (item.price.multiply(BigDecimal(item.quantity)))
                 }
 
-                val taxRate = BigDecimal("0.10")
-                val tax = subTotal.multiply(taxRate).setScale(2, RoundingMode.HALF_UP)
-
-                val deliveryFee = if (subTotal < BigDecimal(300_000)) {
-                    BigDecimal(15_000)
-                } else {
-                    BigDecimal.ZERO
-                }
-
-                val totalAmount = subTotal + tax + deliveryFee
+                val totalAmount = subTotal
 
                 CheckoutDetails(
-                    deliveryFee = deliveryFee,
-                    subTotal = subTotal,
-                    tax = tax,
                     totalAmount = totalAmount
                 )
             }

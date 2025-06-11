@@ -5,13 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Timer
@@ -22,14 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,10 +41,9 @@ import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.LazyPagingSample
+import com.example.foodapp.ui.screen.components.NoteInput
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.utils.StringUtils
-import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 @Composable
 fun OrderDetailsText(order: Order) {
@@ -63,7 +59,7 @@ fun OrderDetailsText(order: Order) {
             Image(
                 painter = painterResource(id = R.drawable.receipt),
                 contentDescription = null,
-                modifier = Modifier.size(50.dp)
+                modifier = Modifier.size(50.dp).align(Alignment.Bottom)
             )
             Spacer(modifier = Modifier.size(8.dp))
             Column(
@@ -74,30 +70,6 @@ fun OrderDetailsText(order: Order) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
 
             ) {
-
-               DetailsTextRow(
-                   text = "Thời gian tạo: ${StringUtils.formatDateTime(order.startedAt)}",
-                   icon = Icons.Default.Timer,
-                   color = MaterialTheme.colorScheme.outline
-               )
-                DetailsTextRow(
-                    text = "Thời gian thanh toán: ${StringUtils.formatDateTime(order.paymentAt)}",
-                    icon = Icons.Default.Timer,
-                    color = MaterialTheme.colorScheme.outline
-                )
-               DetailsTextRow(
-                   text = PaymentMethod.fromName(order.method)!!.getDisplayName(),
-                   icon = Icons.Default.Payments,
-                   color = MaterialTheme.colorScheme.confirm
-               )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Top
-            ) {
                 Text(
                     text = "Mã đơn hàng: ${order.id}",
                     textAlign = TextAlign.End,
@@ -107,7 +79,19 @@ fun OrderDetailsText(order: Order) {
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
+               DetailsTextRow(
+                   text = "Khởi tạo: ${StringUtils.formatDateTime(order.startedAt)}",
+                   icon = Icons.Default.Timer,
+                   color = MaterialTheme.colorScheme.outline
+               )
+
+               DetailsTextRow(
+                   text ="Phương thức: ${PaymentMethod.fromName(order.method)!!.getDisplayName()}",
+                   icon = Icons.Default.Payments,
+                   color = MaterialTheme.colorScheme.confirm
+               )
             }
+
         }
 
         Row(
@@ -117,12 +101,12 @@ fun OrderDetailsText(order: Order) {
             Icon(
                 imageVector = Icons.Default.AttachMoney,
                 contentDescription = null,
-                tint = Color.Yellow
+                tint = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
-                text = "Tổng giá: ${StringUtils.formatCurrency(BigDecimal.ZERO)}",
-                color = Color.Yellow,
+                text = "Tổng giá: ${StringUtils.formatCurrency(order.totalPrice)}",
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
 
@@ -184,27 +168,12 @@ fun OrderListSection(
     modifier: Modifier = Modifier,
     orders: LazyPagingItems<Order>,
     onItemClick: (Order) -> Unit,
-    onRefresh: (() -> Unit)? = null,
+
 
 ) {
-    val state = rememberPullToRefreshState()
-    val coroutineScope = rememberCoroutineScope()
-    var isRefreshing by remember { mutableStateOf(false) }
-    
-    PullToRefreshBox(
-        isRefreshing =isRefreshing,
-        onRefresh = {
-            coroutineScope.launch {
-                isRefreshing = true
-                onRefresh?.invoke()
-                isRefreshing = false
-            }
-        },
-        modifier = modifier,
-        state = state,
-       content = {
+
            LazyPagingSample(
-               modifier = Modifier.fillMaxSize(),
+               modifier = modifier,
                items = orders,
                textNothing = "Không có đơn hàng nào",
                iconNothing = Icons.Default.Receipt,
@@ -222,7 +191,97 @@ fun OrderListSection(
                },
 
                )
-       }
-    )
+
+
+
+}
+
+@Composable
+fun OrderDetails(order: Order, isStaff: Boolean = false) {
+    val orderStatus = OrderStatus.valueOf(order.status)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+
+        DetailsTextRow(
+            icon = Icons.Default.Numbers,
+            color = MaterialTheme.colorScheme.primary,
+            text = "Mã đơn hàng: ${order.id}"
+        )
+
+        DetailsTextRow(
+            icon = orderStatus.icon,
+            color = orderStatus.color,
+            text = orderStatus.display
+        )
+        DetailsTextRow(
+            icon = Icons.Default.LocationOn,
+            color = MaterialTheme.colorScheme.onBackground,
+            text = "Địa chỉ: ${order.address?: "Không có địa chỉ"}"
+        )
+
+
+
+
+        DetailsTextRow(
+            icon = Icons.Default.Timer,
+            color = MaterialTheme.colorScheme.onBackground,
+            text = "Khởi tạo: ${StringUtils.formatDateTime(order.startedAt)}"
+        )
+        DetailsTextRow(
+            icon = Icons.Default.AccountBalanceWallet,
+            color = MaterialTheme.colorScheme.onBackground,
+            text = "Thanh toán lúc: ${StringUtils.formatDateTime(order.paymentAt)?: "Chưa thanh toán"}"
+        )
+        DetailsTextRow(
+            icon = Icons.Default.Payments,
+            color = MaterialTheme.colorScheme.onBackground,
+            text = "Phuơng thức: ${
+                PaymentMethod.fromName(order.method)!!.getDisplayName()
+            }"
+        )
+        if (isStaff) {
+            DetailsTextRow(
+                icon = Icons.Default.Category,
+                color = MaterialTheme.colorScheme.secondary,
+                text = "Loại phục vụ: ${order.type}"
+            )
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Notes,
+                contentDescription = "Note",
+                tint = MaterialTheme.colorScheme.inversePrimary
+            )
+            Text(
+                text = "Ghi chú",
+                color = MaterialTheme.colorScheme.inversePrimary
+            )
+        }
+        NoteInput(
+            modifier = Modifier,
+            note = order.note ?: "",
+            onNoteChange = {
+
+            },
+            maxLines = 3,
+            textHolder = "Không có ghi chú",
+            readOnly = true
+        )
+    }
+
 
 }

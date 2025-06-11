@@ -9,7 +9,8 @@ data class FoodMultipartRequest(
     val name: String= "",
     val description: String= "",
     val price: BigDecimal= BigDecimal.ZERO,
-    val defaultQuantity: Int = 1
+    val defaultQuantity: Int = 1,
+    val menuId: Int = 0,
 ) {
     fun toPartMap(): Map<String, @JvmSuppressWildcards RequestBody> {
         val map = mutableMapOf<String, RequestBody>()
@@ -24,6 +25,7 @@ data class FoodMultipartRequest(
         add("description", description)
         add("price", price.toPlainString())
         add("defaultQuantity", defaultQuantity.toString())
+        add("menuId", menuId.toString())
 
         return map
     }

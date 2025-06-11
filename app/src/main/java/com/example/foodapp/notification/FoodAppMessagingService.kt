@@ -29,41 +29,41 @@ class FoodAppMessagingService : FirebaseMessagingService() {
             Log.d("FCM", "Message Notification Body: ${it.body}")
         }
 
-        remoteMessage.data?.let {
+        remoteMessage.data.let {
             Log.d("FCM", "Message Data: $it")
         }
-        val intent = Intent(this, MainActivity::class.java)
-        val title = remoteMessage.notification?.title ?: ""
-        val messageText = remoteMessage.notification?.body ?: ""
-        val data = remoteMessage.data
-        val type = data["type"] ?: "general"
 
-        if (type == "order") {
-            val gson = Gson()
-            val orderJson = gson.toJson(Order)
-            intent.putExtra("order_data", orderJson)
+        val title = remoteMessage.notification?.title ?: "Thông báo"
+        val messageText = remoteMessage.notification?.body ?: "Có gì đó mới!"
+        val data = remoteMessage.data
+        val type = data["type"] ?: "order"
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("type", type)
         }
+
         val pendingIntent = PendingIntent.getActivity(
             this,
             1,
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        val notificationChannelType = when (type) {
+        val notificationChannelType: FoodAppNotificationManager.NotificationChannelType = when (type) {
             "order" -> FoodAppNotificationManager.NotificationChannelType.ORDER
-            "general" -> FoodAppNotificationManager.NotificationChannelType.PROMOTION
-            else -> FoodAppNotificationManager.NotificationChannelType.ACCOUNT
+
+            else -> {
+                FoodAppNotificationManager.NotificationChannelType.ORDER
+            }
         }
-        val notificationID = when (notificationChannelType) {
-            FoodAppNotificationManager.NotificationChannelType.ORDER -> 20000 + (0..9999).random()
-            FoodAppNotificationManager.NotificationChannelType.PROMOTION -> 30000 + (0..9999).random()
-            FoodAppNotificationManager.NotificationChannelType.ACCOUNT -> 40000 + (0..9999).random()
+        val notificationID: Int = when (notificationChannelType) {
+            FoodAppNotificationManager.NotificationChannelType.ORDER ->  20000 + (0..999).random()
+
         }
         foodAppNotificationManager.showNotification(
             title, messageText, notificationID, pendingIntent,
             notificationChannelType)
     }
-    companion object {
-        const val ORDER_ID = "orderId"
-    }
+
 }

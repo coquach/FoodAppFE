@@ -40,6 +40,7 @@ import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.navigation.Tracking
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
+import com.example.foodapp.ui.screen.common.OrderDetails
 import com.example.foodapp.ui.screen.common.OrderItemView
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -77,8 +78,8 @@ fun OrderDetailScreen(
                     showErrorSheet = true
                 }
 
-                OrderDetailsState.Event.GoToTracking -> {
-                    navController.navigate(Tracking)
+                is OrderDetailsState.Event.GoToTracking -> {
+                    navController.navigate(Tracking(long =  it.lon, lat = it.lat))
                 }
 
                 OrderDetailsState.Event.OnBack -> {
@@ -110,13 +111,13 @@ fun OrderDetailScreen(
                 viewModel.onAction(OrderDetailsState.Action.OnBack)
             },
             text = "Chi tiết đơn hàng",
-            icon = Icons.Default.Map,
+            icon = if(uiState.order.status == OrderStatus.SHIPPING.name) Icons.Default.Map else null,
             iconClick = {
-                viewModel.onAction(OrderDetailsState.Action.GoToTracking)
+                viewModel.onAction(OrderDetailsState.Action.GoToTracking(uiState.order.address!!.longtitude, uiState.order.address!!.latitude))
             }
         )
 
-        OrderDetails(uiState.order)
+        OrderDetails(uiState.order, isStaff = true)
 
         LazyColumn(
             modifier = Modifier
@@ -136,7 +137,36 @@ fun OrderDetailScreen(
 
 
 
-        if (uiState.order.status == OrderStatus.PENDING.name) {
+        if (uiState.order.status == OrderStatus.READY.name) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LoadingButton(
+                    onClick = {
+                        viewModel.onAction(OrderDetailsState.Action.UpdateStatusOrder(OrderStatus.CANCELLED.name))
+                    },
+                    text = "Hủy",
+                    loading = uiState.isLoading,
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                    modifier = Modifier.weight(1f)
+
+                )
+                LoadingButton(
+                    onClick = {
+                        viewModel.onAction(OrderDetailsState.Action.UpdateStatusOrder(OrderStatus.SHIPPING.name))
+                    },
+                    text = "Giao hàng",
+                    loading = uiState.isLoading,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+
+            }
+        }
+        else if(uiState.order.status == OrderStatus.SHIPPING.name){
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -158,7 +188,7 @@ fun OrderDetailScreen(
                     },
                     text = "Hoàn thành",
                     loading = uiState.isLoading,
-                    containerColor = OrderStatus.CONFIRMED.color,
+                    containerColor = OrderStatus.COMPLETED.color,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.weight(1f),
                     enabled = uiState.canUpdateStatus
@@ -173,123 +203,6 @@ fun OrderDetailScreen(
 
 }
 
-@Composable
-fun OrderDetails(order: Order, isStaff: Boolean = false) {
-    val orderStatus = OrderStatus.valueOf(order.status)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        DetailsTextRow(
-            icon = Icons.Default.Numbers,
-            color = MaterialTheme.colorScheme.primary,
-            text = "Mã đơn hàng: ${order.id}"
-        )
-//        if (isStaff) {
-//            order.staffName?.let {
-//                OrderDetailsRow(
-//                    icon = Icons.Default.SupervisorAccount,
-//                    color = MaterialTheme.colorScheme.secondary,
-//                    text = "Tên nhân viên: ${order.staffName}"
-//                )
-//            }
-//            OrderDetailsRow(
-//                icon = Icons.Default.Person,
-//                color = MaterialTheme.colorScheme.tertiary,
-//                text = "Tên khách hàng: ${order.customerName}"
-//            )
-//        }
-        DetailsTextRow(
-            icon = orderStatus.icon,
-            color = orderStatus.color,
-            text = orderStatus.display
-        )
-        DetailsTextRow(
-            icon = Icons.Default.LocationOn,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Địa chỉ: ${order.address}"
-        )
-
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Icon(
-//                imageVector = Icons.Default.ShoppingCart,
-//                contentDescription = null,
-//                tint = MaterialTheme.colorScheme.outline,
-//                modifier = Modifier.size(24.dp)
-//            )
-//            Spacer(modifier = Modifier.size(8.dp))
-//            Text(
-//                text = "Số lượng món: ${order.orderItems.size}",
-//                color = MaterialTheme.colorScheme.outline
-//            )
-//        }
-
-
-        DetailsTextRow(
-            icon = Icons.Default.Timer,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Thời gian tạo: ${StringUtils.formatDateTime(order.startedAt)}"
-        )
-        DetailsTextRow(
-            icon = Icons.Default.AccountBalanceWallet,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Thời gian thanh toán: ${StringUtils.formatDateTime(order.paymentAt)}"
-        )
-        DetailsTextRow(
-            icon = Icons.Default.Payments,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Phuơng thức thanh toán: ${
-                PaymentMethod.fromName(order.method)!!.getDisplayName()
-            }"
-        )
-//        if (isStaff) {
-//            DetailsTextRow(
-//                icon = Icons.Default.Category,
-//                color = MaterialTheme.colorScheme.secondary,
-//                text = "Loại phục vụ: ${order.servingType}"
-//            )
-//        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp)
-
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Notes,
-                contentDescription = "Note",
-                tint = MaterialTheme.colorScheme.inversePrimary
-            )
-            Text(
-                text = "Ghi chú",
-                color = MaterialTheme.colorScheme.inversePrimary
-            )
-        }
-        NoteInput(
-            note = order.note ?: "",
-            onNoteChange = {
-
-            },
-            maxLines = 3,
-            textHolder = "Không có ghi chú",
-            readOnly = true
-        )
-    }
-
-
-}
 
 
 

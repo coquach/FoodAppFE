@@ -13,6 +13,7 @@ import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.data.model.Supplier
+import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
 import com.example.foodapp.navigation.ImportDetails
 import com.example.foodapp.navigation.importNavType
 import com.se114.foodapp.data.dto.filter.SupplierFilter
@@ -20,10 +21,8 @@ import com.se114.foodapp.data.mapper.toImportDetailUiModel
 import com.se114.foodapp.domain.use_case.imports.CreateImportUseCase
 import com.se114.foodapp.domain.use_case.imports.UpdateImportUseCase
 import com.se114.foodapp.domain.use_case.ingredient.GetActiveIngredientsUseCase
-import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
 import com.se114.foodapp.domain.use_case.supplier.GetSupplierUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.reflect.typeOf
@@ -58,7 +57,7 @@ class ImportDetailsViewModel @Inject constructor(
         it.toImportDetailUiModel()
     }
     private val mode = arguments.isUpdating
-    private val isEditable = import.importDate?.plusDays(3)?.isAfter(LocalDateTime.now()) == true
+    private val isEditable = import.importDate?.plusDays(3)?.isAfter(LocalDate.now()) == true
 
 
     private val _uiState =
@@ -210,11 +209,7 @@ class ImportDetailsViewModel @Inject constructor(
                     it.copy(
                         import = it.import.copy(supplierId = action.supplierId)
                     )}}
-            is ImportDetailsState.Action.OnChangeStaffId -> {
-                _uiState.update {
-                    it.copy(
-                        import = it.import.copy(staffId = action.staffId)
-                    )}}
+
             is ImportDetailsState.Action.OnChangeIngredient -> {
                 _uiState.update {
                     it.copy(
@@ -267,8 +262,8 @@ class ImportDetailsViewModel @Inject constructor(
         val localId: String = UUID.randomUUID().toString(),
         val id: Long? = null,
         val ingredient: Ingredient? = null,
-        val expiryDate: LocalDateTime = LocalDateTime.now(),
-        val productionDate: LocalDateTime = LocalDateTime.now(),
+        val expiryDate: LocalDate = LocalDate.now(),
+        val productionDate: LocalDate = LocalDate.now(),
         val quantity: BigDecimal = BigDecimal(1),
         val cost: BigDecimal = BigDecimal(0),
     )
@@ -297,10 +292,10 @@ class ImportDetailsViewModel @Inject constructor(
             data object OnBack : Action
             data class OnImportDetailsSelected(val importDetails: ImportDetailUIModel) : Action
             data class OnChangeSupplierId(val supplierId: Long) : Action
-            data class OnChangeStaffId(val staffId: Long) : Action
+
             data class OnChangeIngredient(val ingredient: Ingredient) : Action
-            data class OnChangeExpiryDate(val expiryDate: LocalDateTime) : Action
-            data class OnChangeProductionDate(val productionDate: LocalDateTime) : Action
+            data class OnChangeExpiryDate(val expiryDate: LocalDate) : Action
+            data class OnChangeProductionDate(val productionDate: LocalDate) : Action
             data class OnChangeQuantity(val quantity: BigDecimal) : Action
             data class OnChangeCost(val cost: BigDecimal?) : Action
             data object AddImportDetails : Action

@@ -10,9 +10,9 @@ import javax.inject.Inject
 class DeleteFoodTableUseCase @Inject constructor(
     private val foodTableRepository: FoodTableRepository
 ) {
-    operator fun invoke(id: Long) = flow<ApiResponse<Unit>> {
+    operator fun invoke(id: Int) = flow<ApiResponse<Unit>> {
         try {
-            foodTableRepository.deleteFoodTable(id.toInt()).collect {
+            foodTableRepository.deleteFoodTable(id).collect {
                 emit(it)
             }
         } catch (e: Exception) {

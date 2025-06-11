@@ -167,9 +167,7 @@ object Cart {
         val cartItems: List<CartItem> = emptyList(),
         val checkoutDetails: CheckoutDetails = CheckoutDetails(
             BigDecimal(0),
-            BigDecimal(0),
-            BigDecimal(0),
-            BigDecimal(0)
+
         ),
         val selectedItems: List<CartItem> = emptyList(),
         val quantityMap: Map<Long, Int> = emptyMap(),

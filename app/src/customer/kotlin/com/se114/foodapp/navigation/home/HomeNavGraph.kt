@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.navigation.Cart
 import com.example.foodapp.navigation.CheckoutCustomer
+import com.example.foodapp.navigation.Favorite
 import com.example.foodapp.navigation.FeedbackDetails
 import com.example.foodapp.navigation.FoodDetails
 import com.example.foodapp.navigation.FoodNavType
@@ -18,6 +19,7 @@ import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.cart.CartScreen
 import com.se114.foodapp.ui.screen.checkout.CheckoutScreen
 import com.se114.foodapp.ui.screen.checkout.voucher_check.VoucherCheckScreen
+import com.se114.foodapp.ui.screen.favorite.FavoriteScreen
 import com.se114.foodapp.ui.screen.feedback.feedback_details.FeedbackDetailsScreen
 import com.se114.foodapp.ui.screen.food_details.FoodDetailsScreen
 import com.se114.foodapp.ui.screen.home.HomeScreen
@@ -47,6 +49,12 @@ fun NavGraphBuilder.homeGraph(
                 FoodDetailsScreen(navController, this)
             }
 
+        }
+        composable<Favorite>{
+            shouldShowBottomNav.value = true
+            ScreenContainer {
+                FavoriteScreen(navController, this)
+            }
         }
     }
         composable<Cart> {

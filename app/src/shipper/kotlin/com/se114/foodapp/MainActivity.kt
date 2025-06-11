@@ -34,6 +34,7 @@ import com.example.foodapp.SplashViewModel
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
+import com.example.foodapp.navigation.Notification
 import com.example.foodapp.navigation.OrderDetailsStaff
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
@@ -122,12 +123,8 @@ class MainActivity : BaseFoodAppActivity() {
                         when (it) {
 
 
-                            is MainViewModel.HomeEvent.NavigateToOrderDetail -> {
-                                navController.navigate(
-                                    OrderDetailsStaff(
-                                        it.order
-                                    )
-                                )
+                            is MainViewModel.HomeEvent.NavigateToNotification -> {
+                                navController.navigate(Notification)
                             }
 
                             is MainViewModel.HomeEvent.NavigateToResetPassword -> {

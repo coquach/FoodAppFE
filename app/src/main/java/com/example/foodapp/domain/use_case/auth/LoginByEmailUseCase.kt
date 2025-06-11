@@ -3,6 +3,7 @@ package com.example.foodapp.domain.use_case.auth
 import android.util.Log
 import com.example.foodapp.BuildConfig
 import com.example.foodapp.domain.repository.AccountRepository
+import com.example.foodapp.notification.FoodAppNotificationManager
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -13,6 +14,7 @@ import javax.inject.Inject
 
 class LoginByEmailUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
+    private val foodAppNotificationManager: FoodAppNotificationManager
 ) {
     operator fun invoke(email: String, password: String) = flow<FirebaseResult<String>> {
         emit(FirebaseResult.Loading)
@@ -26,6 +28,8 @@ class LoginByEmailUseCase @Inject constructor(
                 return@flow
             }
             Log.d("LoginByEmailUseCase", "Login successful with role: $role")
+            foodAppNotificationManager.getAndStoreToken()
+            Log.d("LoginByEmailUseCase", "Token stored successfully")
             emit(FirebaseResult.Success(role))
         } catch (e: FirebaseAuthInvalidUserException) {
            emit(FirebaseResult.Failure("Tài khoản không tồn tại"))

@@ -14,11 +14,13 @@ import javax.inject.Inject
 class ToggleLikecUseCase @Inject constructor(
     private val foodRepository: FoodRepository,
 ) {
-    suspend operator fun invoke(foodId: Long): ApiResponse<Unit> {
-        return try {
-            foodRepository.toggleLike(foodId).first { it !is ApiResponse.Loading }
+    suspend operator fun invoke(foodId: Long)= flow <ApiResponse<Unit>> {
+         try {
+            foodRepository.toggleLike(foodId).collect {
+                emit(it)
+            }
         } catch (e: Exception) {
-            ApiResponse.Failure(e.message ?: "Có lỗi xảy ra", 999)
+           emit(ApiResponse.Failure(e.message ?: "Có lỗi xảy ra", 999))
         }
     }
 }

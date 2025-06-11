@@ -50,13 +50,9 @@ class StatisticsViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    init {
-        getMonthlyReports()
-        getDailyReports()
-        getMenuReports()
-    }
 
-    private fun getMonthlyReports() {
+
+    fun getMonthlyReports() {
         viewModelScope.launch {
             getMonthlyReportUseCase.invoke(
                 _uiState.value.fromYear,
@@ -93,7 +89,7 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
-    private fun getDailyReports() {
+    fun getDailyReports() {
         viewModelScope.launch {
             getDailyReportUseCase.invoke(_uiState.value.selectedYear, _uiState.value.selectedMonth)
                 .collect { result ->
@@ -125,7 +121,7 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
-    private fun getMenuReports() {
+    fun getMenuReports() {
         viewModelScope.launch {
             getMenuReportUseCase.invoke(_uiState.value.selectedYear, _uiState.value.selectedMonth)
                 .collect { result ->

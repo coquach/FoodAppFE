@@ -63,7 +63,7 @@ interface AiApi {
 
 
     //MistralAIController
-    @GET("mistral-ai/suggest-foods")
+    @GET("foods/populars")
     suspend fun suggestFoodsForCurrentUser(): Response<List<Food>>
 
     @POST("mistral-ai/chat")

@@ -117,6 +117,9 @@ object Material: NavRoute
 @Serializable
 object Import: NavRoute
 
+@Serializable
+object ChatBoxAdmin: NavRoute
+
 
 
 @Serializable
@@ -149,7 +152,7 @@ object FoodTableAdmin: NavRoute
 object FoodTableStaff: NavRoute
 
 @Serializable
-object Tracking: NavRoute
+data class Tracking(val long: Double, val lat: Double): NavRoute
 
 
 

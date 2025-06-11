@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.reflect.typeOf
@@ -134,7 +135,7 @@ class StaffDetailsViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         staff = it.staff.copy(
-                            basicSalary = action.value ?: 0.0
+                            basicSalary = action.value ?: BigDecimal.ZERO
                         )
                     )
                 }
@@ -210,7 +211,7 @@ object StaffDetails {
         data class OnChangeBirthDate(val value: LocalDate?) : Action
         data class OnChangeStartDate(val value: LocalDate?) : Action
         data class OnChangeEndDate(val value: LocalDate?) : Action
-        data class OnChangeBasicSalary(val value: Double?) : Action
+        data class OnChangeBasicSalary(val value: BigDecimal?) : Action
         data object AddStaff : Action
         data object UpdateStaff : Action
         data object GoBack : Action

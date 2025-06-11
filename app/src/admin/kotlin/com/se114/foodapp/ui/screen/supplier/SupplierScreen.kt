@@ -165,6 +165,7 @@ fun SupplierScreen(
                 pages = listOf(
                     {
                         SupplierListSection(
+                            modifier = Modifier.fillMaxSize(),
                             suppliers = suppliers,
                             onClick = {
                                 viewModel.onAction(SupplierState.Action.OnSupplierSelected(it))
@@ -194,6 +195,7 @@ fun SupplierScreen(
                     },
                     {
                         SupplierListSection(
+                            modifier = Modifier.fillMaxSize(),
                             suppliers = suppliers,
                             onClick = {
                                 viewModel.onAction(SupplierState.Action.OnSupplierSelected(it))
@@ -222,7 +224,7 @@ fun SupplierScreen(
                         )
                     }
                 ),
-
+                modifier = Modifier.weight(1f).fillMaxWidth(),
                 onTabSelected = {
                     viewModel.onAction(SupplierState.Action.OnTabSelected(it))
                 }
@@ -364,20 +366,22 @@ fun SupplierScreen(
 
 @Composable
 fun SupplierListSection(
+    modifier: Modifier = Modifier,
     suppliers: LazyPagingItems<Supplier>,
     onClick: (Supplier) -> Unit,
     endAction: @Composable (Supplier) -> SwipeAction,
+
 ) {
     if (suppliers.itemSnapshotList.items.isEmpty() && suppliers.loadState.refresh !is LoadState.Loading) {
 
         Nothing(
             text = "Không có nhà cung cấp nào",
-            icon = Icons.Default.Groups
+            icon = Icons.Default.Groups,
+            modifier = modifier
         )
     } else {
         LazyColumn(
-            modifier = Modifier
-                .heightIn(max = 10000.dp),
+            modifier = modifier,
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
 

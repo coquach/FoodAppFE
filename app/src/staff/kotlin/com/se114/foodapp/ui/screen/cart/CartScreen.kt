@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,6 +60,7 @@ import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodItemCounter
+import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.utils.StringUtils
 
@@ -161,12 +163,14 @@ fun CartScreen(
                     Column {
                         CheckoutRowItem(
                             title = "Tổng cộng",
-                            value = uiState.checkoutDetails.subTotal,
+                            value = uiState.checkoutDetails.totalAmount,
                             fontWeight = FontWeight.Bold
                         )
+
                         Button(
+                            shape = RoundedCornerShape(12.dp),
                             onClick = { viewModel.onAction(Cart.Action.OnCheckOut)},
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().height(16.dp)
                         ) {
                             Text(text = "Thanh toán")
                         }

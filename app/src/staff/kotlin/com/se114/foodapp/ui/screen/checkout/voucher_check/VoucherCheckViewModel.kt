@@ -41,7 +41,7 @@ class VoucherCheckViewModel @Inject constructor(
         viewModelScope.launch {
 
             val checkout = getCheckoutDetailsUseCase().first()
-            val totalAmount = checkout.subTotal
+            val totalAmount = checkout.totalAmount
 
             getVoucherForCustomerUseCase(
                 filter = VoucherFilter()

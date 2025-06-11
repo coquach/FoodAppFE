@@ -4,13 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.example.foodapp.data.model.Address
+import com.example.foodapp.data.model.AddressUI
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
 import com.example.foodapp.navigation.MyAddressList
 import com.se114.foodapp.domain.use_case.address.AddAddressUseCase
 import com.se114.foodapp.domain.use_case.address.DeleteAddressUseCase
 import com.se114.foodapp.domain.use_case.address.GetAddressUseCase
-import com.se114.foodapp.ui.screen.address.AddressList.Event.*
+import com.se114.foodapp.ui.screen.address.AddressList.Event.BackToCheckout
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +64,7 @@ class AddressListViewModel @Inject constructor(
 
     }
 
-    private fun addAddress(address: Address) {
+    private fun addAddress(address: AddressUI) {
         viewModelScope.launch {
             addAddressUseCase.invoke(address).collect { result ->
                 when (result) {
@@ -156,7 +156,7 @@ class AddressListViewModel @Inject constructor(
 object AddressList {
     data class UiState(
         val isLoading: Boolean = false,
-        val addresses: List<Address> = emptyList(),
+        val addresses: List<AddressUI> = emptyList(),
         val addressesState: AddressesState? = null,
         val error: String? = null,
         val selectedAddress: String? = null,
@@ -171,17 +171,17 @@ object AddressList {
 
     sealed interface Event {
         data object ShowError : Event
-        data class BackToCheckout(val address: String) : Event
+        data class BackToCheckout(val address: AddressUI) : Event
         data object NavigateToAddAddress : Event
         data object OnBack : Event
     }
 
     sealed interface Action {
-        data class AddAddress(val address: Address) : Action
+        data class AddAddress(val address: AddressUI) : Action
         data object OnBack : Action
         data object OnAddAddress : Action
         data class OnSelectAddress(val id: String?) : Action
         data class OnDeleteAddress(val id: String) : Action
-        data class OnSelectToBackCheckOut(val address: String) : Action
+        data class OnSelectToBackCheckOut(val address: AddressUI) : Action
     }
 }

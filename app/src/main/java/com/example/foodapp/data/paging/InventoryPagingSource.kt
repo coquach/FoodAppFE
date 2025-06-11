@@ -22,7 +22,7 @@ class InventoryPagingSource @Inject constructor(
                 page = page,
                 size = size,
                 ingredientId = filter.ingredientId,
-                expiryDate = filter.expiryDate,
+                isExpired = filter.isExpired,
                 isOutOfStock = filter.isOutOfStock
             )
         }

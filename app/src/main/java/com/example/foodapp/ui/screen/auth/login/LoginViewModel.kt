@@ -120,6 +120,7 @@ class LoginViewModel @Inject constructor(
                                 "admin" -> _event.send(Login.Event.NavigateToAdmin)
                                 "staff" -> _event.send(Login.Event.NavigateToStaff)
                                 "customer" -> _event.send(Login.Event.NavigateToCustomer)
+                                "shipper" -> _event.send(Login.Event.NavigateToShipper)
                             }
                         }
 
@@ -178,6 +179,7 @@ object Login {
         data object NavigateToAdmin : Event
         data object NavigateToStaff : Event
         data object NavigateToCustomer : Event
+        data object NavigateToShipper: Event
         data object NavigateForgot : Event
         data object ShowError : Event
     }

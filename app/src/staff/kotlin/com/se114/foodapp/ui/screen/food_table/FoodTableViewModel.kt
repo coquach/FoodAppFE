@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.FoodTableFilter
 import com.example.foodapp.data.model.FoodTable
 import com.example.foodapp.domain.use_case.food_table.GetFoodTablesUseCase
 import com.example.foodapp.domain.use_case.food_table.UpdateFoodTableStatusUseCase
@@ -48,7 +49,7 @@ class FoodTableViewModel @Inject constructor(
 
 //            val filter = SupplierFilter(isActive = status)
 
-            getFoodTablesUseCase.invoke()
+            getFoodTablesUseCase.invoke(FoodTableFilter(active = true))
                 .cachedIn(viewModelScope)
                 .stateIn(
                     viewModelScope,
@@ -57,28 +58,28 @@ class FoodTableViewModel @Inject constructor(
                 )
         }
     }
-    private fun setStatusFoodTable(id: Int, status: Boolean ) {
-        viewModelScope.launch {
-            updateFoodTableStatusUseCase.invoke(id, status).collect { response ->
-                when (response) {
-                    is ApiResponse.Success -> {
-                        _event.send(FoodTableState.Event.ShowToast("Cập nhật trạng thái bàn ăn thành công"))
-                        _event.send(FoodTableState.Event.OnRefresh)
-                    }
-                    is ApiResponse.Failure -> {
-                        _uiState.update {
-                            it.copy(
-                                error = response.errorMessage
-                            )
-                        }
-                        _event.send(FoodTableState.Event.ShowError)
-                    }
-                    is ApiResponse.Loading -> {}
-
-                }
-            }
-        }
-    }
+//    private fun setStatusFoodTable(id: Int) {
+//        viewModelScope.launch {
+//            updateFoodTableStatusUseCase.invoke(id).collect { response ->
+//                when (response) {
+//                    is ApiResponse.Success -> {
+//                        _event.send(FoodTableState.Event.ShowToast("Cập nhật trạng thái bàn ăn thành công"))
+//                        _event.send(FoodTableState.Event.OnRefresh)
+//                    }
+//                    is ApiResponse.Failure -> {
+//                        _uiState.update {
+//                            it.copy(
+//                                error = response.errorMessage
+//                            )
+//                        }
+//                        _event.send(FoodTableState.Event.ShowError)
+//                    }
+//                    is ApiResponse.Loading -> {}
+//
+//                }
+//            }
+//        }
+//    }
 
     fun onAction(action: FoodTableState.Action) {
         when (action) {
@@ -102,9 +103,7 @@ class FoodTableViewModel @Inject constructor(
                     )
                 }
             }
-            is FoodTableState.Action.OnUpdateStatus -> {
-                setStatusFoodTable(action.id, action.status)
-            }
+
 
         }
     }
@@ -127,7 +126,6 @@ object FoodTableState {
 
     sealed interface Action {
         data object OnBack : Action
-        data class OnUpdateStatus(val id: Int,val status: Boolean) : Action
         data class OnTabSelected(val index: Int) : Action
         data object OnRefresh : Action
 

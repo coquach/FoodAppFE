@@ -50,8 +50,10 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.navigation.EmployeeDetails
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
@@ -60,6 +62,7 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.TabWithPager
+import kotlinx.coroutines.flow.MutableStateFlow
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -73,8 +76,8 @@ fun EmployeeScreen(
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
-    val staffs = viewModel.getStaffsByTab(uiState.tabIndex).collectAsLazyPagingItems()
-
+    val staffs by viewModel.staffsTabManager.tabDataMap.collectAsStateWithLifecycle()
+    val emptyStaffs = MutableStateFlow<PagingData<Staff>>(PagingData.empty()).collectAsLazyPagingItems()
     val context = LocalContext.current
 
 
@@ -86,8 +89,10 @@ fun EmployeeScreen(
             handle["added"] = false
             handle["updated"] = false
             viewModel.onAction(EmployeeSate.Action.OnRefresh)
-            staffs.refresh()
         }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.getStaffsFlow(uiState.tabIndex)
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -156,14 +161,12 @@ fun EmployeeScreen(
             )
 
             TabWithPager(
-                tabs = listOf("Đang hiển thị", "Đã ẩn"),
+                tabs = listOf("Đang hiển thị", "Đã nghỉ"),
                 pages = listOf(
                     {
                         LazyPagingSample(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            items = staffs,
+                            modifier = Modifier.fillMaxSize(),
+                            items = staffs[0]?.flow?.collectAsLazyPagingItems() ?: emptyStaffs,
                             textNothing = "Không có nhân viên nào",
                             iconNothing = Icons.Default.Groups,
                             columns = 2,
@@ -195,10 +198,8 @@ fun EmployeeScreen(
                     },
                     {
                         LazyPagingSample(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            items = staffs,
+                            modifier = Modifier.fillMaxSize(),
+                            items = staffs[1]?.flow?.collectAsLazyPagingItems() ?: emptyStaffs,
                             textNothing = "Không có nhân viên nào",
                             iconNothing = Icons.Default.Groups,
                             columns = 2,
@@ -215,8 +216,11 @@ fun EmployeeScreen(
                         }
                     }
                 ),
+                modifier = Modifier.fillMaxWidth()
+                .weight(1f),
                 onTabSelected = {
                     viewModel.onAction(EmployeeSate.Action.OnTabSelected(it))
+                    viewModel.getStaffsFlow(it)
                 }
             )
         }

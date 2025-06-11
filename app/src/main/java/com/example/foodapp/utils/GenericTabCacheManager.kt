@@ -17,17 +17,17 @@ data class TabData<T : Any>(
     var loadJob: Job? = null
 )
 
-class TabCacheManager<T : Any>(
+class TabCacheManager<K, T : Any>(
     private val scope: CoroutineScope,
-    private val getFilter: (Int) -> Any?,
+    private val getFilter: (K) -> Any?,
     private val loadData: suspend (Any?) -> Flow<PagingData<T>>
 ) {
-    private val _tabDataMap = MutableStateFlow<Map<Int, TabData<T>>>(emptyMap())
-    val tabDataMap: StateFlow<Map<Int, TabData<T>>> = _tabDataMap.asStateFlow()
+    private val _tabDataMap = MutableStateFlow<Map<K, TabData<T>>>(emptyMap())
+    val tabDataMap  : StateFlow<Map<K, TabData<T>>> get() = _tabDataMap.asStateFlow()
 
-    fun getFlowForTab(tabIndex: Int = 0) {
+    fun getFlowForTab(tabKey: K) {
         val currentMap = _tabDataMap.value
-        val existing = currentMap[tabIndex]
+        val existing = currentMap[tabKey]
         if (existing != null &&
             existing.loadJob?.isActive == true
         ) {
@@ -37,18 +37,18 @@ class TabCacheManager<T : Any>(
         val newData = existing ?: TabData()
         newData.loadJob?.cancel()
 
-        val filter = getFilter(tabIndex)
+        val filter = getFilter(tabKey)
         newData.loadJob = scope.launch {
             loadData(filter)
                 .cachedIn(scope)
                 .catch { newData.flow.value = PagingData.empty() }
-                .collectLatest { pagingData ->
+                .collect { pagingData ->
                     newData.flow.value = pagingData
                 }
         }
 
         _tabDataMap.value = currentMap.toMutableMap().apply {
-            put(tabIndex, newData)
+            put(tabKey, newData)
         }
 
     }
@@ -59,6 +59,7 @@ class TabCacheManager<T : Any>(
             data.loadJob?.cancel()
             data.flow.value = PagingData.empty()
         }
+        _tabDataMap.value.toMutableMap().clear()
     }
 }
 

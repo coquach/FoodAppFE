@@ -5,9 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.request.OrderStatusRequest
 import com.example.foodapp.data.model.Order
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.example.foodapp.domain.use_case.order.UpdateStatusOrderUseCase
 import com.example.foodapp.navigation.OrderDetailsStaff
+import com.example.foodapp.navigation.orderNavType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,14 +20,18 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.reflect.typeOf
 
 
 @HiltViewModel
 class OrderDetailsViewModel @Inject constructor(
+    private val getUserIdUseCase: GetUserIdUseCase,
     private val updateStatusOrderUseCase: UpdateStatusOrderUseCase,
     val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val navArgs = savedStateHandle.toRoute<OrderDetailsStaff>()
+    private val navArgs = savedStateHandle.toRoute<OrderDetailsStaff>(
+        typeMap = mapOf(typeOf<Order>() to orderNavType)
+    )
     private val orderLoad = navArgs.order
 
 
@@ -36,15 +43,18 @@ class OrderDetailsViewModel @Inject constructor(
 
     private fun updateStatusOrder(status: String) {
         viewModelScope.launch {
-            val orderId = orderLoad.id
-          updateStatusOrderUseCase.invoke(orderId, status).collect{ response ->
+          updateStatusOrderUseCase.invoke(_state.value.order.id,
+              OrderStatusRequest(
+                  status = status,
+                  sellerId = getUserIdUseCase()
+              )).collect{ response ->
               when(response) {
                   is ApiResponse.Loading -> {
                       _state.update { it.copy(isLoading = true) }
                   }
                   is ApiResponse.Success -> {
                       _state.update { it.copy(isLoading = false) }
-                      _event.send(OrderDetailsState.Event.ShowError)
+                      _event.send(OrderDetailsState.Event.UpdateOrder)
                   }
                   is ApiResponse.Failure -> {
                       _state.update { it.copy(isLoading = false, error = response.errorMessage) }

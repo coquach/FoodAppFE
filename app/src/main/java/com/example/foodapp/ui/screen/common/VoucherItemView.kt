@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -109,13 +110,12 @@ fun VoucherCard(
     voucher: Voucher,
     onClick: (() -> Unit)? = null,
 ) {
-    Box(modifier = modifier) {
+    Box(modifier = modifier.height(170.dp)) {
         Row(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.inversePrimary, RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.inversePrimary.copy(blue = 0.5f), RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
-                .fillMaxWidth()
-                .height(170.dp)
+                .fillMaxSize()
                 .padding(2.dp)
                 .clickable {
                     onClick?.invoke()
@@ -128,23 +128,17 @@ fun VoucherCard(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.LocalOffer,
-                    contentDescription = "Voucher",
-                    tint = MaterialTheme.colorScheme.onSecondary,
-                    modifier = modifier.size(80.dp)
-                )
+
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     DetailsTextRow(
-                        text = "Voucher: ${voucher.id}",
+                        text = "Voucher: ${voucher.code}",
                         icon = Icons.Default.Tag,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
@@ -155,7 +149,7 @@ fun VoucherCard(
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                     DetailsTextRow(
-                        text = "Giá trị tối đa:  ",
+                        text = "Giá trị tối đa: ${StringUtils.formatCurrency(voucher.maxValue)} ",
                         icon = Icons.Default.MonetizationOn,
                         color = MaterialTheme.colorScheme.onSecondary
                     )

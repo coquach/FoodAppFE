@@ -50,7 +50,17 @@ val FoodNavType = object : NavType<Food>(false) {
 
 val orderNavType = object : NavType<Order>(false) {
     override fun get(bundle: Bundle, key: String): Order {
-        return parseValue(bundle.getString(key).toString())
+        val orderJson = bundle.getString(key).toString()
+
+        val order = parseValue(orderJson)
+        val updatedOrderItems = order.orderItems.map { item ->
+            val updatedImages = item.foodImages.map { image ->
+                image.copy(url = URLDecoder.decode(image.url, "UTF-8"))
+            }
+            item.copy(foodImages = updatedImages)
+        }
+
+        return order.copy(orderItems = updatedOrderItems)
 
     }
 
@@ -59,7 +69,19 @@ val orderNavType = object : NavType<Order>(false) {
     }
 
     override fun serializeAsValue(value: Order): String {
-        return Json.encodeToString(Order.serializer(), value)
+        val updatedOrderItems = value.orderItems.map { item ->
+            val updatedImages = item.foodImages.map { image ->
+                image.copy(
+                    url = URLEncoder.encode(image.url, "UTF-8")
+                )
+            }
+            item.copy(foodImages = updatedImages)
+        }
+
+        val updatedOrder = value.copy(orderItems = updatedOrderItems)
+
+        // Serialize bản đã được decode
+        return Json.encodeToString(Order.serializer(), updatedOrder)
     }
 
     override fun put(bundle: Bundle, key: String, value: Order) {

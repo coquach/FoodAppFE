@@ -10,6 +10,7 @@ import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FoodTableApi {
@@ -19,6 +20,8 @@ interface FoodTableApi {
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
+        @Query("active") active: Boolean?=null,
+
     ): Response<PageResponse<FoodTable>>
 
     @POST("food-tables")
@@ -27,18 +30,17 @@ interface FoodTableApi {
     @PUT("food-tables/{id}")
     suspend fun updateFoodTable(
         @Body request: FoodTableRequest,
-        @Query("id") id: Int,
+        @Path("id") id: Int,
     ): Response<FoodTable>
 
-    @PATCH("food-tables/{id}/status")
+    @PATCH("food-tables/{id}/toggle-status")
     suspend fun updateFoodTableStatus(
-        @Body status: Map<String, Boolean>,
-        @Query("id") id: Int,
+        @Path("id") id: Int,
     ): Response<Unit>
 
     @DELETE("food-tables/{id}")
     suspend fun deleteFoodTable(
-        @Query("id") id: Int,
+        @Path("id") id: Int,
     ): Response<Unit>
 
 

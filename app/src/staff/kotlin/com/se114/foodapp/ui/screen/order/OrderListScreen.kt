@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,9 +30,7 @@ import com.example.foodapp.navigation.OrderDetailsStaff
 import com.example.foodapp.ui.screen.common.OrderListSection
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.TabWithPager
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun OrderListScreen(
@@ -49,9 +45,16 @@ fun OrderListScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     val orders by viewModel.ordersTabManager.tabDataMap.collectAsStateWithLifecycle()
-    var isRefreshing by remember { mutableStateOf(false) }
 
 
+    LaunchedEffect(Unit) {
+        viewModel.getOrdersFlow(uiState.tabIndex)
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.ordersTabManager.refreshAllTabs()
+        }
+    }
     val handle = navController.currentBackStackEntry?.savedStateHandle
     LaunchedEffect(handle) {
         val condition = handle?.get<Boolean>("updated") == true
@@ -73,11 +76,14 @@ fun OrderListScreen(
             }
         }
     }
-    val emptyOrders = MutableStateFlow<PagingData<Order>>(PagingData.empty()).collectAsLazyPagingItems()
+    val emptyOrders =
+        MutableStateFlow<PagingData<Order>>(PagingData.empty()).collectAsLazyPagingItems()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
 
     ) {
@@ -85,8 +91,17 @@ fun OrderListScreen(
             text = "Danh sách đơn hàng"
         )
         TabWithPager(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            tabs = listOf("Đang chờ", "Đã xác nhận","Đã sẵn sàng", "Đang giao hàng", "Đã hoàn thành", "Đã hủy"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            tabs = listOf(
+                "Đang chờ",
+                "Đã xác nhận",
+                "Đã chuẩn bị",
+                "Đang giao hàng",
+                "Đã hoàn thành",
+                "Đã hủy"
+            ),
             pages = listOf(
                 {
 
@@ -98,11 +113,9 @@ fun OrderListScreen(
                                 OrderListState.Action.OnOrderClicked(it)
                             )
                         },
-                        onRefresh = {
-                            viewModel.onAction(OrderListState.Action.OnRefresh)
-                        },
 
-                    )
+
+                        )
 
                 },
                 {
@@ -114,11 +127,9 @@ fun OrderListScreen(
                                 OrderListState.Action.OnOrderClicked(it)
                             )
                         },
-                        onRefresh = {
-                            viewModel.onAction(OrderListState.Action.OnRefresh)
-                        },
 
-                    )
+
+                        )
                 },
                 {
                     OrderListSection(
@@ -129,11 +140,9 @@ fun OrderListScreen(
                                 OrderListState.Action.OnOrderClicked(it)
                             )
                         },
-                        onRefresh = {
-                            viewModel.onAction(OrderListState.Action.OnRefresh)
-                        },
 
-                    )
+
+                        )
                 },
                 {
                     OrderListSection(
@@ -144,11 +153,9 @@ fun OrderListScreen(
                                 OrderListState.Action.OnOrderClicked(it)
                             )
                         },
-                        onRefresh = {
-                            viewModel.onAction(OrderListState.Action.OnRefresh)
-                        },
 
-                    )
+
+                        )
                 },
                 {
                     OrderListSection(
@@ -159,10 +166,8 @@ fun OrderListScreen(
                                 OrderListState.Action.OnOrderClicked(it)
                             )
                         },
-                        onRefresh = {
-                            viewModel.onAction(OrderListState.Action.OnRefresh)
-                        },
-                    )
+
+                        )
                 },
                 {
                     OrderListSection(
@@ -173,10 +178,8 @@ fun OrderListScreen(
                                 OrderListState.Action.OnOrderClicked(it)
                             )
                         },
-                        onRefresh = {
-                            viewModel.onAction(OrderListState.Action.OnRefresh)
-                        },
-                    )
+
+                        )
                 }
             ),
             scrollable = true,

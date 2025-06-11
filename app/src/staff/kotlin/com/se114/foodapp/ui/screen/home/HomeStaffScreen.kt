@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.home
 
+import android.Manifest
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,10 +57,13 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.navigation.Cart
 import com.example.foodapp.ui.screen.common.FoodList
+import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.ItemCount
@@ -66,8 +71,14 @@ import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.utils.StringUtils
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.flow.MutableStateFlow
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun SharedTransitionScope.HomeStaffScreen(
     navController: NavController,
@@ -75,13 +86,13 @@ fun SharedTransitionScope.HomeStaffScreen(
     viewModel: HomeStaffViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foods = viewModel.getFoodsByMenuId(uiState.menuIdSelected).collectAsLazyPagingItems()
-    val menus = viewModel.menus.collectAsLazyPagingItems()
+    val foods by viewModel.foodsTabManager.tabDataMap.collectAsStateWithLifecycle()
+    val emptyFoods = MutableStateFlow<PagingData<Food>>(PagingData.empty()).collectAsLazyPagingItems()
 
     var isOpenFoodDialog by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
-    var search by remember { mutableStateOf("") } //demo
+
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -114,6 +125,20 @@ fun SharedTransitionScope.HomeStaffScreen(
 
                 }
             }
+    }
+    val notificationPermissionState =
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
+            permission = Manifest.permission.POST_NOTIFICATIONS
+        ) else null
+
+    if (notificationPermissionState != null) {
+        LaunchedEffect(Unit) {
+
+            if (!notificationPermissionState.status.isGranted) {
+                notificationPermissionState.launchPermissionRequest()
+            }
+
+        }
     }
     Scaffold(
         floatingActionButton =
@@ -156,27 +181,48 @@ fun SharedTransitionScope.HomeStaffScreen(
                         end = padding.calculateEndPadding(LayoutDirection.Ltr)
                     )
                 )
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+
 
         ) {
 
 
             SearchField(
-                searchInput = search,
-                searchChange = { search = it }
+                searchInput = uiState.nameSearch,
+                searchChange = {
+                    viewModel.onAction(HomeStaffState.Action.OnSearch(it))
+                }
             )
 
 
 
-
+            ChipsGroupWrap(
+                modifier = Modifier.fillMaxWidth(),
+                options = uiState.menus.map { it.name },
+                selectedOption = uiState.menuName,
+                onOptionSelected = { selectedName ->
+                    val selectedMenu = uiState.menus.find { it.name == selectedName }
+                    selectedMenu?.let {
+                        viewModel.onAction(HomeStaffState.Action.OnMenuClicked(it.id!!, it.name))
+                        viewModel.getFoodsFlow(it.id)
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.outline,
+                isFlowLayout = false,
+                shouldSelectDefaultOption = true
+            )
 
             FoodList(
-                foods = foods,
+                foods = foods[uiState.foodFilter.menuId]?.flow?.collectAsLazyPagingItems() ?: emptyFoods,
                 animatedVisibilityScope = animatedVisibilityScope,
                 onItemClick = {
                     viewModel.onAction(HomeStaffState.Action.OnFoodClicked(it))
+                    isOpenFoodDialog = true
                 },
                 isCustomer = false,
+                modifier = Modifier.fillMaxWidth().weight(1f)
             )
 
 
@@ -216,9 +262,9 @@ fun SharedTransitionScope.HomeStaffScreen(
 
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+
 @Composable
-fun SharedTransitionScope.FoodHomeStaffDialog(
+fun FoodHomeStaffDialog(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
@@ -234,6 +280,7 @@ fun SharedTransitionScope.FoodHomeStaffDialog(
         Box(
             modifier = modifier
                 .fillMaxWidth()
+                .height(500.dp)
                 .background(
                     MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(16.dp)
@@ -265,10 +312,7 @@ fun SharedTransitionScope.FoodHomeStaffDialog(
                     Text(
                         text = food.name,
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.sharedElement(
-                            state = rememberSharedContentState(key = "title/${food.id}"),
-                            animatedVisibilityScope
-                        )
+                        modifier = Modifier
                     )
                 }
                 Row(
@@ -327,10 +371,7 @@ fun SharedTransitionScope.FoodHomeStaffDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .padding(top = 8.dp)
-                        .sharedElement(
-                            state = rememberSharedContentState(key = "description/${food.id}"),
-                            animatedVisibilityScope
-                        )
+
                 )
                 Row(
                     modifier = Modifier

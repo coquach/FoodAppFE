@@ -9,7 +9,8 @@ object CartMapper {
         name = name,
         quantity = quantity,
         imageUrl = imageUrl,
-        price = price
+        price = price,
+        remainingQuantity = remainingQuantity
     )
 
     fun CartItem.toEntity() = CartItemEntity(
@@ -17,6 +18,7 @@ object CartMapper {
         quantity = this.quantity,
         name = this.name,
         price = this.price,
-        imageUrl = this.imageUrl
+        imageUrl = this.imageUrl,
+        remainingQuantity = this.remainingQuantity
     )
 }

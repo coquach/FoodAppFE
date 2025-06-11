@@ -35,8 +35,8 @@ fun<T> DonutChatSample(
     extractLabel: (T) -> String,
     extractValue: (T) -> Float,
     modifier: Modifier = Modifier,
-    chartHeight: Dp = 300.dp,
-    strokeWidth: Float = 60f,
+
+    strokeWidth: Float = 200f,
     labelColor: Color = Color.Black
 ){
     val slices = data.map {
@@ -63,7 +63,6 @@ fun<T> DonutChatSample(
 
     Column(
         modifier = modifier
-            .fillMaxWidth()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -71,9 +70,7 @@ fun<T> DonutChatSample(
 
 
         DonutPieChart(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(chartHeight),
+            modifier = Modifier.fillMaxWidth().padding(30.dp),
             pieChartData = donutChartData,
             pieChartConfig = donutChartConfig
         )
@@ -92,13 +89,13 @@ fun<T> DonutChatSample(
                         .background(slice.color, shape = CircleShape)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "${slice.label}: ${slice.value}%", color = labelColor)
+                Text(text = "${slice.label}: ${String.format("%.2f", slice.value)}%", color = labelColor)
             }
         }
     }
 }
 
-data class MenuDonutSlice(val name: String, val value: Int)
+data class MenuDonutSlice(val name: String, val value: Float)
 
 fun randomColor(): Color {
     // Generate a random RGB color with decent brightness

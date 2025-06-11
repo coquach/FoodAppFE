@@ -21,27 +21,27 @@ import retrofit2.http.Query
 
 interface FoodApi {
 
-    @GET("menus/{menuId}/foods")
+    @GET("foods")
     suspend fun getFoods(
-        @Path("menuId") menuId: Long,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc"
+        @Query("order") order: String = "desc",
+        @Query("name") name: String? = null,
+        @Query("status") status: Boolean? = null,
+        @Query("menuId") menuId: Int? = null,
     ): Response<PageResponse<Food>>
 
     @Multipart
-    @POST("menus/{menuId}/foods")
+    @POST("foods")
     suspend fun createFood(
-        @Path("menuId") menuId: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part images: List<MultipartBody.Part?>? = null
+        @Part images: List<MultipartBody.Part>? = null
     ): Response<Food>
 
     @Multipart
-    @PUT("menus/{menuId}/foods/{foodId}")
+    @PUT("foods/{foodId}")
     suspend fun updateFood(
-        @Path("menuId") menuId: Long,
         @Path("foodId") foodId: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
         @Part images: List<MultipartBody.Part?>? = null
@@ -61,27 +61,26 @@ interface FoodApi {
         @Path("foodId") foodId: Long,
     ): Response<Unit>
 
-    @PATCH("/foods/{foodId}/status-toggle")
+    @PATCH("foods/{foodId}/status-toggle")
     suspend fun toggleStatus(
         @Path("foodId") foodId: Long,
     ) : Response<Unit>
 //menu
     @GET("menus")
     suspend fun getMenus(
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10,
-        ) : Response<PageResponse<Menu>>
+        @Query("status") status: Boolean? = null,
+        @Query("name") name: String? = null,
+        ) : Response<List<Menu>>
     @POST("menus")
     suspend fun createMenu(@Body request: MenuRequest): Response<Menu>
 
     @PUT("menus/{id}")
     suspend fun updateMenu(
-        @Path("id") id: Long,
+        @Path("id") id: Int,
         @Body request: MenuRequest,
     ): Response<Menu>
-    @PATCH("menu/{id}/status")
+    @PATCH("menus/{id}/status")
     suspend fun updateMenuStatus(
-        @Path("id") id: Long,
-        @Body status: Map<String, Boolean>
+        @Path("id") id: Int,
     ): Response<Unit>
 }

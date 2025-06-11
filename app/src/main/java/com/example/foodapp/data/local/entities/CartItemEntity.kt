@@ -14,5 +14,6 @@ data class CartItemEntity(
     val name: String,
     val quantity: Int,
     val price: BigDecimal,
-    val imageUrl: String?= null
+    val imageUrl: String?= null,
+    val remainingQuantity: Int
 )

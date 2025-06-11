@@ -22,10 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.foodapp.R
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.OrderItem
 import com.example.foodapp.utils.StringUtils
@@ -98,16 +100,27 @@ fun OrderItemView(
     modifier: Modifier = Modifier,
     orderItem: OrderItem,
     onReviewClick: ((Long) -> Unit)?=null,
-    isCustomer: Boolean
+    isCustomer: Boolean,
+    isComplete: Boolean = false
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .padding(vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(vertical = 10.dp, horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        AsyncImage(
+            model = orderItem.foodImages.firstOrNull()?.url ,
+            contentDescription = null,
+            modifier = Modifier
+                .size(82.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.ic_placeholder),
+            error = painterResource(id = R.drawable.ic_placeholder)
 
+        )
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -148,7 +161,7 @@ fun OrderItemView(
 
 
         }
-        if (isCustomer) {
+        if (isCustomer && isComplete) {
             IconButton(
                 onClick = {
                     onReviewClick?.invoke(orderItem.id)

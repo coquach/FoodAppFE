@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.example.foodapp.domain.use_case.order.GetOrdersUseCase
 import com.example.foodapp.utils.TabCacheManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,18 +27,20 @@ class OrderListViewModel @Inject constructor(
     private val getOrdersUseCase: GetOrdersUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(OrderListState.UiState())
+    private val _state = MutableStateFlow(OrderListState.UiState(
+        orderFilter = OrderFilter(status = OrderStatus.PENDING.name)
+    ))
     val state get() = _state.asStateFlow()
 
     private val _event = Channel<OrderListState.Event>()
     val event get() = _event.receiveAsFlow()
 
 
-    val ordersTabManager = TabCacheManager<Order>(
+    val ordersTabManager = TabCacheManager<Int, Order>(
         scope = viewModelScope,
         getFilter = { tabIndex ->
             val status = getOrderStatusForTab(tabIndex)
-            OrderFilter(status = status?.name)
+            _state.value.orderFilter.copy(status = status?.name)
         },
         loadData = { filter ->
             getOrdersUseCase(filter as OrderFilter)
@@ -46,9 +50,7 @@ class OrderListViewModel @Inject constructor(
     fun getOrdersFlow(tabIndex: Int){
         return ordersTabManager.getFlowForTab(tabIndex)
     }
-    init {
-        getOrdersFlow(0)
-    }
+
 
 
 
@@ -76,7 +78,7 @@ class OrderListViewModel @Inject constructor(
             }
             OrderListState.Action.OnRefresh -> {
                 ordersTabManager.refreshAllTabs()
-                getOrdersFlow(state.value.tabIndex)
+                getOrdersFlow(_state.value.tabIndex)
             }
         }
     }
@@ -91,6 +93,7 @@ private data class TabData(
 
 object OrderListState{
     data class UiState(
+        val orderFilter: OrderFilter = OrderFilter(),
         val tabIndex: Int = 0,
     )
     sealed interface Event{

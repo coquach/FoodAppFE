@@ -57,20 +57,7 @@ fun AuthScreen(
 ) {
 
 
-    val notificationPermissionState =
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
-            permission = Manifest.permission.POST_NOTIFICATIONS
-        ) else null
 
-    if (notificationPermissionState != null) {
-        LaunchedEffect(Unit) {
-
-            if (!notificationPermissionState.status.isGranted) {
-                notificationPermissionState.launchPermissionRequest()
-            }
-
-        }
-    }
 
 
     val imageSize = remember { mutableStateOf(IntSize.Zero) }

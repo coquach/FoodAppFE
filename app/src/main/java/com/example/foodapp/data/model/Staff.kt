@@ -1,12 +1,10 @@
 package com.example.foodapp.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.example.foodapp.data.model.enums.Gender
-import com.example.foodapp.utils.Constants.STAFF_TABLE
+import com.example.foodapp.utils.json_format.BigDecimalSerializer
 import com.example.foodapp.utils.json_format.LocalDateSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Serializable
@@ -28,6 +26,7 @@ data class Staff(
     @Serializable(with = LocalDateSerializer::class)
     val endDate: LocalDate? = null,
 
-    val basicSalary: Double = 0.0,
+    @Serializable(with = BigDecimalSerializer::class)
+    val basicSalary: BigDecimal = BigDecimal.ZERO,
     val salaryHistories: List<SalaryHistory> = emptyList(),
     )

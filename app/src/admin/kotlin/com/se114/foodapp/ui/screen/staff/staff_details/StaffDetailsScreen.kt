@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.staff.staff_details
 
+
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -9,15 +10,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,9 +46,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,21 +58,20 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
+import com.example.foodapp.data.model.SalaryHistory
 import com.example.foodapp.data.model.enums.Gender
-
-
-
+import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ComboBoxSample
 import com.example.foodapp.ui.screen.components.DatePickerSample
 import com.example.foodapp.ui.screen.components.DateRangePickerSample
+import com.example.foodapp.ui.screen.components.DetailsTextRow
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
+import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
-import com.example.foodapp.data.model.Staff
-import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
+import com.example.foodapp.utils.StringUtils
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +85,7 @@ fun StaffDetailsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
     var showSheetImage by rememberSaveable { mutableStateOf(false) }
+    var showHistorySalary by rememberSaveable { mutableStateOf(false) }
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -106,6 +116,7 @@ fun StaffDetailsScreen(
                 StaffDetails.Event.GoBack -> {
                     navController.popBackStack()
                 }
+
                 StaffDetails.Event.ShowErrorMessage -> {
                     showErrorSheet = true
                 }
@@ -123,14 +134,19 @@ fun StaffDetailsScreen(
             text = "Thông tin nhân viên",
             onBack = {
                 viewModel.onAction(StaffDetails.Action.GoBack)
+            },
+            icon = if (uiState.isUpdating) Icons.AutoMirrored.Filled.MenuBook else null,
+            iconClick = {
+                showHistorySalary = true
             }
         )
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth().weight(1f)
                 .verticalScroll(rememberScrollState()),
 
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
 
 
             ) {
@@ -206,17 +222,18 @@ fun StaffDetailsScreen(
                 ),
                 labelText = "Số điện thoại"
             )
-            ComboBoxSample(
-                title = "Chức vụ",
-                selected = uiState.staff.position,
-                onPositionSelected = {
-                    if (it != null) {
+
+            ChipsGroupWrap(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Chức vụ",
+                options = listOf("Bán hàng", "Giao Hàng"),
+                selectedOption = uiState.staff.position,
+                onOptionSelected = {
                         viewModel.onAction(StaffDetails.Action.OnChangePosition(it))
-                    }
                 },
-                textPlaceholder = "Chọn chức vụ...",
-                options = listOf("Bán hàng", "Giao Hàng", "Quản lí kho"),
-                modifier = Modifier.fillMaxWidth()
+                containerColor = MaterialTheme.colorScheme.inversePrimary,
+                isFlowLayout = true,
+                shouldSelectDefaultOption = true
             )
             DatePickerSample(
                 text = "Ngày sinh",
@@ -230,7 +247,8 @@ fun StaffDetailsScreen(
                 onDateRangeSelected = { start, end ->
                     viewModel.onAction(StaffDetails.Action.OnChangeStartDate(start))
                     viewModel.onAction(StaffDetails.Action.OnChangeEndDate(end))
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
             )
             FoodAppTextField(
                 value = uiState.staff.address,
@@ -245,9 +263,9 @@ fun StaffDetailsScreen(
                 labelText = "Địa chỉ"
             )
             FoodAppTextField(
-                value = uiState.staff.basicSalary.toString(),
+                value = uiState.staff.basicSalary.toPlainString(),
                 onValueChange = {
-                    viewModel.onAction(StaffDetails.Action.OnChangeBasicSalary(it.toDoubleOrNull()))
+                    viewModel.onAction(StaffDetails.Action.OnChangeBasicSalary(it.toBigDecimalOrNull()))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -256,34 +274,31 @@ fun StaffDetailsScreen(
                 ),
                 labelText = "Lương cơ bản"
             )
-            Button(
-                onClick = {
-                    if (uiState.isUpdating) {
 
-                            viewModel.onAction(StaffDetails.Action.UpdateStaff)
-
-                    } else {
-                        viewModel.onAction(StaffDetails.Action.AddStaff)
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
         }
+        LoadingButton(
+            onClick = {
+                if (uiState.isUpdating) {
+
+                    viewModel.onAction(StaffDetails.Action.UpdateStaff)
+
+                } else {
+                    viewModel.onAction(StaffDetails.Action.AddStaff)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
+            loading = uiState.isLoading,
+
+        )
+        
     }
     if (showSheetImage) {
         ImagePickerBottomSheet(
             onDismiss = { showSheetImage = false },
             onImageSelected = { uri -> viewModel.onAction(StaffDetails.Action.OnChangeAvatar(uri)) })
     }
-    if (showErrorSheet){
+    if (showErrorSheet) {
         ErrorModalBottomSheet(
             description = uiState.errorMessage ?: "Lỗi không xác định",
             onDismiss = {
@@ -291,4 +306,85 @@ fun StaffDetailsScreen(
             },
         )
     }
+    if (showHistorySalary) {
+        Dialog(
+            onDismissRequest = {
+                showHistorySalary = false
+            },
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(600.dp)
+                    .background(
+                        MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(30.dp)
+
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+
+                    Text(
+                        text = "Thông tin",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        items(
+                            items = uiState.staff.salaryHistories,
+                            key = { it.currentSalary }
+                        ) {
+                            HistorySalarySection(
+                                data = it,
+                            )
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun HistorySalarySection(
+    data: SalaryHistory,
+    modifier: Modifier = Modifier,
+) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+
+        ) {
+            DetailsTextRow(
+                text = "${data.month}/${data.year}",
+                icon = Icons.Default.DateRange
+            )
+            DetailsTextRow(
+                text = StringUtils.formatCurrency(data.currentSalary),
+                icon = Icons.Default.MonetizationOn,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+
+
+
 }

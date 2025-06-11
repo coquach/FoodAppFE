@@ -515,6 +515,13 @@ class MaterialViewModel @Inject constructor(
                     )
                 }
             }
+            MaterialState.Action.RetryAllIngredients -> {
+                getAllIngredients()
+
+            }
+            MaterialState.Action.RetryAllUnits -> {
+                getAllUnits()
+            }
 
         }
     }
@@ -596,6 +603,8 @@ object MaterialState {
             val isActive: Boolean,
             val isUnit: Boolean,
         ) : Action
+        data object RetryAllUnits : Action
+        data object RetryAllIngredients : Action
 
 
     }

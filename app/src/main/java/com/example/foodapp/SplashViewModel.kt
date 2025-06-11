@@ -79,7 +79,7 @@ class SplashViewModel @Inject constructor(
             }
 
             "shipper" -> {
-                _startDestination.value = if (user == null) Tracking else OrderList
+                _startDestination.value = if (user == null) Auth else OrderList
             }
             else -> {
                 val completed = welcomeRepository.readOnBoardingState().firstOrNull() == true

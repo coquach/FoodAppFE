@@ -7,7 +7,9 @@ import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.domain.use_case.order.GetOrdersByCustomerUseCase
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
+import com.example.foodapp.domain.use_case.order.GetOrdersUseCase
+import com.example.foodapp.utils.TabCacheManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,41 +24,41 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OrderListViewModel @Inject constructor(
-    private val getOrdersByCustomerUseCase: GetOrdersByCustomerUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
+    private val getOrdersUseCase: GetOrdersUseCase,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(OrderList.UiState())
+    private val _uiState = MutableStateFlow(OrderList.UiState(
+        orderFilter = OrderFilter(status = OrderStatus.PENDING.name, customerId = getUserIdUseCase())
+    ))
     val uiState: StateFlow<OrderList.UiState> get() = _uiState.asStateFlow()
 
     private val _event = Channel<OrderList.Event>()
     val event get() = _event.receiveAsFlow()
-    fun refreshAllTabs() {
-        ordersCache.clear()
 
+    val ordersTabManager = TabCacheManager<Int, Order>(
+        scope = viewModelScope,
+        getFilter = { tabIndex ->
+            val status = getOrderStatusForTab(tabIndex)
+             _uiState.value.orderFilter.copy(status = status?.name)
+        },
+        loadData = { filter ->
+            getOrdersUseCase(filter as OrderFilter)
+        }
+    )
+
+    fun getOrdersFlow(tabIndex: Int){
+        return ordersTabManager.getFlowForTab(tabIndex)
     }
 
-    private val ordersCache = mutableMapOf<Int, StateFlow<PagingData<Order>>>()
 
 
-    fun getOrdersByTab(index: Int): StateFlow<PagingData<Order>> {
-        return ordersCache.getOrPut(index) {
-            val status = when (index) {
-                0 -> OrderStatus.PENDING
-                1 -> null
-                else -> null
-            }
 
-            val filter = OrderFilter(status = status?.name)
-
-            getOrdersByCustomerUseCase.invoke(filter)
-                .cachedIn(viewModelScope)
-                .stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
-                    PagingData.empty()
-                )
+    private fun getOrderStatusForTab(tabIndex: Int): OrderStatus? {
+        return when (tabIndex) {
+            0 -> OrderStatus.PENDING
+            else -> null
         }
     }
-
     fun onAction(action: OrderList.Action) {
         when (action) {
             is OrderList.Action.OnOrderClicked -> {
@@ -68,6 +70,11 @@ class OrderListViewModel @Inject constructor(
             is OrderList.Action.OnTabChanged -> {
                 _uiState.update { it.copy(tabIndex = action.index) }
             }
+            OrderList.Action.OnRefresh -> {
+                ordersTabManager.refreshAllTabs()
+                getOrdersFlow(_uiState.value.tabIndex)
+            }
+
 
         }
 
@@ -77,6 +84,7 @@ class OrderListViewModel @Inject constructor(
 object OrderList {
     data class UiState(
         val tabIndex: Int = 0,
+        val orderFilter: OrderFilter = OrderFilter(),
     )
 
     sealed interface Event {
@@ -86,6 +94,7 @@ object OrderList {
     sealed interface Action {
         data class OnTabChanged(val index: Int) : Action
         data class OnOrderClicked(val order: Order) : Action
+        data object OnRefresh : Action
 
     }
 }

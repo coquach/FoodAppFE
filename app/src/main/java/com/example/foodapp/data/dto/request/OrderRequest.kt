@@ -1,6 +1,6 @@
 package com.example.foodapp.data.dto.request
 
-
+import com.example.foodapp.data.model.Address
 
 
 data class OrderRequest(
@@ -8,11 +8,15 @@ data class OrderRequest(
     val voucherId: Long? = null,
     val type: String,
     val method: String,
-    val startAt: String,
+    val status: String,
+    val startedAt: String,
     val paymentAt: String,
     val note: String? = null,
-    val address: String? = null,
-
+    val address: Address? = null,
+    val phone: String? = null,
+    val sellerId: String? = null,
+    val shipperId: String? = null,
+    val customerId: String? = null,
     val orderItems: List<OrderItemRequest>
 ){
     companion object {
@@ -22,10 +26,15 @@ data class OrderRequest(
                 voucherId = null,
                 type = "",
                 method = "",
-                startAt = "",
+                startedAt = "",
                 paymentAt = "",
                 note = null,
                 address = null,
+                phone = null,
+                sellerId = null,
+                shipperId = null,
+                customerId = null,
+                status = "",
                 orderItems = emptyList()
             )
         }

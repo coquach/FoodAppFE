@@ -2,13 +2,16 @@ package com.se114.foodapp.ui.screen.tracking
 
 import android.location.Location
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.apiRequestFlow
 
 import com.se114.foodapp.data.remote.OsrmApi
 import com.example.foodapp.location.LocationManager
+import com.example.foodapp.navigation.Tracking
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.style.expressions.dsl.generated.distance
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +31,11 @@ import javax.inject.Inject
 class TrackingViewModel @Inject constructor(
     private val osrmApi: OsrmApi,
     private val locationManager: LocationManager,
+    val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val arguments = savedStateHandle.toRoute<Tracking>()
+    val destinationPoint: Point = Point.fromLngLat(arguments.long, arguments.lat)
+
     private val _uiState = MutableStateFlow<TrackingState>(TrackingState.Nothing)
     val uiState get() = _uiState.asStateFlow()
 
@@ -39,7 +46,7 @@ class TrackingViewModel @Inject constructor(
     private val _currentLocation = MutableStateFlow<Location?>(null)
     val currentLocation = _currentLocation.asStateFlow()
 
-    val destinationPoint: Point = Point.fromLngLat(106.802, 10.8704)
+
 
     private val _distance = MutableStateFlow<Double?>(null)
     val distance = _distance.asStateFlow()

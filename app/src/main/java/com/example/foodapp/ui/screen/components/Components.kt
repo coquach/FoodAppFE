@@ -117,7 +117,6 @@ fun FoodAppTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    fieldHeight: Dp = 56.dp,
     enabled: Boolean = true,
     readOnly: Boolean = false,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -168,20 +167,15 @@ fun FoodAppTextField(
 
 
         }
-        val actualTextStyle = when {
-            fieldHeight < 52.dp -> textStyle.copy(fontSize = 14.sp)
-            fieldHeight in 52.dp..60.dp -> textStyle.copy(fontSize = 16.sp)
-            fieldHeight in 61.dp..70.dp -> textStyle.copy(fontSize = 18.sp)
-            else -> textStyle.copy(fontSize = 20.sp)
-        }
+
 
         OutlinedTextField(
             value = value,
             onValueChange,
-            modifier = modifier.heightIn(min = 56.dp),
+            modifier = Modifier.fillMaxWidth(),
             enabled,
             readOnly,
-            textStyle = actualTextStyle,
+            textStyle = textStyle,
             null,
             placeholder,
             leadingIcon,
@@ -412,9 +406,11 @@ fun BoxScope.ItemCount(count: Int) {
 
 
 @Composable
-fun Loading() {
+fun Loading(
+    modifier: Modifier = Modifier,
+) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -504,15 +500,20 @@ fun HeaderDefaultView(
 fun Retry(
     message: String,
     onClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp , Alignment.CenterVertically)
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
     ) {
 
-        Text(text = message, style = MaterialTheme.typography.bodyMedium, modifier= Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
         Button(onClick = onClicked) {
             Text(text = "Tải lại")
         }
@@ -528,7 +529,7 @@ fun FoodAppDialog(
     messageColor: Color = MaterialTheme.colorScheme.outline,
     onDismiss: () -> Unit,
     containerConfirmButtonColor: Color = MaterialTheme.colorScheme.error,
-    labelConfirmButtonColor: Color = MaterialTheme.colorScheme.onError,
+    labelConfirmButtonColor: Color = MaterialTheme.colorScheme.onPrimary,
     onConfirm: (() -> Unit)? = null,
     confirmText: String = "Ok",
     dismissText: String = "Đóng",
@@ -556,21 +557,24 @@ fun FoodAppDialog(
                         containerColor = containerConfirmButtonColor,
                         contentColor = labelConfirmButtonColor
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.height(48.dp)
                 ) {
                     Text(confirmText)
                 }
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss,
-                shape = RoundedCornerShape(12.dp),
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.height(48.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent
                 ),
                 border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline)
-                ) {
-                Text(text =dismissText, color =MaterialTheme.colorScheme.outline)
+            ) {
+                Text(text = dismissText, color = MaterialTheme.colorScheme.outline)
             }
         }
     )
@@ -592,12 +596,13 @@ fun ThemeSwitcher(
         animationSpec = animationSpec
     )
 
-    Box(modifier = Modifier
-        .width(size * 1.625f)
-        .height(size)
-        .clip(shape = parentShape)
-        .clickable { onClick() }
-        .background(MaterialTheme.colorScheme.secondaryContainer)
+    Box(
+        modifier = Modifier
+            .width(size * 1.625f)
+            .height(size)
+            .clip(shape = parentShape)
+            .clickable { onClick() }
+            .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Box(
             modifier = Modifier
@@ -672,11 +677,41 @@ fun CustomPagerIndicator(
     }
 }
 
+fun <T> LazyListScope.gridItems(
+    data: List<T>,
+    nColumns: Int,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
+    key: ((item: T) -> Any)? = null,
+    itemContent: @Composable BoxScope.(T) -> Unit,
+) {
+    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
+    items(rows) { rowIndex ->
+        Row(horizontalArrangement = horizontalArrangement) {
+            for (columnIndex in 0 until nColumns) {
+                val itemIndex = rowIndex * nColumns + columnIndex
+                if (itemIndex < data.count()) {
+                    val item = data[itemIndex]
+                    androidx.compose.runtime.key(key?.invoke(item)) {
+                        Box(
+                            modifier = Modifier.weight(1f, fill = true),
+                            propagateMinConstraints = true
+                        ) {
+                            itemContent.invoke(this, item)
+                        }
+                    }
+                } else {
+                    Spacer(Modifier.weight(1f, fill = true))
+                }
+            }
+        }
+    }
+}
+
 
 fun <T : Any> LazyListScope.gridItems(
     data: LazyPagingItems<T>,
     nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable BoxScope.(T?) -> Unit,
     placeholderContent: @Composable BoxScope.() -> Unit = {
@@ -758,98 +793,96 @@ fun <T : Any> LazyPagingSample(
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable (T) -> Unit,
 
-) {
+    ) {
     val loadState = items.loadState
 
-     Box(modifier = modifier){
-         when {
-             // 1. Lỗi khi load lần đầu
-             loadState.refresh is LoadState.Error -> {
-                 val error = (loadState.refresh as LoadState.Error).error
-//                ErrorState(
-//                    message = error.localizedMessage ?: "Lỗi không xác định",
-//                    onRetry = { items.retry() },
-//                    modifier = Modifier.align(Alignment.Center)
-//                )
-                 Retry(
-                     message = error.localizedMessage ?: "Lỗi không xác định",
-                     onClicked = {
-                         items.retry()
-                     },
-                     modifier = Modifier.fillMaxSize()
-                 )
-             }
+    Box(modifier = modifier) {
+        when {
+            // 1. Lỗi khi load lần đầu
+            loadState.refresh is LoadState.Error -> {
+                val error = (loadState.refresh as LoadState.Error).error
 
-             // 2. Đang loading lần đầu
-             loadState.refresh is LoadState.Loading -> {
-                 Loading()
-             }
+                Retry(
+                    message = error.localizedMessage ?: "Lỗi không xác định",
+                    onClicked = {
+                        items.retry()
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
-             // 3. Danh sách rỗng
-             items.itemSnapshotList.items.isEmpty() -> {
-                 Nothing(
-                     text = textNothing,
-                     icon = iconNothing,
-                     modifier = Modifier.align(Alignment.Center)
-                 )
-             }
+            // 2. Đang loading lần đầu
+            loadState.refresh is LoadState.Loading -> {
+                Loading(
+                    modifier = modifier.fillMaxSize()
+                )
+            }
 
-             // 4. Bình thường: hiển thị danh sách
-             else -> {
-                 LazyColumn(
-                     modifier = Modifier.fillMaxSize(),
-                     verticalArrangement = Arrangement.Top
-                 ) {
-                     gridItems(
-                         data = items,
-                         nColumns = columns,
-                         key = key,
-                         itemContent = { item ->
-                             item?.let { itemContent(it) }
-                         }
-                     )
+            // 3. Danh sách rỗng
+            items.itemSnapshotList.items.isEmpty() -> {
+                Nothing(
+                    text = textNothing,
+                    icon = iconNothing,
+                    modifier = Modifier.fillMaxSize().align(Alignment.Center)
+                )
+            }
 
-                     // 5. Hiển thị loading cuối trang
-                     if (loadState.append is LoadState.Loading) {
-                         item {
-                             CircularProgressIndicator(
-                                 modifier = Modifier
-                                     .fillMaxWidth()
-                                     .padding(16.dp)
-                                     .wrapContentWidth(Alignment.CenterHorizontally)
-                             )
-                         }
-                     }
+            // 4. Bình thường: hiển thị danh sách
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    gridItems(
+                        data = items,
+                        nColumns = columns,
+                        key = key,
+                        itemContent = { item ->
+                            item?.let { itemContent(it) }
+                        }
+                    )
 
-                     // 6. Hiển thị lỗi cuối trang
-                     if (loadState.append is LoadState.Error) {
-                         val error = (loadState.append as LoadState.Error).error
-                         item {
-                             Retry(
-                                 message = error.localizedMessage ?: "Lỗi khi tải thêm",
-                                 onClicked = { items.retry() },
-                                 modifier = Modifier
-                                     .fillMaxWidth()
-                                     .padding(16.dp)
-                             )
-                         }
-                     }
-                 }
-             }
-         }
-     }
+                    // 5. Hiển thị loading cuối trang
+                    if (loadState.append is LoadState.Loading) {
+                        item {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
 
+                    // 6. Hiển thị lỗi cuối trang
+                    if (loadState.append is LoadState.Error) {
+                        val error = (loadState.append as LoadState.Error).error
+                        item {
+                            Retry(
+                                message = error.localizedMessage ?: "Lỗi khi tải thêm",
+                                onClicked = { items.retry() },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
 }
+
 @Composable
 fun NoteInput(
     modifier: Modifier = Modifier.height(200.dp),
     note: String,
     onNoteChange: (String) -> Unit,
-    maxLines: Int = 5 ,
+    maxLines: Int = 5,
     textHolder: String,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
 ) {
     OutlinedTextField(
         value = note,
@@ -875,12 +908,13 @@ fun NoteInput(
         maxLines = maxLines
     )
 }
+
 @Composable
 fun ExpandableText(
     modifier: Modifier = Modifier,
     text: String,
     minimizedMaxLines: Int,
-    style: TextStyle
+    style: TextStyle,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var hasVisualOverflow by remember { mutableStateOf(false) }
@@ -903,7 +937,10 @@ fun ExpandableText(
                         .height(lineHeightDp)
                         .background(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                                colors = listOf(
+                                    Color.Transparent,
+                                    MaterialTheme.colorScheme.background
+                                )
                             )
                         )
                 )

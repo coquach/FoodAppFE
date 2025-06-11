@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.example.foodapp.navigation.FoodAppNavHost
 import com.example.foodapp.navigation.NavRoute
-import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.se114.foodapp.navigation.auth.authGraph
 import com.se114.foodapp.navigation.employee.employeeGraph
 import com.se114.foodapp.navigation.menu.menuGraph
@@ -25,7 +24,6 @@ fun AppNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
     shouldShowBottomNav: MutableState<Boolean>,
-    notificationViewModel: NotificationViewModel,
     startDestination: NavRoute,
     isDarkMode: Boolean,
     onThemeUpdated: () -> Unit,
@@ -44,7 +42,7 @@ fun AppNavGraph(
         )
         warehouseGraph(navController, shouldShowBottomNav)
         settingGraph(navController, shouldShowBottomNav, isDarkMode, onThemeUpdated)
-        statisticsGraph(navController, shouldShowBottomNav, notificationViewModel)
+        statisticsGraph(navController, shouldShowBottomNav)
     }
 
 }

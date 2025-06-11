@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.food_details
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.model.Food
+import com.example.foodapp.navigation.FoodNavType
 import com.se114.foodapp.domain.use_case.feedback.GetFeedbacksUseCase
 import com.se114.foodapp.domain.use_case.cart.AddToCartUseCase
 import com.se114.foodapp.domain.use_case.food_details.ToggleLikecUseCase
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.reflect.typeOf
 
 @HiltViewModel
 class FoodDetailsViewModel @Inject constructor(
@@ -33,8 +36,9 @@ class FoodDetailsViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    private val foodArgument: com.example.foodapp.navigation.FoodDetails =
-        savedStateHandle.toRoute()
+    private val foodArgument = savedStateHandle.toRoute<com.example.foodapp.navigation.FoodDetails>(
+        typeMap = mapOf(typeOf<Food>() to FoodNavType)
+    )
 
     private val _uiState = MutableStateFlow(FoodDetails.UiState(food = foodArgument.food))
     val uiState: StateFlow<FoodDetails.UiState> get() = _uiState.asStateFlow()
@@ -42,8 +46,17 @@ class FoodDetailsViewModel @Inject constructor(
     private val _event = Channel<FoodDetails.Event>()
     val event = _event.receiveAsFlow()
 
+    private val _feedbacks = MutableStateFlow<PagingData<Feedback>>(PagingData.empty())
+    val feedbacks = _feedbacks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PagingData.empty()
+    )
 
 
+    init{
+        getFeedbacks()
+    }
 
 
     private fun addToCart(food: Food) {
@@ -78,9 +91,9 @@ class FoodDetailsViewModel @Inject constructor(
 
 
     private fun toggleLike(foodId: Long) {
+        Log.d("toggleLike", "ok")
         viewModelScope.launch {
-
-                val result = toggleLikecUseCase.invoke(foodId)
+                toggleLikecUseCase.invoke(foodId).collect {result ->
                     when (result) {
                         is ApiResponse.Failure -> {
                             _uiState.update { it.copy(error = result.errorMessage) }
@@ -95,17 +108,20 @@ class FoodDetailsViewModel @Inject constructor(
 
                         }
                     }
+                }
+
+
 
 
         }
     }
 
-    fun getFeedbacks() : StateFlow<PagingData<Feedback>> {
-          return  getFeedbacksUseCase.invoke(_uiState.value.food.id).cachedIn(viewModelScope) .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
-                PagingData.empty()
-            )
+    private fun getFeedbacks() {
+        viewModelScope.launch {
+            getFeedbacksUseCase(foodArgument.food.id).cachedIn(viewModelScope).collect {
+                _feedbacks.value = it
+            }
+        }
     }
 
     fun onAction(action: FoodDetails.Action) {

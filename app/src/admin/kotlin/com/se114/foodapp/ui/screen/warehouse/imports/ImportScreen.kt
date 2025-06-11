@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -66,7 +65,7 @@ import com.example.foodapp.utils.StringUtils
 import kotlinx.coroutines.flow.collectLatest
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,6 +92,7 @@ fun ImportScreen(
         }
     }
 
+
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collectLatest {
@@ -118,7 +118,7 @@ fun ImportScreen(
                 }
 
                 ImportState.Event.AddImport -> {
-                    navController.navigate(ImportDetails(import = Import(importDate = LocalDateTime.now()),isUpdating = false))
+                    navController.navigate(ImportDetails(import = Import(importDate = LocalDate.now()),isUpdating = false))
                 }
 
                 ImportState.Event.OnBack -> {
@@ -197,7 +197,7 @@ fun ImportScreen(
                 items = imports,
                 textNothing = "Không có đơn nào",
                 iconNothing = Icons.Default.Description,
-                columns = 2,
+                columns = 1,
                 key = {
                     it.id!!
                 }
@@ -213,7 +213,7 @@ fun ImportScreen(
                             icon = rememberVectorPainter(Icons.Default.Delete),
                             background = MaterialTheme.colorScheme.error,
                             onSwipe = {
-                                isDeletable = it.importDate?.plusDays(3)?.isAfter(LocalDateTime.now()) == true
+                                isDeletable = it.importDate?.plusDays(3)?.isAfter(LocalDate.now()) == true
 
                                 if(isDeletable){
                                     viewModel.onAction(ImportState.Action.OnImportSelected(it.id!!))
@@ -294,23 +294,16 @@ fun ImportDetails(import: Import) {
 
             ) {
 
-
-                Row(
+                Text(
+                    text = "Mã đơn nhập: ${import.id}",
+                    textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Staff Icon",
-                        tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = import.staffName,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -339,28 +332,14 @@ fun ImportDetails(import: Import) {
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = StringUtils.formatDateTime(import.importDate)!!,
+                        text = StringUtils.formatLocalDate(import.importDate)!!,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Text(
-                    text = "Mã đơn nhập: ${import.id}",
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1
-                )
-            }
+
+
+
         }
 
         Row(
@@ -370,12 +349,12 @@ fun ImportDetails(import: Import) {
             Icon(
                 imageVector = Icons.Default.AttachMoney,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.inversePrimary
+                tint = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
                 text = "Tổng giá: ${StringUtils.formatCurrency(import.totalPrice)}",
-                color = MaterialTheme.colorScheme.inversePrimary,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
 

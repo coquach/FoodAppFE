@@ -24,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.BaseFoodAppActivity
 import com.example.foodapp.MainViewModel
@@ -32,7 +31,6 @@ import com.example.foodapp.SplashViewModel
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
-import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -110,11 +108,11 @@ class MainActivity : BaseFoodAppActivity() {
                     mutableStateOf(true)
                 }
                 val navController = rememberNavController()
-                val notificationViewModel: NotificationViewModel = hiltViewModel()
+
                 LaunchedEffect(key1 = true) {
                     viewModel.event.collectLatest {
                         when (it) {
-                            is MainViewModel.HomeEvent.NavigateToOrderDetail -> {
+                            is MainViewModel.HomeEvent.NavigateToNotification -> {
 
                             }
 
@@ -160,7 +158,6 @@ class MainActivity : BaseFoodAppActivity() {
                                     bottom = innerPadding.calculateBottomPadding()
                                 ),
                                 shouldShowBottomNav = shouldShowBottomNav,
-                                notificationViewModel = notificationViewModel,
                                 startDestination = startDestination,
                                 isDarkMode = isDarkMode,
                                 onThemeUpdated = {

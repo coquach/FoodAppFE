@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.checkout
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +45,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import com.example.foodapp.data.model.AddressUI
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.navigation.MyAddressList
@@ -53,10 +56,12 @@ import com.example.foodapp.ui.screen.common.CheckoutDetailsView
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.common.calculateVoucherValue
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
+import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.NoteInput
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
+import com.se114.foodapp.data.mapper.toAddress
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,15 +118,16 @@ fun CheckoutScreen(
     }
 
     val address =
-        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<String?>(
+        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<AddressUI?>(
             "address",
             null
         )
             ?.collectAsStateWithLifecycle()
 
     LaunchedEffect(key1 = address?.value) {
+        Log.d("CheckoutScreen", "CheckoutScreen: $address")
         address?.value?.let {
-            viewModel.onAction(Checkout.Action.OnAddressChanged(it))
+            viewModel.onAction(Checkout.Action.OnAddressChanged(it.toAddress()))
         }
     }
 
@@ -140,19 +146,35 @@ fun CheckoutScreen(
             text = "Xác nhận đơn hàng"
         )
         AddressCard(
-            uiState.checkout.address,
+            uiState.checkout.address?.formatAddress,
             onAddressClicked = {
                 viewModel.onAction(Checkout.Action.OnChooseAddress)
             }
         )
+        FoodAppTextField(
+            value = uiState.profile.phoneNumber,
+            onValueChange = {
+
+            },
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth(),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Phone,
+                    contentDescription = "Phone number",
+                    tint = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.size(24.dp))
+            },
+
+        )
         NoteInput(
-            note = uiState.checkout.note?: "",
+            note = uiState.checkout.note,
             onNoteChange = {
                 viewModel.onAction(Checkout.Action.OnNoteChanged(it))
             },
             maxLines = 2,
             textHolder = "Nhập ghi chú",
-            modifier = Modifier.height(100.dp)
+            modifier = Modifier.height(50.dp)
         )
         Surface(
             modifier = Modifier
@@ -160,8 +182,7 @@ fun CheckoutScreen(
                 .fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            shadowElevation = 6.dp,
-            tonalElevation = 6.dp
+
         ) {
             Column(
                 modifier = Modifier

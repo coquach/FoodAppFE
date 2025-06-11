@@ -148,7 +148,7 @@ fun FeedbackItem(
 
                 Column(verticalArrangement = Arrangement.SpaceAround) {
                     Text(
-                        text = "Qvc",
+                        text = "Người dùng app",
                         fontWeight = FontWeight.Bold
                     )
                     Text(

@@ -8,7 +8,10 @@ import androidx.paging.cachedIn
 import com.example.foodapp.data.model.Inventory
 
 import com.example.foodapp.data.dto.filter.InventoryFilter
+import com.example.foodapp.data.dto.filter.StaffFilter
+import com.example.foodapp.data.model.Staff
 import com.example.foodapp.domain.use_case.inventory.GetInventoriesUseCase
+import com.example.foodapp.utils.TabCacheManager
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,31 +39,60 @@ class WarehouseViewModel @Inject constructor(
     private val _event = Channel<WarehouseState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    private val inventoriesCache = mutableMapOf<Int, StateFlow<PagingData<Inventory>>>()
+//    private val inventoriesCache = mutableMapOf<Int, StateFlow<PagingData<Inventory>>>()
+//
+//    private fun refreshAllTabs() {
+//        inventoriesCache.clear()
+//    }
+//
+//    fun getInventoriesByTab(index: Int): StateFlow<PagingData<Inventory>> {
+//        return inventoriesCache.getOrPut(index) {
+//            val status = when (index) {
+//                0 -> true
+//                1 -> false
+//                else -> true
+//            }
+//
+//            val filter = InventoryFilter()
+//
+//            getInventoriesUseCase.invoke(filter)
+//                .cachedIn(viewModelScope)
+//                .stateIn(
+//                    viewModelScope,
+//                    SharingStarted.WhileSubscribed(5000),
+//                    PagingData.empty()
+//                )
+//        }
+//    }
 
-    private fun refreshAllTabs() {
-        inventoriesCache.clear()
+
+    val inventoriesTabManager = TabCacheManager<Int, Inventory>(
+        scope = viewModelScope,
+        getFilter = { tabIndex ->
+            val filter = getInventoriesStatusForTab(tabIndex)
+            _uiState.value.inventoryFilter.copy(isExpired = filter?.isExpired, isOutOfStock = filter?.isOutOfStock)
+        },
+        loadData = { filter ->
+            getInventoriesUseCase(filter as InventoryFilter)
+        }
+    )
+
+    fun getInventoriesFlow(tabIndex: Int){
+        return inventoriesTabManager.getFlowForTab(tabIndex)
+    }
+    init {
+        getInventoriesFlow(0)
     }
 
-    fun getInventoriesByTab(index: Int): StateFlow<PagingData<Inventory>> {
-        return inventoriesCache.getOrPut(index) {
-            val status = when (index) {
-                0 -> true
-                1 -> false
-                else -> true
-            }
-
-            val filter = InventoryFilter()
-
-            getInventoriesUseCase.invoke(filter)
-                .cachedIn(viewModelScope)
-                .stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
-                    PagingData.empty()
-                )
+    private fun getInventoriesStatusForTab(tabIndex: Int): InventoryFilter? {
+        return when (tabIndex) {
+            0 -> InventoryFilter()
+            1-> InventoryFilter(isExpired = true, isOutOfStock = false)
+            2-> InventoryFilter(isOutOfStock = true, isExpired = false)
+            else -> null
         }
     }
+
     fun onAction(action: WarehouseState.Action) {
         when (action) {
             is WarehouseState.Action.OnTabSelected -> {
@@ -68,7 +100,8 @@ class WarehouseViewModel @Inject constructor(
                     tabIndex = action.index
                 )}
             WarehouseState.Action.OnRefresh -> {
-                refreshAllTabs()
+                inventoriesTabManager.refreshAllTabs()
+                getInventoriesFlow(_uiState.value.tabIndex)
             }
         }
     }
@@ -77,6 +110,7 @@ class WarehouseViewModel @Inject constructor(
 object WarehouseState{
     data class UiState(
         val tabIndex: Int = 0,
+        val inventoryFilter: InventoryFilter= InventoryFilter(),
     )
     sealed interface Event{
         data object Refresh: Event

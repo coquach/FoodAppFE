@@ -4,6 +4,7 @@ import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.Food
 import com.se114.foodapp.domain.repository.CartRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -23,7 +24,7 @@ class AddToCartUseCase @Inject constructor(
 
     operator fun invoke(food: Food, quantity: Int): Flow<Result> = flow {
         emit(Result.Loading)
-
+        delay(2000L)
         val cartItems = cartRepository.getCartItems().first()
         val current = cartItems.toMutableList()
         val index = current.indexOfFirst { it.id == food.id }
@@ -39,7 +40,8 @@ class AddToCartUseCase @Inject constructor(
                 name = food.name,
                 quantity = quantity,
                 price = food.price,
-                imageUrl = food.images?.firstOrNull()?.url
+                imageUrl = food.images?.firstOrNull()?.url,
+                remainingQuantity = food.remainingQuantity
             )
             current.add(newItem)
             cartRepository.saveCartItems(current)

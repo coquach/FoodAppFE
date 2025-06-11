@@ -6,33 +6,33 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import com.example.foodapp.data.model.Order
+import com.example.foodapp.ui.screen.notification.NotificationState
+import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.google.gson.Gson
 
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-abstract class BaseFoodAppActivity : ComponentActivity(){
+abstract class BaseFoodAppActivity : ComponentActivity() {
 
     val viewModel by viewModels<MainViewModel>()
+    val notificationViewModel by viewModels<NotificationViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         processIntent(intent)
     }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        notificationViewModel.onAction(NotificationState.Action.Retry)
         Log.d("INTENT_CHECK", "Intent extras: ${intent.extras}")
         processIntent(intent)
     }
 
     private fun processIntent(intent: Intent) {
-        if (intent.hasExtra("order_data")) {
-            val orderJson = intent.getStringExtra("order_data")
-            if (!orderJson.isNullOrBlank()) {
-                val gson = Gson()
-                val order = gson.fromJson(orderJson, Order::class.java)
-                viewModel.navigateToOrderDetail(order)
-            }
-            intent.removeExtra("order_data")
+        if (intent.hasExtra("type")) {
+            viewModel.navigateToNotification()
+            intent.removeExtra("type")
         }
         intent.data?.let { uri ->
             viewModel.handleDeeplink(uri)

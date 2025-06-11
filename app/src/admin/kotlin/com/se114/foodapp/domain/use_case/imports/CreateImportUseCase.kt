@@ -22,13 +22,12 @@ class CreateImportUseCase @Inject constructor(
             try {
                 val request = ImportRequest(
                     supplierId = import.supplierId,
-                    staffId = import.staffId,
                     importDate = StringUtils.formatDateTime(input = LocalDateTime.now())!!,
                     importDetails = importDetails.map {
                         ImportDetailRequest(
                             ingredientId = it.ingredient?.id,
-                            expiryDate = StringUtils.formatDateTime(it.expiryDate),
-                            productionDate = StringUtils.formatDateTime(it.productionDate),
+                            expiryDate = StringUtils.formatLocalDate(it.expiryDate),
+                            productionDate = StringUtils.formatLocalDate(it.productionDate),
                             quantity = it.quantity,
                             cost = it.cost
                         )

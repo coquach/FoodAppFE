@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
+import com.example.foodapp.navigation.ChatBoxAdmin
 import com.example.foodapp.navigation.FoodTableAdmin
 
 import com.example.foodapp.navigation.Supplier
@@ -98,7 +99,7 @@ fun SettingScreen(
                 }
 
                 SettingState.Event.NavigateToHelp -> {
-
+                    navController.navigate(ChatBoxAdmin)
                 }
 
                 SettingState.Event.NavigateToPrivacy -> {
@@ -146,7 +147,7 @@ fun SettingScreen(
                             "Thông báo",
                             toggleState = isNotificationMode
                         )
-                        SettingItem(Icons.Default.Language, "Ngôn ngữ", customView = {})
+
 
                     },
                 )
@@ -165,13 +166,16 @@ fun SettingScreen(
                         SettingItem(Icons.Default.TableRestaurant, "Bàn tại quán", onClick = {
                             viewModel.onAction(SettingState.Action.OnFoodTableClicked)
                         })
+
                     }
                 )
             )
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hỏi đáp & trợ giúp")
+                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hỏi đáp & trợ giúp", onClick = {
+                            viewModel.onAction(SettingState.Action.OnHelpClicked)
+                        })
                         SettingItem(Icons.AutoMirrored.Filled.Message, "Liên hệ")
                         SettingItem(Icons.Default.PrivacyTip, "Chính sách bảo mật")
                     }

@@ -36,12 +36,19 @@ class ImportViewModel @Inject constructor(
     private val _event = Channel<ImportState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val imports: StateFlow<PagingData<Import>> =
-        getImportsUseCase(_uiState.value.filter).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
+    private val  _imports = MutableStateFlow<PagingData<Import>>(PagingData.empty())
+    val imports get() = _imports.asStateFlow()
+
+    init {
+        getImports()
+    }
+    private fun getImports() {
+        viewModelScope.launch {
+            getImportsUseCase(_uiState.value.filter).cachedIn(viewModelScope).collect {
+                _imports.value = it
+            }
+        }
+    }
 
     private fun deleteImport() {
         viewModelScope.launch {

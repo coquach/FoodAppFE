@@ -23,7 +23,7 @@ interface FeedbackApi {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
+        @Query("order") order: String = "desc",
     ): Response<PageResponse<Feedback>>
     @Multipart
     @POST("feedbacks")

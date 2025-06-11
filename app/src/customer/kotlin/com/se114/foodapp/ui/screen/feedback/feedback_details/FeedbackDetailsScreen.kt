@@ -126,7 +126,8 @@ fun FeedbackDetailsScreen(
             text = "",
             onBack = {
                 navController.navigateUp()
-            }
+            },
+
 
         )
         Column(

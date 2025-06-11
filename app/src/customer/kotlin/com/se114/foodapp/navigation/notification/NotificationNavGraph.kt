@@ -16,9 +16,8 @@ fun NavGraphBuilder.notificationGraph(
     notificationViewModel: NotificationViewModel,
 ){
     composable<Notification> {
-        SideEffect {
-            shouldShowBottomNav.value = true
-        }
+        shouldShowBottomNav.value = true
+
         ScreenContainer {
             NotificationListScreen(navController, notificationViewModel)
         }

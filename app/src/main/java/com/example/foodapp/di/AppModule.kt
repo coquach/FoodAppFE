@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodapp.BuildConfig
 import com.example.foodapp.data.remote.main_api.FoodApi
+import com.example.foodapp.data.remote.main_api.NotificationApi
 import com.example.foodapp.data.remote.main_api.VoucherApi
 import com.example.foodapp.domain.repository.AccountRepository
 import com.example.foodapp.location.LocationManager
@@ -108,6 +109,12 @@ object AppModule {
     @Singleton
     fun provideVoucherApi(@Named("MainApi") retrofit: Retrofit): VoucherApi {
         return retrofit.create(VoucherApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationApi(@Named("MainApi") retrofit: Retrofit): NotificationApi {
+        return retrofit.create(NotificationApi::class.java)
     }
 
     @Provides

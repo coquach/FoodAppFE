@@ -5,8 +5,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.FoodTableFilter
+import com.example.foodapp.data.dto.filter.StaffFilter
 import com.example.foodapp.data.model.FoodTable
+import com.example.foodapp.data.model.Staff
 import com.example.foodapp.domain.use_case.food_table.GetFoodTablesUseCase
+import com.example.foodapp.domain.use_case.food_table.UpdateFoodTableStatusUseCase
+import com.example.foodapp.utils.TabCacheManager
+import com.google.android.play.integrity.internal.ac
 import com.se114.foodapp.domain.use_case.food_table.CreateFoodTableUseCase
 import com.se114.foodapp.domain.use_case.food_table.DeleteFoodTableUseCase
 import com.se114.foodapp.domain.use_case.food_table.UpdateFoodTableUseCase
@@ -27,21 +33,42 @@ class FoodTableViewModel @Inject constructor(
     private val getFoodTablesUseCase: GetFoodTablesUseCase,
     private val createFoodTableUseCase: CreateFoodTableUseCase,
     private val updateFoodTableUseCase: UpdateFoodTableUseCase,
-    private val deleteFoodTableUseCase: DeleteFoodTableUseCase,
+    private val updateFoodTableStatusUseCase: UpdateFoodTableStatusUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(FoodTableState.UiState())
+    private val _uiState = MutableStateFlow(
+        FoodTableState.UiState(
+            foodTableFilter = FoodTableFilter(active = true)
+        )
+    )
     val uiState get() = _uiState.asStateFlow()
 
     private val _event = Channel<FoodTableState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val foodTables: StateFlow<PagingData<FoodTable>> =
-        getFoodTablesUseCase.invoke().cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
+    val foodTablesTabManager = TabCacheManager<Int, FoodTable>(
+        scope = viewModelScope,
+        getFilter = { tabIndex ->
+            val status = getFoodTableStatusForTab(tabIndex)
+            _uiState.value.foodTableFilter.copy(active = status)
+        },
+        loadData = { filter ->
+            getFoodTablesUseCase(filter as FoodTableFilter)
+        }
+    )
+
+    fun getFoodTablesFlow(tabIndex: Int) {
+        return foodTablesTabManager.getFlowForTab(tabIndex)
+    }
+
+
+    private fun getFoodTableStatusForTab(tabIndex: Int): Boolean? {
+        return when (tabIndex) {
+            0 -> true
+            1 -> false
+            else -> null
+        }
+    }
 
     private fun createFoodTable() {
         viewModelScope.launch {
@@ -62,7 +89,7 @@ class FoodTableViewModel @Inject constructor(
                             )
                         }
                         _event.send(FoodTableState.Event.ShowToast("Tạo bàn ăn thành công"))
-                        _event.send(FoodTableState.Event.OnRefresh)
+                        onAction(FoodTableState.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -99,7 +126,7 @@ class FoodTableViewModel @Inject constructor(
                             )
                         }
                         _event.send(FoodTableState.Event.ShowToast("Cập nhật bàn ăn thành công"))
-                        _event.send(FoodTableState.Event.OnRefresh)
+                        onAction(FoodTableState.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -115,12 +142,12 @@ class FoodTableViewModel @Inject constructor(
 
             }
         }
-
     }
 
-    private fun deleteFoodTable() {
+
+    private fun updateStatusTable() {
         viewModelScope.launch {
-            deleteFoodTableUseCase.invoke(_uiState.value.foodTableSelected.id!!)
+            updateFoodTableStatusUseCase.invoke(_uiState.value.foodTableSelected.id!!)
                 .collect { response ->
                     when (response) {
                         is ApiResponse.Loading -> {
@@ -137,8 +164,8 @@ class FoodTableViewModel @Inject constructor(
                                     isLoading = false
                                 )
                             }
-                            _event.send(FoodTableState.Event.ShowToast("Xóa bàn ăn thành công"))
-                            _event.send(FoodTableState.Event.OnRefresh)
+                            _event.send(FoodTableState.Event.ShowToast("Cập nhật trạng thái bàn thành công"))
+                            onAction(FoodTableState.Action.OnRefresh)
                         }
 
                         is ApiResponse.Failure -> {
@@ -173,15 +200,10 @@ class FoodTableViewModel @Inject constructor(
                 updateFoodTable()
             }
 
-            is FoodTableState.Action.OnDelete -> {
-                deleteFoodTable()
+            is FoodTableState.Action.OnSetActive -> {
+                updateStatusTable()
             }
 
-            is FoodTableState.Action.OnRefresh -> {
-                viewModelScope.launch {
-                    _event.send(FoodTableState.Event.OnRefresh)
-                }
-            }
 
             is FoodTableState.Action.OnFoodTableSelected -> {
                 _uiState.update {
@@ -195,7 +217,7 @@ class FoodTableViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         foodTableSelected = it.foodTableSelected.copy(
-                            tableNumber = action.tableNumber?: 0
+                            tableNumber = action.tableNumber ?: 0
                         )
                     )
                 }
@@ -210,12 +232,27 @@ class FoodTableViewModel @Inject constructor(
                     )
                 }
             }
+
             is FoodTableState.Action.OnUpdateStatus -> {
                 _uiState.update {
                     it.copy(
                         isUpdating = action.isUpdating
-                    )}}
+                    )
+                }
+            }
 
+            FoodTableState.Action.OnRefresh -> {
+                foodTablesTabManager.refreshAllTabs()
+                getFoodTablesFlow(_uiState.value.tabIndex)
+            }
+
+            is FoodTableState.Action.OnTabSelected -> {
+                _uiState.update {
+                    it.copy(
+                        tabIndex = action.tabIndex
+                    )
+                }
+            }
         }
     }
 
@@ -224,17 +261,18 @@ class FoodTableViewModel @Inject constructor(
 
 object FoodTableState {
     data class UiState(
+        val tabIndex: Int = 0,
         val isLoading: Boolean = false,
         val error: String? = null,
         val isUpdating: Boolean = false,
         val foodTableSelected: FoodTable = FoodTable(),
+        val foodTableFilter: FoodTableFilter = FoodTableFilter(),
     )
 
     sealed interface Event {
         data object OnBack : Event
         data object ShowError : Event
         data class ShowToast(val message: String) : Event
-        data object OnRefresh : Event
     }
 
     sealed interface Action {
@@ -245,8 +283,9 @@ object FoodTableState {
         data class OnChangeSeatCapacity(val seatCapacity: Int) : Action
         data object OnCreate : Action
         data object OnUpdate : Action
-        data object OnDelete : Action
+        data object OnSetActive : Action
         data object OnRefresh : Action
+        data class OnTabSelected(val tabIndex: Int) : Action
 
     }
 }

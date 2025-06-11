@@ -39,6 +39,7 @@ import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.navigation.FeedbackDetails
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
+import com.example.foodapp.ui.screen.common.OrderDetails
 import com.example.foodapp.ui.screen.common.OrderItemView
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -46,6 +47,7 @@ import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.NoteInput
 import com.example.foodapp.utils.StringUtils
 import java.math.BigDecimal
+import java.nio.file.WatchEvent
 
 
 @Composable
@@ -79,6 +81,9 @@ fun OrderDetailScreen(
                 is OrderDetailsState.Event.GoToReview -> {
                     navController.navigate(FeedbackDetails(it.orderItemId))
                 }
+                OrderDetailsState.Event.OnBack -> {
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -90,7 +95,7 @@ fun OrderDetailScreen(
     ) {
         HeaderDefaultView(
             onBack = {
-                navController.navigateUp()
+                viewModel.onAction(OrderDetailsState.Action.OnBack)
             },
             text = "Chi tiết đơn hàng"
         )
@@ -109,12 +114,13 @@ fun OrderDetailScreen(
                     onReviewClick = {
                         viewModel.onAction(OrderDetailsState.Action.OnReviewOrderItem(it))
                     },
-                    isCustomer = true
+                    isCustomer = true,
+                    isComplete = uiState.order.status == OrderStatus.COMPLETED.name
                 )
             }
 
         }
-        CheckoutRowItem("Tổng cộng", BigDecimal.ZERO, FontWeight.ExtraBold)
+        CheckoutRowItem("Tổng cộng", uiState.order.totalPrice, FontWeight.ExtraBold)
 
 
         if (uiState.order.status == OrderStatus.PENDING.name) {
@@ -131,122 +137,86 @@ fun OrderDetailScreen(
         }
     }
 }
-
-@Composable
-fun OrderDetails(order: Order) {
-    val orderStatus = OrderStatus.valueOf(order.status)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        DetailsTextRow(
-            icon = Icons.Default.Numbers,
-            color = MaterialTheme.colorScheme.primary,
-            text = "Mã đơn hàng: ${order.id}"
-        )
-//        if (isStaff) {
-//            order.staffName?.let {
-//                OrderDetailsRow(
-//                    icon = Icons.Default.SupervisorAccount,
-//                    color = MaterialTheme.colorScheme.secondary,
-//                    text = "Tên nhân viên: ${order.staffName}"
-//                )
-//            }
-//            OrderDetailsRow(
-//                icon = Icons.Default.Person,
-//                color = MaterialTheme.colorScheme.tertiary,
-//                text = "Tên khách hàng: ${order.customerName}"
-//            )
-//        }
-        DetailsTextRow(
-            icon = orderStatus.icon,
-            color = orderStatus.color,
-            text = orderStatus.display
-        )
-        DetailsTextRow(
-            icon = Icons.Default.LocationOn,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Địa chỉ: ${order.address}"
-        )
-
+//
+//@Composable
+//fun OrderDetails(order: Order) {
+//    val orderStatus = OrderStatus.valueOf(order.status)
+//    Column(
+//        modifier = Modifier
+//            .fillMaxWidth(),
+//        horizontalAlignment = Alignment.Start,
+//        verticalArrangement = Arrangement.spacedBy(12.dp)
+//    ) {
+//
+//        DetailsTextRow(
+//            icon = Icons.Default.Numbers,
+//            color = MaterialTheme.colorScheme.primary,
+//            text = "Mã đơn hàng: ${order.id}"
+//        )
+//
+//        DetailsTextRow(
+//            icon = orderStatus.icon,
+//            color = orderStatus.color,
+//            text = orderStatus.display
+//        )
+//        DetailsTextRow(
+//            icon = Icons.Default.LocationOn,
+//            color = MaterialTheme.colorScheme.onBackground,
+//            text = "Địa chỉ: ${order.address}"
+//        )
+//
+//
+//        DetailsTextRow(
+//            icon = Icons.Default.Timer,
+//            color = MaterialTheme.colorScheme.onBackground,
+//            text = "Thời gian tạo: ${StringUtils.formatDateTime(order.startedAt)}"
+//        )
+//        DetailsTextRow(
+//            icon = Icons.Default.AccountBalanceWallet,
+//            color = MaterialTheme.colorScheme.onBackground,
+//            text = "Thời gian thanh toán: ${StringUtils.formatDateTime(order.paymentAt)}"
+//        )
+//        DetailsTextRow(
+//            icon = Icons.Default.Payments,
+//            color = MaterialTheme.colorScheme.onBackground,
+//            text = "Phuơng thức thanh toán: ${PaymentMethod.fromName(order.method)!!.getDisplayName()}"
+//        )
+//    }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(12.dp)
+//
+//    ) {
 //        Row(
-//            modifier = Modifier.fillMaxWidth(),
+//            horizontalArrangement = Arrangement.spacedBy(8.dp),
 //            verticalAlignment = Alignment.CenterVertically
 //        ) {
 //            Icon(
-//                imageVector = Icons.Default.ShoppingCart,
-//                contentDescription = null,
-//                tint = MaterialTheme.colorScheme.outline,
-//                modifier = Modifier.size(24.dp)
+//                imageVector = Icons.AutoMirrored.Filled.Notes,
+//                contentDescription = "Note",
+//                tint = MaterialTheme.colorScheme.inversePrimary
 //            )
-//            Spacer(modifier = Modifier.size(8.dp))
 //            Text(
-//                text = "Số lượng món: ${order.orderItems.size}",
-//                color = MaterialTheme.colorScheme.outline
+//                text = "Ghi chú",
+//                color = MaterialTheme.colorScheme.inversePrimary
 //            )
 //        }
-
-
-        DetailsTextRow(
-            icon = Icons.Default.Timer,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Thời gian tạo: ${StringUtils.formatDateTime(order.startedAt)}"
-        )
-        DetailsTextRow(
-            icon = Icons.Default.AccountBalanceWallet,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Thời gian thanh toán: ${StringUtils.formatDateTime(order.paymentAt)}"
-        )
-        DetailsTextRow(
-            icon = Icons.Default.Payments,
-            color = MaterialTheme.colorScheme.onBackground,
-            text = "Phuơng thức thanh toán: ${PaymentMethod.fromName(order.method)!!.getDisplayName()}"
-        )
-//        if (isStaff) {
-//            DetailsTextRow(
-//                icon = Icons.Default.Category,
-//                color = MaterialTheme.colorScheme.secondary,
-//                text = "Loại phục vụ: ${order.servingType}"
-//            )
-//        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp)
-
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Notes,
-                contentDescription = "Note",
-                tint = MaterialTheme.colorScheme.inversePrimary
-            )
-            Text(
-                text = "Ghi chú",
-                color = MaterialTheme.colorScheme.inversePrimary
-            )
-        }
-        NoteInput(
-            note = order.note?: "",
-            onNoteChange = {
-
-            },
-            maxLines = 3,
-            textHolder = "Không có ghi chú",
-            readOnly = true
-        )
-    }
-
-
-}
+//        NoteInput(
+//            modifier = Modifier.fillMaxWidth(),
+//            note = order.note?: "",
+//            onNoteChange = {
+//
+//            },
+//            maxLines = 3,
+//            textHolder = "Không có ghi chú",
+//            readOnly = true
+//        )
+//    }
+//
+//
+//}
 
 
 

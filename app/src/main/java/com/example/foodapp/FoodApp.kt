@@ -13,6 +13,5 @@ class FoodApp : Application() {
     override fun onCreate() {
         super.onCreate()
         foodAppNotificationManager.createChannels()
-        foodAppNotificationManager.getAndStoreToken()
     }
 }

@@ -17,22 +17,15 @@ import com.se114.foodapp.ui.screen.statistics.StatisticsScreen
 fun NavGraphBuilder.statisticsGraph(
     navController: NavHostController,
     shouldShowBottomNav: MutableState<Boolean>,
-    notificationViewModel: NotificationViewModel,
 ) {
     composable<Statistics> {
         shouldShowBottomNav.value = true
         ScreenContainer(isBottomBarVisible = true) {
-            StatisticsScreen(navController, notificationViewModel = notificationViewModel)
+            StatisticsScreen(navController)
         }
 
     }
-    composable<Notification> {
-        shouldShowBottomNav.value = false
-        ScreenContainer {
-            NotificationListScreen(navController)
-        }
 
-    }
 }
 
 

@@ -31,14 +31,14 @@ class MainViewModel @Inject constructor() : ViewModel() {
     }
 
 
-    fun navigateToOrderDetail(order: Order) {
+    fun navigateToNotification() {
         viewModelScope.launch {
-            _event.emit(HomeEvent.NavigateToOrderDetail(order))
+            _event.emit(HomeEvent.NavigateToNotification)
         }
     }
 
     sealed class HomeEvent {
-        data class NavigateToOrderDetail(val order: Order) : HomeEvent()
+        data object NavigateToNotification: HomeEvent()
         data class NavigateToResetPassword(val oobCode: String, val mode: String) : HomeEvent()
 
 

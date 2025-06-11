@@ -53,7 +53,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.FoodTable
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
@@ -63,6 +65,8 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
+import com.example.foodapp.ui.screen.components.TabWithPager
+import kotlinx.coroutines.flow.MutableStateFlow
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -73,7 +77,8 @@ fun FoodTableScreen(
     viewModel: FoodTableViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foodTables = viewModel.foodTables.collectAsLazyPagingItems()
+    val foodTables by viewModel.foodTablesTabManager.tabDataMap.collectAsStateWithLifecycle()
+    val emptyFoodTable =  MutableStateFlow<PagingData<FoodTable>>(PagingData.empty()).collectAsLazyPagingItems()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var showErrorSheet by remember { mutableStateOf(false) }
@@ -95,12 +100,13 @@ fun FoodTableScreen(
                     Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                 }
 
-                FoodTableState.Event.OnRefresh -> {
-                    foodTables.refresh()
-                }
 
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.getFoodTablesFlow(uiState.tabIndex)
     }
 
     Scaffold(
@@ -146,44 +152,95 @@ fun FoodTableScreen(
                 },
                 text = "Bàn ăn"
             )
-            LazyPagingSample(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                items = foodTables,
-                textNothing = "Không có bàn ăn nào",
-                iconNothing = Icons.Default.TableRestaurant,
-                columns = 2,
-                key = {
-                    it.id!!
-                }
-            ) {
-                SwipeableActionsBox(
-                    modifier = Modifier
-                        .padding(
-                            8.dp,
-                        )
-                        .clip(RoundedCornerShape(12.dp)),
-                    endActions = listOf(
-                        SwipeAction(
-                            icon = rememberVectorPainter(Icons.Default.Delete),
-                            background = MaterialTheme.colorScheme.error,
-                            onSwipe = {
-                                viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
-                                showDeleteDialog = true
+            TabWithPager(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                tabs = listOf("Đang hiển thị", "Đã ẩn"),
+                pages = listOf(
+                    {
+                        LazyPagingSample(
+                            modifier = Modifier.fillMaxSize(),
+                            items = foodTables[0]?.flow?.collectAsLazyPagingItems() ?: emptyFoodTable,
+                            textNothing = "Không có bàn ăn nào",
+                            iconNothing = Icons.Default.TableRestaurant,
+                            columns = 2,
+                            key = {
+                                it.id!!
                             }
-                        ))
-                ) {
-                    FoodTableCard(
-                        foodTable = it,
-                        onClick = {
-                            viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
-                            viewModel.onAction(FoodTableState.Action.OnUpdateStatus(true))
-                            showFoodTableDialog = true
+                        ) {
+                            SwipeableActionsBox(
+                                modifier = Modifier
+                                    .padding(
+                                        8.dp,
+                                    )
+                                    .clip(RoundedCornerShape(12.dp)),
+                                endActions = listOf(
+                                    SwipeAction(
+                                        icon = rememberVectorPainter(Icons.Default.Delete),
+                                        background = MaterialTheme.colorScheme.error,
+                                        onSwipe = {
+                                            viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
+                                            showDeleteDialog = true
+                                        }
+                                    ))
+                            ) {
+                                FoodTableCard(
+                                    foodTable = it,
+                                    onClick = {
+                                        viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
+                                        viewModel.onAction(FoodTableState.Action.OnUpdateStatus(true))
+                                        showFoodTableDialog = true
+                                    }
+                                )
+                            }
                         }
-                    )
-                }
-            }
+                    }, {
+                        LazyPagingSample(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            items = foodTables[1]?.flow?.collectAsLazyPagingItems() ?: emptyFoodTable,
+                            textNothing = "Không có bàn ăn nào",
+                            iconNothing = Icons.Default.TableRestaurant,
+                            columns = 2,
+                            key = {
+                                it.id!!
+                            }
+                        ) {
+                            SwipeableActionsBox(
+                                modifier = Modifier
+                                    .padding(
+                                        8.dp,
+                                    )
+                                    .clip(RoundedCornerShape(12.dp)),
+                                endActions = listOf(
+                                    SwipeAction(
+                                        icon = rememberVectorPainter(Icons.Default.Delete),
+                                        background = MaterialTheme.colorScheme.error,
+                                        onSwipe = {
+                                            viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
+                                            showDeleteDialog = true
+                                        }
+                                    ))
+                            ) {
+                                FoodTableCard(
+                                    foodTable = it,
+                                    onClick = {
+                                        viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
+                                        viewModel.onAction(FoodTableState.Action.OnUpdateStatus(true))
+                                        showFoodTableDialog = true
+                                    }
+                                )
+                            }
+                        }
+                    }
+                ),
+
+                onTabSelected = {
+                    viewModel.onAction(FoodTableState.Action.OnTabSelected(it))
+                    viewModel.getFoodTablesFlow(it)
+                },
+            )
+            
         }
     }
     if (showFoodTableDialog) {
@@ -278,17 +335,18 @@ fun FoodTableScreen(
 
     if (showDeleteDialog) {
         FoodAppDialog(
-            title = "Xóa bàn ăn",
-            message = "Bạn có chắc chắn muốn xóa bàn ăn này không?",
+            title = if (uiState.foodTableSelected.active) "Ẩn bàn " else "Hiện bàn ",
+            message = if (uiState.foodTableSelected.active) "Bạn có chắc chắn muốn ẩn bàn  này không?"
+            else "Bạn có chắc chắn muốn hiện bàn  này không?",
             onDismiss = {
                 showDeleteDialog = false
             },
             onConfirm = {
-                viewModel.onAction(FoodTableState.Action.OnDelete)
+                viewModel.onAction(FoodTableState.Action.OnSetActive)
                 showDeleteDialog = false
 
             },
-            confirmText = "Xóa",
+            confirmText = if (uiState.foodTableSelected.active) "Ẩn" else "Hiện",
             dismissText = "Đóng",
             showConfirmButton = true
         )
@@ -309,7 +367,7 @@ fun FoodTableCard(
 ) {
     Column(
         modifier = Modifier
-            .padding(8.dp)
+            .padding(10.dp)
             .width(162.dp)
             .height(147.dp)
             .shadow(

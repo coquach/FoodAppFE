@@ -30,7 +30,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SearchField(
     searchInput: String,
-    searchChange: (String) -> Unit
+    searchChange: (String) -> Unit,
+    searchPlaceholder: String= "Tìm kiếm ở đây",
 ) {
     Row(
         modifier = Modifier
@@ -47,7 +48,7 @@ fun SearchField(
                 value = searchInput,
                 onValueChange = { searchChange(it)},
                 placeholder = {
-                    Text(text = "Tìm kiếm ở đây", color = MaterialTheme.colorScheme.outline)
+                    Text(text = searchPlaceholder , color = MaterialTheme.colorScheme.outline)
                 },
                 modifier = Modifier
                     .fillMaxWidth(),

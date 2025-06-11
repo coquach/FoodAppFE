@@ -30,14 +30,15 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun Banners(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val pages = listOf(
         Slider.First,
         Slider.Second,
         Slider.Third
     )
-    AutoSlidingCarousel(pages = pages, onClick = onClick)
+    AutoSlidingCarousel(pages = pages, onClick = onClick, modifier = modifier)
 }
 
 @Composable
@@ -65,7 +66,7 @@ fun AutoSlidingCarousel(
             }
         }
     }
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         HorizontalPager(
             state = pagerState,
             pageSpacing = 8.dp,

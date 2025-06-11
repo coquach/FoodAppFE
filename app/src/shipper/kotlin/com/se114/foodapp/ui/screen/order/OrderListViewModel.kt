@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.example.foodapp.domain.use_case.order.GetOrdersUseCase
 import com.example.foodapp.utils.TabCacheManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,21 +24,24 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 class OrderListViewModel
 @Inject constructor(
+
     private val getOrdersUseCase: GetOrdersUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(OrderListState.UiState())
+    private val _state = MutableStateFlow(OrderListState.UiState(
+        orderFilter = OrderFilter(status = OrderStatus.READY.name, type = "ONLINE")
+    ))
     val state get() = _state.asStateFlow()
 
     private val _event = Channel<OrderListState.Event>()
     val event get() = _event.receiveAsFlow()
 
 
-    val ordersTabManager = TabCacheManager<Order>(
+    val ordersTabManager = TabCacheManager<Int,Order>(
         scope = viewModelScope,
         getFilter = { tabIndex ->
             val status = getOrderStatusForTab(tabIndex)
-            OrderFilter(status = status?.name)
+            _state.value.orderFilter.copy(status = status?.name)
         },
         loadData = { filter ->
             getOrdersUseCase(filter as OrderFilter)
@@ -47,15 +51,14 @@ class OrderListViewModel
     fun getOrdersFlow(tabIndex: Int){
         return ordersTabManager.getFlowForTab(tabIndex)
     }
-    init {
-        getOrdersFlow(0)
-    }
+
 
     private fun getOrderStatusForTab(tabIndex: Int): OrderStatus? {
         return when (tabIndex) {
-            0 -> OrderStatus.SHIPPING
-            1 -> OrderStatus.COMPLETED
-            2 -> OrderStatus.CANCELLED
+            0 -> OrderStatus.READY
+            1 -> OrderStatus.SHIPPING
+            2 -> OrderStatus.COMPLETED
+            3 -> OrderStatus.CANCELLED
             else -> null
         }
     }
@@ -75,7 +78,7 @@ class OrderListViewModel
 
             OrderListState.Action.OnRefresh -> {
                 ordersTabManager.refreshAllTabs()
-                getOrdersFlow(state.value.tabIndex)
+                getOrdersFlow(_state.value.tabIndex)
             }
         }
     }
@@ -83,14 +86,12 @@ class OrderListViewModel
 
 
 
-private data class TabData(
-    val flow: MutableStateFlow<PagingData<Order>> = MutableStateFlow(PagingData.empty()),
-    var loadJob: Job? = null,
-)
+
 
 object OrderListState {
     data class UiState(
         val tabIndex: Int = 0,
+        val orderFilter: OrderFilter = OrderFilter(),
     )
 
     sealed interface Event {
@@ -102,6 +103,7 @@ object OrderListState {
         data class OnTabSelected(val index: Int) : Action
         data class OnOrderClicked(val order: Order) : Action
         data object OnRefresh : Action
+
 
     }
 

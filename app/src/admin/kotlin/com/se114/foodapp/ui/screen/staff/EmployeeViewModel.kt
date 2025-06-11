@@ -6,9 +6,13 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.dto.filter.StaffFilter
+import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.Staff
+import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
+import com.example.foodapp.utils.TabCacheManager
 import com.se114.foodapp.domain.use_case.staff.DeleteStaffUseCase
 import com.se114.foodapp.ui.screen.staff.EmployeeSate.Event.GoToDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,35 +34,39 @@ class EmployeeViewModel @Inject constructor(
     private val deleteStaffUseCase: DeleteStaffUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(EmployeeSate.UiState())
+    private val _uiState = MutableStateFlow(EmployeeSate.UiState(
+        staffFilter = StaffFilter(status = true)
+    ))
     val uiState get() = _uiState.asStateFlow()
 
     private val _event = Channel<EmployeeSate.Event>()
     val event get() = _event.receiveAsFlow()
 
-    private val staffsCache = mutableMapOf<Int, StateFlow<PagingData<Staff>>>()
 
-    private fun refreshAllTabs() {
-        staffsCache.clear()
+
+    val staffsTabManager = TabCacheManager<Int, Staff>(
+        scope = viewModelScope,
+        getFilter = { tabIndex ->
+            val status = getStaffStatusForTab(tabIndex)
+            _uiState.value.staffFilter.copy(status = status)
+        },
+        loadData = { filter ->
+            getStaffUseCase(filter as StaffFilter)
+        }
+    )
+
+    fun getStaffsFlow(tabIndex: Int){
+        return staffsTabManager.getFlowForTab(tabIndex)
     }
 
-    fun getStaffsByTab(index: Int): StateFlow<PagingData<Staff>> {
-        return staffsCache.getOrPut(index) {
-            val status = when (index) {
-                0 -> true
-                1 -> false
-                else -> true
-            }
 
-            val filter = StaffFilter()
 
-            getStaffUseCase.invoke(filter)
-                .cachedIn(viewModelScope)
-                .stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
-                    PagingData.empty()
-                )
+
+    private fun getStaffStatusForTab(tabIndex: Int): Boolean? {
+        return when (tabIndex) {
+            0 -> true
+            1-> false
+            else -> null
         }
     }
 
@@ -69,6 +77,7 @@ class EmployeeViewModel @Inject constructor(
                     is ApiResponse.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
                         _event.send(EmployeeSate.Event.ShowSuccessToast("Xóa nhân viên thành công"))
+                        onAction(EmployeeSate.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -98,7 +107,8 @@ class EmployeeViewModel @Inject constructor(
             }
 
             is EmployeeSate.Action.OnRefresh -> {
-                refreshAllTabs()
+                staffsTabManager.refreshAllTabs()
+                getStaffsFlow(_uiState.value.tabIndex)
             }
 
             is EmployeeSate.Action.OnStaffSelected -> {
@@ -126,6 +136,7 @@ class EmployeeViewModel @Inject constructor(
 
 object EmployeeSate {
     data class UiState(
+        val staffFilter: StaffFilter = StaffFilter(),
         val tabIndex: Int = 0,
         val isLoading: Boolean = false,
         val error: String? = null,

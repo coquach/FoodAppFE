@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -74,7 +75,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
     viewModel: FoodDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val feedbacks = viewModel.getFeedbacks().collectAsLazyPagingItems()
+    val feedbacks = viewModel.feedbacks.collectAsLazyPagingItems()
     val showSuccessDialog = remember { mutableStateOf(false) }
     var showErrorSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -394,12 +395,12 @@ fun SharedTransitionScope.MenuHeader(
                 onBackButton.invoke()
             },
             modifier = Modifier
+                .zIndex(1f)
                 .padding(16.dp)
                 .size(50.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(color = MaterialTheme.colorScheme.onPrimary)
                 .padding(4.dp),
-
 
             ) {
             Icon(
@@ -415,8 +416,8 @@ fun SharedTransitionScope.MenuHeader(
         IconButton(
             onClick = { onFavoriteButton },
             modifier = Modifier
-                .padding(16.dp)
-                .size(48.dp)
+                .zIndex(1f)
+                .size(50.dp)
                 .clip(CircleShape)
                 .background(if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 .align(Alignment.TopEnd)
@@ -426,7 +427,7 @@ fun SharedTransitionScope.MenuHeader(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = "Favorite",
                 tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(30.dp)
             )
         }
     }

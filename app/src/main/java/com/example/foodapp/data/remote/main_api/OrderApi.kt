@@ -1,6 +1,7 @@
 package com.example.foodapp.data.remote.main_api
 
 import com.example.foodapp.data.dto.request.OrderRequest
+import com.example.foodapp.data.dto.request.OrderStatusRequest
 import com.example.foodapp.data.dto.response.PageResponse
 import com.example.foodapp.data.model.Order
 import retrofit2.Response
@@ -14,23 +15,19 @@ import retrofit2.http.Query
 
 interface OrderApi {
 
-    @GET("orders/{customerId}")
-    suspend fun getOrdersByCustomerId(
-        @Path("customerId") customerId: String,
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10,
-        @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
-    ): Response<PageResponse<Order>>
+
 
     @GET("orders")
     suspend fun getOrders(
         @Query("page") page: Int,
         @Query("size") size: Int,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
-        @Query("staffId") staffId: Long? = null,
+        @Query("order") order: String = "desc",
         @Query("status") status: String? = null,
+        @Query("type") type: String? = null,
+        @Query("customerId") customerId: String? = null,
+        @Query("sellerId") sellerId: String? = null,
+        @Query("shipperId") shipperId: String? = null,
         @Query("paymentMethod") paymentMethod: String? = null,
         @Query("startDate") startDate: String? = null,
         @Query("endDate") endDate: String? = null,
@@ -42,6 +39,6 @@ interface OrderApi {
     @PATCH("orders/{id}/status")
     suspend fun updateOrderStatus(
         @Path("id") id: Long,
-        @Body orderStatus: String,
-    ): Response<Order>
+        @Body newStatus: OrderStatusRequest,
+    ): Response<Unit>
 }

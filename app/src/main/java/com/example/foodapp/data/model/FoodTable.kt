@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class FoodTable(
-    val id: Long? = null,
+    val id: Int? = null,
     val tableNumber: Int = 0,
-    val seatCapacity: Int = 0,
+    val seatCapacity: Int = 1,
     val active: Boolean= true
 )

@@ -48,7 +48,6 @@ fun DateRangePickerSample(
     startDate: LocalDate?,
     endDate: LocalDate?,
     modifier: Modifier = Modifier.width(200.dp),
-    fieldHeight: Dp = 56.dp,
     isColumn: Boolean = false, // Thêm tham số này
     onDateRangeSelected: (LocalDate?, LocalDate?) -> Unit,
 ) {
@@ -75,7 +74,6 @@ fun DateRangePickerSample(
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             DateFields(
                 modifier,
-                fieldHeight,
                 startDateText,
                 endDateText,
                 startDate,
@@ -86,15 +84,15 @@ fun DateRangePickerSample(
             }
         }
     } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = modifier,horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DateFields(
-                modifier,
-                fieldHeight,
+                modifier = Modifier.weight(1f),
                 startDateText,
                 endDateText,
                 startDate,
                 endDate,
-                interactionSource
+                interactionSource,
+
             ) {
                 showDialog = true
             }
@@ -171,8 +169,7 @@ fun DateRangePickerSample(
 
 @Composable
 private fun DateFields(
-    modifier: Modifier,
-    fieldHeight: Dp,
+    modifier: Modifier = Modifier,
     startDateText: String,
     endDateText: String,
     startDate: LocalDate?,
@@ -192,7 +189,6 @@ private fun DateFields(
         trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
         interactionSource = interactionSource,
         modifier = modifier.clickable { onClick() },
-        fieldHeight = fieldHeight
     )
 
     FoodAppTextField(
@@ -203,6 +199,6 @@ private fun DateFields(
         trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
         interactionSource = interactionSource,
         modifier = modifier.clickable { onClick() },
-        fieldHeight = fieldHeight
+
     )
 }

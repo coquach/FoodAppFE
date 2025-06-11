@@ -47,6 +47,7 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 
 import com.example.foodapp.navigation.Home
+import com.example.foodapp.navigation.OrderList
 
 import com.example.foodapp.navigation.SendEmail
 
@@ -103,6 +104,11 @@ fun LoginScreen(
                             }
                         }
                     }
+                    Login.Event.NavigateToShipper -> {
+                        navController.navigate(OrderList) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }}}
 
                     Login.Event.ShowError -> {
                         showErrorSheet = true

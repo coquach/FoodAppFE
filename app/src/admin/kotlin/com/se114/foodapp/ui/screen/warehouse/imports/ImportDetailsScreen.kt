@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,7 +76,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Ingredient
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.components.ComboBoxSample
-import com.example.foodapp.ui.screen.components.ComboBoxSampleLazyPaging
+import com.example.foodapp.ui.screen.components.CustomPagingDropdown
 import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
@@ -90,6 +91,7 @@ import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -192,45 +194,21 @@ fun ImportDetailsScreen(
             ) {
 
 
-                ComboBoxSampleLazyPaging(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                CustomPagingDropdown(
+                    modifier = Modifier.fillMaxWidth(),
                     title = "Nhà cung cấp",
                     textPlaceholder = "Chọn nhà cung cấp",
                     selected = uiState.import.supplierName,
-                    onPositionSelected = { name ->
-                        val selectedSupplier = (0 until suppliers.itemCount)
-                            .mapNotNull { index -> suppliers[index] }
-                            .find { it.name == name }
-                        val supplierId = selectedSupplier?.id
-                        supplierId?.let {
-                            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(it))
-                        }
+                    onItemSelected = { item ->
+
+                            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(item.id!!))
+
                     },
-                    options = suppliers,
+                    items = suppliers,
                     enabled = uiState.isEditable,
-                    labelExtractor = { supplier -> supplier.name }
-                )
-                ComboBoxSampleLazyPaging(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    title = "Nhân viên",
-                    textPlaceholder = "Chọn nhân viên",
-                    selected = uiState.import.staffName,
-                    onPositionSelected = { name ->
-                        val selectedSupplier = (0 until suppliers.itemCount)
-                            .mapNotNull { index -> staffs[index] }
-                            .find { it.fullName == name }
-                        val supplierId = selectedSupplier?.id
-                        supplierId?.let {
-                            viewModel.onAction(ImportDetailsState.Action.OnChangeStaffId(it))
-                        }
-                    },
-                    options = suppliers,
-                    fieldHeight = 80.dp,
                     labelExtractor = { supplier -> supplier.name },
-                    enabled = uiState.isEditable,
                 )
+
 
             }
         }
@@ -263,7 +241,7 @@ fun ImportDetailsScreen(
                     }
                     Text(
                         text = "Thêm chi tiết đơn",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -311,6 +289,7 @@ fun ImportDetailsScreen(
                                             )
                                         }
                                     },
+                                    modifier = Modifier.fillMaxWidth(),
                                     onCostChange = {
                                         viewModel.onAction(ImportDetailsState.Action.OnChangeCost(it.toBigDecimalOrNull()))
                                     },
@@ -495,8 +474,8 @@ fun ImportDetailsScreen(
                                     }
                                 },
                                 modifier = Modifier
-                                    .padding(10.dp)
-                                    .size(42.dp)
+
+                                    .size(48.dp)
                                     .clip(CircleShape)
                                     .background(MaterialTheme.colorScheme.outline)
                             ) {
@@ -565,7 +544,7 @@ fun ImportDetailsCard(importDetail: ImportDetailUIModel) {
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inversePrimary),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inversePrimary.copy(blue = 0.5f)),
     ) {
         Row(
             modifier = Modifier
@@ -578,7 +557,7 @@ fun ImportDetailsCard(importDetail: ImportDetailUIModel) {
             Icon(
                 imageVector = Icons.Default.ShoppingCart,
                 contentDescription = "ImportDetails",
-                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(50.dp)
             )
             Column(
@@ -590,28 +569,28 @@ fun ImportDetailsCard(importDetail: ImportDetailUIModel) {
                 DetailsTextRow(
                     text = "Nguyên liệu: ${importDetail.ingredient?.name}",
                     icon = Icons.Default.Inventory,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 DetailsTextRow(
-                    text = "NSX: ${StringUtils.formatDateTime(importDetail.productionDate)}",
+                    text = "NSX: ${StringUtils.formatLocalDate(importDetail.productionDate)}",
                     icon = Icons.Default.DateRange,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
 
                 DetailsTextRow(
-                    text = "HSD: ${StringUtils.formatDateTime(importDetail.expiryDate)}",
+                    text = "HSD: ${StringUtils.formatLocalDate(importDetail.expiryDate)}",
                     icon = Icons.Default.DateRange,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 DetailsTextRow(
                     text = "Số lượng: ${importDetail.quantity}",
                     icon = Icons.Default.Tag,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 DetailsTextRow(
                     text = "Giá: ${StringUtils.formatCurrency(importDetail.cost)}",
                     icon = Icons.Default.MonetizationOn,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
 
 
@@ -624,12 +603,13 @@ fun ImportDetailsCard(importDetail: ImportDetailUIModel) {
 
 @Composable
 fun ImportDetailsEditCard(
+    modifier: Modifier = Modifier,
     importDetail: ImportDetailUIModel,
     ingredients: List<Ingredient>,
     onIngredientChange: (String?) -> Unit,
     onCostChange: (String) -> Unit,
-    onChangeProductionDate: (LocalDateTime) -> Unit,
-    onChangeExpiryDate: (LocalDateTime) -> Unit,
+    onChangeProductionDate: (LocalDate) -> Unit,
+    onChangeExpiryDate: (LocalDate) -> Unit,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit,
     onUpdate: () -> Unit,
@@ -637,7 +617,10 @@ fun ImportDetailsEditCard(
 
     ) {
 
-    Column {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -652,7 +635,7 @@ fun ImportDetailsEditCard(
 
                 ComboBoxSample(
                     modifier = Modifier
-                        .width(120.dp),
+                        .fillMaxWidth(),
                     title = "Nguyên liệu",
                     textPlaceholder = "Chọn nguyên liệu",
                     selected = importDetail.ingredient?.name ?: "",
@@ -666,17 +649,14 @@ fun ImportDetailsEditCard(
                 DateRangePickerSample(
                     startDateText = "NSX",
                     endDateText = "HSD",
-                    startDate = importDetail.productionDate.toLocalDate(),
-                    endDate = importDetail.expiryDate.toLocalDate(),
+                    startDate = importDetail.productionDate,
+                    endDate = importDetail.expiryDate,
                     modifier = Modifier
-                        .width(160.dp),
+                        .fillMaxWidth(),
                     onDateRangeSelected = { selectedStartDate, selectedEndDate ->
-                        val currentTime = LocalTime.now()
 
-                        val productionDateTime = selectedStartDate?.atTime(currentTime)
-                        val expiryDateTime = selectedEndDate?.atTime(currentTime)
-                        onChangeProductionDate(productionDateTime!!)
-                        onChangeExpiryDate(expiryDateTime!!)
+                        onChangeProductionDate(selectedStartDate!!)
+                        onChangeExpiryDate(selectedEndDate!!)
                     }
                 )
                 Row(
@@ -706,7 +686,6 @@ fun ImportDetailsEditCard(
 
             }
         }
-        Spacer(modifier = Modifier.size(10.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
@@ -714,9 +693,10 @@ fun ImportDetailsEditCard(
             Button(
                 onClick = onClose,
                 modifier = Modifier
+                    .height(50.dp)
                     .weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
@@ -729,9 +709,10 @@ fun ImportDetailsEditCard(
             Button(
                 onClick = onUpdate,
                 modifier = Modifier
+                    .height(48.dp)
                     .weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.confirm),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,

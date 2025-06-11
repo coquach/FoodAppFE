@@ -109,7 +109,7 @@ fun FoodTableScreen(
                         modifier = Modifier.fillMaxWidth(),
                         foodTables = foodTables,
                         onSwipe = {
-                            viewModel.onAction(FoodTableState.Action.OnUpdateStatus(it, false))
+//                            viewModel.onAction(FoodTableState.Action.OnUpdateStatus(it, false))
                         },
 
                         isActive = true
@@ -120,7 +120,7 @@ fun FoodTableScreen(
                         modifier = Modifier.fillMaxWidth(),
                         foodTables = foodTables,
                         onSwipe = {
-                            viewModel.onAction(FoodTableState.Action.OnUpdateStatus(it, true))
+//                            viewModel.onAction(FoodTableState.Action.OnUpdateStatus(it, true))
                         },
 
                         isActive = false

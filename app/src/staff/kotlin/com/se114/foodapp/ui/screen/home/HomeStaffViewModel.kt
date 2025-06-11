@@ -4,12 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.FoodFilter
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.domain.use_case.food.GetFoodsByMenuIdUseCase
 import com.example.foodapp.domain.use_case.food.GetMenusUseCase
+import com.example.foodapp.utils.TabCacheManager
 import com.se114.foodapp.domain.use_case.cart.AddToCartUseCase
 import com.se114.foodapp.domain.use_case.cart.GetCartSizeUseCase
+import com.se114.foodapp.ui.screen.home.HomeStaffState.MenuSate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,32 +41,49 @@ class HomeStaffViewModel @Inject constructor(
     private val _event = Channel<HomeStaffState.Event>()
     val event get() = _event.receiveAsFlow()
 
+    val foodsTabManager = TabCacheManager<Int, Food>(
+        scope = viewModelScope,
+        getFilter = { menuId ->
+
+            _uiState.value.foodFilter.copy(menuId = menuId)
+        },
+        loadData = { filter ->
+            getFoodsByMenuIdUseCase(filter as FoodFilter)
+        }
+    )
+
+    fun getFoodsFlow(menuId: Int) {
+        return foodsTabManager.getFlowForTab(menuId)
+    }
+
     init {
+        getMenus()
         getCartSize()
     }
+    private fun getMenus() {
+        viewModelScope.launch {
+            getMenusUseCase.invoke().collect { result ->
+                when (result) {
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(menuState = MenuSate.Loading) }
+                    }
 
-    val foodFlows = mutableMapOf<Long, StateFlow<PagingData<Food>>>()
+                    is ApiResponse.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                menus = result.data,
+                                menuState = MenuSate.Success
+                            )
+                        }
+                    }
 
-    fun getFoodsByMenuId(menuId: Long = 1): StateFlow<PagingData<Food>> {
-        return foodFlows.getOrPut(menuId) {
-            getFoodsByMenuIdUseCase.invoke(menuId)
-                .cachedIn(viewModelScope)
-                .stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
-                    PagingData.empty()
-                )
-
+                    is ApiResponse.Failure -> {
+                        _uiState.update { it.copy(menuState = MenuSate.Error(result.errorMessage)) }
+                    }
+                }
+            }
         }
     }
-
-    val menus: StateFlow<PagingData<Menu>> = getMenusUseCase.invoke()
-        .cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
-
 
     private fun getCartSize() {
         viewModelScope.launch {
@@ -126,7 +147,7 @@ class HomeStaffViewModel @Inject constructor(
 
             is HomeStaffState.Action.OnMenuClicked -> {
                 _uiState.update {
-                    it.copy(menuIdSelected = action.menuId)
+                    it.copy(foodFilter = it.foodFilter.copy(menuId = action.menuId), menuName = action.menuName)
                 }
             }
 
@@ -139,6 +160,15 @@ class HomeStaffViewModel @Inject constructor(
                             else action.quantity
                         )
                     )
+                }
+            }
+            HomeStaffState.Action.OnRefresh -> {
+                foodsTabManager.refreshAllTabs()
+                getFoodsFlow(_uiState.value.foodFilter.menuId!!)
+            }
+            is HomeStaffState.Action.OnSearch -> {
+                _uiState.update {
+                    it.copy(nameSearch = action.name)
                 }
             }
 
@@ -158,6 +188,7 @@ data class FoodUiHomeStaffModel(
     val totalFeedback: Int,
     val remainingQuantity: Int,
     val quantity: Int = 1,
+
 )
 
 fun Food.toFoodUiHomeStaffViewModel() = FoodUiHomeStaffModel(
@@ -175,11 +206,20 @@ fun Food.toFoodUiHomeStaffViewModel() = FoodUiHomeStaffModel(
 object HomeStaffState {
     data class UiState(
         val isLoading: Boolean = false,
-        val menuIdSelected: Long = 1,
         val cartSize: Int = 0,
         val error: String? = null,
         val foodSelected: FoodUiHomeStaffModel? = null,
+        val foodFilter: FoodFilter = FoodFilter(menuId = 1, status = true),
+        val menuName: String?=null,
+        val menus: List<Menu> = emptyList(),
+        val menuState: MenuSate = MenuSate.Loading,
+        val nameSearch: String = "",
     )
+    sealed interface MenuSate {
+        data object Loading : MenuSate
+        data object Success : MenuSate
+        data class Error(val message: String) : MenuSate
+    }
 
     sealed interface Event {
         data object ShowError : Event
@@ -190,11 +230,13 @@ object HomeStaffState {
     }
 
     sealed interface Action {
-        data class OnMenuClicked(val menuId: Long) : Action
+        data class OnMenuClicked(val menuId: Int, val menuName: String) : Action
         data class OnFoodClicked(val food: Food) : Action
         data object OnCartClicked : Action
         data class OnChangeQuantity(val quantity: Int) : Action
         data object OnAddToCart : Action
+        data object OnRefresh : Action
+        data class OnSearch(val name: String) : Action
 
     }
 }

@@ -1,37 +1,39 @@
 package com.se114.foodapp.ui.screen.chat_box
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.insertFooterItem
-import androidx.paging.insertHeaderItem
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.model.ChatMessage
-import com.example.foodapp.data.model.Staff
-import com.se114.foodapp.domain.repository.ChatBoxRepository
-
+import com.se114.foodapp.domain.use_case.ai.GetMessageChatUseCase
+import com.se114.foodapp.domain.use_case.ai.SendMessageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatBoxViewModel @Inject constructor(
-    private val chatBoxRepository: ChatBoxRepository,
+    private val getMessageChatUseCase: GetMessageChatUseCase,
+    private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {
 
     private val _message = MutableStateFlow("")
     val message = _message.asStateFlow()
 
+    private val _isLoading = mutableStateOf(false)
+    val isLoading = _isLoading.value
     fun setMessage(value: String) {
         _message.value = value
     }
+
+
+
 
     private val _messageList = MutableStateFlow<PagingData<ChatMessage>>(PagingData.empty())
     val messageList = _messageList
@@ -45,7 +47,7 @@ class ChatBoxViewModel @Inject constructor(
 
     fun getMessageList() {
         viewModelScope.launch {
-            chatBoxRepository.getAllMessageChat().cachedIn(viewModelScope).collect {
+            getMessageChatUseCase().cachedIn(viewModelScope).collect {
                 _messageList.value = it
             }
         }
@@ -69,12 +71,11 @@ class ChatBoxViewModel @Inject constructor(
                     sender = "USER",
                     id = 1
                 )
-                _tempMessages.update { oldList ->
-                    oldList + userMessage + botTypingMessage
-                }
-               chatBoxRepository.sendMessage(message).collect { response ->
+
+               sendMessageUseCase(message).collect { response ->
                    when (response) {
                        is ApiResponse.Success -> {
+                           _isLoading.value = false
                            resetTempMessages()
                            getMessageList()
                        }
@@ -85,9 +86,10 @@ class ChatBoxViewModel @Inject constructor(
                            }
                        }
 
-                       else -> {
+                       is ApiResponse.Loading -> {
+                            _isLoading.value = true
                            _tempMessages.update { oldList ->
-                               oldList.map { if(it.id == 2L) it.copy(content = "Lỗi không xác định") else it }
+                               oldList + userMessage + botTypingMessage
                            }
                        }
                    }

@@ -40,20 +40,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.R
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Unit
 import com.example.foodapp.navigation.Import
 import com.example.foodapp.navigation.Material
 
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun WarehouseScreen(
@@ -62,8 +66,8 @@ fun WarehouseScreen(
 ) {
    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val inventories = viewModel.getInventoriesByTab(uiState.tabIndex).collectAsLazyPagingItems()
-
+    val inventories by viewModel.inventoriesTabManager.tabDataMap.collectAsStateWithLifecycle()
+    val emptyInventories = MutableStateFlow<PagingData<Inventory>>(PagingData.empty()).collectAsLazyPagingItems()
 
 
 
@@ -98,20 +102,24 @@ fun WarehouseScreen(
             pages = listOf(
                 {
                     InventoryListSection(
-                        list = inventories
+                        list = inventories[0]?.flow?.collectAsLazyPagingItems() ?: emptyInventories,
+                        modifier = Modifier.fillMaxSize()
                     )
                 },
                 {
                     InventoryListSection(
-                        list = inventories
+                        list = inventories[1]?.flow?.collectAsLazyPagingItems() ?: emptyInventories,
+                        modifier = Modifier.fillMaxSize()
                     )
                 },
                 {
                     InventoryListSection(
-                        list = inventories
+                        list = inventories[2]?.flow?.collectAsLazyPagingItems() ?: emptyInventories,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             ),
+            modifier = Modifier.fillMaxWidth().weight(1f),
             onTabSelected = { index ->
                 viewModel.onAction(WarehouseState.Action.OnTabSelected(index))
             }
@@ -123,31 +131,24 @@ fun WarehouseScreen(
 
 @Composable
 fun InventoryListSection(
+    modifier: Modifier = Modifier,
     list: LazyPagingItems<Inventory>,
 ) {
-    if (list.itemCount == 0 && list.loadState.refresh !is LoadState.Loading) {
-        Nothing(
-            icon = Icons.Default.Spa,
-            text = "Không có nguyên liệu nào",
-            modifier = Modifier.fillMaxSize()
+    LazyPagingSample(
+        modifier = modifier,
+        items = list,
+        textNothing = "Không có nguyên liệu nào",
+        iconNothing = Icons.Default.Spa,
+        columns = 2,
+        key = {
+            it.id
+        }
+    ) {
+        InventoryItemView(
+            inventory = it,
         )
-    } else {
-
-        LazyColumn(
-            modifier = Modifier.heightIn(max = 10000.dp)
-
-        ) {
-            gridItems(
-                list, 2, key = { inventory -> inventory.id },
-                itemContent = { inventory ->
-                    inventory?.let {
-                        InventoryItemView(
-                            inventory = inventory,
-                        )
-                    }
-                })}
-
     }
+
 }
 
 

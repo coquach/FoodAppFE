@@ -35,6 +35,7 @@ import com.example.foodapp.SplashViewModel
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
+import com.example.foodapp.navigation.Notification
 import com.example.foodapp.navigation.OrderDetailsCustomer
 import com.example.foodapp.navigation.ResetPassword
 import com.example.foodapp.ui.screen.notification.NotificationViewModel
@@ -115,19 +116,15 @@ class MainActivity : BaseFoodAppActivity() {
                 val shouldShowBottomNav = remember {
                     mutableStateOf(true)
                 }
-                val notificationViewModel: NotificationViewModel = hiltViewModel()
+
                 val unreadCount = notificationViewModel.unreadCount.collectAsStateWithLifecycle()
                 val navController = rememberNavController()
 
                 LaunchedEffect(key1 = true) {
                     viewModel.event.collectLatest {
                         when (it) {
-                            is MainViewModel.HomeEvent.NavigateToOrderDetail -> {
-                                navController.navigate(
-                                    OrderDetailsCustomer(
-                                        it.order
-                                    )
-                                )
+                            is MainViewModel.HomeEvent.NavigateToNotification -> {
+                                navController.navigate(Notification)
                             }
 
                             is MainViewModel.HomeEvent.NavigateToResetPassword -> {

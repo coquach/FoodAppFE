@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
@@ -174,7 +176,7 @@ fun VoucherListScreen(
                         .clip(RoundedCornerShape(12.dp)),
                     endActions = listOf(
                         SwipeAction(
-                            icon = rememberVectorPainter(Icons.Default.Visibility),
+                            icon = rememberVectorPainter(Icons.Default.Delete),
                             background = MaterialTheme.colorScheme.error,
                             onSwipe = {
                                 viewModel.onAction(VoucherSate.Action.OnVoucherSelected(it))
@@ -187,7 +189,7 @@ fun VoucherListScreen(
                         voucher = it,
                         onClick = {
                             viewModel.onAction(VoucherSate.Action.OnVoucherSelected(it))
-                           viewModel.onAction(VoucherSate.Action.OnUpdateStatus(true))
+                            viewModel.onAction(VoucherSate.Action.OnUpdateStatus(true))
                             showVoucherDialog = true
                         }
                     )
@@ -211,92 +213,104 @@ fun VoucherListScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(700.dp)
                         .background(
-                            MaterialTheme.colorScheme.inversePrimary,
+                            MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(16.dp)
                         )
                         .padding(30.dp)
 
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState()),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
 
-                        ) {
+                            ) {
 
 
-                        Text(
-                            text = "Thông tin",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        FoodAppTextField(
-                            labelText = "Mã code",
-                            value = uiState.voucherSelected.code,
-                            onValueChange = {
-                                viewModel.onAction(VoucherSate.Action.OnCodeChange(it))
-                            },
-                            singleLine = true
-                        )
-                        ChipsGroupWrap(
-                            text = "Loại",
-                            options = VoucherType.entries.map { it.name },
-                            selectedOption = uiState.voucherSelected.type,
-                            onOptionSelected = {
-                                viewModel.onAction(VoucherSate.Action.OnTypeChange(it))
-                            },
-                            isFlowLayout = false,
-                            shouldSelectDefaultOption = true
-                        )
-                        if (uiState.voucherSelected.type == VoucherType.PERCENTAGE.name) {
+                            Text(
+                                text = "Thông tin",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleLarge
+                            )
                             FoodAppTextField(
-                                labelText = "Giảm tối đa",
-                                value = uiState.voucherSelected.maxValue.toPlainString(),
+                                labelText = "Mã code",
+                                value = uiState.voucherSelected.code,
                                 onValueChange = {
-                                    viewModel.onAction(VoucherSate.Action.OnMaxValueChange(it.toBigDecimalOrNull()))
+                                    viewModel.onAction(VoucherSate.Action.OnCodeChange(it))
                                 },
                                 singleLine = true
                             )
-                        }
-                        FoodAppTextField(
-                            labelText = "Giá trị",
-                            value = uiState.voucherSelected.value.toString(),
-                            onValueChange = {
-                                viewModel.onAction(VoucherSate.Action.OnValueChange(it.toDoubleOrNull()))
-                            },
-                            singleLine = true
-                        )
-                        FoodAppTextField(
-                            labelText = "Đơn tối thiểu",
-                            value = uiState.voucherSelected.minOrderPrice.toPlainString(),
-                            onValueChange = {
-                                viewModel.onAction(VoucherSate.Action.OnMinOrderPriceChange(it.toBigDecimalOrNull()))
-                            },
-                            singleLine = true
-                        )
-                        FoodAppTextField(
-                            labelText = "Số lượng",
-                            value =  uiState.voucherSelected.quantity.toString(),
-                            onValueChange = {
-                                viewModel.onAction(VoucherSate.Action.OnQuantityChange(it.toIntOrNull()))
-                            },
-                            singleLine = true
-                        )
-                        DateRangePickerSample(
-                            startDate = uiState.voucherSelected.startDate,
-                            endDate = uiState.voucherSelected.endDate,
-                            modifier = Modifier.fillMaxWidth(),
-                            isColumn = true,
-                            onDateRangeSelected = { startDate, endDate ->
-                                viewModel.onAction(VoucherSate.Action.OnStartDateChange(startDate))
-                                viewModel.onAction(VoucherSate.Action.OnEndDateChange(endDate))
+                            ChipsGroupWrap(
+                                text = "Loại",
+                                options = VoucherType.entries.map { it.name },
+                                selectedOption = uiState.voucherSelected.type,
+                                onOptionSelected = {
+                                    viewModel.onAction(VoucherSate.Action.OnTypeChange(it))
+                                },
+                                isFlowLayout = false,
+                                shouldSelectDefaultOption = true
+                            )
+                            if (uiState.voucherSelected.type == VoucherType.PERCENTAGE.name) {
+                                FoodAppTextField(
+                                    labelText = "Giảm tối đa",
+                                    value = uiState.voucherSelected.maxValue.toPlainString(),
+                                    onValueChange = {
+                                        viewModel.onAction(VoucherSate.Action.OnMaxValueChange(it.toBigDecimalOrNull()))
+                                    },
+                                    singleLine = true
+                                )
                             }
-                        )
+                            FoodAppTextField(
+                                labelText = "Giá trị",
+                                value = uiState.voucherSelected.value.toString(),
+                                onValueChange = {
+                                    viewModel.onAction(VoucherSate.Action.OnValueChange(it.toDoubleOrNull()))
+                                },
+                                singleLine = true
+                            )
+                            FoodAppTextField(
+                                labelText = "Đơn tối thiểu",
+                                value = uiState.voucherSelected.minOrderPrice.toPlainString(),
+                                onValueChange = {
+                                    viewModel.onAction(VoucherSate.Action.OnMinOrderPriceChange(it.toBigDecimalOrNull()))
+                                },
+                                singleLine = true
+                            )
+                            FoodAppTextField(
+                                labelText = "Số lượng",
+                                value = uiState.voucherSelected.quantity.toString(),
+                                onValueChange = {
+                                    viewModel.onAction(VoucherSate.Action.OnQuantityChange(it.toIntOrNull()))
+                                },
+                                singleLine = true
+                            )
+                            DateRangePickerSample(
+                                startDate = uiState.voucherSelected.startDate,
+                                endDate = uiState.voucherSelected.endDate,
+                                modifier = Modifier.fillMaxWidth(),
+                                isColumn = true,
+                                onDateRangeSelected = { startDate, endDate ->
+                                    viewModel.onAction(
+                                        VoucherSate.Action.OnStartDateChange(
+                                            startDate
+                                        )
+                                    )
+                                    viewModel.onAction(VoucherSate.Action.OnEndDateChange(endDate))
+                                }
+                            )
 
+
+                        }
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -341,6 +355,7 @@ fun VoucherListScreen(
 
                         }
                     }
+
                 }
             }
 
