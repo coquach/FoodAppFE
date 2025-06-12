@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -103,15 +105,14 @@ fun ComboBoxSample(
 }
 
 @Composable
-fun <T : Any> CustomPagingDropdown(
+fun  CustomPagingDropdown(
     modifier: Modifier = Modifier,
     title: String,
     textPlaceholder: String,
     selected: String?,
-    onItemSelected: (T) -> Unit,
-    items: LazyPagingItems<T>,
-    labelExtractor: (T) -> String,
-    enabled: Boolean = true
+
+    enabled: Boolean = true,
+    dropdownContent: @Composable (onDismissDropdown: () -> Unit) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -149,7 +150,6 @@ Log.d("CustomPagingDropdown", "expanded: $expanded")
             modifier = Modifier
                 .padding(horizontal = 10.dp)
                 .width(320.dp)
-                .heightIn(max = 300.dp)
         ) {
             DropdownMenuItem(
                 text = { Text(textPlaceholder) },
@@ -157,26 +157,14 @@ Log.d("CustomPagingDropdown", "expanded: $expanded")
 
                 }
             )
-//            LazyColumn(
-//                state = listState,
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                gridItems(
-//                    data = items,
-//                    nColumns = 1,
-//                ) {item ->
-//                   item?.let{
-//                       DropdownMenuItem(
-//                           text = { Text(labelExtractor(item)) },
-//                           onClick = {
-//                               onItemSelected(item)
-//                               expanded = false
-//                           }
-//                       )
-//                   }
-//                }
-//
-//            }
+            Column(
+                modifier = Modifier.heightIn(300.dp)
+            ){
+                dropdownContent{
+                    expanded = false
+
+                }
+            }
         }
     }
 }

@@ -65,7 +65,7 @@ fun VoucherCheckScreen(
             HeaderDefaultView(
                 text = "Voucher",
                 onBack = {
-                    navController.navigateUp()
+                    viewModel.onAction(VoucherCheck.Action.OnBack)
                 },
 
                 )

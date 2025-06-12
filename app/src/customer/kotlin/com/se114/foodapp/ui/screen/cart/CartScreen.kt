@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -148,7 +149,7 @@ fun CartScreen(
                                 cartItem = item,
                                 isEditMode = isEditing,
                                 quantity = quantity,
-                                isChecked = uiState.cartItems.contains(item),
+                                isChecked = uiState.selectedItems.contains(item),
                                 onCheckedChange = { cartItem ->
                                     viewModel.onAction(Cart.Action.OnToggleSelection(cartItem))
                                 },
@@ -172,7 +173,7 @@ fun CartScreen(
                                 isSelectAll = !isSelectAll
                                 viewModel.onAction(Cart.Action.OnSelectAll(isSelectAll))
                             },
-                            onDeleteSelected = { viewModel.removeItem() }
+                            onDeleteSelected = { viewModel.onAction(Cart.Action.OnRemoveItem) }
                         )
                     }
                     AnimatedVisibility(
@@ -188,7 +189,8 @@ fun CartScreen(
                             )
                             Button(
                                 onClick = { viewModel.onAction(Cart.Action.OnCheckOut)},
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth().height(48.dp),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text(text = "Thanh toán")
                             }

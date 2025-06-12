@@ -4,13 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.FoodTableFilter
 import com.example.foodapp.data.dto.request.OrderItemRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 
 import com.example.foodapp.data.model.CheckoutUiModel
+import com.example.foodapp.data.model.FoodTable
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
@@ -26,9 +30,12 @@ import com.se114.foodapp.domain.use_case.cart.ClearAllCartUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -41,7 +48,8 @@ class CheckoutViewModel @Inject constructor(
     private val placeOrderUseCase: PlaceOrderUseCase,
     private val getFoodTableUseCase: GetFoodTablesUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
-    private val clearAllCartUseCase: ClearAllCartUseCase
+    private val clearAllCartUseCase: ClearAllCartUseCase,
+
 
 ) : ViewModel() {
 
@@ -56,6 +64,11 @@ class CheckoutViewModel @Inject constructor(
         getCheckoutDetails()
     }
 
+    val foodTables: StateFlow<PagingData<FoodTable>> = getFoodTableUseCase(FoodTableFilter(active = true)).cachedIn(viewModelScope).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000L),
+        initialValue = PagingData.empty()
+    )
     private fun getCartItems() {
         viewModelScope.launch {
             try {

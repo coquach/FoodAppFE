@@ -395,12 +395,13 @@ fun SharedTransitionScope.MenuHeader(
                 onBackButton.invoke()
             },
             modifier = Modifier
-                .zIndex(1f)
+
                 .padding(16.dp)
                 .size(50.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(color = MaterialTheme.colorScheme.onPrimary)
-                .padding(4.dp),
+                .padding(4.dp)
+                .zIndex(1f),
 
             ) {
             Icon(
@@ -416,11 +417,12 @@ fun SharedTransitionScope.MenuHeader(
         IconButton(
             onClick = { onFavoriteButton },
             modifier = Modifier
-                .zIndex(1f)
+
                 .size(50.dp)
                 .clip(CircleShape)
                 .background(if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 .align(Alignment.TopEnd)
+                .zIndex(1f)
 
         ) {
             Icon(

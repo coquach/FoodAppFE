@@ -22,6 +22,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.TableRestaurant
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,9 +45,12 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.model.CheckoutUiModel
+import com.example.foodapp.data.model.FoodTable
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.navigation.OrderSuccess
@@ -54,8 +59,10 @@ import com.example.foodapp.ui.screen.common.CartItemView
 import com.example.foodapp.ui.screen.common.CheckoutDetailsView
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.common.calculateVoucherValue
+import com.example.foodapp.ui.screen.components.CustomPagingDropdown
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.NoteInput
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
@@ -69,6 +76,7 @@ fun CheckoutScreen(
     viewModel: CheckoutViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val foodTables = viewModel.foodTables.collectAsLazyPagingItems()
 
     var showErrorSheet by rememberSaveable {
         mutableStateOf(
@@ -137,8 +145,7 @@ fun CheckoutScreen(
                 {
                     CheckoutSection(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
+                            .fillMaxSize(),
                         isInStore = true,
                         checkoutDetails = uiState.checkoutDetails,
                         cartItems = uiState.cartItems,
@@ -158,14 +165,14 @@ fun CheckoutScreen(
                             viewModel.onAction(Checkout.Action.OnChooseVoucher)
                         },
                         checkOut = uiState.checkout,
-                        isLoading = uiState.isLoading
+                        isLoading = uiState.isLoading,
+                        foodTables = foodTables
                     )
                 },
                 {
                     CheckoutSection(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
+                            .fillMaxSize(),
                         isInStore = false,
                         checkoutDetails = uiState.checkoutDetails,
                         cartItems = uiState.cartItems,
@@ -182,10 +189,12 @@ fun CheckoutScreen(
                             viewModel.onAction(Checkout.Action.OnChooseVoucher)
                         },
                         checkOut = uiState.checkout,
-                        isLoading = uiState.isLoading
+                        isLoading = uiState.isLoading,
+                        foodTables = foodTables
                     )
                 }
             ),
+
             onTabSelected = {
                 viewModel.onAction(Checkout.Action.OnServingTypeChanged(it))
             },
@@ -213,7 +222,8 @@ fun CheckoutSection(
     onPlaceOrder: () -> Unit,
     onNoteChange: (String) -> Unit,
     onPaymentMethodChange: (String) -> Unit,
-    onFoodTableIdChange: ((Int?) -> Unit)? = null,
+    onFoodTableIdChange: ((Int) -> Unit)? = null,
+    foodTables: LazyPagingItems<FoodTable>,
     onChooseVoucher: () -> Unit,
     checkOut: CheckoutUiModel,
     isLoading: Boolean,
@@ -230,7 +240,22 @@ fun CheckoutSection(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (isInStore) {
-                //combobox table
+                CustomPagingDropdown(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "Chọn bàn",
+                    textPlaceholder = "Chọn bàn ăn cho hóa đơn",
+                    selected = checkOut.foodTableId.toString(),
+                    enabled = true,
+                    dropdownContent = {onDismissDropdown ->
+                        FoodTableComboBox(
+                            items = foodTables,
+                            onFoodTableClicked = { tableId->
+                                onFoodTableIdChange?.invoke(tableId)
+                                onDismissDropdown()
+                            }
+                        )
+                    }
+                )
             }
             NoteInput(
                 note = checkOut.note,
@@ -305,6 +330,30 @@ fun CheckoutSection(
             loading = isLoading,
             modifier = Modifier.fillMaxWidth()
 
+        )
+    }
+}
+
+@Composable
+fun FoodTableComboBox(
+    items: LazyPagingItems<FoodTable>,
+    onFoodTableClicked: (Int) -> Unit
+){
+    LazyPagingSample(
+        modifier = Modifier.fillMaxSize(),
+        items = items,
+        textNothing = "Không có bàn nào cả",
+        iconNothing = Icons.Default.TableRestaurant,
+        columns = 1,
+        key = {
+            it.id!!
+        }
+    ) {
+        DropdownMenuItem(
+                text = { Text(text = "${it.tableNumber}") },
+        onClick = {
+            onFoodTableClicked(it.id!!)
+        }
         )
     }
 }

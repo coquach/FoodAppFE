@@ -187,10 +187,15 @@ fun SharedTransitionScope.FoodView(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                modifier = Modifier.sharedElement(
+                modifier = Modifier
+                    .then(
+                        if (isAnimated) {
+                            Modifier.sharedElement(
                     state = rememberSharedContentState(key = "title/${food.id}"),
                     animatedVisibilityScope
-                ),
+                )} else{
+                            Modifier
+                }),
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
@@ -199,10 +204,15 @@ fun SharedTransitionScope.FoodView(
                 color = Color.Gray,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.sharedElement(
-                    state = rememberSharedContentState(key = "description/${food.id}"),
-                    animatedVisibilityScope
-                )
+                modifier = Modifier
+                    .then(
+                        if (isAnimated) {
+                            Modifier.sharedElement(
+                                state = rememberSharedContentState(key = "description/${food.id}"),
+                                animatedVisibilityScope
+                            )} else{
+                            Modifier
+                        })
             )
         }
     }

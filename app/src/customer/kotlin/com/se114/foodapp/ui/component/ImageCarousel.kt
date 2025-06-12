@@ -1,7 +1,5 @@
 package com.se114.foodapp.ui.component
 
-import android.R.attr.scaleX
-import android.R.attr.scaleY
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -22,32 +20,30 @@ import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-
 import coil.size.Scale
 import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.CustomPagerIndicator
-import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.ImageCarousel(
     images: List<String>,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    foodId: Long
+    foodId: Long,
 ) {
     if (images.isEmpty()) {
 
         Box(
             modifier = Modifier
+                .clip(RoundedCornerShape(18.dp))
                 .fillMaxWidth()
                 .height(200.dp),
             contentAlignment = Alignment.Center
@@ -69,17 +65,19 @@ fun SharedTransitionScope.ImageCarousel(
     ) {
         HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(20.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
         ) { index ->
             CardContent(images[index], index, pagerState, animatedVisibilityScope, foodId)
         }
-        CustomPagerIndicator(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(16.dp),
-            pageCount = images.size,
-            currentPage = pagerState.currentPage
-        )
+        if (images.size > 1) { // Only show indicator if there's more than one image
+            CustomPagerIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp), // Adjusted padding
+                pageCount = images.size,
+                currentPage = pagerState.currentPage
+            )
+        }
     }
 
 }
@@ -91,24 +89,22 @@ fun SharedTransitionScope.CardContent(
     index: Int,
     paperState: PagerState,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    foodId: Long
+    foodId: Long,
 ) {
     val pageOffset = (paperState.currentPage - index) + paperState.currentPageOffsetFraction
     Card(
         shape = RoundedCornerShape(18.dp),
         modifier = Modifier
-            .fillMaxWidth()
             .height(200.dp)
-            .padding(2.dp)
+
             .graphicsLayer {
-                lerp(
-                    start = 0.85f.dp,
-                    stop = 1f.dp,
-                    fraction = 1f - pageOffset.absoluteValue.coerceIn(0f, 1f)
-                ).also { scale ->
-                    scaleX = scale.value
-                    scaleY = scale.value
-                }
+                val scale = androidx.compose.ui.util.lerp(
+                    start = 0.85f, // Start scale for pages further away
+                    stop = 1f,     // End scale for the page in center
+                    fraction = 1f - pageOffset.coerceIn(0f, 1f) // 0f when far, 1f at center
+                )
+                scaleX = scale
+                scaleY = scale
             }
     ) {
         if (index == 0) {
@@ -117,12 +113,12 @@ fun SharedTransitionScope.CardContent(
                     .fillMaxSize()
                     .sharedElement(
                         state = rememberSharedContentState(key = "title/${foodId}"),
-                animatedVisibilityScope
-            ),
+                        animatedVisibilityScope
+                    ),
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(image)
                     .crossfade(true)
-                    .scale(Scale.FILL)
+                    .scale(Scale.FIT)
                     .build(),
                 contentDescription = "Image",
                 contentScale = ContentScale.Crop,
@@ -134,7 +130,7 @@ fun SharedTransitionScope.CardContent(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(image)
                     .crossfade(true)
-                    .scale(Scale.FILL)
+                    .scale(Scale.FIT)
                     .build(),
                 contentDescription = "Image",
                 contentScale = ContentScale.Crop,

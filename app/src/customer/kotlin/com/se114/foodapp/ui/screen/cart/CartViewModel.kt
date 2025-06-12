@@ -41,21 +41,24 @@ class CartViewModel @Inject constructor(
         started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
         initialValue = CheckoutDetails(BigDecimal(0))
     )
+    init {
+        getCartItems()
+    }
 
-    fun increment(cartItem: CartItem) {
+    private fun increment(cartItem: CartItem) {
         val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
         val newQty = if (current >= cartItem.remainingQuantity) cartItem.remainingQuantity else current + 1
         updateQuantity(cartItem, newQty)
     }
 
-    fun decrement(cartItem: CartItem) {
+    private fun decrement(cartItem: CartItem) {
         val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
         if (current <= 1) return
         val newQty = current - 1
         updateQuantity(cartItem, newQty)
     }
 
-    fun removeItem() {
+    private fun removeItem() {
         viewModelScope.launch {
             try {
                 clearCartUseCase(_uiState.value.selectedItems)
@@ -70,7 +73,7 @@ class CartViewModel @Inject constructor(
     fun getCartItems(){
         viewModelScope.launch {
             try {
-                getCartUseCase(). {response ->
+                getCartUseCase().collect {response ->
                     _uiState.update { it.copy(cartItems = response, cartItemState = Cart.CartItemState.Success) }
                 }
             }catch (e: Exception){
@@ -119,6 +122,7 @@ class CartViewModel @Inject constructor(
         when (action) {
             is Cart.Action.OnCheckOut -> {
                 viewModelScope.launch {
+                    delay(1200L)
                     _event.send(Cart.Event.NavigateToCheckout)
                 }
             }
