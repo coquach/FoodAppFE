@@ -220,7 +220,7 @@ fun OrderDetails(order: Order, isStaff: Boolean = false) {
         DetailsTextRow(
             icon = Icons.Default.LocationOn,
             color = MaterialTheme.colorScheme.onBackground,
-            text = "Địa chỉ: ${order.address?: "Không có địa chỉ"}"
+            text = "Địa chỉ: ${order.address?.formatAddress?: "Không có địa chỉ"}"
         )
 
 

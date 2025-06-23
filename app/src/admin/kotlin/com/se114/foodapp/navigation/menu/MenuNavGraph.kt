@@ -21,13 +21,11 @@ import kotlin.reflect.typeOf
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.menuGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
     sharedTransitionScope: SharedTransitionScope
 ) {
     with(sharedTransitionScope) {
 
         composable<Menu> {
-            shouldShowBottomNav.value = true
             ScreenContainer(isBottomBarVisible = true) {
                 MenuScreen(navController, this)
             }
@@ -38,14 +36,13 @@ fun NavGraphBuilder.menuGraph(
         composable<FoodDetailsAdmin>(
             typeMap = mapOf(typeOf<Food>() to FoodNavType)
         ) {
-            shouldShowBottomNav.value = false
             ScreenContainer {
                 FoodDetailsAdminScreen(navController)
             }
 
         }
         composable<Category> {
-            shouldShowBottomNav.value = false
+
             ScreenContainer { CategoryScreen(navController) }
 
         }

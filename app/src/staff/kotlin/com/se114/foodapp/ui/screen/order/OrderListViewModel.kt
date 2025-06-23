@@ -77,7 +77,7 @@ class OrderListViewModel @Inject constructor(
                 }
             }
             OrderListState.Action.OnRefresh -> {
-                ordersTabManager.refreshAllTabs()
+
                 getOrdersFlow(_state.value.tabIndex)
             }
         }

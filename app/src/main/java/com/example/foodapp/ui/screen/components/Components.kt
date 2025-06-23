@@ -3,9 +3,14 @@ package com.example.foodapp.ui.screen.components
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
 
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -72,6 +77,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -87,6 +93,7 @@ import androidx.compose.ui.graphics.Brush
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
@@ -109,6 +116,7 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.ui.screen.common.OrderItemView
 import com.example.foodapp.ui.theme.FoodAppTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -175,22 +183,14 @@ fun FoodAppTextField(
             modifier = Modifier.fillMaxWidth(),
             enabled,
             readOnly,
-            textStyle = textStyle,
+            textStyle,
             null,
             placeholder,
             leadingIcon,
             trailingIcon,
             prefix,
             suffix,
-            supportingText = {
-                if (errorText != null) {
-                    Text(
-                        text = errorText,
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 12.sp
-                    )
-                }
-            },
+            supportingText,
             isError,
             visualTransformation,
             keyboardOptions,
@@ -302,6 +302,7 @@ fun ErrorModalBottomSheet(
     }
 }
 
+
 @Composable
 fun FoodItemCounter(
     modifier: Modifier = Modifier,
@@ -389,7 +390,7 @@ fun BoxScope.ItemCount(count: Int) {
         modifier = Modifier
             .padding(6.dp)
             .background(MaterialTheme.colorScheme.error, shape = CircleShape)
-            .padding(vertical = 3.dp, horizontal = 4.dp)
+            .padding(vertical = 4.dp, horizontal = 6.dp)
             .align(Alignment.TopEnd)
             .wrapContentSize(align = Alignment.Center),
         contentAlignment = Alignment.Center
@@ -398,7 +399,8 @@ fun BoxScope.ItemCount(count: Int) {
             text = if (count > 99) "99+" else "$count",
             modifier = Modifier
                 .align(Alignment.Center),
-            color = MaterialTheme.colorScheme.onError,
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontWeight = FontWeight.Bold,
             style = TextStyle(fontSize = 8.sp)
         )
     }
@@ -408,22 +410,59 @@ fun BoxScope.ItemCount(count: Int) {
 @Composable
 fun Loading(
     modifier: Modifier = Modifier,
+    circleSize: Dp = 25.dp,
+    circleColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
+    spaceBetween: Dp = 10.dp,
+    travelDistance: Dp = 20.dp
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.size(20.dp))
-        CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "Đang tải...",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
+    val circles = listOf(
+        remember { Animatable(initialValue = 0f) },
+        remember { Animatable(initialValue = 0f) },
+        remember { Animatable(initialValue = 0f) }
+    )
+
+    circles.forEachIndexed { index, animatable ->
+        LaunchedEffect(key1 = animatable) {
+            delay(index * 100L)
+            animatable.animateTo(
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = keyframes {
+                        durationMillis = 1200
+                        0.0f at 0 using LinearOutSlowInEasing
+                        1.0f at 300 using LinearOutSlowInEasing
+                        0.0f at 600 using LinearOutSlowInEasing
+                        0.0f at 1200 using LinearOutSlowInEasing
+                    },
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        }
     }
+
+    val circleValues = circles.map { it.value }
+    val distance = with(LocalDensity.current) { travelDistance.toPx() }
+
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spaceBetween, Alignment.CenterHorizontally)
+    ) {
+        circleValues.forEach { value ->
+            Box(
+                modifier = Modifier
+                    .size(circleSize)
+                    .graphicsLayer {
+                        translationY = -value * distance
+                    }
+                    .background(
+                        color = circleColor,
+                        shape = CircleShape
+                    )
+            )
+        }
+    }
+
 }
 
 @Composable

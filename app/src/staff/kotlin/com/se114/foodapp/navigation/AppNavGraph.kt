@@ -25,7 +25,6 @@ import com.se114.foodapp.navigation.setting.settingGraph
 fun AppNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    shouldShowBottomNav: MutableState<Boolean>,
     notificationViewModel: NotificationViewModel,
     startDestination: NavRoute,
     isDarkMode: Boolean,
@@ -37,12 +36,12 @@ fun AppNavGraph(
         startDestination = startDestination,
         modifier = Modifier.padding(innerPadding)
     ) {
-        authGraph(navController, shouldShowBottomNav)
-        homeGraph(navController, shouldShowBottomNav, sharedTransitionScope)
-        notificationGraph(navController, shouldShowBottomNav, notificationViewModel)
-        orderGraph(navController, shouldShowBottomNav)
-        exportGraph(navController, shouldShowBottomNav)
-        settingGraph(navController, shouldShowBottomNav, isDarkMode, onThemeUpdated)
+        authGraph(navController )
+        homeGraph(navController, sharedTransitionScope)
+        notificationGraph(navController, notificationViewModel)
+        orderGraph(navController)
+        exportGraph(navController)
+        settingGraph(navController, isDarkMode, onThemeUpdated)
 
     }
 

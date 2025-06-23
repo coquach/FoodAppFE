@@ -51,7 +51,7 @@ fun ResetPassSuccessScreen(
         Spacer(modifier = Modifier.size(16.dp))
         Text(
             text = stringResource(R.string.back_with_new_password),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.outline,
             textAlign = TextAlign.Center
         )
@@ -62,6 +62,7 @@ fun ResetPassSuccessScreen(
                     popUpTo(navController.graph.startDestinationId) {
                         inclusive = true
                     }
+                    launchSingleTop = true
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),

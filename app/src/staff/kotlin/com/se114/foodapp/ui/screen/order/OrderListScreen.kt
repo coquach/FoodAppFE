@@ -52,7 +52,7 @@ fun OrderListScreen(
     }
     DisposableEffect(Unit) {
         onDispose {
-            viewModel.ordersTabManager.refreshAllTabs()
+
         }
     }
     val handle = navController.currentBackStackEntry?.savedStateHandle

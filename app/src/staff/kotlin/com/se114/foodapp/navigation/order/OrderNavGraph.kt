@@ -18,11 +18,10 @@ import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.orderGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
     ) {
 
     composable<OrderList> {
-        shouldShowBottomNav.value = true
+
         ScreenContainer {
             OrderListScreen(navController)
         }
@@ -30,7 +29,6 @@ fun NavGraphBuilder.orderGraph(
     }
     composable<OrderSuccess> {
         val orderID = it.toRoute<OrderSuccess>().orderId
-        shouldShowBottomNav.value = false
         ScreenContainer {
             OrderSuccessScreen(orderID, navController)
         }
@@ -40,7 +38,7 @@ fun NavGraphBuilder.orderGraph(
         typeMap = mapOf(typeOf<Order>() to orderNavType)
     ) {
 
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             OrderDetailScreen(navController)
         }

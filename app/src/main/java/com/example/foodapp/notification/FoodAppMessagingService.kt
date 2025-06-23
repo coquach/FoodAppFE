@@ -18,7 +18,7 @@ class FoodAppMessagingService : FirebaseMessagingService() {
     lateinit var foodAppNotificationManager: FoodAppNotificationManager
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        foodAppNotificationManager.updateToken(token)
+
     }
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
@@ -38,9 +38,7 @@ class FoodAppMessagingService : FirebaseMessagingService() {
         val data = remoteMessage.data
         val type = data["type"] ?: "order"
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("type", type)
         }
 
@@ -48,7 +46,7 @@ class FoodAppMessagingService : FirebaseMessagingService() {
             this,
             1,
             intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notificationChannelType: FoodAppNotificationManager.NotificationChannelType = when (type) {
             "order" -> FoodAppNotificationManager.NotificationChannelType.ORDER
@@ -59,11 +57,12 @@ class FoodAppMessagingService : FirebaseMessagingService() {
         }
         val notificationID: Int = when (notificationChannelType) {
             FoodAppNotificationManager.NotificationChannelType.ORDER ->  20000 + (0..999).random()
+            FoodAppNotificationManager.NotificationChannelType.DELIVERY -> 30000 + (0..999).random()
 
         }
         foodAppNotificationManager.showNotification(
             title, messageText, notificationID, pendingIntent,
             notificationChannelType)
-    }
 
+    }
 }

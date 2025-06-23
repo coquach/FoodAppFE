@@ -163,7 +163,7 @@ class HomeStaffViewModel @Inject constructor(
                 }
             }
             HomeStaffState.Action.OnRefresh -> {
-                foodsTabManager.refreshAllTabs()
+
                 getFoodsFlow(_uiState.value.foodFilter.menuId!!)
             }
             is HomeStaffState.Action.OnSearch -> {

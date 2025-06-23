@@ -23,7 +23,6 @@ import com.se114.foodapp.navigation.warehouse.warehouseGraph
 fun AppNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    shouldShowBottomNav: MutableState<Boolean>,
     startDestination: NavRoute,
     isDarkMode: Boolean,
     onThemeUpdated: () -> Unit,
@@ -34,15 +33,15 @@ fun AppNavGraph(
         startDestination = startDestination,
         modifier = Modifier.padding(innerPadding)
     ) {
-        authGraph(navController, shouldShowBottomNav)
-        employeeGraph(navController, shouldShowBottomNav)
+        authGraph(navController)
+        employeeGraph(navController)
         menuGraph(
-            navController, shouldShowBottomNav,
+            navController,
             sharedTransitionScope
         )
-        warehouseGraph(navController, shouldShowBottomNav)
-        settingGraph(navController, shouldShowBottomNav, isDarkMode, onThemeUpdated)
-        statisticsGraph(navController, shouldShowBottomNav)
+        warehouseGraph(navController)
+        settingGraph(navController, isDarkMode, onThemeUpdated)
+        statisticsGraph(navController)
     }
 
 }

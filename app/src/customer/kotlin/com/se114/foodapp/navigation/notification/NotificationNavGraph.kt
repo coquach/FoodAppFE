@@ -12,11 +12,10 @@ import com.example.foodapp.utils.ScreenContainer
 
 fun NavGraphBuilder.notificationGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
     notificationViewModel: NotificationViewModel,
 ){
     composable<Notification> {
-        shouldShowBottomNav.value = true
+
 
         ScreenContainer {
             NotificationListScreen(navController, notificationViewModel)

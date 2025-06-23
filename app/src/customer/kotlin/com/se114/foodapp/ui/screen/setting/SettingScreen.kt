@@ -74,12 +74,8 @@ fun SettingScreen(
     var showErrorSheet by remember { mutableStateOf(false) }
     var showDialogLogout by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        if (handle?.get<Boolean>("shouldRefresh") == true) {
-            handle["shouldRefresh"] = false
-            viewModel.onAction(Setting.Action.OnLoadProfile)
-        }
+    LaunchedEffect(Unit) {
+        viewModel.getProfile()
     }
 
 

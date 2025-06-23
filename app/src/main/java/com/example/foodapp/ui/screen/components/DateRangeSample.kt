@@ -71,7 +71,7 @@ fun DateRangePickerSample(
 
 
     if (isColumn) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.SpaceBetween) {
             DateFields(
                 modifier,
                 startDateText,

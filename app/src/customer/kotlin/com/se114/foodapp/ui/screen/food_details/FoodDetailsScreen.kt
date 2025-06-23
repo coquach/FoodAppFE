@@ -41,6 +41,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -59,8 +61,10 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.navigation.Cart
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodItemCounter
+import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.ui.component.ImageCarousel
 import com.se114.foodapp.ui.screen.feedback.FeedbackList
@@ -76,12 +80,12 @@ fun SharedTransitionScope.FoodDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val feedbacks = viewModel.feedbacks.collectAsLazyPagingItems()
-    val showSuccessDialog = remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val scope = rememberCoroutineScope()
 
-    val successMessage = remember { mutableStateOf("") }
+    var successMessage by remember { mutableStateOf("") }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -92,8 +96,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 }
 
                 FoodDetails.Event.OnAddToCart -> {
-                    successMessage.value = "Đã thêm món trong giỏ hàng"
-                    showSuccessDialog.value = true
+                    successMessage = "Đã thêm món trong giỏ hàng"
+                    showSuccessDialog = true
                 }
 
                 FoodDetails.Event.OnBack -> {
@@ -101,8 +105,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 }
 
                 FoodDetails.Event.OnItemAlreadyInCart -> {
-                    successMessage.value = "Món đã có trong giỏ hàng"
-                    showSuccessDialog.value = true
+                    successMessage = "Món đã có trong giỏ hàng"
+                    showSuccessDialog = true
                 }
 
                 FoodDetails.Event.ShowError -> {
@@ -111,8 +115,10 @@ fun SharedTransitionScope.FoodDetailsScreen(
             }
         }
     }
+
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -133,8 +139,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
             isFavorite = uiState.food.liked
         )
         FoodDetail(
-            modifier = Modifier.fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             title = uiState.food.name,
             description = uiState.food.description,
             foodId = uiState.food.id,
@@ -146,7 +151,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+
 
         ) {
             Text(
@@ -167,75 +172,38 @@ fun SharedTransitionScope.FoodDetailsScreen(
 
         }
         Column(
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "Đánh giá",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.outline
             )
             FeedbackList(
-                feedbacks = feedbacks
+                feedbacks = feedbacks,
+                modifier = Modifier.fillMaxWidth().weight(1f)
             )
         }
-        Button(
+        LoadingButton(
             onClick = {
                 viewModel.onAction(FoodDetails.Action.OnAddToCart)
             },
+            modifier = Modifier.fillMaxWidth(),
+            text = "Thêm vào giỏ hàng",
+            loading = uiState.isLoading,
             enabled = !uiState.isLoading,
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-        ) {
-            Box {
-                AnimatedContent(
-                    targetState = uiState.isLoading,
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f) togetherWith
-                                fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
-                    }
-                ) { target ->
-                    if (target) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier
-                                .padding(horizontal = 32.dp)
-                                .size(24.dp)
-                        )
-                    } else {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .padding(4.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ShoppingCart,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(modifier = Modifier.size(8.dp))
-                            Text(
-                                text = "Thêm vào giỏ hàng".uppercase(),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                }
-            }
 
-        }
+        )
     }
 
-    if (showSuccessDialog.value) {
+    if (showSuccessDialog) {
         ModalBottomSheet(
-            onDismissRequest = { showSuccessDialog.value = false },
-            sheetState = sheetState
+            onDismissRequest = { showSuccessDialog = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = Modifier
@@ -244,33 +212,32 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = successMessage.value,
+                    text = successMessage,
                     style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.size(16.dp))
-                Button(
+                AppButton(
                     onClick = {
-                        showSuccessDialog.value = false
+                        showSuccessDialog = false
                         viewModel.onAction(FoodDetails.Action.GoToCart)
                     }, modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(text = "Đi đến giỏ hàng")
-                }
 
-                Button(
+                        .fillMaxWidth(),
+                    text = "Xem giỏ hàng"
+                )
+
+                AppButton(
                     onClick = {
                         scope.launch {
                             sheetState.hide()
-                            showSuccessDialog.value = false
+                            showSuccessDialog = false
                         }
-                    }, modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(text = "Trở lại")
-                }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = "Tiếp tục mua hàng"
+
+                )
 
             }
         }
@@ -307,7 +274,9 @@ fun SharedTransitionScope.FoodDetail(
             modifier = Modifier.sharedElement(
                 state = rememberSharedContentState(key = "title/${foodId}"),
                 animatedVisibilityScope
-            )
+            ),
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
         )
 
         Row(
@@ -317,13 +286,13 @@ fun SharedTransitionScope.FoodDetail(
             Icon(
                 imageVector = Icons.Filled.Star,
                 contentDescription = "Rating",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(30.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
 
             Text(
                 text = "$totalRating",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.align(Alignment.CenterVertically)
 
             )
@@ -331,13 +300,13 @@ fun SharedTransitionScope.FoodDetail(
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = "Liked",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(30.dp),
                 tint = Color.Red
             )
 
             Text(
                 text = "$totalLikes",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.align(Alignment.CenterVertically)
 
             )
@@ -345,12 +314,12 @@ fun SharedTransitionScope.FoodDetail(
             Icon(
                 imageVector = Icons.Filled.Feedback,
                 contentDescription = "Feedback",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(30.dp),
                 tint = MaterialTheme.colorScheme.outline
             )
             Text(
                 text = "($totalFeedbacks+)",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
 
@@ -364,7 +333,8 @@ fun SharedTransitionScope.FoodDetail(
         Text(
             text = description,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier
+                .padding(top = 8.dp)
                 .sharedElement(
                     state = rememberSharedContentState(key = "description/${foodId}"),
                     animatedVisibilityScope
@@ -384,12 +354,6 @@ fun SharedTransitionScope.MenuHeader(
     isFavorite: Boolean,
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
-        ImageCarousel(
-            images = images,
-            animatedVisibilityScope = animatedVisibilityScope,
-            foodId = foodId
-        )
-
         IconButton(
             onClick = {
                 onBackButton.invoke()
@@ -432,6 +396,13 @@ fun SharedTransitionScope.MenuHeader(
                 modifier = Modifier.size(30.dp)
             )
         }
+        ImageCarousel(
+            images = images,
+            animatedVisibilityScope = animatedVisibilityScope,
+            foodId = foodId
+        )
+
+
     }
 }
 

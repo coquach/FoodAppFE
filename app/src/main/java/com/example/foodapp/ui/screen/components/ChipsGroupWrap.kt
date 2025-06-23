@@ -71,14 +71,12 @@ fun ChipsGroupWrap(
                 color = MaterialTheme.colorScheme.outline,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-//            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+
             )
         }
 
 
-
-
-        val layoutModifier = modifier
+        val layoutModifier = Modifier
             .fillMaxWidth()
 
 
@@ -94,7 +92,7 @@ fun ChipsGroupWrap(
                         FilterChip(
                             selected = isSelected,
                             onClick = { onOptionSelected(optionText) },
-                            label = { Text(text = optionText, modifier = Modifier.padding(8.dp)) },
+                            label = { Text(text = optionText, modifier = modifier) },
                             colors = FilterChipDefaults.filterChipColors().copy(
                                 labelColor = MaterialTheme.colorScheme.onPrimary,
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -102,7 +100,7 @@ fun ChipsGroupWrap(
                                 containerColor = containerColor
                             ),
                             border = BorderStroke(0.dp, Color.Transparent),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(2.dp)
                         )
                     }
 
@@ -130,7 +128,7 @@ fun ChipsGroupWrap(
                     FilterChip(
                         selected = isSelected,
                         onClick = { onOptionSelected(optionText) },
-                        label = { Text(text = optionText, modifier = Modifier.padding(8.dp)) },
+                        label = { Text(text = optionText, modifier = modifier) },
                         colors = FilterChipDefaults.filterChipColors().copy(
                             labelColor = MaterialTheme.colorScheme.onPrimary,
                             selectedContainerColor = MaterialTheme.colorScheme.primary,

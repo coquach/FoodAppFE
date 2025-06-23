@@ -194,20 +194,20 @@ fun ImportDetailsScreen(
             ) {
 
 
-                CustomPagingDropdown(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = "Nhà cung cấp",
-                    textPlaceholder = "Chọn nhà cung cấp",
-                    selected = uiState.import.supplierName,
-                    onItemSelected = { item ->
-
-                            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(item.id!!))
-
-                    },
-                    items = suppliers,
-                    enabled = uiState.isEditable,
-                    labelExtractor = { supplier -> supplier.name },
-                )
+//                CustomPagingDropdown(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    title = "Nhà cung cấp",
+//                    textPlaceholder = "Chọn nhà cung cấp",
+//                    selected = uiState.import.supplierName,
+//                    onItemSelected = { item ->
+//
+//                            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(item.id!!))
+//
+//                    },
+//                    items = suppliers,
+//                    enabled = uiState.isEditable,
+//                    labelExtractor = { supplier -> supplier.name },
+//                )
 
 
             }

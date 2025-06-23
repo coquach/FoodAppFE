@@ -28,12 +28,12 @@ import kotlin.reflect.typeOf
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.homeGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
+
     sharedTransitionScope: SharedTransitionScope
 ) {
     with(sharedTransitionScope) {
         composable<Home> {
-            shouldShowBottomNav.value = true
+            
             ScreenContainer {
                 HomeScreen(
                     navController, this,
@@ -44,28 +44,28 @@ fun NavGraphBuilder.homeGraph(
         composable<FoodDetails>(
             typeMap = mapOf(typeOf<Food>() to FoodNavType)
         ) {
-            shouldShowBottomNav.value = false
+            
             ScreenContainer {
                 FoodDetailsScreen(navController, this)
             }
 
         }
         composable<Favorite>{
-            shouldShowBottomNav.value = true
+            
             ScreenContainer {
                 FavoriteScreen(navController, this)
             }
         }
     }
         composable<Cart> {
-            shouldShowBottomNav.value = false
+            
             ScreenContainer {
                 CartScreen(navController)
             }
 
         }
         composable<CheckoutCustomer> {
-            shouldShowBottomNav.value = false
+            
             ScreenContainer {
                 CheckoutScreen(navController)
             }
@@ -73,7 +73,7 @@ fun NavGraphBuilder.homeGraph(
         }
 
         composable<VoucherCheck> {
-            shouldShowBottomNav.value = false
+            
             ScreenContainer {
                 VoucherCheckScreen(navController)
             }
@@ -81,7 +81,7 @@ fun NavGraphBuilder.homeGraph(
         }
 
         composable<FeedbackDetails>{
-            shouldShowBottomNav.value = false
+            
             ScreenContainer {
                 FeedbackDetailsScreen(navController)
             }

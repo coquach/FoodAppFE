@@ -12,8 +12,10 @@ import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.domain.use_case.voucher.GetVoucherForCustomerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -24,17 +26,15 @@ class VouchersViewModel @Inject constructor(
     private val getVoucherForCustomerUseCase: GetVoucherForCustomerUseCase,
 ) : ViewModel() {
 
+    private val _uiState = MutableStateFlow(Vouchers.UiState())
+    val uiState: StateFlow<Vouchers.UiState> get() = _uiState.asStateFlow()
 
     private val _event = Channel<Vouchers.Event>()
     val event = _event.receiveAsFlow()
 
 
-    val vouchers: StateFlow<PagingData<Voucher>> =
-        getVoucherForCustomerUseCase(VoucherFilter()).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
+    val vouchers =
+        getVoucherForCustomerUseCase(VoucherFilter())
 
     fun onAction(action: Vouchers.Action) {
         when (action) {
@@ -48,6 +48,10 @@ class VouchersViewModel @Inject constructor(
 }
 
 object Vouchers {
+    data class UiState(
+        val filter: VoucherFilter = VoucherFilter(),
+    )
+
     sealed interface Event {
         data object OnBack : Event
     }

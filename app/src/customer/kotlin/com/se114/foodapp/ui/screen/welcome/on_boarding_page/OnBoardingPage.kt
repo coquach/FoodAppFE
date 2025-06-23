@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.welcome.on_boarding_page
+package com.se114.foodapp.ui.screen.welcome.on_boarding_page
 
 import androidx.annotation.DrawableRes
 import com.example.foodapp.R

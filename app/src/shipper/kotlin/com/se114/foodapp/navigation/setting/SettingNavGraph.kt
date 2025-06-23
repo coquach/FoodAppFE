@@ -10,18 +10,13 @@ import com.se114.foodapp.ui.screen.setting.SettingScreen
 
 fun NavGraphBuilder.settingGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
     isDarkMode: Boolean,
     onThemeUpdated: () -> Unit
 ) {
     composable<Setting> {
-        shouldShowBottomNav.value = true
         ScreenContainer {
             SettingScreen(navController, isDarkMode, onThemeUpdated)
         }
-
     }
-
-
 
 }

@@ -46,15 +46,16 @@ class CartViewModel @Inject constructor(
     }
 
     private fun increment(cartItem: CartItem) {
-        val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
-        val newQty = if (current >= cartItem.remainingQuantity) cartItem.remainingQuantity else current + 1
+        val current = (_uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity) +1
+
+        val newQty = if (current > cartItem.remainingQuantity) cartItem.remainingQuantity else current
         updateQuantity(cartItem, newQty)
     }
 
     private fun decrement(cartItem: CartItem) {
-        val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
-        if (current <= 1) return
-        val newQty = current - 1
+        val current = (_uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity) - 1
+
+        val newQty =  if (current < 1)  1 else current
         updateQuantity(cartItem, newQty)
     }
 

@@ -17,33 +17,32 @@ import com.se114.foodapp.ui.screen.vouchers.VouchersScreen
 
 fun NavGraphBuilder.settingGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
     isDarkMode: Boolean,
     onThemeUpdated: () -> Unit
 ) {
     composable<Setting> {
-        shouldShowBottomNav.value = true
+
         ScreenContainer {
             SettingScreen(navController, isDarkMode, onThemeUpdated)
         }
 
     }
     composable<VoucherPublic> {
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             VouchersScreen(navController)
         }
 
     }
     composable<MyAddressList> {
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             AddressListScreen(navController)
         }
 
     }
     composable<AddAddress>{
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             AddAddressScreen(navController)
         }

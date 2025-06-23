@@ -10,7 +10,6 @@ import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.domain.use_case.food.GetFoodsByMenuIdUseCase
 import com.example.foodapp.domain.use_case.food.GetMenusUseCase
-import com.example.foodapp.utils.TabCacheManager
 import com.se114.foodapp.domain.use_case.food_favorite.GetFavoriteFoodUseCase
 import com.se114.foodapp.ui.screen.favorite.FavoriteState.MenuSate
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,24 +28,18 @@ class FavoriteViewModel @Inject constructor(
     private val getFoodsByMenuIdUseCase: GetFoodsByMenuIdUseCase,
     private val getMenusUseCase: GetMenusUseCase,
 ) : ViewModel() {
-    private val _uiState =
-        MutableStateFlow(FavoriteState.UiState(foodFilter = FoodFilter(menuId = 1, status = true)))
+    private val _uiState = MutableStateFlow(FavoriteState.UiState())
     val uiState: StateFlow<FavoriteState.UiState> get() = _uiState.asStateFlow()
 
     private val _event = Channel<FavoriteState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    private val _favoriteFoods = MutableStateFlow<PagingData<Food>>(PagingData.empty())
-    val favoriteFoods get() = _favoriteFoods.asStateFlow()
+    val favoriteFoods = getFavoriteFoodUseCase.invoke(_uiState.value.foodFilter).cachedIn(viewModelScope)
 
-    private fun getFavoriteFoods() {
-        viewModelScope.launch {
-            getFavoriteFoodUseCase.invoke(FoodFilter(menuId = null)).cachedIn(viewModelScope).collect { result ->
-                _favoriteFoods.value = result
-        }
-    }}
+    val foods = getFoodsByMenuIdUseCase.invoke(_uiState.value.foodFilter)
 
-    private fun getMenus() {
+
+    fun getMenus() {
         viewModelScope.launch {
             getMenusUseCase.invoke().collect { result ->
                 when (result) {
@@ -70,27 +63,7 @@ class FavoriteViewModel @Inject constructor(
             }
         }
     }
-    val foodsTabManager = TabCacheManager<Int, Food>(
-        scope = viewModelScope,
-        getFilter = { menuId ->
 
-            _uiState.value.foodFilter.copy(menuId = menuId)
-        },
-        loadData = { filter ->
-            getFoodsByMenuIdUseCase(filter as FoodFilter)
-        }
-    )
-
-    fun getFoodsFlow(menuId: Int) {
-        return foodsTabManager.getFlowForTab(menuId)
-    }
-
-    init {
-        getMenus()
-        getFoodsFlow(1)
-        getFavoriteFoods()
-
-    }
 
     fun onAction(action: FavoriteState.Action) {
         when (action) {
@@ -99,14 +72,22 @@ class FavoriteViewModel @Inject constructor(
                     _event.send(FavoriteState.Event.NavigateToDetail(action.food))
                 }}
             is FavoriteState.Action.OnChangeNameSearch -> {
-                _uiState.update { it.copy(nameSearch = action.name) }
+                _uiState.update { it.copy(nameSearch = action.name, foodFilter = it.foodFilter.copy(name = action.name)) }
             }
             is FavoriteState.Action.OnMenuClicked -> {
                 _uiState.update { it.copy(foodFilter = it.foodFilter.copy(menuId = action.id), menuName = action.name) }
             }
             FavoriteState.Action.OnRefresh -> {
-                foodsTabManager.refreshAllTabs()
-                getFoodsFlow(_uiState.value.foodFilter.menuId!!)
+
+            }
+            is FavoriteState.Action.OnOrderChange -> {
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(order = action.order)) }
+            }
+            is FavoriteState.Action.OnSearchFilter -> {
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(name = _uiState.value.nameSearch)) }
+            }
+            is FavoriteState.Action.OnSortByName -> {
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(sortBy = action.sort)) }
             }
 
         }
@@ -115,7 +96,7 @@ class FavoriteViewModel @Inject constructor(
 
 object FavoriteState {
     data class UiState(
-        val foodFilter: FoodFilter = FoodFilter(),
+        val foodFilter: FoodFilter = FoodFilter(menuId =  1, sortBy = "price"),
         val menuName: String?=null,
         val isLoading: Boolean = false,
         val error: String? = null,
@@ -136,6 +117,9 @@ object FavoriteState {
     }
 
     sealed interface Action {
+        data class OnOrderChange(val order: String) : Action
+        data class OnSortByName(val sort: String) : Action
+        data object OnSearchFilter : Action
         data class OnFoodClick(val food: Food) : Action
         data class OnChangeNameSearch(val name: String) : Action
         data class OnMenuClicked(val id: Int, val name: String) : Action

@@ -25,16 +25,11 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getSuggestFoodsUseCase: GetSuggestFoodsUseCase,
     private val getCartSizeUseCase: GetCartSizeUseCase,
-    private val loadProfileUseCase: LoadProfileUseCase
+    private val loadProfileUseCase: LoadProfileUseCase,
 
 
     ) : ViewModel() {
 
-    init {
-        getProfile()
-        getFoodSuggestions()
-        getCartSize()
-    }
 
     private val _uiState = MutableStateFlow(Home.UiState())
     val uiState: StateFlow<Home.UiState> get() = _uiState.asStateFlow()
@@ -42,9 +37,11 @@ class HomeViewModel @Inject constructor(
     private val _event = Channel<Home.Event>()
     val event = _event.receiveAsFlow()
 
+    init {
+        getCartSize()
+    }
 
-
-    private fun getProfile() {
+    fun getProfile() {
         viewModelScope.launch {
             loadProfileUseCase().collect { result ->
                 when (result) {
@@ -64,6 +61,7 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
     fun getGreetingTitle(fullName: String): String {
         val hour = LocalTime.now().hour
         val name = fullName.substringAfterLast(" ").trim()
@@ -77,7 +75,8 @@ class HomeViewModel @Inject constructor(
 
         return "Chào $name! $greeting"
     }
-    private fun getFoodSuggestions() {
+
+    fun getFoodSuggestions() {
         viewModelScope.launch {
             getSuggestFoodsUseCase.invoke().collect { response ->
                 when (response) {
@@ -85,13 +84,19 @@ class HomeViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 foodSuggestions = response.data,
-                                foodSuggestionsState = Home.FoodSuggestions.Success)}
+                                foodSuggestionsState = Home.FoodSuggestions.Success
+                            )
+                        }
                     }
+
                     is com.example.foodapp.data.dto.ApiResponse.Failure -> {
                         _uiState.update {
                             it.copy(
                                 foodSuggestionsState = Home.FoodSuggestions.Error(response.errorMessage)
-                            )}}
+                            )
+                        }
+                    }
+
                     is com.example.foodapp.data.dto.ApiResponse.Loading -> {
                         _uiState.update {
                             it.copy(
@@ -125,13 +130,10 @@ class HomeViewModel @Inject constructor(
                     _event.send(Home.Event.GoToCart)
                 }
             }
-            is Home.Action.Retry -> {
-                getFoodSuggestions()
-            }
+
 
         }
     }
-
 
 
     private fun getCartSize() {
@@ -155,6 +157,7 @@ object Home {
         val foodSuggestions: List<Food> = emptyList(),
         val foodSuggestionsState: FoodSuggestions = FoodSuggestions.Loading,
     )
+
     sealed interface FoodSuggestions {
         data object Loading : FoodSuggestions
         data object Success : FoodSuggestions
@@ -172,7 +175,7 @@ object Home {
         data class OnFoodClicked(val food: Food) : Action
         data object OnChatBoxClicked : Action
         data object OnCartClicked : Action
-        data object Retry : Action
+
 
     }
 }

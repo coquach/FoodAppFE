@@ -98,7 +98,7 @@ fun OrderDetailScreen(
 
     LaunchedEffect(key1 = distance?.value) {
         distance?.value?.let {
-            val canUpdateStatus = it <= 50
+            val canUpdateStatus = it <= 200
             viewModel.onAction(OrderDetailsState.Action.OnChangeCanUpdateStatus(canUpdateStatus))
         }
     }
@@ -133,7 +133,7 @@ fun OrderDetailScreen(
             }
 
         }
-        CheckoutRowItem("Tổng cộng", BigDecimal.ZERO, FontWeight.ExtraBold)
+        CheckoutRowItem("Tổng cộng", uiState.order.totalPrice, FontWeight.ExtraBold)
 
 
 

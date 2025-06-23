@@ -21,15 +21,12 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.model.Food
 import com.example.foodapp.navigation.FoodDetails
 import com.example.foodapp.ui.screen.common.FoodList
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -39,9 +36,8 @@ fun SharedTransitionScope.FavoriteScreen(
     viewModel: FavoriteViewModel = hiltViewModel()
 ){
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foods by viewModel.foodsTabManager.tabDataMap.collectAsStateWithLifecycle()
+    val foods = viewModel.foods.collectAsLazyPagingItems()
     val foodFavorite = viewModel.favoriteFoods.collectAsLazyPagingItems()
-    val emptyFoods = MutableStateFlow<PagingData<Food>>(PagingData.empty()).collectAsLazyPagingItems()
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
@@ -55,6 +51,9 @@ fun SharedTransitionScope.FavoriteScreen(
             }
         }
     }
+    LaunchedEffect(Unit) {
+        viewModel.getMenus()
+    }
 
     Column(
         modifier = Modifier
@@ -63,18 +62,57 @@ fun SharedTransitionScope.FavoriteScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ){
-        Box(
-            modifier = Modifier.fillMaxWidth().padding(top= 20.dp)
-        ){
+
 
             SearchField(
                 searchInput = uiState.nameSearch,
                 searchChange = {
                     viewModel.onAction(FavoriteState.Action.OnChangeNameSearch(it))
                 },
-                searchPlaceholder = "Nhập tên món ăn...",
+                searchFilter = {
+                    viewModel.onAction(FavoriteState.Action.OnSearchFilter)
+                },
+                switchState = uiState.foodFilter.order == "desc",
+                switchChange = {
+                    when (it) {
+                        true -> viewModel.onAction(FavoriteState.Action.OnOrderChange("desc"))
+                        false -> viewModel.onAction(FavoriteState.Action.OnOrderChange("asc"))
+                    }
+                },
+                filterChange = {
+                    when (it) {
+                        "Giá" -> viewModel.onAction(FavoriteState.Action.OnSortByName("price"))
+                        "Số lượng" -> viewModel.onAction(FavoriteState.Action.OnSortByName("remainingQuantity"))
+                        "Đánh giá" -> viewModel.onAction(FavoriteState.Action.OnSortByName("totalFeedback"))
+                        "Rating" -> viewModel.onAction(FavoriteState.Action.OnSortByName("totalRating"))
+                        "Like" -> viewModel.onAction(FavoriteState.Action.OnSortByName("totalLikes"))
+                    }
+                },
+                filters = listOf("Giá", "Số lượng", "Đánh giá", "Rating", "Like" ),
+                filterSelected = when (uiState.foodFilter.sortBy) {
+                    "price" -> "Giá"
+                    "remainingQuantity" -> "Số lượng"
+                    "totalFeedback" -> "Đánh giá"
+                    "totalRating" -> "Rating"
+                    "totalLikes" -> "Like"
+                    else -> "Giá"
+                },
+                placeHolder = "Tìm kiếm theo tên món ăn...",
             )
-        }
+        ChipsGroupWrap(
+            modifier = Modifier.padding(8.dp),
+            options = uiState.menus.map { it.name },
+            selectedOption = uiState.menuName,
+            onOptionSelected = { selectedName ->
+                val selectedMenu = uiState.menus.find { it.name == selectedName }
+                selectedMenu?.let {
+                    viewModel.onAction(FavoriteState.Action.OnMenuClicked(it.id!!, it.name))
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
+            isFlowLayout = false,
+            shouldSelectDefaultOption = true
+        )
         TabWithPager(
             tabs = listOf("Tất cả", "Yêu thích"),
             pages = listOf(
@@ -84,23 +122,9 @@ fun SharedTransitionScope.FavoriteScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ChipsGroupWrap(
-                            modifier = Modifier.fillMaxWidth(),
-                            options = uiState.menus.map { it.name },
-                            selectedOption = uiState.menuName,
-                            onOptionSelected = { selectedName ->
-                                val selectedMenu = uiState.menus.find { it.name == selectedName }
-                                selectedMenu?.let {
-                                    viewModel.onAction(FavoriteState.Action.OnMenuClicked(it.id!!, it.name))
-                                    viewModel.getFoodsFlow(it.id)
-                                }
-                            },
-                            containerColor = MaterialTheme.colorScheme.outline,
-                            isFlowLayout = false,
-                            shouldSelectDefaultOption = true
-                        )
+
                         FoodList(
-                            foods = foods[uiState.foodFilter.menuId!!]?.flow?.collectAsLazyPagingItems() ?: emptyFoods,
+                            foods = foods,
                             animatedVisibilityScope = animatedVisibilityScope,
                             onItemClick = {
                                 viewModel.onAction(FavoriteState.Action.OnFoodClick(it))

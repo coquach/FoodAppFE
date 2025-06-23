@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.foodapp.BuildConfig
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.domain.use_case.notification.RegisterTokenUseCase
 import com.google.firebase.messaging.FirebaseMessaging
@@ -36,7 +37,8 @@ class FoodAppNotificationManager @Inject constructor(
         val channelDesc: String,
         val importance: Int
     ) {
-        ORDER("1", "Đơn hàng", "Đơn hàng", NotificationManager.IMPORTANCE_HIGH),
+        ORDER("1", "Đơn hàng", "Thông tin đơn hàng", NotificationManager.IMPORTANCE_HIGH),
+        DELIVERY("2", "Giao hàng", "Tình trạng giao hàng", NotificationManager.IMPORTANCE_HIGH),
     }
 
 
@@ -44,6 +46,9 @@ class FoodAppNotificationManager @Inject constructor(
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         NotificationChannelType.entries.forEach {
+            if (it.channelName == "Giao hàng" && BuildConfig.FLAVOR != "shipper") {
+                return@forEach
+            }
             val channel = NotificationChannel(it.id, it.channelName, it.importance).apply {
                 description = it.channelDesc
             }

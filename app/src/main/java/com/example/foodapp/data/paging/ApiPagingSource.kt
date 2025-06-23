@@ -22,7 +22,7 @@ abstract class ApiPagingSource<T : Any> : PagingSource<Int, T>() {
             val response = fetch(currentPage, pageSize).first{it !is ApiResponse.Loading}
             when (response) {
                 is ApiResponse.Success -> {
-                    delay(1500L)
+
                     val data = response.data
                     val end = data.content.isEmpty() || data.content.size < pageSize
                     if (data.content.isNotEmpty()) {

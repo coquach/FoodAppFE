@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.welcome
+package com.se114.foodapp.ui.screen.welcome
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,14 +29,28 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.foodapp.ui.screen.components.CustomPagerIndicator
 import com.example.foodapp.navigation.Auth
+import com.example.foodapp.ui.screen.components.AppButton
 
-import com.example.foodapp.ui.screen.welcome.on_boarding_page.OnBoardingPage
+import com.se114.foodapp.ui.screen.welcome.on_boarding_page.OnBoardingPage
 
 @Composable
 fun WelcomeScreen(
     navController: NavController,
     welcomeViewModel: WelcomeViewModel = hiltViewModel()
 ) {
+    LaunchedEffect(Unit) {
+        welcomeViewModel.uiEvent.collect {
+            when (it) {
+                is Event.NavigateToAuth -> {
+                    navController.navigate(Auth) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
+                    }
+                }
+            }
+        }
+    }
     val pages = listOf(
         OnBoardingPage.First,
         OnBoardingPage.Second,
@@ -66,8 +81,6 @@ fun WelcomeScreen(
             pagerState = pagerState
         ) {
             welcomeViewModel.saveOnBoardingState(completed = true)
-            navController.popBackStack()
-            navController.navigate(Auth)
         }
     }
 }
@@ -124,11 +137,13 @@ fun FinishButton(
             modifier = Modifier.fillMaxWidth(),
             visible = pagerState.currentPage == 2
         ) {
-            Button(
+            AppButton(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = onClick,
-            ) {
-                Text(text = "Hoàn tất")
-            }
+                text = "Hoàn tất"
+            )
+
+
         }
     }
 }

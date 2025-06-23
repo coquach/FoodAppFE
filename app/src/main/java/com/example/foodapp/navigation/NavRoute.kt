@@ -24,6 +24,8 @@ object Login : NavRoute
 @Serializable
 object Home : NavRoute
 
+
+
 @Serializable
 data class FoodDetails(val food: Food) : NavRoute
 
@@ -79,12 +81,17 @@ object Welcome : NavRoute
 @Serializable
 object SendEmail: NavRoute
 
+@Serializable
+object SendEmailSuccess: NavRoute
 
 @Serializable
 object ResetPasswordSuccess : NavRoute
 
 @Serializable
 data class ResetPassword(val oobCode: String, val mode: String) : NavRoute
+
+
+
 
 @Serializable
 object Statistics : NavRoute

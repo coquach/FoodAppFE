@@ -127,6 +127,11 @@ fun SharedTransitionScope.HomeScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.getProfile()
+        viewModel.getFoodSuggestions()
+    }
+
     Scaffold(
         floatingActionButton =
             {
@@ -251,7 +256,7 @@ fun SharedTransitionScope.HomeScreen(
                     Retry(
                         message = error,
                         onClicked = {
-                            viewModel.onAction(Home.Action.Retry)
+                            viewModel.getFoodSuggestions()
                         },
                         modifier = Modifier
                             .fillMaxWidth()

@@ -16,6 +16,7 @@ import com.se114.foodapp.domain.use_case.cart.AddToCartUseCase
 import com.se114.foodapp.domain.use_case.food_details.ToggleLikecUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -46,44 +47,35 @@ class FoodDetailsViewModel @Inject constructor(
     private val _event = Channel<FoodDetails.Event>()
     val event = _event.receiveAsFlow()
 
-    private val _feedbacks = MutableStateFlow<PagingData<Feedback>>(PagingData.empty())
-    val feedbacks = _feedbacks.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = PagingData.empty()
-    )
-
-
-    init{
-        getFeedbacks()
-    }
+    val feedbacks = getFeedbacksUseCase(foodArgument.food.id)
 
 
     private fun addToCart(food: Food) {
         viewModelScope.launch {
 
 
-               addToCartUseCase(food, _uiState.value.quantity).collect{result ->
-                   when (result) {
-                       AddToCartUseCase.Result.ItemAdded -> {
-                           _uiState.update { it.copy(isLoading = false, error = null) }
-                           _event.send(FoodDetails.Event.OnAddToCart)
-                       }
+            addToCartUseCase(food, _uiState.value.quantity).collect { result ->
+                when (result) {
+                    AddToCartUseCase.Result.ItemAdded -> {
+                        _uiState.update { it.copy(isLoading = false, error = null) }
+                        _event.send(FoodDetails.Event.OnAddToCart)
+                    }
 
-                       AddToCartUseCase.Result.ItemUpdated -> {
-                           _uiState.update { it.copy(isLoading = false, error = null) }
-                           _event.send(FoodDetails.Event.OnItemAlreadyInCart)
-                       }
-                       AddToCartUseCase.Result.Loading -> {
-                           _uiState.update { it.copy(isLoading = true, error = null) }
-                       }
-                       is AddToCartUseCase.Result.Failure -> {
-                           _uiState.update { it.copy(isLoading = false, error = result.errorMessage) }
-                           _event.send(FoodDetails.Event.ShowError)
-                       }
-                   }
-               }
+                    AddToCartUseCase.Result.ItemUpdated -> {
+                        _uiState.update { it.copy(isLoading = false, error = null) }
+                        _event.send(FoodDetails.Event.OnItemAlreadyInCart)
+                    }
 
+                    AddToCartUseCase.Result.Loading -> {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                    }
+
+                    is AddToCartUseCase.Result.Failure -> {
+                        _uiState.update { it.copy(isLoading = false, error = result.errorMessage) }
+                        _event.send(FoodDetails.Event.ShowError)
+                    }
+                }
+            }
 
 
         }
@@ -93,36 +85,27 @@ class FoodDetailsViewModel @Inject constructor(
     private fun toggleLike(foodId: Long) {
         Log.d("toggleLike", "ok")
         viewModelScope.launch {
-                toggleLikecUseCase.invoke(foodId).collect {result ->
-                    when (result) {
-                        is ApiResponse.Failure -> {
-                            _uiState.update { it.copy(error = result.errorMessage) }
-                            _event.send(FoodDetails.Event.ShowError)
-                        }
+            toggleLikecUseCase.invoke(foodId).collect { result ->
+                when (result) {
+                    is ApiResponse.Failure -> {
+                        _uiState.update { it.copy(error = result.errorMessage) }
+                        _event.send(FoodDetails.Event.ShowError)
+                    }
 
-                        is ApiResponse.Success -> {
-                            _uiState.update { it.copy(error = null) }
-                        }
+                    is ApiResponse.Success -> {
+                        _uiState.update { it.copy(error = null) }
+                    }
 
-                        ApiResponse.Loading -> {
+                    ApiResponse.Loading -> {
 
-                        }
                     }
                 }
-
-
-
-
-        }
-    }
-
-    private fun getFeedbacks() {
-        viewModelScope.launch {
-            getFeedbacksUseCase(foodArgument.food.id).cachedIn(viewModelScope).collect {
-                _feedbacks.value = it
             }
+
+
         }
     }
+
 
     fun onAction(action: FoodDetails.Action) {
         when (action) {
@@ -149,11 +132,14 @@ class FoodDetailsViewModel @Inject constructor(
             }
 
             is FoodDetails.Action.OnChangeQuantity -> {
-                _uiState.update { it.copy(quantity =
-                        if(action.quantity < 1) 1
-                    else if(action.quantity > it.food.remainingQuantity) it.food.remainingQuantity
-                    else action.quantity
-                ) }
+                _uiState.update {
+                    it.copy(
+                        quantity =
+                            if (action.quantity < 1) 1
+                            else if (action.quantity > it.food.remainingQuantity) it.food.remainingQuantity
+                            else action.quantity
+                    )
+                }
             }
         }
     }
@@ -165,7 +151,8 @@ object FoodDetails {
         val error: String? = null,
         val food: Food = Food.sample(),
         val quantity: Int = 1,
-    )
+
+        )
 
     sealed interface Event {
         data object ShowError : Event
@@ -179,7 +166,7 @@ object FoodDetails {
     sealed interface Action {
         data object OnAddToCart : Action
         data object GoToCart : Action
-       data class OnChangeQuantity(val quantity: Int) : Action
+        data class OnChangeQuantity(val quantity: Int) : Action
         data object OnBack : Action
         data class OnFavorite(val foodId: Long) : Action
 

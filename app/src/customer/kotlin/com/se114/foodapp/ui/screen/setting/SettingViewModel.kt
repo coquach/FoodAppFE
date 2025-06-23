@@ -33,11 +33,9 @@ class SettingViewModel @Inject constructor(
     private val _event = Channel<Setting.Event>()
     val event = _event.receiveAsFlow()
 
-    init {
-        getProfile()
-    }
 
-    private fun getProfile() {
+
+    fun getProfile() {
         viewModelScope.launch {
             loadProfileUseCase().collect { result ->
                 when (result) {

@@ -48,7 +48,7 @@ fun ValidateTextField(
         keyboardActions = KeyboardActions(
             onDone = {
                 focusManager.clearFocus()
-                validate()
+
             }
         ),
         singleLine = false,

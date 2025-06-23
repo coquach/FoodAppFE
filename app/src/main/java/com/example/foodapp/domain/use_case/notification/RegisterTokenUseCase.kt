@@ -33,7 +33,7 @@ class RegisterTokenUseCase @Inject constructor(
             }
         }catch (e: Exception){
             e.printStackTrace()
-            emit(ApiResponse.Failure(e.message?: "Đã có lỗi xảy ra khi đăng ký thông báo", 999))
+            emit(ApiResponse.Failure("Đã có lỗi xảy ra khi đăng ký thông báo", 999))
         }
     }.flowOn(Dispatchers.IO)
 }

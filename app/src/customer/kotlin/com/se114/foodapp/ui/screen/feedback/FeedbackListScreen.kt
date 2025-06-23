@@ -67,15 +67,11 @@ import com.example.foodapp.utils.StringUtils
 
 @Composable
 fun FeedbackList(
-    feedbacks: LazyPagingItems<Feedback>
+    feedbacks: LazyPagingItems<Feedback>,
+    modifier: Modifier = Modifier
 ) {
-    
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
         LazyPagingSample(
+            modifier = modifier,
             items = feedbacks,
             textNothing = "Không có đánh giá nào cả...",
             iconNothing = Icons.Default.Reviews,
@@ -83,11 +79,10 @@ fun FeedbackList(
             key = {
                 it.id
             },
-            modifier = Modifier.fillMaxSize()
         ) {
             FeedbackItem(it)
         }
-    }
+
 
 }
 
@@ -132,7 +127,7 @@ fun FeedbackItem(
 
                             .shadow(4.dp, shape = RoundedCornerShape(12.dp))
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFFFC107))
+                            .background(Color(0xFFFFFF66))
                             .padding(horizontal = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -144,16 +139,20 @@ fun FeedbackItem(
                     }
                 }
 
-                Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(16.dp))
 
                 Column(verticalArrangement = Arrangement.SpaceAround) {
                     Text(
                         text = "Người dùng app",
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.bodyLarge,
+
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = if(feedback.updatedAt!= null) "${StringUtils.formatDateTime(feedback.updatedAt)}"
                         else "${StringUtils.formatDateTime(feedback.createdAt)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline
                     )
                 }
 

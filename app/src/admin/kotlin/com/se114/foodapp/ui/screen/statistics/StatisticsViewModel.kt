@@ -183,12 +183,14 @@ class StatisticsViewModel @Inject constructor(
             }
 
             is StaticsState.Action.OnChangeSelectedMonthYear -> {
-                val (newMonth, newYear) = adjustMonthYear(action.month, action.year)
-                if (newYear <= Calendar.getInstance()
-                        .get(Calendar.YEAR) && newMonth <= Calendar.getInstance()
-                        .get(Calendar.MONTH) + 1
-                ){
+                val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+                val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+                val currentIndex = currentYear * 12 + currentMonth
 
+                val (newMonth, newYear) = adjustMonthYear(action.month, action.year)
+                val newIndex = newYear * 12 + newMonth
+
+                if (newIndex <= currentIndex) {
                     _uiState.update {
                         it.copy(
                             selectedMonth = newMonth,
@@ -197,9 +199,7 @@ class StatisticsViewModel @Inject constructor(
                     }
                     getDailyReports()
                     getMenuReports()
-                }
-
-                else {
+                } else {
                     viewModelScope.launch {
                         _event.send(StaticsState.Event.ShowErrorToast("Thời gian vượt hiện tại"))
                     }
@@ -239,7 +239,7 @@ object StaticsState {
         val fromYear: Int,
         val toMonth: Int,
         val toYear: Int,
-        val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
+        val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1,
         val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
 
 
