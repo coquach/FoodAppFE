@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,6 +44,18 @@ class VouchersViewModel @Inject constructor(
                     _event.send(Vouchers.Event.OnBack)
                 }
             }
+            is Vouchers.Action.OnChangeNameSearch -> {
+                _uiState.update { it.copy(nameSearch = action.name) }
+            }
+            is Vouchers.Action.OnChangeOrder -> {
+                _uiState.update { it.copy(filter = it.filter.copy(order = action.order)) }
+            }
+            is Vouchers.Action.OnChangeSortByName -> {
+                _uiState.update { it.copy(filter = it.filter.copy(sortBy = action.sort)) }
+            }
+            Vouchers.Action.OnSearchFilter -> {
+
+            }
         }
     }
 }
@@ -50,6 +63,7 @@ class VouchersViewModel @Inject constructor(
 object Vouchers {
     data class UiState(
         val filter: VoucherFilter = VoucherFilter(),
+        val nameSearch: String = "",
     )
 
     sealed interface Event {
@@ -58,5 +72,10 @@ object Vouchers {
 
     sealed interface Action {
         data object OnBack : Action
+        data class OnChangeNameSearch(val name: String) : Action
+        data class OnChangeOrder(val order: String) : Action
+        data class OnChangeSortByName(val sort: String) : Action
+        data object OnSearchFilter : Action
+
     }
 }

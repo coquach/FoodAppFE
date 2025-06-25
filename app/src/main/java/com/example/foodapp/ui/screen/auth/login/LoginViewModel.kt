@@ -5,6 +5,7 @@ import androidx.credentials.Credential
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
+import com.example.foodapp.domain.use_case.auth.LogOutUseCase
 import com.example.foodapp.domain.use_case.auth.LoginByEmailUseCase
 import com.example.foodapp.domain.use_case.auth.LoginByGoogleUseCase
 import com.example.foodapp.ui.screen.components.validateField
@@ -22,6 +23,7 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val loginByEmailUseCase: LoginByEmailUseCase,
     private val loginByGoogleUseCase: LoginByGoogleUseCase,
+    private val logOutUseCase: LogOutUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(Login.UiState())
@@ -114,14 +116,7 @@ class LoginViewModel @Inject constructor(
 
                         is FirebaseResult.Success -> {
                             _uiState.update { it.copy(loading = false) }
-                            val role = result.data
-                            Log.d("LoginViewModel", "Login successful with role: $role")
-                            when (role) {
-                                "admin" -> _event.send(Login.Event.NavigateToAdmin)
-                                "staff" -> _event.send(Login.Event.NavigateToStaff)
-                                "customer" -> _event.send(Login.Event.NavigateToCustomer)
-                                "shipper" -> _event.send(Login.Event.NavigateToShipper)
-                            }
+                           _event.send(Login.Event.NavigateToHome)
                         }
 
                         is FirebaseResult.Failure -> {
@@ -146,7 +141,7 @@ class LoginViewModel @Inject constructor(
 
                     is FirebaseResult.Success -> {
                         _uiState.update { it.copy(loading = false) }
-                        _event.send(Login.Event.NavigateToCustomer)
+                        _event.send(Login.Event.NavigateToHome)
                     }
 
                     is FirebaseResult.Failure -> {
@@ -157,8 +152,12 @@ class LoginViewModel @Inject constructor(
             }
 
         }
-    }
 
+
+    }
+    fun logOut() {
+        logOutUseCase.invoke()
+    }
 
 }
 
@@ -176,10 +175,7 @@ object Login {
 
     sealed interface Event {
         data object NavigateSignUp : Event
-        data object NavigateToAdmin : Event
-        data object NavigateToStaff : Event
-        data object NavigateToCustomer : Event
-        data object NavigateToShipper: Event
+        data object NavigateToHome : Event
         data object NavigateForgot : Event
         data object ShowError : Event
     }

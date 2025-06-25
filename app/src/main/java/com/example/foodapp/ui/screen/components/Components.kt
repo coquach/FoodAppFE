@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -74,10 +75,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -136,7 +139,6 @@ fun FoodAppTextField(
     suffix: @Composable (() -> Unit)? = null,
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
-    errorText: String? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -480,20 +482,12 @@ fun HeaderDefaultView(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (onBack != null) {
-            IconButton(
+            IconCustomButton(
                 onClick = onBack,
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(40.dp) // size to rộng xíu cho dễ bấm
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    imageVector = onBackIcon,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp) // icon nhỏ hơn để căn giữa trong button
-                )
-            }
+                icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                containerColor = Color.Transparent,
+                iconColor = MaterialTheme.colorScheme.primary
+            )
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
         }
@@ -508,23 +502,14 @@ fun HeaderDefaultView(
             textAlign = TextAlign.Center
         )
 
-        if (icon != null) {
-            IconButton(
-                onClick = { iconClick?.invoke() },
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .size(40.dp) // size to rộng xíu cho dễ bấm
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp),
-                    tint = tintIcon
+        if (icon != null && iconClick != null) {
+            IconCustomButton(
+                onClick = iconClick,
+                icon = icon,
+                containerColor = MaterialTheme.colorScheme.background,
+                iconColor = tintIcon,
 
                 )
-            }
 
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
@@ -533,6 +518,36 @@ fun HeaderDefaultView(
     }
 
 
+}
+
+@Composable
+fun IconCustomButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    icon: ImageVector,
+    iconColor: Color = MaterialTheme.colorScheme.onPrimary,
+) {
+    IconButton(
+        onClick = {
+            onClick.invoke()
+        },
+        modifier = modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(color = containerColor)
+            .padding(4.dp),
+
+
+        ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier
+                .size(28.dp)
+        )
+    }
 }
 
 @Composable
@@ -828,14 +843,33 @@ fun <T : Any> LazyPagingSample(
     items: LazyPagingItems<T>,
     textNothing: String,
     iconNothing: ImageVector,
+    onRetry: (() -> Unit)? = null,
     columns: Int = 1,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable (T) -> Unit,
 
     ) {
+    val coroutineScope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
     val loadState = items.loadState
-
-    Box(modifier = modifier) {
+    val isScrolledToTop by remember { derivedStateOf {
+        lazyListState.firstVisibleItemIndex == 0
+                && lazyListState.firstVisibleItemScrollOffset == 0
+    } }
+    val pullState = rememberPullToRefreshState()
+    Box(modifier = modifier.pullToRefresh(
+        state = pullState,
+        isRefreshing = isRefreshing,
+        onRefresh = {
+          coroutineScope.launch {
+              isRefreshing = true
+              delay(1000L)
+              isRefreshing = false
+          }
+        },
+        enabled = isScrolledToTop
+    )) {
         when {
             // 1. Lỗi khi load lần đầu
             loadState.refresh is LoadState.Error -> {
@@ -869,6 +903,7 @@ fun <T : Any> LazyPagingSample(
             // 4. Bình thường: hiển thị danh sách
             else -> {
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Top
                 ) {
@@ -909,6 +944,11 @@ fun <T : Any> LazyPagingSample(
                 }
             }
         }
+        Indicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            isRefreshing = isRefreshing,
+            state = pullState
+        )
     }
 
 

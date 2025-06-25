@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -156,7 +157,8 @@ fun SearchField(
                                         Icon(
                                             imageVector = Icons.Default.ArrowDownward,
                                             contentDescription = null,
-                                            modifier = Modifier.size(12.dp)
+                                            modifier = Modifier.size(12.dp),
+                                            tint = MaterialTheme.colorScheme.primary
                                         )
                                     } else {
                                         Icon(
@@ -176,7 +178,7 @@ fun SearchField(
                 DropdownMenuItem(
                     text = {
                         ChipsGroupWrap(
-                            modifier = Modifier.padding(3.dp),
+                            modifier = Modifier.padding(2.dp),
                             text = "Sắp xếp",
                             options = filters,
                             selectedOption = filterSelected,

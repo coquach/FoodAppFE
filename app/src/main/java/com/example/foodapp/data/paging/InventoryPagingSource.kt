@@ -21,6 +21,8 @@ class InventoryPagingSource @Inject constructor(
             inventoryApi.getInventories(
                 page = page,
                 size = size,
+                sortBy = filter.sortBy,
+                order = filter.order,
                 ingredientId = filter.ingredientId,
                 isExpired = filter.isExpired,
                 isOutOfStock = filter.isOutOfStock

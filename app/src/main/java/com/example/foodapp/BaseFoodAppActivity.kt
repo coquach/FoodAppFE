@@ -56,11 +56,12 @@ abstract class BaseFoodAppActivity : ComponentActivity() {
             }
 
         }
-        super.onCreate(savedInstanceState)
         CoroutineScope(Dispatchers.IO).launch {
             delay(2000L)
             showSplashScreen = false
         }
+        super.onCreate(savedInstanceState)
+
         processIntent(intent, viewModel)
     }
 
@@ -77,8 +78,6 @@ abstract class BaseFoodAppActivity : ComponentActivity() {
             viewModel.navigateToNotification()
             intent.removeExtra("type")
         }
-        intent.data?.let { uri ->
-            viewModel.handleDeeplink(uri)
-        }
+
     }
 }

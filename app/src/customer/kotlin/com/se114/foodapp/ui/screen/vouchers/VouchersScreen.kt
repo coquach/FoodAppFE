@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -34,8 +35,9 @@ fun VouchersScreen(
     navController: NavController,
     viewModel: VouchersViewModel = hiltViewModel(),
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
-    var search by remember { mutableStateOf("") }
+
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -70,8 +72,33 @@ fun VouchersScreen(
 
                 )
             SearchField(
-                searchInput = search,
-                searchChange = { search = it }
+                searchInput = uiState.nameSearch,
+                searchChange = {
+                    viewModel.onAction(Vouchers.Action.OnChangeNameSearch(it))
+                },
+                searchFilter = {
+                    viewModel.onAction(Vouchers.Action.OnSearchFilter)
+                },
+                switchState = uiState.filter.order == "desc",
+                switchChange = {
+                    when (it) {
+                        true -> viewModel.onAction(Vouchers.Action.OnChangeOrder("desc"))
+                        false -> viewModel.onAction(Vouchers.Action.OnChangeOrder("asc"))
+                    }
+                } ,
+                filterChange = {
+                    when (it) {
+                        "Giá trị" -> viewModel.onAction(Vouchers.Action.OnChangeSortByName("value"))
+                        "Số lượng" -> viewModel.onAction(Vouchers.Action.OnChangeSortByName("quantity"))
+                    }
+                },
+                filters = listOf("Giá trị", "Số lượng"),
+                filterSelected = when (uiState.filter.sortBy) {
+                    "value" -> "Giá trị"
+                    "quantity" -> "Số lượng"
+                    else -> "Giá trị"
+                },
+                placeHolder = "Tìm kiếm theo tên voucher..."
             )
 
         }

@@ -37,11 +37,9 @@ class AddressListViewModel @Inject constructor(
     private val _event = Channel<AddressList.Event>()
     val event = _event.receiveAsFlow()
 
-    init {
-        getAddress()
-    }
 
-    private fun getAddress() {
+
+     fun getAddress() {
         viewModelScope.launch {
             getAddressUseCase().collect { result ->
                 when (result) {

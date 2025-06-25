@@ -1,10 +1,12 @@
-package com.example.foodapp.ui.screen.auth.forgot_password.change_password
+package com.se114.foodapp.ui.screen.setting.security.change_password
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,19 +20,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +39,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,30 +47,29 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.navigation.Auth
-import com.example.foodapp.navigation.Login
 import com.example.foodapp.navigation.ResetPasswordSuccess
-import com.example.foodapp.ui.screen.auth.signup.SignUp
-import com.example.foodapp.ui.screen.components.BasicDialog
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.PasswordTextField
 import com.example.foodapp.ui.theme.FoodAppTheme
+import com.se114.foodapp.ui.screen.setting.security.SecurityState
 
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangePasswordScreen(
     navController: NavController,
-    viewModel: ChangePasswordViewModel = hiltViewModel()
+    viewModel: ChangePasswordViewModel = hiltViewModel(),
 ) {
-val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showErrorSheet by remember { mutableStateOf(false) }
+    var showDialogReAuthenticate by remember { mutableStateOf(false) }
 
 
-val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collectLatest {
             when (it) {
@@ -79,9 +77,7 @@ val lifecycleOwner = LocalLifecycleOwner.current
                     navController.navigate(ResetPasswordSuccess)
                 }
 
-                ChangePasswordState.Event.NavigateToAuth ->{
-                    navController.popBackStack(route = Auth, inclusive = false)
-                }
+
                 ChangePasswordState.Event.ShowError -> {
                     showErrorSheet = true
                 }
@@ -125,29 +121,29 @@ val lifecycleOwner = LocalLifecycleOwner.current
             ) {
                 PasswordTextField(
                     modifier = Modifier.fillMaxWidth(),
-                    value = uiState.password,
+                    value = uiState.newPassword,
                     onValueChange = {
-                        viewModel.onAction(ChangePasswordState.Action.OnPasswordChanged(it))
+                        viewModel.onAction(ChangePasswordState.Action.OnNewPasswordChanged(it))
                     },
-                    errorMessage = uiState.passwordError,
+                    errorMessage = uiState.newPasswordError,
                     validate = {
-                        viewModel.validate("password")
+                        viewModel.validate("newPassword")
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Next
                     ),
-                    label = stringResource(R.string.password)
+                    label = stringResource(R.string.newPassword)
                 )
                 PasswordTextField(
                     modifier = Modifier.fillMaxWidth(),
-                    value = uiState.confirmPassword,
+                    value = uiState.confirmNewPassword,
                     onValueChange = {
-                        viewModel.onAction(ChangePasswordState.Action.OnConfirmPasswordChanged(it))
+                        viewModel.onAction(ChangePasswordState.Action.OnConfirmNewPasswordChanged(it))
                     },
-                    errorMessage = uiState.confirmPasswordError,
+                    errorMessage = uiState.confirmNewPasswordError,
                     validate = {
-                        viewModel.validate("confirmPassword")
+                        viewModel.validate("confirmNewPassword")
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Password,
@@ -155,17 +151,14 @@ val lifecycleOwner = LocalLifecycleOwner.current
                     ),
                     label = stringResource(R.string.confirm_password)
                 )
-
-
-
-                LoadingButton(
+                AppButton(
                     modifier = Modifier.fillMaxWidth(),
+                    text = "Lưu",
                     onClick = {
-                        viewModel.onAction(ChangePasswordState.Action.ResetPassword)
+                        showDialogReAuthenticate = true
                     },
-                    text = "Xác nhận",
-                    loading = uiState.isLoading,
-                    enabled = uiState.isValid
+                    enable = uiState.isValid
+
                 )
 
 
@@ -174,6 +167,88 @@ val lifecycleOwner = LocalLifecycleOwner.current
         }
 
 
+    }
+    if (showDialogReAuthenticate) {
+        Dialog(
+            onDismissRequest = {
+                showDialogReAuthenticate = false
+            },
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(18.dp)
+                    )
+                    .padding(25.dp)
+
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+
+
+                    Text(
+                        text = "Xác thực đăng nhập",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    FoodAppTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = uiState.email,
+                        onValueChange = {
+                            viewModel.onAction(ChangePasswordState.Action.OnEmailChanged(it))
+                        },
+                        labelText = stringResource(R.string.email),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+                    FoodAppTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = uiState.password,
+                        onValueChange = {
+                            viewModel.onAction(ChangePasswordState.Action.OnPasswordChanged(it))
+                        },
+                        labelText = stringResource(R.string.password),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                    )
+
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                    ) {
+                        AppButton(
+                            onClick = {
+                                showDialogReAuthenticate = false
+                            },
+                            backgroundColor = MaterialTheme.colorScheme.outline,
+                            text = "Đóng",
+                            enable = !uiState.isLoading
+                        )
+
+                        LoadingButton(
+                            onClick = {
+                                viewModel.onAction(ChangePasswordState.Action.ReAuthenticate)
+                            },
+                            loading = uiState.isLoading,
+                            enabled = uiState.email.isNotBlank() && uiState.password.isNotBlank(),
+                            text = "Xác nhận",
+
+                            )
+                    }
+                }
+            }
+        }
     }
     if (showErrorSheet) {
         ErrorModalBottomSheet(

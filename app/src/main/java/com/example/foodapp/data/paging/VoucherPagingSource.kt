@@ -29,6 +29,8 @@ class VoucherPagingSource @Inject constructor(
             if (isCustomer) {
                 voucherApi.getVouchersForCustomer(
                     page = page, size = size,
+                    order = filter.order,
+                    sortBy = filter.sortBy,
                     minQuantity = filter.minQuantity,
                     maxQuantity = filter.maxQuantity,
                     type = filter.type,
@@ -38,6 +40,8 @@ class VoucherPagingSource @Inject constructor(
             } else {
                 voucherApi.getVouchers(
                     page = page, size = size,
+                    order = filter.order,
+                    sortBy = filter.sortBy,
                     minQuantity = filter.minQuantity,
                     maxQuantity = filter.maxQuantity,
                     type = filter.type,

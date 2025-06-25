@@ -3,6 +3,8 @@ package com.example.foodapp.ui.screen.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -20,12 +22,12 @@ fun ValidateTextField(
     modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
-    labelText: String?=null,
+    labelText: String? = null,
     errorMessage: String?,
     validate: () -> Unit,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     maxLines: Int = 1,
-){
+) {
     val focusManager = LocalFocusManager.current
     var isTouched by remember { mutableStateOf(false) }
     FoodAppTextField(
@@ -36,7 +38,15 @@ fun ValidateTextField(
         },
         labelText = labelText,
         isError = errorMessage != null,
-        errorText = errorMessage,
+        supportingText = {
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        },
         modifier = modifier
             .fillMaxWidth()
             .onFocusChanged { focusState ->
@@ -59,7 +69,7 @@ fun ValidateTextField(
 fun validateField(
     value: String,
     errorMessage: String,
-    condition: (String) -> Boolean
+    condition: (String) -> Boolean,
 ): String? {
     return if (condition(value)) null else errorMessage
 }

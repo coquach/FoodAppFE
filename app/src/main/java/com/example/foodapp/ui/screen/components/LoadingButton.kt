@@ -33,14 +33,16 @@ fun LoadingButton(
     loading: Boolean,
     enabled: Boolean = true,
     containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    padding: PaddingValues = PaddingValues(vertical = 18.dp, horizontal = 24.dp),
 ) {
     Button(
+        modifier = modifier,
         onClick = onClick,
-        modifier = modifier.height(48.dp),
         colors = ButtonDefaults.buttonColors(containerColor = containerColor),
         enabled = enabled && !loading,
         shape = RoundedCornerShape(12.dp),
+        contentPadding = padding,
     ) {
         Box {
             AnimatedContent(

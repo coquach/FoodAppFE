@@ -47,6 +47,10 @@ fun VoucherCheckScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.getVouchers()
+    }
+
 
 
     Column(

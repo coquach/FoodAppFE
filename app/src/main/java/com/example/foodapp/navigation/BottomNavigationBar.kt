@@ -110,7 +110,7 @@ fun BottomNavigationBar(navController: NavHostController, navItems: List<BottomN
     ) {
         AnimatedNavigationBar(
             modifier = Modifier
-                .height(70.dp)
+                .height(80.dp)
                 .padding(top = 0.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
             selectedIndex = selectedIndex,
             barColor = MaterialTheme.colorScheme.primary,

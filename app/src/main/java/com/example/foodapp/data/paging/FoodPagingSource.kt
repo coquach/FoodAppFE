@@ -17,7 +17,7 @@ import java.io.IOException
 
 class FoodPagingSource(
     private val foodApi: FoodApi,
-    private val foodFilter: FoodFilter
+    private val foodFilter: FoodFilter,
 ) : ApiPagingSource<Food>() {
 
     override suspend fun fetch(
@@ -26,9 +26,23 @@ class FoodPagingSource(
     ): Flow<ApiResponse<PageResponse<Food>>> {
         return apiRequestFlow {
             if (foodFilter.menuId == null) {
-                foodApi.getFavoriteFoods(page = page, size = size, order = foodFilter.order, sortBy = foodFilter.sortBy )
+                foodApi.getFavoriteFoods(
+                    page = page,
+                    size = size,
+                    order = foodFilter.order,
+                    sortBy = foodFilter.sortBy,
+
+                )
             } else {
-                foodApi.getFoods(page = page, size = size, menuId = foodFilter.menuId, order = foodFilter.order, sortBy = foodFilter.sortBy, name = foodFilter.name, status = foodFilter.status)
+                foodApi.getFoods(
+                    page = page,
+                    size = size,
+                    menuId = foodFilter.menuId,
+                    order = foodFilter.order,
+                    sortBy = foodFilter.sortBy,
+                    name = foodFilter.name,
+                    status = foodFilter.status
+                )
             }
 
         }

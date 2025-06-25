@@ -78,15 +78,7 @@ class MainViewModel @Inject constructor(
         }
 
     }
-    fun handleDeeplink(uri: Uri) {
-        val oobCode = uri.getQueryParameter("oobCode")
-        val mode = uri.getQueryParameter("mode")
-        if (!oobCode.isNullOrBlank() && !mode.isNullOrBlank()) {
-            viewModelScope.launch {
-                _event.emit(UiEvent.NavigateToResetPassword(oobCode, mode))
-            }
-        }
-    }
+
 
 
     fun navigateToNotification() {
@@ -97,7 +89,6 @@ class MainViewModel @Inject constructor(
 
     sealed class UiEvent {
         data object NavigateToNotification: UiEvent()
-        data class NavigateToResetPassword(val oobCode: String, val mode: String) : UiEvent()
         data object NavigateToAuth : UiEvent()
 
     }

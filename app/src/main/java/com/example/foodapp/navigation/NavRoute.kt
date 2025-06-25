@@ -88,13 +88,15 @@ object SendEmailSuccess: NavRoute
 object ResetPasswordSuccess : NavRoute
 
 @Serializable
-data class ResetPassword(val oobCode: String, val mode: String) : NavRoute
-
-
-
+object ResetPassword : NavRoute
 
 @Serializable
-object Statistics : NavRoute
+object Security : NavRoute
+
+
+
+
+
 
 @Serializable
 object Warehouse : NavRoute

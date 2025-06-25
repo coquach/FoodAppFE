@@ -1,12 +1,8 @@
 package com.se114.foodapp.navigation.auth
 
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
-import androidx.navigation.navigation
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.Login
 import com.example.foodapp.navigation.Profile
@@ -16,8 +12,8 @@ import com.example.foodapp.navigation.SendEmail
 import com.example.foodapp.navigation.SendEmailSuccess
 import com.example.foodapp.navigation.SignUp
 import com.example.foodapp.ui.screen.auth.AuthScreen
-import com.example.foodapp.ui.screen.auth.forgot_password.change_password.ChangePasswordScreen
-import com.example.foodapp.ui.screen.auth.forgot_password.reset_success.ResetPassSuccessScreen
+import com.se114.foodapp.ui.screen.setting.security.change_password.ChangePasswordScreen
+import com.se114.foodapp.ui.screen.setting.security.reset_success.ResetPassSuccessScreen
 import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailScreen
 import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailSuccessScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen

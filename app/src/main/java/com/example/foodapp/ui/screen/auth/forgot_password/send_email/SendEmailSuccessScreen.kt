@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +32,8 @@ import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.navigation.Auth
 import androidx.core.net.toUri
+import com.example.foodapp.navigation.Login
+import com.example.foodapp.ui.screen.components.AppButton
 import com.google.android.gms.common.wrappers.Wrappers.packageManager
 
 @Composable
@@ -64,39 +67,28 @@ fun SendEmailSuccessScreen(
             color = MaterialTheme.colorScheme.outline,
             textAlign = TextAlign.Center
         )
-        Button(
+        AppButton(
             onClick = {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_EMAIL, "addresses")
-                    putExtra(Intent.EXTRA_SUBJECT, "subject")
-                    putExtra(Intent.EXTRA_STREAM, "attachment")
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = "mailto:".toUri()
                 }
-                if (intent.resolveActivity(context.packageManager) != null) {
-                    context.startActivity(intent)
-                }
+                context.startActivity(intent)
                },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
-            shape = RoundedCornerShape(16.dp),
-            contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
-
-        ) {
-            Text(text = "Kiểm tra email", style = MaterialTheme.typography.bodyMedium)
-        }
-        Button(
+            text = "Kiểm tra email",
+            modifier = Modifier.fillMaxWidth()
+        )
+        AppButton(
             onClick = {
-                navController.navigate(Auth) {
+                navController.navigate(Login) {
                     popUpTo(navController.graph.startDestinationId) {
                         inclusive = true
                     }
                     launchSingleTop = true
                 }
             },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline, contentColor = MaterialTheme.colorScheme.onPrimary),
-            shape = RoundedCornerShape(16.dp),
-            contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
-        ) {
-            Text(text = "Trở về", style = MaterialTheme.typography.bodyMedium)
-        }
+            text = "Quay lại đăng nhập",
+            backgroundColor = MaterialTheme.colorScheme.outline,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }

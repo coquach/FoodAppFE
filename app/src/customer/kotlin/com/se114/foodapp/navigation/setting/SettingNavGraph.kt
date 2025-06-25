@@ -6,12 +6,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.foodapp.navigation.AddAddress
 import com.example.foodapp.navigation.MyAddressList
+import com.example.foodapp.navigation.Security
 import com.example.foodapp.navigation.Setting
 import com.example.foodapp.navigation.VoucherPublic
 import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.address.AddressListScreen
 import com.se114.foodapp.ui.screen.address.addAddress.AddAddressScreen
 import com.se114.foodapp.ui.screen.setting.SettingScreen
+import com.se114.foodapp.ui.screen.setting.security.SecurityScreen
 import com.se114.foodapp.ui.screen.vouchers.VouchersScreen
 
 
@@ -47,5 +49,10 @@ fun NavGraphBuilder.settingGraph(
             AddAddressScreen(navController)
         }
 
+    }
+    composable<Security> {
+        ScreenContainer {
+            SecurityScreen(navController)
+        }
     }
 }

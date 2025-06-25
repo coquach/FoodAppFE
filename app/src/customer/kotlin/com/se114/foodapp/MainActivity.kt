@@ -27,6 +27,7 @@ import com.example.foodapp.MainViewModel
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
+import com.example.foodapp.navigation.Login
 import com.example.foodapp.navigation.Notification
 import com.example.foodapp.navigation.ResetPassword
 import com.example.foodapp.navigation.bottomBarVisibility
@@ -86,17 +87,10 @@ class MainActivity : BaseFoodAppActivity() {
                                 }
                             }
 
-                            is MainViewModel.UiEvent.NavigateToResetPassword -> {
-                                navController.navigate(
-                                    ResetPassword(
-                                        it.oobCode,
-                                        it.mode
-                                    )
-                                )
-                            }
+
 
                             MainViewModel.UiEvent.NavigateToAuth -> {
-                                navController.navigate(Auth) {
+                                navController.navigate(Login) {
                                     popUpTo(navController.graph.startDestinationId) {
                                         inclusive = true
                                     }
@@ -131,9 +125,7 @@ class MainActivity : BaseFoodAppActivity() {
                         SharedTransitionLayout {
                             AppNavGraph(
                                 navController = navController,
-                                innerPadding = PaddingValues(
-                                    bottom = 75.dp
-                                ),
+                                innerPadding = innerPadding,
                                 startDestination = screen,
                                 isDarkMode = isDarkMode,
                                 onThemeUpdated = {

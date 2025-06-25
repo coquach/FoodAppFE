@@ -72,6 +72,9 @@ fun AddressListScreen(
             viewModel.onAction(AddressList.Action.AddAddress(it))
         }
     }
+    LaunchedEffect(Unit) {
+        viewModel.getAddress()
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
