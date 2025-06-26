@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChatKnowledgeEntry(
-    val id: Long,
-    val title: String,
-    val content: String
+    val id: Long?=null,
+    val title: String= "",
+    val content: String=""
 )

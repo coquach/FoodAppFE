@@ -101,6 +101,10 @@ fun MaterialScreen(
             }
         }
     }
+    LaunchedEffect(Unit) {
+        viewModel.getAllUnits()
+        viewModel.getAllIngredients()
+    }
 
     Column(
         modifier = Modifier
@@ -249,7 +253,7 @@ fun MaterialScreen(
                                 Retry(
                                     message = error,
                                     onClicked = {
-                                        viewModel.onAction(MaterialState.Action.RetryAllUnits)
+                                        viewModel.getAllUnits()
                                     },
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -332,7 +336,7 @@ fun MaterialScreen(
                                 Retry(
                                     message = error,
                                     onClicked = {
-                                        viewModel.onAction(MaterialState.Action.RetryAllUnits)
+                                        viewModel.getAllUnits()
                                     },
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -540,7 +544,7 @@ fun MaterialScreen(
                                 Retry(
                                     message = error,
                                     onClicked = {
-                                        viewModel.onAction(MaterialState.Action.RetryAllIngredients)
+                                        viewModel.getAllIngredients()
                                     },
                                     modifier = Modifier.fillMaxWidth().height(200.dp)
                                 )
@@ -623,7 +627,7 @@ fun MaterialScreen(
                                 Retry(
                                     message = error,
                                     onClicked = {
-                                        viewModel.onAction(MaterialState.Action.RetryAllIngredients)
+                                        viewModel.getAllIngredients()
                                     },
                                     modifier = Modifier.fillMaxWidth().height(200.dp)
                                     )

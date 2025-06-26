@@ -41,8 +41,8 @@ abstract class BaseFoodAppActivity : ComponentActivity() {
                     0.8f,
                     0f
                 )
-                zoomX.duration = 500
-                zoomY.duration = 500
+                zoomX.duration = 500L
+                zoomY.duration = 500L
                 zoomX.interpolator = OvershootInterpolator()
                 zoomY.interpolator = OvershootInterpolator()
                 zoomX.doOnEnd {
@@ -56,11 +56,12 @@ abstract class BaseFoodAppActivity : ComponentActivity() {
             }
 
         }
+        super.onCreate(savedInstanceState)
         CoroutineScope(Dispatchers.IO).launch {
             delay(2000L)
             showSplashScreen = false
         }
-        super.onCreate(savedInstanceState)
+
 
         processIntent(intent, viewModel)
     }

@@ -72,16 +72,11 @@ class ImportDetailsViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         PagingData.empty()
     )
-    val staffs: StateFlow<PagingData<Staff>> = getStaffUseCase.invoke(StaffFilter()).cachedIn(viewModelScope).stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        PagingData.empty()
-    )
-    init {
-        getIngredients()
-    }
 
-    private fun getIngredients() {
+
+
+
+    fun getIngredients() {
         viewModelScope.launch(Dispatchers.IO) {
             getIngredientUseCase.invoke().catch {  }.collect { response ->
                 when (response) {

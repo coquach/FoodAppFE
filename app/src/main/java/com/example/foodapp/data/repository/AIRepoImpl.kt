@@ -5,8 +5,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.apiRequestFlow
+import com.example.foodapp.data.dto.request.ChatKnowledgeEntryRequest
 import com.example.foodapp.data.dto.request.ChatMessageRequest
 import com.example.foodapp.data.dto.request.IntentTypeRequest
+import com.example.foodapp.data.model.ChatKnowledgeEntry
 import com.example.foodapp.data.model.ChatMessage
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.IntentType
@@ -20,6 +22,32 @@ import javax.inject.Inject
 class AIRepoImpl @Inject constructor(
     private val aiApi: AiApi
 ) : AIRepository {
+    override fun getChatKnowledgeEntry(): Flow<ApiResponse<List<ChatKnowledgeEntry>>> {
+        return apiRequestFlow {
+            aiApi.getChatKnowledgeEntry()
+        }
+    }
+
+    override fun createChatKnowledgeEntry(request: ChatKnowledgeEntryRequest): Flow<ApiResponse<ChatKnowledgeEntry>> {
+        return apiRequestFlow {
+            aiApi.createChatKnowledgeEntry(request)
+        }
+    }
+
+    override fun updateChatKnowledgeEntry(
+        id: Long,
+        request: ChatKnowledgeEntryRequest,
+    ): Flow<ApiResponse<ChatKnowledgeEntry>> {
+        return apiRequestFlow {
+            aiApi.updateChatKnowledgeEntry(id, request)
+        }
+    }
+    override fun deleteChatKnowledgeEntry(id: Long): Flow<ApiResponse<Unit>> {
+        return apiRequestFlow {
+            aiApi.deleteChatKnowledgeEntry(id)
+        }
+    }
+
     override fun getAllMessageChat(): Flow<PagingData<ChatMessage>> {
         return Pager(
             config = PagingConfig(

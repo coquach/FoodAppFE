@@ -72,7 +72,7 @@ class FavoriteViewModel @Inject constructor(
                     _event.send(FavoriteState.Event.NavigateToDetail(action.food))
                 }}
             is FavoriteState.Action.OnChangeNameSearch -> {
-                _uiState.update { it.copy(nameSearch = action.name, foodFilter = it.foodFilter.copy(name = action.name)) }
+                _uiState.update { it.copy(nameSearch = action.name) }
             }
             is FavoriteState.Action.OnMenuClicked -> {
                 _uiState.update { it.copy(foodFilter = it.foodFilter.copy(menuId = action.id), menuName = action.name) }

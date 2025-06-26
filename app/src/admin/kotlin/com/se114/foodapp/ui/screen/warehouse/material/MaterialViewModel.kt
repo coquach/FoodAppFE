@@ -58,12 +58,9 @@ class MaterialViewModel @Inject constructor(
     private val _event = Channel<MaterialState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    init{
-        getAllUnits()
-        getAllIngredients()
-    }
 
-    private fun getAllUnits() {
+
+    fun getAllUnits() {
         viewModelScope.launch {
             combine(
                 getActiveUnitsUseCase.invoke(),
@@ -93,7 +90,7 @@ class MaterialViewModel @Inject constructor(
         }
     }
 
-    private fun getAllIngredients() {
+    fun getAllIngredients() {
         viewModelScope.launch {
             combine(
                 getActiveIngredientsUseCase.invoke(),
@@ -515,13 +512,7 @@ class MaterialViewModel @Inject constructor(
                     )
                 }
             }
-            MaterialState.Action.RetryAllIngredients -> {
-                getAllIngredients()
 
-            }
-            MaterialState.Action.RetryAllUnits -> {
-                getAllUnits()
-            }
 
         }
     }
@@ -603,8 +594,7 @@ object MaterialState {
             val isActive: Boolean,
             val isUnit: Boolean,
         ) : Action
-        data object RetryAllUnits : Action
-        data object RetryAllIngredients : Action
+
 
 
     }

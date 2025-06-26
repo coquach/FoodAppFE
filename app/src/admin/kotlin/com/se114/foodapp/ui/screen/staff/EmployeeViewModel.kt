@@ -3,26 +3,17 @@ package com.se114.foodapp.ui.screen.staff
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.dto.filter.StaffFilter
-import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.Staff
-import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
-import com.example.foodapp.utils.TabCacheManager
 import com.se114.foodapp.domain.use_case.staff.DeleteStaffUseCase
 import com.se114.foodapp.ui.screen.staff.EmployeeSate.Event.GoToDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,33 +33,7 @@ class EmployeeViewModel @Inject constructor(
     private val _event = Channel<EmployeeSate.Event>()
     val event get() = _event.receiveAsFlow()
 
-
-
-    val staffsTabManager = TabCacheManager<Int, Staff>(
-        scope = viewModelScope,
-        getFilter = { tabIndex ->
-            val status = getStaffStatusForTab(tabIndex)
-            _uiState.value.staffFilter.copy(status = status)
-        },
-        loadData = { filter ->
-            getStaffUseCase(filter as StaffFilter)
-        }
-    )
-
-    fun getStaffsFlow(tabIndex: Int){
-        return staffsTabManager.getFlowForTab(tabIndex)
-    }
-
-
-
-
-    private fun getStaffStatusForTab(tabIndex: Int): Boolean? {
-        return when (tabIndex) {
-            0 -> true
-            1-> false
-            else -> null
-        }
-    }
+    val staffs = getStaffUseCase(_uiState.value.staffFilter)
 
     private fun deleteStaff() {
         viewModelScope.launch {
@@ -107,16 +72,19 @@ class EmployeeViewModel @Inject constructor(
             }
 
             is EmployeeSate.Action.OnRefresh -> {
-                staffsTabManager.refreshAllTabs()
-                getStaffsFlow(_uiState.value.tabIndex)
+
             }
 
             is EmployeeSate.Action.OnStaffSelected -> {
                 _uiState.update { it.copy(staffSelected = action.staff) }
             }
 
-            is EmployeeSate.Action.OnTabSelected -> {
-                _uiState.update { it.copy(tabIndex = action.index) }
+            is EmployeeSate.Action.OnChangeStatusFilter -> {
+                _uiState.update {
+                    it.copy(
+                        staffFilter = it.staffFilter.copy(status = action.status)
+                    )
+                }
             }
 
             is EmployeeSate.Action.OnStaffClicked -> {
@@ -130,6 +98,26 @@ class EmployeeViewModel @Inject constructor(
                     _event.send(EmployeeSate.Event.GoToAddStaff)
                 }
             }
+            is EmployeeSate.Action.OnSortByChange -> {
+                _uiState.update {
+                    it.copy(
+                        staffFilter = it.staffFilter.copy(sortBy = action.sortBy)
+                    )}}
+            is EmployeeSate.Action.OnOrderChange -> {
+                _uiState.update {
+                    it.copy(
+                        staffFilter = it.staffFilter.copy(order = action.order)
+                    )}}
+            is EmployeeSate.Action.OnNameSearchChange -> {
+                _uiState.update {
+                    it.copy(
+                        nameSearch = action.nameSearch
+                    )}}
+            EmployeeSate.Action.OnSearchFilter -> {
+                _uiState.update {
+                    it.copy(
+                        staffFilter = it.staffFilter.copy(fullName = _uiState.value.nameSearch)
+                    )}}
         }
     }
 }
@@ -137,10 +125,10 @@ class EmployeeViewModel @Inject constructor(
 object EmployeeSate {
     data class UiState(
         val staffFilter: StaffFilter = StaffFilter(),
-        val tabIndex: Int = 0,
         val isLoading: Boolean = false,
         val error: String? = null,
         val staffSelected: Staff? = null,
+        val nameSearch: String = "",
     )
 
     sealed interface Event {
@@ -152,8 +140,12 @@ object EmployeeSate {
     }
 
     sealed interface Action {
+        data class OnNameSearchChange(val nameSearch: String) : Action
+        data object OnSearchFilter : Action
+        data class OnOrderChange(val order: String) : Action
+        data class OnSortByChange(val sortBy: String) : Action
         data class OnStaffClicked(val staff: Staff) : Action
-        data class OnTabSelected(val index: Int) : Action
+        data class OnChangeStatusFilter(val status: Boolean) : Action
         data class OnStaffSelected(val staff: Staff) : Action
         data object OnDeleteStaff : Action
         data object OnRefresh : Action

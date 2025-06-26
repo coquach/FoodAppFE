@@ -115,34 +115,39 @@ fun SecurityScreen(
         if (uiState.isGoogleVerified) {
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                shape = RoundedCornerShape(18.dp),
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         "Tài khoản của bạn được đăng nhập bằng Google.",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.confirm
                     )
                     Text(
                         "Nếu muốn cài đặt bảo mật, hãy mở trang quản lý Google.",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     AppButton(
+
                         onClick = {
                             val intent = Intent(Intent.ACTION_VIEW).apply {
                                 data = "https://myaccount.google.com/security".toUri()
                             }
                             context.startActivity(intent)
                         },
-                        text = "Cài đặt bảo mật"
+                        text = "Cài đặt bảo mật",
+                        shape = RoundedCornerShape(25.dp)
                     )
                 }
             }

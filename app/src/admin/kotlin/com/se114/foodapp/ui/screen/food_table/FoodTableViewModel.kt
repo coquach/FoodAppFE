@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,29 +47,6 @@ class FoodTableViewModel @Inject constructor(
     private val _event = Channel<FoodTableState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val foodTablesTabManager = TabCacheManager<Int, FoodTable>(
-        scope = viewModelScope,
-        getFilter = { tabIndex ->
-            val status = getFoodTableStatusForTab(tabIndex)
-            _uiState.value.foodTableFilter.copy(active = status)
-        },
-        loadData = { filter ->
-            getFoodTablesUseCase(filter as FoodTableFilter)
-        }
-    )
-
-    fun getFoodTablesFlow(tabIndex: Int) {
-        return foodTablesTabManager.getFlowForTab(tabIndex)
-    }
-
-
-    private fun getFoodTableStatusForTab(tabIndex: Int): Boolean? {
-        return when (tabIndex) {
-            0 -> true
-            1 -> false
-            else -> null
-        }
-    }
 
     private fun createFoodTable() {
         viewModelScope.launch {
@@ -242,15 +220,21 @@ class FoodTableViewModel @Inject constructor(
             }
 
             FoodTableState.Action.OnRefresh -> {
-                foodTablesTabManager.refreshAllTabs()
-                getFoodTablesFlow(_uiState.value.tabIndex)
-            }
-
-            is FoodTableState.Action.OnTabSelected -> {
                 _uiState.update {
                     it.copy(
-                        tabIndex = action.tabIndex
+                        foodTableFilter = it.foodTableFilter.copy(
+                            forceRefresh = UUID.randomUUID().toString()
+                        )
                     )
+                }
+            }
+
+            is FoodTableState.Action.OnStatusFilterChange -> {
+                _uiState.update {
+                    it.copy(
+                        foodTableFilter = it.foodTableFilter.copy(
+                            active = action.status
+                        ))
                 }
             }
         }
@@ -285,7 +269,7 @@ object FoodTableState {
         data object OnUpdate : Action
         data object OnSetActive : Action
         data object OnRefresh : Action
-        data class OnTabSelected(val tabIndex: Int) : Action
+        data class OnStatusFilterChange(val status: Boolean) : Action
 
     }
 }

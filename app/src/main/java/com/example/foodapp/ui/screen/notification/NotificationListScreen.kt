@@ -66,7 +66,7 @@ fun NotificationListScreen(
         }
     }
     LaunchedEffect(Unit) {
-        viewModel.onAction(NotificationState.Action.Retry)
+        viewModel.getNotifications()
     }
     LaunchedEffect(state.notifications.size) {
         if (state.notifications.isNotEmpty()) {
@@ -189,7 +189,7 @@ fun NotificationItem(notification: Notification, onRead: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(
                 if (notification.read) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f) else MaterialTheme.colorScheme.inversePrimary
             )

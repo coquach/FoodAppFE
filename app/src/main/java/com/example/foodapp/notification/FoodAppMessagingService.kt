@@ -46,7 +46,7 @@ class FoodAppMessagingService : FirebaseMessagingService() {
             this,
             1,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val notificationChannelType: FoodAppNotificationManager.NotificationChannelType = when (type) {
             "order" -> FoodAppNotificationManager.NotificationChannelType.ORDER

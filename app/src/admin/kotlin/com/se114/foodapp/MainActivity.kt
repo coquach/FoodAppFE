@@ -88,9 +88,7 @@ class MainActivity : BaseFoodAppActivity() {
 
                             }
 
-                            is MainViewModel.UiEvent.NavigateToResetPassword -> {
-                                
-                            }
+
 
                             MainViewModel.UiEvent.NavigateToAuth -> {
                                 navController.navigate(Auth) {

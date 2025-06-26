@@ -105,7 +105,7 @@ fun ImportDetailsScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val suppliers = viewModel.suppliers.collectAsLazyPagingItems()
-    val staffs = viewModel.staffs.collectAsLazyPagingItems()
+
 
 
     val totalCost by remember {
@@ -165,6 +165,9 @@ fun ImportDetailsScreen(
                 }
             }
         }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.getIngredients()
     }
     Column(
         modifier = Modifier

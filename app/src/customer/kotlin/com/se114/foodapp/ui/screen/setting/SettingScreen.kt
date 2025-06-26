@@ -192,7 +192,7 @@ fun SettingScreen(
                             viewModel.onAction(Setting.Action.OnSecurityClicked)
                         })
                         SettingItem(Icons.Default.LocationOn, "Địa chỉ", onClick = {viewModel.onAction(Setting.Action.OnAddressClicked)})
-                        SettingItem(Icons.Default.CardGiftcard, "Voucher của tôi", onClick = {viewModel.onAction(Setting.Action.OnVoucherClicked)})
+                        SettingItem(Icons.Default.CardGiftcard, "Voucher", onClick = {viewModel.onAction(Setting.Action.OnVoucherClicked)})
                     }
                 )
             )

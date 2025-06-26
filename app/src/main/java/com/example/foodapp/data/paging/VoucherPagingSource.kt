@@ -9,6 +9,7 @@ import com.example.foodapp.data.dto.response.PageResponse
 
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.remote.main_api.VoucherApi
+import com.example.foodapp.utils.StringUtils
 import kotlinx.coroutines.flow.Flow
 
 import kotlinx.coroutines.flow.first
@@ -34,8 +35,8 @@ class VoucherPagingSource @Inject constructor(
                     minQuantity = filter.minQuantity,
                     maxQuantity = filter.maxQuantity,
                     type = filter.type,
-                    startDate = filter.startDate,
-                    endDate = filter.endDate
+                    startDate = StringUtils.formatLocalDate(filter.startDate),
+                    endDate = StringUtils.formatLocalDate(filter.endDate)
                 )
             } else {
                 voucherApi.getVouchers(
@@ -45,8 +46,8 @@ class VoucherPagingSource @Inject constructor(
                     minQuantity = filter.minQuantity,
                     maxQuantity = filter.maxQuantity,
                     type = filter.type,
-                    startDate = filter.startDate,
-                    endDate = filter.endDate
+                    startDate = StringUtils.formatLocalDate(filter.startDate),
+                    endDate = StringUtils.formatLocalDate(filter.endDate)
                 )
             }
         }

@@ -10,6 +10,7 @@ import com.example.foodapp.data.dto.response.PageResponse
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.data.paging.ApiPagingSource
 import com.example.foodapp.data.remote.main_api.ImportApi
+import com.example.foodapp.utils.StringUtils
 
 import com.se114.foodapp.data.dto.filter.ImportFilter
 import kotlinx.coroutines.flow.Flow
@@ -27,10 +28,11 @@ class ImportPagingSource(
             importApi.getImports(
                 page = page,
                 size = size,
-                staffId = filter.staffId,
+                order = filter.order,
+                sortBy = filter.sortBy,
                 supplierId = filter.supplierId,
-                startDate = filter.startDate,
-                endDate = filter.endDate,
+                startDate = StringUtils.formatLocalDate(filter.startDate),
+                endDate = StringUtils.formatLocalDate(filter.endDate),
 
             )
         }

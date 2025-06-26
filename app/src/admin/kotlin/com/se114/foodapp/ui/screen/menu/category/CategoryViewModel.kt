@@ -34,11 +34,7 @@ class CategoryViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    init {
-        getMenus()
-    }
-
-    private fun getMenus() {
+    fun getMenus() {
         viewModelScope.launch {
             getMenusUseCase(
                 status = null,

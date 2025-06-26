@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.navigation.OrderDetailsCustomer
 import com.example.foodapp.ui.screen.common.OrderListSection
+import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.TabWithPager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +61,17 @@ fun OrderListScreen(
         HeaderDefaultView(
             text = "Đơn hàng"
         )
+        DateRangePickerSample(
+            modifier = Modifier.width(170.dp),
+            startDateText = "Bắt đầu",
+            endDateText = "Kết thúc",
+            onDateRangeSelected = { startDate, endDate ->
+                viewModel.onAction(OrderList.Action.OnChangeDateFilter(startDate, endDate))
+            },
+            startDate = uiState.orderFilter.startDate,
+            endDate = uiState.orderFilter.endDate,
 
+        )
         TabWithPager(
             tabs = listOf("Sắp tới", "Lịch sử"),
             pages = listOf(

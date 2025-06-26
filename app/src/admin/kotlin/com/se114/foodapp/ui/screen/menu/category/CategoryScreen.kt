@@ -103,6 +103,10 @@ fun CategoryScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.getMenus()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()

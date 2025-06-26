@@ -42,9 +42,15 @@ class AccountRepoImpl @Inject constructor(
         return currentUser.getIdToken(false).await().token
     }
 
-    override fun isEmailVerified(): Boolean {
-        Firebase.auth.currentUser?.reload()
-        return Firebase.auth.currentUser?.isEmailVerified == true
+    override suspend fun isEmailVerified(): Boolean {
+        val user = Firebase.auth.currentUser ?: return false
+        try {
+            user.reload().await()
+            return user.isEmailVerified
+        } catch (e: Exception) {
+
+            return false
+        }
     }
 
     override fun sendVerifyEmail() {

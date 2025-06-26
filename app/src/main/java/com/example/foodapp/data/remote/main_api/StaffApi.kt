@@ -24,6 +24,7 @@ interface StaffApi {
         @Query("order") order: String = "desc",
         @Query("fullName") fullName: String? = null,
         @Query("gender") gender: String? = null,
+        @Query("status") status: Boolean = true,
     ): Response<PageResponse<Staff>>
 
     @Multipart

@@ -35,11 +35,8 @@ class NotificationViewModel @Inject constructor(
     private val _unreadCount = MutableStateFlow(0)
     val unreadCount = _unreadCount.asStateFlow()
 
-    init {
-        getNotifications()
-    }
 
-    private fun getNotifications() {
+    fun getNotifications() {
         viewModelScope.launch {
             getNotificationsUseCase.invoke().collect { response ->
                 when (response) {

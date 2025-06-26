@@ -8,6 +8,7 @@ import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.filter.VoucherFilter
 
 import com.example.foodapp.data.model.Voucher
+import com.se114.foodapp.data.dto.filter.SupplierFilter
 
 import com.se114.foodapp.domain.use_case.voucher.CreateVoucherUseCase
 import com.se114.foodapp.domain.use_case.voucher.DeleteVoucherUseCase
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,12 +45,7 @@ class VoucherListViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    val vouchers: StateFlow<PagingData<Voucher>> =
-        getVouchersUseCase(VoucherFilter()).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
+    val vouchers = getVouchersUseCase(_uiState.value.filter)
 
     private fun createVoucher() {
         viewModelScope.launch {
@@ -60,7 +57,8 @@ class VoucherListViewModel @Inject constructor(
                                 isLoading = false,
                             )
                         }
-                        _event.send(VoucherSate.Event.Refresh)
+                        _event.send(VoucherSate.Event.ShowToastSuccess("Thêm voucher thành công"))
+                        onAction(VoucherSate.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -96,7 +94,8 @@ class VoucherListViewModel @Inject constructor(
                                 isLoading = false,
                             )
                         }
-                        _event.send(VoucherSate.Event.Refresh)
+                        _event.send(VoucherSate.Event.ShowToastSuccess("Cập nhật voucher thành công"))
+                        onAction(VoucherSate.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -132,7 +131,9 @@ class VoucherListViewModel @Inject constructor(
                                     isLoading = false,
                                 )
                             }
-                            _event.send(VoucherSate.Event.Refresh)
+                            _event.send(VoucherSate.Event.ShowToastSuccess("Xóa voucher thành công"))
+                            onAction(VoucherSate.Action.OnRefresh)
+
                         }
 
                         is ApiResponse.Failure -> {
@@ -218,7 +219,7 @@ class VoucherListViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         voucherSelected = it.voucherSelected.copy(
-                            quantity = action.quantity?: 0
+                            quantity = action.quantity ?: 0
                         )
                     )
                 }
@@ -273,39 +274,88 @@ class VoucherListViewModel @Inject constructor(
                     )
                 }
             }
+
+            is VoucherSate.Action.OnRefresh -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(forceRefresh = UUID.randomUUID().toString())
+                    )
+                }
+
+            }
+
+            is VoucherSate.Action.OnNameSearch -> {
+                _uiState.update {
+                    it.copy(
+                        nameSearch = action.name
+                    )
+                }
+            }
+
+            is VoucherSate.Action.OnOrderChange -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(order = action.order)
+                    )
+                }
+            }
+
+            VoucherSate.Action.OnSearchFilter -> {}
+            is VoucherSate.Action.OnSortByChange -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(sortBy = action.sort)
+                    )
+                }
+            }
+            is VoucherSate.Action.OnDateChange -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(startDate = action.startDate, endDate = action.endDate)
+                    )
+                }
+            }
         }
+
     }
 }
 
-    object VoucherSate {
-        data class UiState(
-            val isLoading: Boolean = false,
-            val error: String? = null,
-            val voucherSelected: Voucher = Voucher(),
-            val isUpdating: Boolean = false,
-        )
+object VoucherSate {
+    data class UiState(
+        val filter: VoucherFilter = VoucherFilter(),
+        val isLoading: Boolean = false,
+        val error: String? = null,
+        val voucherSelected: Voucher = Voucher(),
+        val isUpdating: Boolean = false,
+        val nameSearch: String = "",
+    )
 
-        sealed interface Event {
-            data object OnBack : Event
-            data object ShowError : Event
-            data object Refresh : Event
-        }
-
-        sealed interface Action {
-            data object OnBack : Action
-            data class OnVoucherSelected(val voucher: Voucher) : Action
-            data class OnCodeChange(val code: String) : Action
-            data class OnValueChange(val value: Double?) : Action
-            data class OnMinOrderPriceChange(val minOrderPrice: BigDecimal?) : Action
-            data class OnMaxValueChange(val maxValue: BigDecimal?) : Action
-            data class OnQuantityChange(val quantity: Int?) : Action
-            data class OnTypeChange(val type: String) : Action
-            data class OnStartDateChange(val startDate: LocalDate?) : Action
-            data class OnEndDateChange(val endDate: LocalDate?) : Action
-            data object OnAddVoucher : Action
-            data object OnUpdateVoucher : Action
-            data object OnDeleteVoucher : Action
-            data class OnUpdateStatus(val isUpdating: Boolean) : Action
-
-        }
+    sealed interface Event {
+        data object OnBack : Event
+        data object ShowError : Event
+        data class ShowToastSuccess(val message: String) : Event
     }
+
+    sealed interface Action {
+        data object OnBack : Action
+        data class OnVoucherSelected(val voucher: Voucher) : Action
+        data class OnCodeChange(val code: String) : Action
+        data class OnValueChange(val value: Double?) : Action
+        data class OnMinOrderPriceChange(val minOrderPrice: BigDecimal?) : Action
+        data class OnMaxValueChange(val maxValue: BigDecimal?) : Action
+        data class OnQuantityChange(val quantity: Int?) : Action
+        data class OnTypeChange(val type: String) : Action
+        data class OnStartDateChange(val startDate: LocalDate?) : Action
+        data class OnEndDateChange(val endDate: LocalDate?) : Action
+        data object OnAddVoucher : Action
+        data object OnUpdateVoucher : Action
+        data object OnDeleteVoucher : Action
+        data class OnUpdateStatus(val isUpdating: Boolean) : Action
+        data object OnRefresh : Action
+        data class OnNameSearch(val name: String) : Action
+        data object OnSearchFilter : Action
+        data class OnOrderChange(val order: String) : Action
+        data class OnSortByChange(val sort: String) : Action
+        data class OnDateChange(val startDate: LocalDate?, val endDate: LocalDate?): Action
+    }
+}

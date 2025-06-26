@@ -79,11 +79,9 @@ fun SharedTransitionScope.MenuScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var search by remember { mutableStateOf("") }
 
-    val foods by viewModel.foodsTabManager.tabDataMap.collectAsStateWithLifecycle()
-    val emptyFoods =
-        MutableStateFlow<PagingData<Food>>(PagingData.empty()).collectAsLazyPagingItems()
+    val foods = viewModel.foods.collectAsLazyPagingItems()
+
 
     var showStatusDialog by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
@@ -122,21 +120,6 @@ fun SharedTransitionScope.MenuScreen(
 
     LaunchedEffect(Unit) {
         viewModel.getMenus()
-        viewModel.getFoodsFlow(1, 0)
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.foodsTabManager.refreshAllTabs()
-        }
-    }
-
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        if (handle?.get<Boolean>("shouldRefresh") == true) {
-            handle["shouldRefresh"] = false
-            viewModel.onAction(FoodListAdmin.Action.OnRefresh)
-        }
     }
 
 
@@ -178,10 +161,7 @@ fun SharedTransitionScope.MenuScreen(
         ) {
 
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+
                 HeaderDefaultView(
                     text = "Danh sách món ăn",
                     icon = Icons.Default.Category,
@@ -192,11 +172,41 @@ fun SharedTransitionScope.MenuScreen(
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 SearchField(
-                    searchInput = search,
-                    searchChange = { search = it }
+                    searchInput = uiState.nameSearch,
+                    searchChange = {
+                        viewModel.onAction(FoodListAdmin.Action.OnChangeNameSearch(it))
+                    },
+                    searchFilter = {
+                        viewModel.onAction(FoodListAdmin.Action.OnSearchFilter)
+                    },
+                    switchState = uiState.foodFilter.order == "desc",
+                    switchChange = {
+                        when(it){
+                            true -> viewModel.onAction(FoodListAdmin.Action.OnOrderChange("desc"))
+                            false -> viewModel.onAction(FoodListAdmin.Action.OnOrderChange("asc"))
+
+                        }
+                    },
+                    filterChange = {
+                        when(it){
+                            "Id" -> viewModel.onAction(FoodListAdmin.Action.OnSortByChange("id"))
+                            "Giá" -> viewModel.onAction(FoodListAdmin.Action.OnSortByChange("price"))
+                            "Số lượng" -> viewModel.onAction(FoodListAdmin.Action.OnSortByChange("remainingQuantity"))
+
+                        }
+                    },
+                    filters = listOf("Id", "Giá", "Số lượng"),
+                    filterSelected = when(uiState.foodFilter.sortBy){
+                        "id" -> "Id"
+                        "price" -> "Giá"
+                        "remainingQuantity" -> "Số lượng"
+                        else -> "Id"
+
+                    },
+                    placeHolder = "Tìm kiếm theo tên món ăn..."
                 )
 
-            }
+
 
 
             ChipsGroupWrap(
@@ -208,7 +218,6 @@ fun SharedTransitionScope.MenuScreen(
                     selectedMenu?.let {
                         viewModel.onAction(FoodListAdmin.Action.OnMenuClicked(it.id!!, it.name))
                     }
-                    viewModel.getFoodsFlow(selectedMenu!!.id!!, 0)
                 },
                 containerColor = MaterialTheme.colorScheme.inversePrimary,
                 isFlowLayout = false,
@@ -220,10 +229,7 @@ fun SharedTransitionScope.MenuScreen(
                 pages = listOf(
                     {
                         FoodList(
-                            foods = foods[TabKey(
-                                uiState.foodFilter.menuId!!,
-                                0
-                            )]?.flow?.collectAsLazyPagingItems() ?: emptyFoods,
+                            foods = foods,
                             animatedVisibilityScope = animatedVisibilityScope,
                             onItemClick = {
                                 viewModel.onAction(FoodListAdmin.Action.OnFoodClicked(it))
@@ -246,10 +252,7 @@ fun SharedTransitionScope.MenuScreen(
                     },
                     {
                         FoodList(
-                            foods = foods[TabKey(
-                                uiState.foodFilter.menuId!!,
-                                1
-                            )]?.flow?.collectAsLazyPagingItems() ?: emptyFoods,
+                            foods = foods,
                             animatedVisibilityScope = animatedVisibilityScope,
                             onItemClick = {
                                 viewModel.onAction(FoodListAdmin.Action.OnFoodClicked(it))
@@ -268,8 +271,11 @@ fun SharedTransitionScope.MenuScreen(
                         )
                     }),
                 onTabSelected = { index ->
-                    viewModel.onAction(FoodListAdmin.Action.OnTabSelected(index))
-                    viewModel.getFoodsFlow(uiState.foodFilter.menuId!!, index)
+                   when(index){
+                       0 -> viewModel.onAction(FoodListAdmin.Action.OnChangeStatusFood(true))
+                       1 -> viewModel.onAction(FoodListAdmin.Action.OnChangeStatusFood(false))
+
+                   }
                 }
             )
 

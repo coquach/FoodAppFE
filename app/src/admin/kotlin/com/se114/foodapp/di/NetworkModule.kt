@@ -1,5 +1,6 @@
 package com.se114.foodapp.di
 
+import com.example.foodapp.data.remote.AiApi
 import com.example.foodapp.data.remote.main_api.FoodTableApi
 import com.example.foodapp.data.remote.main_api.ImportApi
 import com.example.foodapp.data.remote.main_api.IngredientApi
@@ -60,5 +61,11 @@ object NetworkModule {
     @Singleton
     fun provideInventoryApi(@Named("MainApi") retrofit: Retrofit): InventoryApi {
         return retrofit.create(InventoryApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAiApi(@Named("AiApi") retrofit: Retrofit): AiApi {
+        return retrofit.create(AiApi::class.java)
     }
 }

@@ -8,7 +8,6 @@ import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.domain.use_case.food.GetFoodsByMenuIdUseCase
 import com.example.foodapp.domain.use_case.food.GetMenusUseCase
-import com.example.foodapp.utils.TabCacheManager
 import com.se114.foodapp.domain.use_case.food.ToggleStatusFoodUseCase
 import com.se114.foodapp.ui.screen.menu.FoodListAdmin.Event.GoToAddFood
 import com.se114.foodapp.ui.screen.menu.FoodListAdmin.Event.GoToUpdateFood
@@ -30,39 +29,14 @@ class FoodListAdminViewModel @Inject constructor(
     private val getMenusUseCase: GetMenusUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(FoodListAdmin.UiState(
-        foodFilter = FoodFilter(menuId = 1, status = true)
-    ))
+    private val _uiState = MutableStateFlow(FoodListAdmin.UiState())
     val uiState: StateFlow<FoodListAdmin.UiState> get() = _uiState.asStateFlow()
 
     private val _event = Channel<FoodListAdmin.Event>()
     val event get() = _event.receiveAsFlow()
 
 
-    val foodsTabManager = TabCacheManager<TabKey, Food>(
-        scope = viewModelScope,
-        getFilter = { tabKey ->
-            val status = getFoodStatusForTab(tabKey.tabIndex)
-            _uiState.value.foodFilter.copy(menuId = tabKey.menuId, status = status)
-        },
-        loadData = { filter ->
-            getFoodsByMenuIdUseCase(filter as FoodFilter)
-        }
-    )
-
-    fun getFoodsFlow(menuId: Int, tabIndex: Int) {
-        return foodsTabManager.getFlowForTab(TabKey(menuId, tabIndex))
-    }
-
-
-
-    private fun getFoodStatusForTab(tabIndex: Int): Boolean? {
-        return when (tabIndex) {
-            0 -> true
-            1 -> false
-            else -> null
-        }
-    }
+  val foods = getFoodsByMenuIdUseCase.invoke(_uiState.value.foodFilter)
 
     private fun toggleStatusFood() {
         viewModelScope.launch {
@@ -134,9 +108,7 @@ class FoodListAdminViewModel @Inject constructor(
 
             }
 
-            is FoodListAdmin.Action.OnTabSelected -> {
-                _uiState.update { it.copy(tabIndex = action.index) }
-            }
+
 
             FoodListAdmin.Action.OnAddClicked -> {
                 viewModelScope.launch {
@@ -149,9 +121,24 @@ class FoodListAdminViewModel @Inject constructor(
             }
 
             FoodListAdmin.Action.OnRefresh -> {
-                foodsTabManager.refreshAllTabs()
-                getFoodsFlow(_uiState.value.foodFilter.menuId!!, _uiState.value.tabIndex)
+
             }
+            is FoodListAdmin.Action.OnChangeNameSearch -> {
+                _uiState.update { it.copy(nameSearch = action.name) }
+            }
+            is FoodListAdmin.Action.OnOrderChange -> {
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(order = action.order)) }
+            }
+            is FoodListAdmin.Action.OnSortByChange -> {
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(sortBy = action.sortBy)) }
+            }
+            is FoodListAdmin.Action.OnSearchFilter -> {
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(name = _uiState.value.nameSearch)) }
+            }
+            is FoodListAdmin.Action.OnChangeStatusFood -> {
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(status = action.status)) }
+            }
+
 
 
         }
@@ -159,14 +146,11 @@ class FoodListAdminViewModel @Inject constructor(
 
 }
 
-data class TabKey(
-    val menuId: Int,
-    val tabIndex: Int,
-)
+
 
 object FoodListAdmin {
     data class UiState(
-        val tabIndex: Int = 0,
+        val nameSearch: String = "",
         val menuName: String ?= null,
         val foodFilter: FoodFilter = FoodFilter(),
         val isLoading: Boolean = false,
@@ -193,10 +177,14 @@ object FoodListAdmin {
     }
 
     sealed interface Action {
+        data class OnChangeStatusFood(val status: Boolean) : Action
+        data class OnOrderChange(val order: String) : Action
+        data class OnSortByChange(val sortBy: String) : Action
+        data class OnChangeNameSearch(val name: String) : Action
+        data object OnSearchFilter : Action
         data object OnToggleStatusFood : Action
         data class OnFoodClicked(val food: Food) : Action
         data class OnMenuClicked(val id: Int, val name: String) : Action
-        data class OnTabSelected(val index: Int) : Action
         data object OnAddClicked : Action
         data class OnFoodSelected(val food: Food) : Action
         data object OnRefresh : Action

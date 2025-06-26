@@ -67,9 +67,7 @@ val lifecycleOwner = LocalLifecycleOwner.current
                         ).show()
 
                     }
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("shouldRefresh", true)
+
                     navController.popBackStack()
 
                 }

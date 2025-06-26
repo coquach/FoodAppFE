@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -55,6 +56,7 @@ import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Import
 import com.example.foodapp.navigation.ImportDetails
+import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -77,20 +79,11 @@ fun ImportScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val imports = viewModel.imports.collectAsLazyPagingItems()
-    var search by remember { mutableStateOf("") }
+
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
     var isDeletable by rememberSaveable { mutableStateOf(false) }
-
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        val condition = handle?.get<Boolean>("updated") == true
-        if (condition) {
-            handle["updated"] = false
-            imports.refresh()
-        }
-    }
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -101,8 +94,12 @@ fun ImportScreen(
                     navController.navigate(ImportDetails(it.import, true))
                 }
 
-                ImportState.Event.Refresh -> {
-                    imports.refresh()
+                is ImportState.Event.ShowSuccessToast -> {
+                    Toast.makeText(
+                        context,
+                        it.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 ImportState.Event.ShowError -> {
@@ -118,7 +115,12 @@ fun ImportScreen(
                 }
 
                 ImportState.Event.AddImport -> {
-                    navController.navigate(ImportDetails(import = Import(importDate = LocalDate.now()),isUpdating = false))
+                    navController.navigate(
+                        ImportDetails(
+                            import = Import(importDate = LocalDate.now()),
+                            isUpdating = false
+                        )
+                    )
                 }
 
                 ImportState.Event.OnBack -> {
@@ -172,23 +174,54 @@ fun ImportScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
 
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                HeaderDefaultView(
-                    onBack = {
-                        viewModel.onAction(ImportState.Action.OnBack)
-                    },
-                    text = "Đơn nhập hàng",
 
-                    )
-                SearchField(
-                    searchInput = search,
-                    searchChange = { search = it }
+            HeaderDefaultView(
+                onBack = {
+                    viewModel.onAction(ImportState.Action.OnBack)
+                },
+                text = "Đơn nhập hàng",
+
                 )
+            SearchField(
+                searchInput = uiState.nameSearch,
+                searchChange = {
+                    viewModel.onAction(ImportState.Action.OnNameSearch(it))
+                },
+                searchFilter = {
+                    viewModel.onAction(ImportState.Action.OnSearchFilter)
+                },
+                switchState = uiState.filter.order == "desc",
+                switchChange = {
+                    when (it) {
+                        true -> viewModel.onAction(ImportState.Action.OnOrderChange("desc"))
+                        false -> viewModel.onAction(ImportState.Action.OnOrderChange("asc"))
+                    }
+                },
+                filterChange = {
+                    when (it) {
+                        "Id" -> viewModel.onAction(ImportState.Action.OnSortByChange("id"))
+                        "Tổng giá" -> viewModel.onAction(ImportState.Action.OnSortByChange("totalPrice"))
+                    }
+                },
+                filters = listOf("Id", "Tổng giá"),
+                filterSelected = when (uiState.filter.sortBy) {
+                    "id" -> "Id"
+                    "totalPrice" -> "Tổng giá"
+                    else -> "Id"
+                },
+                placeHolder = "Tìm kiếm theo tên nhà cung cấp..."
+            )
 
-            }
+            DateRangePickerSample(
+                modifier = Modifier.width(170.dp),
+                startDateText = "Bắt đầu",
+                endDateText = "Kết thúc",
+                startDate = uiState.filter.startDate,
+                endDate = uiState.filter.endDate,
+                onDateRangeSelected = { startDate, endDate ->
+                    viewModel.onAction(ImportState.Action.OnDateChange(startDate, endDate))
+                }
+            )
 
             LazyPagingSample(
                 modifier = Modifier
@@ -213,9 +246,10 @@ fun ImportScreen(
                             icon = rememberVectorPainter(Icons.Default.Delete),
                             background = MaterialTheme.colorScheme.error,
                             onSwipe = {
-                                isDeletable = it.importDate?.plusDays(3)?.isAfter(LocalDate.now()) == true
+                                isDeletable =
+                                    it.importDate?.plusDays(3)?.isAfter(LocalDate.now()) == true
 
-                                if(isDeletable){
+                                if (isDeletable) {
                                     viewModel.onAction(ImportState.Action.OnImportSelected(it.id!!))
                                     showDialogDelete = true
                                 } else {
@@ -337,7 +371,6 @@ fun ImportDetails(import: Import) {
                     )
                 }
             }
-
 
 
         }

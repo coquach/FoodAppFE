@@ -5,5 +5,5 @@ data class FoodFilter(
     val order: String = "desc",
     val name: String? = null,
     val status: Boolean=  true,
-    val menuId: Int ?= null,
+    val menuId: Int = 1,
 )

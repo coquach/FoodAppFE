@@ -5,5 +5,5 @@ data class StaffFilter(
     val order: String = "desc",
     val fullName: String?= null,
     val gender: String?= null,
-    val status: Boolean?=null
+    val status: Boolean= true
 )

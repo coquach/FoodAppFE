@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.supplier
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -87,12 +89,13 @@ fun SupplierScreen(
     viewModel: SupplierViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val suppliers = viewModel.getSuppliersByTab(uiState.tabIndex).collectAsLazyPagingItems()
+    val suppliers = viewModel.suppliers.collectAsLazyPagingItems()
     var showSupplierDialog by rememberSaveable { mutableStateOf(false) }
     var showSetActiveDialog by rememberSaveable { mutableStateOf(false) }
 
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
@@ -105,12 +108,13 @@ fun SupplierScreen(
                     showErrorSheet = true
                 }
 
-                SupplierState.Event.Refresh -> {
-
-                    viewModel.onAction(SupplierState.Action.OnRefresh)
-                    suppliers.refresh()
+                is SupplierState.Event.ShowToastSuccess -> {
+                    Toast.makeText(
+                        context,
+                        it.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-
             }
         }
     }
@@ -226,7 +230,10 @@ fun SupplierScreen(
                 ),
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 onTabSelected = {
-                    viewModel.onAction(SupplierState.Action.OnTabSelected(it))
+                    when (it) {
+                        0 -> viewModel.onAction(SupplierState.Action.OnStatusFilterChange(true))
+                        1 -> viewModel.onAction(SupplierState.Action.OnStatusFilterChange(false))
+                    }
                 }
             )
         }

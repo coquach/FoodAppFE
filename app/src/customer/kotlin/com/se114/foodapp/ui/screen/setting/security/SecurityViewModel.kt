@@ -42,8 +42,11 @@ class SecurityViewModel @Inject constructor(
     }
 
     fun checkVerifyEmail() {
-        _uiState.update {
-            it.copy(isVerifyEmail = checkVerifyEmailUseCase())
+        viewModelScope.launch {
+            val result = checkVerifyEmailUseCase()
+            _uiState.update {
+                it.copy(isVerifyEmail = result)
+            }
         }
     }
 
