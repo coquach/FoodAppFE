@@ -60,7 +60,7 @@ fun OrderSuccessScreen(orderID: Long, navController: NavController) {
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp),
             contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp),
-            modifier = Modifier.width(100.dp)
+            modifier = Modifier.width(300.dp)
         ) {
             Text(text = "Đơn hàng ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary)
         }
@@ -76,7 +76,7 @@ fun OrderSuccessScreen(orderID: Long, navController: NavController) {
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
             shape = RoundedCornerShape(16.dp),
             contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp),
-            modifier = Modifier.width(100.dp)
+            modifier = Modifier.width(300.dp)
         ) {
             Text(text = "Trở về", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSecondary)
         }

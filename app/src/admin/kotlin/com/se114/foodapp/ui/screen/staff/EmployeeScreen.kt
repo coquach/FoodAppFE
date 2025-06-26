@@ -50,8 +50,10 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.navigation.EmployeeDetails
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
@@ -59,7 +61,9 @@ import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
+import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
+import kotlinx.coroutines.flow.MutableStateFlow
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -73,22 +77,11 @@ fun EmployeeScreen(
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
-    val staffs = viewModel.getStaffsByTab(uiState.tabIndex).collectAsLazyPagingItems()
-
+    val staffs = viewModel.staffs.collectAsLazyPagingItems()
     val context = LocalContext.current
 
 
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        val condition = handle?.get<Boolean>("added") == true ||
-                handle?.get<Boolean>("updated") == true
-        if (condition) {
-            handle["added"] = false
-            handle["updated"] = false
-            viewModel.onAction(EmployeeSate.Action.OnRefresh)
-            staffs.refresh()
-        }
-    }
+
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -154,15 +147,44 @@ fun EmployeeScreen(
             HeaderDefaultView(
                 text = "Danh sách nhân viên"
             )
+            SearchField(
+                searchInput = uiState.nameSearch,
+                searchChange ={
+                    viewModel.onAction(EmployeeSate.Action.OnNameSearchChange(it))
+                },
+                searchFilter = {
+                    viewModel.onAction(EmployeeSate.Action.OnSearchFilter)
+                },
+                switchState = uiState.staffFilter.order == "desc",
+                switchChange = {
+                    when(it){
+                        true -> viewModel.onAction(EmployeeSate.Action.OnOrderChange("desc"))
+                        false -> viewModel.onAction(EmployeeSate.Action.OnOrderChange("asc"))
+                    }
+                },
+                filterChange = {
+                    when(it){
+                        "Id" -> viewModel.onAction(EmployeeSate.Action.OnSortByChange("id"))
+                        "Tên" -> viewModel.onAction(EmployeeSate.Action.OnSortByChange("fullName"))
+                        "Lương" -> viewModel.onAction(EmployeeSate.Action.OnSortByChange("basicSalary"))
+                    }
+                },
+                filters = listOf("Id", "Tên", "Lương"),
+                filterSelected = when(uiState.staffFilter.sortBy){
+                    "id" -> "Id"
+                    "fullName" -> "Tên"
+                    "basicSalary" -> "Lương"
+                    else -> "Id"
+                },
+                placeHolder = "Tìm kiếm theo tên nhân viên..."
+            )
 
             TabWithPager(
-                tabs = listOf("Đang hiển thị", "Đã ẩn"),
+                tabs = listOf("Đang hiển thị", "Đã nghỉ"),
                 pages = listOf(
                     {
                         LazyPagingSample(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
+                            modifier = Modifier.fillMaxSize(),
                             items = staffs,
                             textNothing = "Không có nhân viên nào",
                             iconNothing = Icons.Default.Groups,
@@ -195,9 +217,7 @@ fun EmployeeScreen(
                     },
                     {
                         LazyPagingSample(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
+                            modifier = Modifier.fillMaxSize(),
                             items = staffs,
                             textNothing = "Không có nhân viên nào",
                             iconNothing = Icons.Default.Groups,
@@ -209,14 +229,18 @@ fun EmployeeScreen(
                             EmployeeItemView(
                                 staff = it,
                                 onClick = {
-
+                                    viewModel.onAction(EmployeeSate.Action.OnStaffClicked(it))
                                 },
                             )
                         }
                     }
                 ),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 onTabSelected = {
-                    viewModel.onAction(EmployeeSate.Action.OnTabSelected(it))
+                   when(it){
+                       0 -> viewModel.onAction(EmployeeSate.Action.OnChangeStatusFilter(true))
+                       1 -> viewModel.onAction(EmployeeSate.Action.OnChangeStatusFilter(false))
+                   }
                 }
             )
         }

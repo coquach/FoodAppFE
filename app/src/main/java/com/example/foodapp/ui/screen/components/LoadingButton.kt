@@ -8,6 +8,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -31,14 +33,16 @@ fun LoadingButton(
     loading: Boolean,
     enabled: Boolean = true,
     containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    padding: PaddingValues = PaddingValues(vertical = 18.dp, horizontal = 24.dp),
 ) {
     Button(
+        modifier = modifier,
         onClick = onClick,
-        modifier = modifier.height(48.dp),
         colors = ButtonDefaults.buttonColors(containerColor = containerColor),
         enabled = enabled && !loading,
         shape = RoundedCornerShape(12.dp),
+        contentPadding = padding,
     ) {
         Box {
             AnimatedContent(
@@ -67,5 +71,28 @@ fun LoadingButton(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AppButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    backgroundColor: Color = MaterialTheme.colorScheme.primary,
+    textColor: Color = MaterialTheme.colorScheme.onPrimary,
+    shape: Shape = RoundedCornerShape(12.dp) ,
+    padding: PaddingValues = PaddingValues(vertical = 18.dp, horizontal = 24.dp),
+    enable: Boolean = true
+) {
+    Button (
+        onClick = onClick,
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+        shape = shape,
+        contentPadding = padding,
+        enabled = enable
+    ) {
+        Text(text = text, color = textColor, style = MaterialTheme.typography.bodyMedium)
     }
 }

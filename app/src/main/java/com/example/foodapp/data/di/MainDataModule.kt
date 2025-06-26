@@ -3,10 +3,12 @@ package com.example.foodapp.data.di
 import com.example.foodapp.data.repository.AccountRepoImpl
 import com.example.foodapp.data.repository.FoodRepoImpl
 import com.example.foodapp.data.repository.MenuRepoImpl
+import com.example.foodapp.data.repository.NotificationRepoImpl
 import com.example.foodapp.data.repository.OrderRepoImpl
 import com.example.foodapp.domain.repository.AccountRepository
 import com.example.foodapp.domain.repository.FoodRepository
 import com.example.foodapp.domain.repository.MenuRepository
+import com.example.foodapp.domain.repository.NotificationRepository
 import com.example.foodapp.domain.repository.OrderRepository
 import dagger.Binds
 import dagger.Module
@@ -29,5 +31,6 @@ abstract class MainDataModule {
     @Binds
     abstract fun provideMenuRepository(menuRepoImpl: MenuRepoImpl): MenuRepository
 
-
+    @Binds
+    abstract fun provideNotificationRepository(notificationRepoImpl: NotificationRepoImpl): NotificationRepository
 }

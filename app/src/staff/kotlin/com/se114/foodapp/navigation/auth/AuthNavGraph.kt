@@ -12,17 +12,15 @@ import com.example.foodapp.utils.ScreenContainer
 
 fun NavGraphBuilder.authGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>
 ) {
     composable<Auth> {
-        shouldShowBottomNav.value = false
+
         ScreenContainer(applyStatusBarInset = false) {
             AuthScreen(navController, isCustomer = false)
         }
 
     }
     composable<Login> {
-        shouldShowBottomNav.value = false
         ScreenContainer {
             LoginScreen(navController)
         }

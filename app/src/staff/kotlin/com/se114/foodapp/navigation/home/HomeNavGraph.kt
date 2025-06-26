@@ -18,12 +18,11 @@ import com.se114.foodapp.ui.screen.home.HomeStaffScreen
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.homeGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
     sharedTransitionScope: SharedTransitionScope
 ) {
     with(sharedTransitionScope) {
         composable<Home> {
-            shouldShowBottomNav.value = true
+
             ScreenContainer {
                 HomeStaffScreen(navController, this)
             }
@@ -32,21 +31,20 @@ fun NavGraphBuilder.homeGraph(
     }
 
     composable<Cart>{
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             CartScreen(navController)
         }
 
     }
     composable<CheckoutStaff> {
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             CheckoutScreen(navController)
         }
 
     }
     composable<VoucherCheck>{
-        shouldShowBottomNav.value = false
         ScreenContainer {
             VoucherCheckScreen(navController)
         }

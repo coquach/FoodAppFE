@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,7 +60,10 @@ import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodItemCounter
+import com.example.foodapp.ui.screen.components.Loading
+import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.Nothing
+import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.utils.StringUtils
 
 
@@ -70,7 +74,7 @@ fun CartScreen(
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+val checkoutDetails by viewModel.checkoutDetails.collectAsStateWithLifecycle()
     var showErrorSheet by remember {
         mutableStateOf(
             false
@@ -113,72 +117,92 @@ fun CartScreen(
             onEditToggle = { isEditing = !isEditing }
         )
 
-        if (uiState.cartItems.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                items(uiState.cartItems, key = { it.id }) { item ->
-                    val quantity = uiState.quantityMap[item.id] ?: item.quantity
-                    CartItemView(
-                        cartItem = item,
-                        isEditMode = isEditing,
-                        quantity = quantity,
-                        isChecked = uiState.cartItems.contains(item),
-                        onCheckedChange = { cartItem ->
-                            viewModel.onAction(Cart.Action.OnToggleSelection(cartItem))
-                        },
-                        onIncrement = { item ->
-                            viewModel.onAction(Cart.Action.OnIncreaseCartItem(item))
-                        },
-                        onDecrement = { item ->
-                            viewModel.onAction(Cart.Action.OnDecreaseCartItem(item))
-                        }
-                    )
-                }
-
+        when (uiState.cartItemState) {
+            is Cart.CartItemState.Error -> {
+                val error = (uiState.cartItemState as Cart.CartItemState.Error).message
+                Retry(
+                    message = error,
+                    onClicked = {
+                        viewModel.onAction(Cart.Action.Retry)
+                    },
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
             }
+            Cart.CartItemState.Loading -> {
+                Loading(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
+            Cart.CartItemState.Success -> {
+                if (uiState.cartItems.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        items(items = uiState.cartItems, key = { it.id }) { item ->
+                            val quantity = uiState.quantityMap[item.id] ?: item.quantity
+                            CartItemView(
+                                cartItem = item,
+                                isEditMode = isEditing,
+                                quantity = quantity,
+                                isChecked = uiState.selectedItems.contains(item),
+                                onCheckedChange = { cartItem ->
+                                    viewModel.onAction(Cart.Action.OnToggleSelection(cartItem))
+                                },
+                                onIncrement = { item ->
+                                    viewModel.onAction(Cart.Action.OnIncreaseCartItem(item))
+                                },
+                                onDecrement = { item ->
+                                    viewModel.onAction(Cart.Action.OnDecreaseCartItem(item))
+                                }
+                            )
+                        }
 
-                AnimatedVisibility(
-                    visible = isEditing,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
-                ) {
-                    DeleteBar(
-                        onSelectAll = {
-                            isSelectAll = !isSelectAll
-                            viewModel.onAction(Cart.Action.OnSelectAll(isSelectAll))
-                        },
-                        onDeleteSelected = { viewModel.removeItem() }
-                    )
-                }
-                AnimatedVisibility(
-                    visible = !isEditing,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
-                ) {
-                    Column {
-                        CheckoutRowItem(
-                            title = "Tổng cộng",
-                            value = uiState.checkoutDetails.subTotal,
-                            fontWeight = FontWeight.Bold
+                    }
+                    AnimatedVisibility(
+                        visible = isEditing,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                    ) {
+                        DeleteBar(
+                            onSelectAll = {
+                                isSelectAll = !isSelectAll
+                                viewModel.onAction(Cart.Action.OnSelectAll(isSelectAll))
+                            },
+                            onDeleteSelected = { viewModel.onAction(Cart.Action.OnRemoveItem) }
                         )
-                        Button(
-                            onClick = { viewModel.onAction(Cart.Action.OnCheckOut)},
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = "Thanh toán")
+                    }
+                    AnimatedVisibility(
+                        visible = !isEditing,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
+                    ) {
+                        Column {
+                            CheckoutRowItem(
+                                title = "Tổng cộng",
+                                value = checkoutDetails.totalAmount,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Button(
+                                onClick = { viewModel.onAction(Cart.Action.OnCheckOut)},
+                                modifier = Modifier.fillMaxWidth().height(48.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(text = "Thanh toán")
+                            }
                         }
                     }
-                }
 
-        } else {
-            Nothing(
-                icon = Icons.Default.ShoppingCart,
-                text = "Không có món nào trong giỏ hàng",
-                modifier = Modifier.fillMaxSize()
-            )
+
+                } else {
+                    Nothing(
+                        icon = Icons.Default.ShoppingCart,
+                        text = "Không có món nào trong giỏ hàng",
+                        modifier =  Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    )
+                }
+            }
         }
     }
 

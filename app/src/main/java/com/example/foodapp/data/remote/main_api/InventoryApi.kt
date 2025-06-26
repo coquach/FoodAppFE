@@ -12,9 +12,9 @@ interface InventoryApi {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
+        @Query("order") order: String = "desc",
         @Query("ingredientId") ingredientId: Long? = null,
-        @Query("expiryDate") expiryDate: String? = null,
+        @Query("isExpired") isExpired: Boolean? = null,
         @Query("isOutOfStock") isOutOfStock: Boolean? = null,
     ): Response<PageResponse<Inventory>>
 }

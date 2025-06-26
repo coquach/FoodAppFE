@@ -3,6 +3,7 @@ package com.example.foodapp.domain.use_case.auth
 import android.util.Log
 import com.example.foodapp.BuildConfig
 import com.example.foodapp.domain.repository.AccountRepository
+import com.example.foodapp.notification.FoodAppNotificationManager
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -13,20 +14,23 @@ import javax.inject.Inject
 
 class LoginByEmailUseCase @Inject constructor(
     private val accountRepository: AccountRepository,
+    private val foodAppNotificationManager: FoodAppNotificationManager
 ) {
-    operator fun invoke(email: String, password: String) = flow<FirebaseResult<String>> {
+    operator fun invoke(email: String, password: String) = flow<FirebaseResult<Unit>> {
         emit(FirebaseResult.Loading)
         try {
             accountRepository.signInWithEmail(email, password)
             val role = accountRepository.getUserRole() ?: "customer"
             val currentFlavor = BuildConfig.FLAVOR
             if (role != currentFlavor) {
-                accountRepository.signOut()
+
                 emit(FirebaseResult.Failure("Bạn đang dùng app dành cho '$currentFlavor' nhưng tài khoản này là '$role'."))
                 return@flow
             }
             Log.d("LoginByEmailUseCase", "Login successful with role: $role")
-            emit(FirebaseResult.Success(role))
+            foodAppNotificationManager.getAndStoreToken()
+            Log.d("LoginByEmailUseCase", "Token stored successfully")
+            emit(FirebaseResult.Success(Unit))
         } catch (e: FirebaseAuthInvalidUserException) {
            emit(FirebaseResult.Failure("Tài khoản không tồn tại"))
 

@@ -3,9 +3,14 @@ package com.example.foodapp.ui.screen.components
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
 
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -33,6 +38,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -67,8 +73,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -84,6 +96,7 @@ import androidx.compose.ui.graphics.Brush
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
@@ -106,6 +119,7 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.ui.screen.common.OrderItemView
 import com.example.foodapp.ui.theme.FoodAppTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -114,7 +128,6 @@ fun FoodAppTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    fieldHeight: Dp = 56.dp,
     enabled: Boolean = true,
     readOnly: Boolean = false,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -126,7 +139,6 @@ fun FoodAppTextField(
     suffix: @Composable (() -> Unit)? = null,
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
-    errorText: String? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -165,35 +177,22 @@ fun FoodAppTextField(
 
 
         }
-        val actualTextStyle = when {
-            fieldHeight < 52.dp -> textStyle.copy(fontSize = 14.sp)
-            fieldHeight in 52.dp..60.dp -> textStyle.copy(fontSize = 16.sp)
-            fieldHeight in 61.dp..70.dp -> textStyle.copy(fontSize = 18.sp)
-            else -> textStyle.copy(fontSize = 20.sp)
-        }
+
 
         OutlinedTextField(
             value = value,
             onValueChange,
-            modifier = modifier.heightIn(min = 56.dp),
+            modifier = Modifier.fillMaxWidth(),
             enabled,
             readOnly,
-            textStyle = actualTextStyle,
+            textStyle,
             null,
             placeholder,
             leadingIcon,
             trailingIcon,
             prefix,
             suffix,
-            supportingText = {
-                if (errorText != null) {
-                    Text(
-                        text = errorText,
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 12.sp
-                    )
-                }
-            },
+            supportingText,
             isError,
             visualTransformation,
             keyboardOptions,
@@ -305,6 +304,7 @@ fun ErrorModalBottomSheet(
     }
 }
 
+
 @Composable
 fun FoodItemCounter(
     modifier: Modifier = Modifier,
@@ -392,7 +392,7 @@ fun BoxScope.ItemCount(count: Int) {
         modifier = Modifier
             .padding(6.dp)
             .background(MaterialTheme.colorScheme.error, shape = CircleShape)
-            .padding(vertical = 3.dp, horizontal = 4.dp)
+            .padding(vertical = 4.dp, horizontal = 6.dp)
             .align(Alignment.TopEnd)
             .wrapContentSize(align = Alignment.Center),
         contentAlignment = Alignment.Center
@@ -401,7 +401,8 @@ fun BoxScope.ItemCount(count: Int) {
             text = if (count > 99) "99+" else "$count",
             modifier = Modifier
                 .align(Alignment.Center),
-            color = MaterialTheme.colorScheme.onError,
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontWeight = FontWeight.Bold,
             style = TextStyle(fontSize = 8.sp)
         )
     }
@@ -409,22 +410,61 @@ fun BoxScope.ItemCount(count: Int) {
 
 
 @Composable
-fun Loading() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.size(20.dp))
-        CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "Đang tải...",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
+fun Loading(
+    modifier: Modifier = Modifier,
+    circleSize: Dp = 25.dp,
+    circleColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
+    spaceBetween: Dp = 10.dp,
+    travelDistance: Dp = 20.dp
+) {
+    val circles = listOf(
+        remember { Animatable(initialValue = 0f) },
+        remember { Animatable(initialValue = 0f) },
+        remember { Animatable(initialValue = 0f) }
+    )
+
+    circles.forEachIndexed { index, animatable ->
+        LaunchedEffect(key1 = animatable) {
+            delay(index * 100L)
+            animatable.animateTo(
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = keyframes {
+                        durationMillis = 1200
+                        0.0f at 0 using LinearOutSlowInEasing
+                        1.0f at 300 using LinearOutSlowInEasing
+                        0.0f at 600 using LinearOutSlowInEasing
+                        0.0f at 1200 using LinearOutSlowInEasing
+                    },
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        }
     }
+
+    val circleValues = circles.map { it.value }
+    val distance = with(LocalDensity.current) { travelDistance.toPx() }
+
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spaceBetween, Alignment.CenterHorizontally)
+    ) {
+        circleValues.forEach { value ->
+            Box(
+                modifier = Modifier
+                    .size(circleSize)
+                    .graphicsLayer {
+                        translationY = -value * distance
+                    }
+                    .background(
+                        color = circleColor,
+                        shape = CircleShape
+                    )
+            )
+        }
+    }
+
 }
 
 @Composable
@@ -442,20 +482,12 @@ fun HeaderDefaultView(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (onBack != null) {
-            IconButton(
+            IconCustomButton(
                 onClick = onBack,
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(40.dp) // size to rộng xíu cho dễ bấm
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    imageVector = onBackIcon,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp) // icon nhỏ hơn để căn giữa trong button
-                )
-            }
+                icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                containerColor = Color.Transparent,
+                iconColor = MaterialTheme.colorScheme.primary
+            )
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
         }
@@ -470,23 +502,14 @@ fun HeaderDefaultView(
             textAlign = TextAlign.Center
         )
 
-        if (icon != null) {
-            IconButton(
-                onClick = { iconClick?.invoke() },
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .size(40.dp) // size to rộng xíu cho dễ bấm
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp),
-                    tint = tintIcon
+        if (icon != null && iconClick != null) {
+            IconCustomButton(
+                onClick = iconClick,
+                icon = icon,
+                containerColor = MaterialTheme.colorScheme.background,
+                iconColor = tintIcon,
 
                 )
-            }
 
         } else {
             Spacer(modifier = Modifier.weight(0.2f))
@@ -498,17 +521,53 @@ fun HeaderDefaultView(
 }
 
 @Composable
+fun IconCustomButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    icon: ImageVector,
+    iconColor: Color = MaterialTheme.colorScheme.onPrimary,
+) {
+    IconButton(
+        onClick = {
+            onClick.invoke()
+        },
+        modifier = modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(color = containerColor)
+            .padding(4.dp),
+
+
+        ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier
+                .size(28.dp)
+        )
+    }
+}
+
+@Composable
 fun Retry(
     message: String,
     onClicked: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
     ) {
 
-        Text(text = message, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
         Button(onClick = onClicked) {
             Text(text = "Tải lại")
         }
@@ -524,7 +583,7 @@ fun FoodAppDialog(
     messageColor: Color = MaterialTheme.colorScheme.outline,
     onDismiss: () -> Unit,
     containerConfirmButtonColor: Color = MaterialTheme.colorScheme.error,
-    labelConfirmButtonColor: Color = MaterialTheme.colorScheme.onError,
+    labelConfirmButtonColor: Color = MaterialTheme.colorScheme.onPrimary,
     onConfirm: (() -> Unit)? = null,
     confirmText: String = "Ok",
     dismissText: String = "Đóng",
@@ -552,21 +611,24 @@ fun FoodAppDialog(
                         containerColor = containerConfirmButtonColor,
                         contentColor = labelConfirmButtonColor
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.height(48.dp)
                 ) {
                     Text(confirmText)
                 }
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss,
-                shape = RoundedCornerShape(12.dp),
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.height(48.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent
                 ),
                 border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline)
-                ) {
-                Text(text =dismissText, color =MaterialTheme.colorScheme.outline)
+            ) {
+                Text(text = dismissText, color = MaterialTheme.colorScheme.outline)
             }
         }
     )
@@ -588,12 +650,13 @@ fun ThemeSwitcher(
         animationSpec = animationSpec
     )
 
-    Box(modifier = Modifier
-        .width(size * 1.625f)
-        .height(size)
-        .clip(shape = parentShape)
-        .clickable { onClick() }
-        .background(MaterialTheme.colorScheme.secondaryContainer)
+    Box(
+        modifier = Modifier
+            .width(size * 1.625f)
+            .height(size)
+            .clip(shape = parentShape)
+            .clickable { onClick() }
+            .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Box(
             modifier = Modifier
@@ -668,11 +731,41 @@ fun CustomPagerIndicator(
     }
 }
 
+fun <T> LazyListScope.gridItems(
+    data: List<T>,
+    nColumns: Int,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
+    key: ((item: T) -> Any)? = null,
+    itemContent: @Composable BoxScope.(T) -> Unit,
+) {
+    val rows = if (data.isEmpty()) 0 else 1 + (data.count() - 1) / nColumns
+    items(rows) { rowIndex ->
+        Row(horizontalArrangement = horizontalArrangement) {
+            for (columnIndex in 0 until nColumns) {
+                val itemIndex = rowIndex * nColumns + columnIndex
+                if (itemIndex < data.count()) {
+                    val item = data[itemIndex]
+                    androidx.compose.runtime.key(key?.invoke(item)) {
+                        Box(
+                            modifier = Modifier.weight(1f, fill = true),
+                            propagateMinConstraints = true
+                        ) {
+                            itemContent.invoke(this, item)
+                        }
+                    }
+                } else {
+                    Spacer(Modifier.weight(1f, fill = true))
+                }
+            }
+        }
+    }
+}
+
 
 fun <T : Any> LazyListScope.gridItems(
     data: LazyPagingItems<T>,
     nColumns: Int,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable BoxScope.(T?) -> Unit,
     placeholderContent: @Composable BoxScope.() -> Unit = {
@@ -743,31 +836,74 @@ fun DetailsTextRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T : Any> LazyPagingSample(
     modifier: Modifier = Modifier,
     items: LazyPagingItems<T>,
     textNothing: String,
     iconNothing: ImageVector,
+    onRetry: (() -> Unit)? = null,
     columns: Int = 1,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable (T) -> Unit,
-) {
-    val isEmpty = items.itemSnapshotList.items.isEmpty()
-    val isNotLoading = items.loadState.refresh !is LoadState.Loading
 
-    Box(modifier = modifier) {
+    ) {
+    val coroutineScope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
+    val loadState = items.loadState
+    val isScrolledToTop by remember { derivedStateOf {
+        lazyListState.firstVisibleItemIndex == 0
+                && lazyListState.firstVisibleItemScrollOffset == 0
+    } }
+    val pullState = rememberPullToRefreshState()
+    Box(modifier = modifier.pullToRefresh(
+        state = pullState,
+        isRefreshing = isRefreshing,
+        onRefresh = {
+          coroutineScope.launch {
+              isRefreshing = true
+              delay(1000L)
+              isRefreshing = false
+          }
+        },
+        enabled = isScrolledToTop
+    )) {
         when {
-            isEmpty && isNotLoading -> {
-                Nothing(
-                    text = textNothing,
-                    icon = iconNothing,
-                    modifier = Modifier.align(Alignment.Center)
+            // 1. Lỗi khi load lần đầu
+            loadState.refresh is LoadState.Error -> {
+                val error = (loadState.refresh as LoadState.Error).error
+
+                Retry(
+                    message = error.localizedMessage ?: "Lỗi không xác định",
+                    onClicked = {
+                        items.retry()
+                    },
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
+            // 2. Đang loading lần đầu
+            loadState.refresh is LoadState.Loading -> {
+                Loading(
+                    modifier = modifier.fillMaxSize()
+                )
+            }
+
+            // 3. Danh sách rỗng
+            items.itemSnapshotList.items.isEmpty() -> {
+                Nothing(
+                    text = textNothing,
+                    icon = iconNothing,
+                    modifier = Modifier.fillMaxSize().align(Alignment.Center)
+                )
+            }
+
+            // 4. Bình thường: hiển thị danh sách
             else -> {
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Top
                 ) {
@@ -776,24 +912,56 @@ fun <T : Any> LazyPagingSample(
                         nColumns = columns,
                         key = key,
                         itemContent = { item ->
-                            item?.let{itemContent(item)}
-
-
+                            item?.let { itemContent(it) }
                         }
                     )
+
+                    // 5. Hiển thị loading cuối trang
+                    if (loadState.append is LoadState.Loading) {
+                        item {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
+
+                    // 6. Hiển thị lỗi cuối trang
+                    if (loadState.append is LoadState.Error) {
+                        val error = (loadState.append as LoadState.Error).error
+                        item {
+                            Retry(
+                                message = error.localizedMessage ?: "Lỗi khi tải thêm",
+                                onClicked = { items.retry() },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
+        Indicator(
+            modifier = Modifier.align(Alignment.TopCenter),
+            isRefreshing = isRefreshing,
+            state = pullState
+        )
     }
+
+
 }
+
 @Composable
 fun NoteInput(
     modifier: Modifier = Modifier.height(200.dp),
     note: String,
     onNoteChange: (String) -> Unit,
-    maxLines: Int = 5 ,
+    maxLines: Int = 5,
     textHolder: String,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
 ) {
     OutlinedTextField(
         value = note,
@@ -819,12 +987,13 @@ fun NoteInput(
         maxLines = maxLines
     )
 }
+
 @Composable
 fun ExpandableText(
     modifier: Modifier = Modifier,
     text: String,
     minimizedMaxLines: Int,
-    style: TextStyle
+    style: TextStyle,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var hasVisualOverflow by remember { mutableStateOf(false) }
@@ -847,7 +1016,10 @@ fun ExpandableText(
                         .height(lineHeightDp)
                         .background(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
+                                colors = listOf(
+                                    Color.Transparent,
+                                    MaterialTheme.colorScheme.background
+                                )
                             )
                         )
                 )

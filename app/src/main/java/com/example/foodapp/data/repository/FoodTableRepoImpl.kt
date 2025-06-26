@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.apiRequestFlow
+import com.example.foodapp.data.dto.filter.FoodTableFilter
 import com.example.foodapp.data.dto.request.FoodTableRequest
 import com.example.foodapp.data.model.FoodTable
 import com.example.foodapp.data.paging.FoodTablePagingSource
@@ -17,7 +18,7 @@ import javax.inject.Inject
 class FoodTableRepoImpl @Inject constructor(
     private val foodTableApi: FoodTableApi,
 ) : FoodTableRepository {
-    override fun getFoodTables(): Flow<PagingData<FoodTable>> {
+    override fun getFoodTables(filter: FoodTableFilter): Flow<PagingData<FoodTable>> {
         return Pager(
             config = PagingConfig(
                 pageSize = ITEMS_PER_PAGE,
@@ -26,7 +27,7 @@ class FoodTableRepoImpl @Inject constructor(
                 enablePlaceholders = true
             ),
             pagingSourceFactory = {
-                FoodTablePagingSource(foodTableApi = foodTableApi)
+                FoodTablePagingSource(foodTableApi = foodTableApi, filter = filter)
             }
         ).flow
     }
@@ -54,10 +55,9 @@ class FoodTableRepoImpl @Inject constructor(
 
     override fun updateFoodTableStatus(
         id: Int,
-        status: Boolean,
     ): Flow<ApiResponse<Unit>> {
         return apiRequestFlow {
-            foodTableApi.updateFoodTableStatus(mapOf("status" to status), id)
+            foodTableApi.updateFoodTableStatus(id)
         }
 
     }

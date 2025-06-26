@@ -12,5 +12,6 @@ data class OrderItem(
     @Serializable(with = BigDecimalSerializer::class)
     val price: BigDecimal,
     val quantity: Int,
+    val foodImages: List<ImageInfo>
 
 )

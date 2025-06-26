@@ -66,9 +66,7 @@ class CartRepoImpl @Inject constructor(
                 val totalAmount = subTotal + tax + deliveryFee
 
                 CheckoutDetails(
-                    deliveryFee = deliveryFee,
-                    subTotal = subTotal,
-                    tax = tax,
+
                     totalAmount = totalAmount
                 )
             }

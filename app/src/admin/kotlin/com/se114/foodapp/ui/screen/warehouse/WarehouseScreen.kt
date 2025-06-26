@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,23 +38,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.R
+import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.Inventory
 import com.example.foodapp.data.model.Unit
 import com.example.foodapp.navigation.Import
 import com.example.foodapp.navigation.Material
 
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
+import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun WarehouseScreen(
@@ -62,8 +69,24 @@ fun WarehouseScreen(
 ) {
    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val inventories = viewModel.getInventoriesByTab(uiState.tabIndex).collectAsLazyPagingItems()
+    val inventories = viewModel.inventories.collectAsLazyPagingItems()
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
+            when (it) {
+                WarehouseState.Event.NavigateToImport -> {
+                    navController.navigate(Import)
+                }
+                WarehouseState.Event.NavigateToMaterial -> {
+                    navController.navigate(Material)}
+                WarehouseState.Event.Refresh -> {
+
+                }
+            }
+        }
+    }
 
 
 
@@ -81,39 +104,72 @@ fun WarehouseScreen(
         HeaderDefaultView(
             onBackIcon = Icons.Filled.Inventory,
             onBack = {
-                navController.navigate(Material)
+                viewModel.onAction(WarehouseState.Action.OnNavigateToMaterial)
             },
             text = "Kho hàng",
             icon = Icons.Filled.Description,
             iconClick = {
-                navController.navigate(Import)
+                viewModel.onAction(WarehouseState.Action.OnNavigateToImport)
             }
         )
-//        SearchField(
-//            searchInput = search,
-//            searchChange = { search = it }
-//        )
+SearchField(
+    searchInput = uiState.nameSearch,
+    searchChange = {
+        viewModel.onAction(WarehouseState.Action.OnNameSearch(it))
+    },
+    searchFilter = {
+        viewModel.onAction(WarehouseState.Action.OnSearchFilter)
+    },
+    switchState = uiState.inventoryFilter.order == "desc",
+    switchChange = {
+        when(it){
+            true -> viewModel.onAction(WarehouseState.Action.OnOrderChange("desc"))
+            false -> viewModel.onAction(WarehouseState.Action.OnOrderChange("asc"))
+        }
+    },
+    filterChange = {
+        when(it){
+            "Id" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("id"))
+            "Số lượng" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("quantityRemaining"))
+        }
+    },
+    filters = listOf("Id", "Số lượng"),
+    filterSelected = when(uiState.inventoryFilter.sortBy){
+        "id" -> "Id"
+        "quantityRemaining" -> "Số lượng"
+        else -> "Id"
+    },
+    placeHolder = "Tìm kiếm tồn kho theo tên nguyên liệu..."
+)
         TabWithPager(
             tabs = listOf("Tồn kho", "Hết hạn", "Đã dùng"),
             pages = listOf(
                 {
                     InventoryListSection(
-                        list = inventories
+                        list = inventories,
+                        modifier = Modifier.fillMaxSize()
                     )
                 },
                 {
                     InventoryListSection(
-                        list = inventories
+                        list = inventories,
+                        modifier = Modifier.fillMaxSize()
                     )
                 },
                 {
                     InventoryListSection(
-                        list = inventories
+                        list = inventories,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             ),
+            modifier = Modifier.fillMaxWidth().weight(1f),
             onTabSelected = { index ->
-                viewModel.onAction(WarehouseState.Action.OnTabSelected(index))
+                when(index){
+                    0 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = false, isOutOfStock = false)))
+                    1 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = true, isOutOfStock = false)))
+                    2 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = false, isOutOfStock = true)))
+                }
             }
         )
 
@@ -123,31 +179,24 @@ fun WarehouseScreen(
 
 @Composable
 fun InventoryListSection(
+    modifier: Modifier = Modifier,
     list: LazyPagingItems<Inventory>,
 ) {
-    if (list.itemCount == 0 && list.loadState.refresh !is LoadState.Loading) {
-        Nothing(
-            icon = Icons.Default.Spa,
-            text = "Không có nguyên liệu nào",
-            modifier = Modifier.fillMaxSize()
+    LazyPagingSample(
+        modifier = modifier,
+        items = list,
+        textNothing = "Không có nguyên liệu nào",
+        iconNothing = Icons.Default.Spa,
+        columns = 2,
+        key = {
+            it.id
+        }
+    ) {
+        InventoryItemView(
+            inventory = it,
         )
-    } else {
-
-        LazyColumn(
-            modifier = Modifier.heightIn(max = 10000.dp)
-
-        ) {
-            gridItems(
-                list, 2, key = { inventory -> inventory.id },
-                itemContent = { inventory ->
-                    inventory?.let {
-                        InventoryItemView(
-                            inventory = inventory,
-                        )
-                    }
-                })}
-
     }
+
 }
 
 

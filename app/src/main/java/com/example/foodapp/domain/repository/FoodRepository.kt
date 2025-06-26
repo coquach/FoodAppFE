@@ -9,10 +9,10 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 
 interface FoodRepository {
-    fun getFoodsByMenuId(menuId: Long): Flow<PagingData<Food>>
-    fun addFood(menuId : Long, request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part?>? = null): Flow<ApiResponse<Food>>
-    fun updateFood(foodId: Long, menuId : Long, request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part?>? = null): Flow<ApiResponse<Food>>
-    fun getFavoriteFoods(): Flow<PagingData<Food>>
+    fun getFoodsByMenuId(foodFilter: FoodFilter): Flow<PagingData<Food>>
+    fun addFood(request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part>? = null): Flow<ApiResponse<Food>>
+    fun updateFood(foodId: Long, request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part?>? = null): Flow<ApiResponse<Food>>
+    fun getFavoriteFoods(foodFilter: FoodFilter): Flow<PagingData<Food>>
     fun toggleLike(foodId: Long): Flow<ApiResponse<Unit>>
     fun toggleStatus(foodId: Long): Flow<ApiResponse<Unit>>
 }

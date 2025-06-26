@@ -1,11 +1,9 @@
 package com.example.foodapp.ui.screen.auth.forgot_password.send_email
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,7 +13,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,8 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,13 +32,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
-
 import androidx.navigation.NavController
 import com.example.foodapp.R
-import com.example.foodapp.navigation.Auth
-
 import com.example.foodapp.navigation.Login
-
+import com.example.foodapp.navigation.SendEmailSuccess
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.ValidateTextField
@@ -58,7 +50,7 @@ fun SendEmailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showErrorSheet by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
+
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -75,12 +67,7 @@ fun SendEmailScreen(
                 }
 
                 is SendEmailReset.Event.ShowSuccess -> {
-                    Toast.makeText(
-                        context,
-                        "Email đã được gửi! Hãy kiểm tra hộp thư của bạn nhé 📬",
-                        Toast.LENGTH_LONG
-                    ).show()
-
+                    navController.navigate(SendEmailSuccess)
                 }
 
             }

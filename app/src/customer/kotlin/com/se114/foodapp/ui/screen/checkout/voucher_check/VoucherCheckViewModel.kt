@@ -34,14 +34,12 @@ class VoucherCheckViewModel @Inject constructor(
     val vouchers: StateFlow<PagingData<Voucher>> = _vouchers
 
 
-    init{
-        getVouchers()
-    }
-    private fun getVouchers() {
+
+    fun getVouchers() {
         viewModelScope.launch {
 
             val checkout = getCheckoutDetailsUseCase().first()
-            val totalAmount = checkout.subTotal
+            val totalAmount = checkout.totalAmount
 
             getVoucherForCustomerUseCase(
                 filter = VoucherFilter()

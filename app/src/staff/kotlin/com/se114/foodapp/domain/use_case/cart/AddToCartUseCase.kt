@@ -40,7 +40,8 @@ class AddToCartUseCase @Inject constructor(
                 name = food.name,
                 quantity = food.quantity,
                 price = food.price,
-                imageUrl = food.image
+                imageUrl = food.image,
+                remainingQuantity = food.remainingQuantity
             )
             current.add(newItem)
             cartRepository.saveCartItems(current)

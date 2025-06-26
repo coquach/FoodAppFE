@@ -88,7 +88,7 @@ class SignUpViewModel @Inject constructor(
             }
 
         }
-        val isValid = emailError == null && passwordError == null && confirmPasswordError == null
+        val isValid = current.email.isNotBlank() && current.password.isNotBlank() && current.confirmPassword.isNotBlank() && emailError == null && passwordError == null && confirmPasswordError == null
         _uiState.update {
             it.copy(
                 emailError = emailError,

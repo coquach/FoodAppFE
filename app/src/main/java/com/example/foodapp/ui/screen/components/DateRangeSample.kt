@@ -37,26 +37,26 @@ import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangePickerSample(
+    modifier: Modifier = Modifier,
     startDateText: String = "Ngày bắt đầu",
     endDateText: String = "Ngày kết thúc",
     startDate: LocalDate?,
     endDate: LocalDate?,
-    modifier: Modifier = Modifier.width(200.dp),
-    fieldHeight: Dp = 56.dp,
     isColumn: Boolean = false, // Thêm tham số này
     onDateRangeSelected: (LocalDate?, LocalDate?) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val dateRangePickerState = rememberDateRangePickerState(
-        initialSelectedStartDateMillis = startDate?.atStartOfDay(ZoneId.systemDefault())
+        initialSelectedStartDateMillis = startDate?.atStartOfDay(ZoneOffset.UTC)
             ?.toInstant()?.toEpochMilli(),
-        initialSelectedEndDateMillis = endDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()
+        initialSelectedEndDateMillis = endDate?.atStartOfDay(ZoneOffset.UTC)?.toInstant()
             ?.toEpochMilli()
     )
     val interactionSource = remember { MutableInteractionSource() }
@@ -72,10 +72,9 @@ fun DateRangePickerSample(
 
 
     if (isColumn) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(modifier =Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             DateFields(
                 modifier,
-                fieldHeight,
                 startDateText,
                 endDateText,
                 startDate,
@@ -86,15 +85,15 @@ fun DateRangePickerSample(
             }
         }
     } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.SpaceBetween) {
             DateFields(
-                modifier,
-                fieldHeight,
+                modifier = modifier,
                 startDateText,
                 endDateText,
                 startDate,
                 endDate,
-                interactionSource
+                interactionSource,
+
             ) {
                 showDialog = true
             }
@@ -171,8 +170,7 @@ fun DateRangePickerSample(
 
 @Composable
 private fun DateFields(
-    modifier: Modifier,
-    fieldHeight: Dp,
+    modifier: Modifier = Modifier,
     startDateText: String,
     endDateText: String,
     startDate: LocalDate?,
@@ -192,7 +190,6 @@ private fun DateFields(
         trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
         interactionSource = interactionSource,
         modifier = modifier.clickable { onClick() },
-        fieldHeight = fieldHeight
     )
 
     FoodAppTextField(
@@ -203,6 +200,6 @@ private fun DateFields(
         trailingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
         interactionSource = interactionSource,
         modifier = modifier.clickable { onClick() },
-        fieldHeight = fieldHeight
+
     )
 }

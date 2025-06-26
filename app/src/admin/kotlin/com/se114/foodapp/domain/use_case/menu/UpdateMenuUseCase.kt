@@ -5,7 +5,6 @@ import com.example.foodapp.data.dto.request.MenuRequest
 import com.example.foodapp.data.model.Menu
 import com.example.foodapp.domain.repository.MenuRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
@@ -13,7 +12,7 @@ import javax.inject.Inject
 class UpdateMenuUseCase @Inject constructor(
     private val menuRepository: MenuRepository,
 ) {
-    operator fun invoke(menuId: Long, name: String) = flow<ApiResponse<Menu>> {
+    operator fun invoke(menuId: Int, name: String) = flow<ApiResponse<Menu>> {
         try {
              menuRepository.updateMenu(menuId, MenuRequest(name)).collect{emit(it)}
         }catch (e: Exception){

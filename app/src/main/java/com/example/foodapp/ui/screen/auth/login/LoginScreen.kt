@@ -6,12 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,11 +20,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -40,28 +35,15 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-
-
 import com.example.foodapp.R
-
-import com.example.foodapp.ui.screen.components.FoodAppTextField
-
 import com.example.foodapp.navigation.Home
-
 import com.example.foodapp.navigation.SendEmail
-
 import com.example.foodapp.navigation.SignUp
-import com.example.foodapp.navigation.Statistics
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.GoogleLoginButton
-
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.PasswordTextField
 import com.example.foodapp.ui.screen.components.ValidateTextField
-
-import com.example.foodapp.ui.theme.FoodAppTheme
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,20 +65,12 @@ fun LoginScreen(
                     Login.Event.NavigateForgot -> {
                         navController.navigate(SendEmail)
                     }
+
                     Login.Event.NavigateSignUp -> {
                         navController.navigate(SignUp)
                     }
-                    Login.Event.NavigateToAdmin ->{
-                        navController.navigate(Statistics){
-                            popUpTo(navController.graph.startDestinationId) {
-                                inclusive = true
-                            }
-                        }
-                    }
-                    Login.Event.NavigateToCustomer,
-                    Login.Event.NavigateToStaff -> {
 
-
+                    Login.Event.NavigateToHome -> {
                         navController.navigate(Home) {
                             popUpTo(navController.graph.startDestinationId) {
                                 inclusive = true
@@ -129,7 +103,7 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                )
+            )
 
             Column(
                 modifier = Modifier
@@ -158,7 +132,7 @@ fun LoginScreen(
                     value = uiState.password,
                     onValueChange = {
                         viewModel.onAction(Login.Action.PasswordChanged(it))
-                    } ,
+                    },
                     errorMessage = uiState.passwordError,
                     validate = {
                         viewModel.validate("password")
@@ -172,25 +146,25 @@ fun LoginScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { }
-                    ) {
-                        Checkbox(
-                            checked = rememberMe,
-                            onCheckedChange = { rememberMe = !it }
-                        )
-                        Text(
-                            text = "Nhớ mật khẩu",
-                            color = MaterialTheme.colorScheme.outline,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.clickable { }
+//                    ) {
+//                        Checkbox(
+//                            checked = rememberMe,
+//                            onCheckedChange = { rememberMe = !it }
+//                        )
+//                        Text(
+//                            text = "Nhớ mật khẩu",
+//                            color = MaterialTheme.colorScheme.outline,
+//                            style = MaterialTheme.typography.titleMedium,
+//                            fontWeight = FontWeight.Bold,
+//                        )
+//                    }
 
 
                     TextButton(onClick = {
@@ -204,7 +178,7 @@ fun LoginScreen(
                         )
                     }
                 }
-             
+
                 LoadingButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -230,7 +204,7 @@ fun LoginScreen(
                     textAlign = TextAlign.Center,
 
 
-                )
+                    )
                 GoogleLoginButton(
                     onGetCredentialResponse = { credential ->
                         viewModel.onAction(Login.Action.LoginWithGoogleClicked(credential))
@@ -243,7 +217,10 @@ fun LoginScreen(
     if (showErrorSheet) {
         ErrorModalBottomSheet(
             description = uiState.error.toString(),
-            onDismiss = { showErrorSheet = false },
+            onDismiss = {
+                showErrorSheet = false
+                viewModel.logOut()
+            },
 
             )
     }

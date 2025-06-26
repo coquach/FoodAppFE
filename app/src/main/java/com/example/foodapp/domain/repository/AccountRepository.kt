@@ -12,7 +12,8 @@ interface AccountRepository {
     suspend fun getUserToken(): String?
     fun hasUser(): Boolean
     fun getUserProfile(): Account
-    fun isEmailVerified(): Boolean
+    suspend fun isEmailVerified(): Boolean
+    fun isGoogleLinked(): Boolean
     fun sendVerifyEmail()
     suspend fun reloadToken()
     suspend fun createAccountWithEmail(email: String, password: String)

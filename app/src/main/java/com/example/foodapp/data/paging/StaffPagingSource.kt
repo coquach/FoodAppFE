@@ -22,8 +22,12 @@ class StaffPagingSource @Inject constructor(
             staffApi.getStaffs(
                 page = page,
                 size = size,
+                sortBy = filter.sortBy,
+                order = filter.order,
                 fullName = filter.fullName,
-                gender = filter.gender
+                gender = filter.gender,
+                status = filter.status,
+
             )
         }
     }

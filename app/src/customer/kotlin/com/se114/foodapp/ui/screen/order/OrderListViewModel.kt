@@ -1,63 +1,44 @@
-package com.example.foodapp.ui.screen.order
+package com.se114.foodapp.ui.screen.order
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.data.repository.OrderRepoImpl
-import com.example.foodapp.domain.use_case.auth.GetCustomerIdUseCase
-import com.example.foodapp.domain.use_case.order.GetOrdersByCustomerUseCase
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
+import com.example.foodapp.domain.use_case.order.GetOrdersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
 class OrderListViewModel @Inject constructor(
-    private val getOrdersByCustomerUseCase: GetOrdersByCustomerUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
+    private val getOrdersUseCase: GetOrdersUseCase,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(OrderList.UiState())
+    private val _uiState = MutableStateFlow(
+        OrderList.UiState(
+            orderFilter = OrderFilter(
+                status = OrderStatus.PENDING.name,
+                customerId = getUserIdUseCase()
+            )
+        )
+    )
     val uiState: StateFlow<OrderList.UiState> get() = _uiState.asStateFlow()
 
     private val _event = Channel<OrderList.Event>()
     val event get() = _event.receiveAsFlow()
-    fun refreshAllTabs() {
-        ordersCache.clear()
-
-    }
-
-    private val ordersCache = mutableMapOf<Int, StateFlow<PagingData<Order>>>()
 
 
-    fun getOrdersByTab(index: Int): StateFlow<PagingData<Order>> {
-        return ordersCache.getOrPut(index) {
-            val status = when (index) {
-                0 -> OrderStatus.PENDING
-                1 -> null
-                else -> null
-            }
+    val orders = getOrdersUseCase.invoke(_uiState.value.orderFilter)
 
-            val filter = OrderFilter(status = status?.name)
-
-            getOrdersByCustomerUseCase.invoke(filter)
-                .cachedIn(viewModelScope)
-                .stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
-                    PagingData.empty()
-                )
-        }
-    }
 
     fun onAction(action: OrderList.Action) {
         when (action) {
@@ -68,8 +49,20 @@ class OrderListViewModel @Inject constructor(
             }
 
             is OrderList.Action.OnTabChanged -> {
-                _uiState.update { it.copy(tabIndex = action.index) }
+                _uiState.update { it.copy(orderFilter = it.orderFilter.copy(status = action.status)) }
             }
+
+            is OrderList.Action.OnChangeDateFilter -> {
+                _uiState.update {
+                    it.copy(
+                        orderFilter = it.orderFilter.copy(
+                            startDate = action.startDate,
+                            endDate = action.endDate
+                        )
+                    )
+                }
+            }
+
 
         }
 
@@ -78,7 +71,7 @@ class OrderListViewModel @Inject constructor(
 
 object OrderList {
     data class UiState(
-        val tabIndex: Int = 0,
+        val orderFilter: OrderFilter = OrderFilter(),
     )
 
     sealed interface Event {
@@ -86,8 +79,8 @@ object OrderList {
     }
 
     sealed interface Action {
-        data class OnTabChanged(val index: Int) : Action
+        data class OnTabChanged(val status: String?) : Action
         data class OnOrderClicked(val order: Order) : Action
-
+        data class OnChangeDateFilter(val startDate: LocalDate?, val endDate: LocalDate?) : Action
     }
 }

@@ -25,14 +25,14 @@ data class Food(
     companion object {
         fun sample() = Food(
             id = 1L,
-            description = "Món ăn truyền thống siêu ngon",
+            description = "",
             images = null,
-            name = "Phở bò tái gầu",
-            price = BigDecimal("55000"),
+            name = "",
+            price = BigDecimal.ZERO,
             defaultQuantity = 1,
-            remainingQuantity = 20,
+            remainingQuantity = 1,
             active = true,
-            totalRating = 4.5,
+            totalRating = 5.0,
             totalFeedback = 234,
             totalLikes = 500,
             liked = false

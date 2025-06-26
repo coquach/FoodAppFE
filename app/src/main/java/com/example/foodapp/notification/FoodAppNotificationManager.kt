@@ -11,6 +11,9 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.foodapp.BuildConfig
+import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.domain.use_case.notification.RegisterTokenUseCase
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +25,7 @@ import javax.inject.Singleton
 
 @Singleton
 class FoodAppNotificationManager @Inject constructor(
+    private val registerTokenUseCase: RegisterTokenUseCase,
     @ApplicationContext val context: Context
 )  {
     private val notificationManager = NotificationManagerCompat.from(context)
@@ -33,9 +37,8 @@ class FoodAppNotificationManager @Inject constructor(
         val channelDesc: String,
         val importance: Int
     ) {
-        ORDER("1", "Order", "Order", NotificationManager.IMPORTANCE_HIGH),
-        PROMOTION("2", "Promotion", "Promotion", NotificationManager.IMPORTANCE_DEFAULT),
-        ACCOUNT("3", "Account", "Account", NotificationManager.IMPORTANCE_LOW)
+        ORDER("1", "Đơn hàng", "Thông tin đơn hàng", NotificationManager.IMPORTANCE_HIGH),
+        DELIVERY("2", "Giao hàng", "Tình trạng giao hàng", NotificationManager.IMPORTANCE_HIGH),
     }
 
 
@@ -43,6 +46,9 @@ class FoodAppNotificationManager @Inject constructor(
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         NotificationChannelType.entries.forEach {
+            if (it.channelName == "Giao hàng" && BuildConfig.FLAVOR != "shipper") {
+                return@forEach
+            }
             val channel = NotificationChannel(it.id, it.channelName, it.importance).apply {
                 description = it.channelDesc
             }
@@ -61,7 +67,19 @@ class FoodAppNotificationManager @Inject constructor(
     fun updateToken(token: String) {
 
         job.launch {
-            Log.d("FCM", "token: $token")
+
+           registerTokenUseCase(token).collect {response ->
+               when (response) {
+                   is ApiResponse.Success -> {
+                       Log.d("FCM", "Cập nhật token thành công")
+                   }
+                   is ApiResponse.Failure -> {
+                       Log.e("FCM", "Cập nhật token thất bại: ${response.errorMessage}")
+                   }
+                   else -> {}
+               }
+
+           }
         }
     }
 

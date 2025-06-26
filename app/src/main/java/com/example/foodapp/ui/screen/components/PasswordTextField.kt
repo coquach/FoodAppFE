@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +45,15 @@ fun PasswordTextField(
         },
         labelText = label,
         isError = errorMessage != null,
-        errorText = errorMessage,
+        supportingText = {
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        },
         modifier = modifier
             .fillMaxWidth()
             .onFocusChanged { focusState ->
@@ -82,7 +91,6 @@ fun PasswordTextField(
         keyboardActions = KeyboardActions(
             onDone = {
                 focusManager.clearFocus()
-                validate()
             }
         ),
         singleLine = false,

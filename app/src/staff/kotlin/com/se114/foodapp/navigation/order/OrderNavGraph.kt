@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.foodapp.data.model.Order
-import com.example.foodapp.navigation.OrderDetails
+import com.example.foodapp.navigation.OrderDetailsStaff
 import com.example.foodapp.navigation.OrderList
 import com.example.foodapp.navigation.OrderSuccess
 import com.example.foodapp.navigation.orderNavType
@@ -18,11 +18,10 @@ import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.orderGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>,
     ) {
 
     composable<OrderList> {
-        shouldShowBottomNav.value = true
+
         ScreenContainer {
             OrderListScreen(navController)
         }
@@ -30,17 +29,16 @@ fun NavGraphBuilder.orderGraph(
     }
     composable<OrderSuccess> {
         val orderID = it.toRoute<OrderSuccess>().orderId
-        shouldShowBottomNav.value = false
         ScreenContainer {
             OrderSuccessScreen(orderID, navController)
         }
 
     }
-    composable<OrderDetails>(
+    composable<OrderDetailsStaff>(
         typeMap = mapOf(typeOf<Order>() to orderNavType)
     ) {
-        val route = it.toRoute<OrderDetails>()
-        shouldShowBottomNav.value = false
+
+
         ScreenContainer {
             OrderDetailScreen(navController)
         }

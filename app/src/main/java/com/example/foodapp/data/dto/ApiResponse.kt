@@ -30,7 +30,7 @@ data class ErrorResponse(
 fun<T> apiRequestFlow(call: suspend () -> Response<T>): Flow<ApiResponse<T>> = flow {
     emit(ApiResponse.Loading)
 
-    withTimeoutOrNull(20000L) {
+    withTimeoutOrNull(30000L) {
         val response = call()
 
         try {

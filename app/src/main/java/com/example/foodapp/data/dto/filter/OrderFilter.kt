@@ -5,10 +5,14 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 data class OrderFilter(
+    val sortBy: String = "id",
+    val order: String = "desc",
     val status: String? = null,
+    val customerId: String? = null,
+    val sellerId: String? = null,
+    val shipperId: String?= null,
+    val type: String? = null,
     val paymentMethod: String? = null,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
-    val staffId: Long? = null,
-    val reloadTrigger: Long = System.currentTimeMillis()
 )

@@ -23,7 +23,6 @@ data class Voucher(
     val type: String = VoucherType.PERCENTAGE.name,
     val startDate: LocalDate?= null,
     val endDate: LocalDate? = null,
-
     val expired: Boolean = false,
 
 ) : Parcelable

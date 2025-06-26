@@ -27,11 +27,12 @@ class CreateFoodUseCase @Inject constructor(
                     name = food.name,
                     description = food.description,
                     price = food.price,
+                    menuId = food.menuId,
                     )
-                val menuId = food.menuId
-                val imageParts = food.images?.map { ImageUtils.getImagePart(context, it) }
+
+                val imageParts = food.images?.map { ImageUtils.getImagePart(context, it)!! }
                 val partMap = request.toPartMap()
-                foodRepository.addFood(menuId, partMap, imageParts).collect { emit(it) }
+                foodRepository.addFood( partMap, imageParts).collect { emit(it) }
                 
             } catch (e: Exception) {
                 e.printStackTrace()

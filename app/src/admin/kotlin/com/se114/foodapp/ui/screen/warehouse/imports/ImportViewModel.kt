@@ -20,7 +20,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.UUID
 
 import javax.inject.Inject
 
@@ -36,12 +39,7 @@ class ImportViewModel @Inject constructor(
     private val _event = Channel<ImportState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val imports: StateFlow<PagingData<Import>> =
-        getImportsUseCase(_uiState.value.filter).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
+   val imports = getImportsUseCase(_uiState.value.filter)
 
     private fun deleteImport() {
         viewModelScope.launch {
@@ -50,7 +48,8 @@ class ImportViewModel @Inject constructor(
                     is ApiResponse.Success -> {
                         _uiState.value = _uiState.value.copy(isLoading = false)
                         _event.send(ImportState.Event.ShowSuccess("Xoá đơn nhập thành công"))
-                        _event.send(ImportState.Event.Refresh)
+                        onAction(ImportState.Action.OnRefresh)
+
                     }
 
                     is ApiResponse.Failure -> {
@@ -75,8 +74,8 @@ class ImportViewModel @Inject constructor(
             }
 
             ImportState.Action.OnRefresh -> {
-                viewModelScope.launch {
-                    _event.send(Refresh)
+                _uiState.update {
+                    it.copy(filter = it.filter.copy(forceRefresh = UUID.randomUUID().toString()))
                 }
             }
 
@@ -103,6 +102,30 @@ class ImportViewModel @Inject constructor(
                     _event.send(NotifyCantDelete)
                 }
             }
+
+            is ImportState.Action.OnDateChange -> {
+               _uiState.update {
+                   it.copy(filter = it.filter.copy(startDate = action.startDate, endDate = action.endDate))
+               }
+            }
+            is ImportState.Action.OnNameSearch -> {
+               _uiState.update {
+                   it.copy(nameSearch = action.name)
+               }
+            }
+            is ImportState.Action.OnOrderChange -> {
+                _uiState.update {
+                    it.copy(filter = it.filter.copy(order = action.order))
+                }
+            }
+            ImportState.Action.OnSearchFilter -> {
+
+            }
+            is ImportState.Action.OnSortByChange -> {
+                _uiState.update {
+                    it.copy(filter = it.filter.copy(sortBy = action.sortBy))
+                }
+            }
         }
     }
 }
@@ -113,12 +136,13 @@ object ImportState {
         val error: String? = null,
         val importSelected: Long? = null,
         val filter: ImportFilter = ImportFilter(),
+        val nameSearch: String = "",
     )
 
     sealed interface Event {
         data object ShowError : Event
         data class ShowSuccess(val message: String) : Event
-        data object Refresh : Event
+        data class ShowSuccessToast(val message: String) : Event
         data class GoToImportDetails(val import: Import) : Event
         data object AddImport : Event
         data object OnBack : Event
@@ -126,6 +150,11 @@ object ImportState {
     }
 
     sealed interface Action {
+        data class OnNameSearch(val name: String) : Action
+        data object OnSearchFilter : Action
+        data class OnOrderChange(val order: String) : Action
+        data class OnSortByChange(val sortBy: String) : Action
+        data class OnDateChange(val startDate: LocalDate?, val endDate: LocalDate?) : Action
         data object OnDelete : Action
         data class OnImportSelected(val importId: Long) : Action
         data object OnRefresh : Action
@@ -133,7 +162,5 @@ object ImportState {
         data object AddImport : Action
         data object OnBack : Action
         data object NotifyCantDelete : Action
-
-
     }
 }

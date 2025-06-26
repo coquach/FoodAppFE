@@ -11,7 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,13 +21,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,12 +56,18 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import com.example.foodapp.data.model.Menu
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
+import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-import kotlinx.coroutines.flow.collectLatest
+import com.example.foodapp.ui.screen.components.Loading
+import com.example.foodapp.ui.screen.components.Retry
+import com.example.foodapp.ui.theme.confirm
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(
     navController: NavController,
@@ -66,11 +77,13 @@ fun CategoryScreen(
 
     var showErrorSheet by remember { mutableStateOf(false) }
 
-    val editingItemId = remember { mutableStateOf<Long?>(null) }
+    var isCreating by remember { mutableStateOf(false) }
     var isEditMode by remember { mutableStateOf(false) }
+    var showSetStatusDialog by remember { mutableStateOf(false) }
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
@@ -82,8 +95,16 @@ fun CategoryScreen(
                 CategoryState.Event.OnBack -> {
                     navController.popBackStack()
                 }
+
+                is CategoryState.Event.ShowMessage -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.getMenus()
     }
 
     Column(
@@ -98,186 +119,297 @@ fun CategoryScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             HeaderDefaultView(
-                text = "Danh mục món ăn",
+                text = "Danh mục thực đơn",
                 onBack = {
-                    navController.navigateUp()
+                    viewModel.onAction(CategoryState.Action.OnBack)
                 },
             )
         }
 
+        when (uiState.menuState) {
+            is CategoryState.MenuState.Error -> {
+                val error = (uiState.menuState as CategoryState.MenuState.Error).message
+                Retry(
+                    message = error,
+                    onClicked = {
+                        viewModel.onAction(CategoryState.Action.Retry)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+            }
 
-//        if (!isLoading && categoryList.isEmpty() && !isCreating) {
-//            Box(
-//                modifier = Modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Column(
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    IconButton(
-//                        onClick = { isCreating = true },
-//                        modifier = Modifier
-//                            .size(80.dp)
-//                            .clip(CircleShape)
-//                            .background(color = MaterialTheme.colorScheme.outline)
-//                            .padding(0.dp)
-//
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.Add,
-//                            contentDescription = "Add Category",
-//                            modifier = Modifier.size(64.dp),
-//                            tint = MaterialTheme.colorScheme.onPrimary
-//                        )
-//                    }
-//                    Text(
-//                        text = "Thêm danh mục",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        color = MaterialTheme.colorScheme.outline,
-//                        modifier = Modifier.padding(top = 8.dp)
-//                    )
-//                }
-//
-//            }
-//
-//        } else {
-//            Column(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                if (categoryList.isNotEmpty()) {
-//                    LazyColumn(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(4.dp),
-//                        verticalArrangement = Arrangement.spacedBy(12.dp),
-//
-//                        ) {
-//                        items(categoryList) { category ->
-//                            val isEditing = editingItemId.value == category.id
-//                            LaunchedEffect(isEditing) {
-//                                if (isEditing) {
-//                                    viewModel.onChangeCategoryName(category.name)
-//                                }
-//                            }
-//
-//                            AnimatedContent(
-//                                targetState = isEditing,
-//                                transitionSpec = {
-//                                    (slideInVertically { it } + fadeIn()) togetherWith
-//                                            (slideOutVertically { -it } + fadeOut())
-//                                },
-//                                label = "Edit Switch"
-//                            ) { editing ->
-//                                if (editing) {
-//                                    EditMenuCard(
-//                                        onClick = {
-//                                            viewModel.updateCategory(category.id)
-//                                            editingItemId.value = null
-//                                            isEditMode = false
-//                                        },
-//                                        value = categoryName,
-//                                        onValueChange = { newName ->
-//                                            viewModel.onChangeCategoryName(
-//                                                newName
-//                                            )
-//                                        },
-//                                        modifier = Modifier
-//                                            .width(320.dp)
-//                                            .height(150.dp)
-//                                    )
-//                                } else {
-//                                    SwipeableActionsBox(
-//                                        startActions = listOf(
-//                                            SwipeAction(
-//                                                icon = rememberVectorPainter(Icons.Default.Edit),
-//                                                background = MaterialTheme.colorScheme.primary,
-//                                                onSwipe = {
-//                                                    editingItemId.value = category.id
-//                                                    isEditMode = true
-//                                                }
-//                                            )
-//                                        ),
-//                                        endActions = listOf(
-//                                            SwipeAction(
-//                                                icon = rememberVectorPainter(Icons.Default.Delete),
-//                                                background = MaterialTheme.colorScheme.error,
-//                                                onSwipe = {
-//                                                    // handle delete
-//                                                }
-//                                            )
-//                                        )
-//                                    ) {
-//                                        MenuCard(
-//                                            text = category.name
-//                                        )
-//                                    }
-//                                }
-//                            }
-//
-//                        }
-//                    }
-//                }
-//                if (isCreating) {
-//                    EditMenuCard(
-//                        onClick = {
-//                            viewModel.addCategory()
-//                            isCreating = false
-//                        },
-//                        value = categoryName,
-//                        onValueChange = { newName -> viewModel.onChangeCategoryName(newName) }
-//                    )
-//
-//                } else if (!isLoading && !isEditMode) {
-//                    IconButton(
-//                        onClick = { isCreating = true },
-//                        modifier = Modifier
-//                            .padding(top = 10.dp)
-//                            .size(42.dp)
-//                            .clip(CircleShape)
-//                            .background(color = MaterialTheme.colorScheme.outline)
-//                            .padding(0.dp)
-//
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.Add,
-//                            contentDescription = "Add Category",
-//                            modifier = Modifier.size(30.dp),
-//                            tint = MaterialTheme.colorScheme.onPrimary
-//                        )
-//                    }
-//                }
-//            }
-//
-//
-//        }
-//    }
+            CategoryState.MenuState.Loading -> {
+                Loading(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+            }
+
+            CategoryState.MenuState.Success -> {
+                if (uiState.menuList.isEmpty() && !isCreating) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    viewModel.onAction(CategoryState.Action.OnSelectMenu(Menu()))
+                                    isCreating = true
+
+                                },
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(CircleShape)
+                                    .background(color = MaterialTheme.colorScheme.outline)
+                                    .padding(0.dp)
+
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add Category",
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                            Text(
+                                text = "Thêm danh mục",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+
+                    }
+
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (uiState.menuList.isNotEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+
+                                ) {
+                                items(uiState.menuList) { category ->
+                                    val isEditing =
+                                        isEditMode && uiState.menuSelected.id == category.id
+
+                                    AnimatedContent(
+                                        targetState = isEditing,
+                                        transitionSpec = {
+                                            (slideInVertically { it } + fadeIn()) togetherWith
+                                                    (slideOutVertically { -it } + fadeOut())
+                                        },
+                                        label = "Edit Switch"
+                                    ) { editing ->
+                                        if (editing) {
+                                            EditMenuCard(
+                                                onModifyClick = {
+                                                    viewModel.onAction(CategoryState.Action.UpdateMenu)
+                                                    isEditMode = false
+                                                },
+                                                value = uiState.menuSelected.name,
+                                                onValueChange = { newName ->
+                                                    viewModel.onAction(
+                                                        CategoryState.Action.OnChangeName(
+                                                            newName
+                                                        )
+                                                    )
+                                                },
+                                                onCloseClick = {
+                                                    viewModel.onAction(
+                                                        CategoryState.Action.OnSelectMenu(
+                                                            Menu()
+                                                        )
+                                                    )
+                                                    isEditMode = false
+                                                },
+                                                isHideIcon = uiState.isLoading
+                                            )
+                                        } else {
+                                            SwipeableActionsBox(
+                                                startActions = listOf(
+                                                    SwipeAction(
+                                                        icon = rememberVectorPainter(Icons.Default.Edit),
+                                                        background = MaterialTheme.colorScheme.primary,
+                                                        onSwipe = {
+                                                            viewModel.onAction(
+                                                                CategoryState.Action.OnSelectMenu(
+                                                                    category
+                                                                )
+                                                            )
+                                                            isEditMode = true
+                                                        }
+                                                    )
+                                                ),
+                                                endActions = listOf(
+                                                    SwipeAction(
+                                                        icon = rememberVectorPainter(if (category.active) Icons.Default.VisibilityOff else Icons.Default.Visibility),
+                                                        background = if (category.active) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.confirm,
+                                                        onSwipe = {
+                                                            isEditMode = false
+                                                            viewModel.onAction(
+                                                                CategoryState.Action.OnSelectMenu(
+                                                                    category
+                                                                )
+                                                            )
+                                                            showSetStatusDialog = true
+                                                        }
+                                                    )
+                                                )
+                                            ) {
+                                                MenuCard(
+                                                    menu = category
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                item {
+                                    if (isCreating) {
+                                        EditMenuCard(
+                                            onModifyClick = {
+                                                viewModel.onAction(CategoryState.Action.AddMenu)
+                                                isCreating = false
+                                            },
+                                            value = uiState.menuSelected.name,
+                                            onValueChange = { newName ->
+                                                viewModel.onAction(
+                                                    CategoryState.Action.OnChangeName(
+                                                        newName
+                                                    )
+                                                )
+                                            },
+                                            onCloseClick = {
+                                                isCreating = false
+                                            },
+                                            isHideIcon = uiState.isLoading,
+                                        )
+
+                                    } else if (!uiState.isLoading && !isEditMode) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    viewModel.onAction(CategoryState.Action.OnSelectMenu(Menu()))
+                                                    isCreating = true
+                                                          },
+                                                modifier = Modifier
+
+                                                    .size(56.dp)
+                                                    .clip(CircleShape)
+                                                    .background(color = MaterialTheme.colorScheme.outline)
+                                                    .padding(0.dp)
+
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = "Add Category",
+                                                    modifier = Modifier.size(30.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimary
+                                                )
+                                            }
+                                        }
+
+                                    }
+                                }
+
+
+                            }
+
+                        }
+
+
+                    }
+
+
+                }
+            }
+        }
+
+    }
+    if (showSetStatusDialog) {
+        FoodAppDialog(
+            title = if (uiState.menuSelected.active) "Ẩn nhà menu" else "Hiện menu",
+            message = if (uiState.menuSelected.active) "Bạn có chắc chắn muốn ẩn menu này không?" else "Bạn có chắc chắn muốn hiện menu này không?",
+            onDismiss = {
+                showSetStatusDialog = false
+            },
+            onConfirm = {
+
+                viewModel.onAction(CategoryState.Action.UpdateStatus)
+                showSetStatusDialog = false
+
+            },
+            confirmText = if (uiState.menuSelected.active) "Ẩn" else "Hiện",
+            dismissText = "Đóng",
+            showConfirmButton = true
+        )
+
+    }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.errorMessage.toString(),
+            onDismiss = {
+                showErrorSheet = false
+            },
+        )
+    }
 
 }
 
 @Composable
 fun MenuCard(
-    text: String,
+    menu: Menu,
 ) {
     Column(
         modifier = Modifier
+            .padding(vertical = 10.dp)
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(12.dp),
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (menu.active) MaterialTheme.colorScheme.inversePrimary else MaterialTheme.colorScheme.outline.copy(
+                    alpha = 0.5f
+                )
+            )
+            .padding(vertical = 16.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Row {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+        ) {
             Icon(
                 imageVector = Icons.Default.Fastfood,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.tertiary,
+                tint = if (menu.active) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.size(10.dp))
+
             Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.tertiary,
+                text = menu.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (menu.active) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onPrimary,
                 textAlign = TextAlign.Center
             )
         }
@@ -289,47 +421,80 @@ fun MenuCard(
 
 @Composable
 fun EditMenuCard(
-    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onModifyClick: () -> Unit,
+    onCloseClick: () -> Unit,
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    isHideIcon: Boolean = false,
 
     ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxWidth()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = modifier.fillMaxWidth()
     ) {
         FoodAppTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier,
+            modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Nhập tên danh mục...") }
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        IconButton(
-            onClick = {
-                onClick.invoke()
-            },
-            modifier = Modifier
-                .size(35.dp)
-                .clip(CircleShape)
-                .background(color = MaterialTheme.colorScheme.outline)
-                .padding(0.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+        ) {
+            if (!isHideIcon) {
+                IconButton(
+                    onClick = {
+                        onModifyClick.invoke()
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(color = MaterialTheme.colorScheme.primary)
+                        .padding(0.dp),
 
 
-            ) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Confirm",
-                tint = MaterialTheme.colorScheme.onPrimary,
+                    ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Confirm",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier
+                            .size(28.dp)
+                    )
+
+                }
+            }
+            IconButton(
+                onClick = {
+                    onCloseClick.invoke()
+                },
                 modifier = Modifier
-                    .size(28.dp)
-            )
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(color = MaterialTheme.colorScheme.outline)
+                    .padding(0.dp),
+
+
+                ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Confirm",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .size(28.dp)
+                )
+
+            }
+
         }
+
+
     }
 }
-}
+
 
 
 

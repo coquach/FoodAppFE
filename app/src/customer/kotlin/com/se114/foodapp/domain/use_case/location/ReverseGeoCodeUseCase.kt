@@ -2,6 +2,7 @@ package com.se114.foodapp.domain.use_case.location
 
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.model.Address
+import com.example.foodapp.data.model.AddressUI
 import com.se114.foodapp.domain.repository.OpenCageRepository
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -9,7 +10,7 @@ import javax.inject.Inject
 class ReverseGeoCodeUseCase @Inject constructor(
     private val openCageRepository: OpenCageRepository,
 ) {
-    operator fun invoke(latLng: String) = flow<ApiResponse<Address>> {
+    operator fun invoke(latLng: String) = flow<ApiResponse<AddressUI>> {
         try {
             openCageRepository.reverseGeoCode(latLng).collect { result ->
                 when (result) {
@@ -19,7 +20,7 @@ class ReverseGeoCodeUseCase @Inject constructor(
                         if (geometry != null && formatted != null) {
                             emit(
                                 ApiResponse.Success(
-                                    Address(
+                                    AddressUI(
                                         formatAddress = formatted,
                                         latitude = geometry.lat,
                                         longitude = geometry.lng

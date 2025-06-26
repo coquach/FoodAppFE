@@ -9,6 +9,8 @@
     <string name="sign_with_facebook">Facebook</string>
     <string name="sign_with_google">Google</string>
     <string name="password">Mật khẩu</string>
+    <string name="newPassword">Mật khẩu mới</string>
+    <string name="oldPassword">Mật khẩu cũ</string>
     <string name="email">Email</string>
     <string name="username">Tên đăng nhập</string>
     <string name="sign_up">Đăng kí</string>
@@ -23,6 +25,8 @@
     <string name="send_otp">Nhập mã xác thực</string>
     <string name="enter_otp">Chúng tôi đã gửi mã xác thực đến email của bạn. Vui lòng nhập mã để tiếp tục.</string>
     <string name="reset_success">Đặt lại mật khẩu thành công</string>
+    <string name="send_email_success">Gửi email đặt lại mật khẩu thành công</string>
+    <string name="check_email">Hãy kiểm tra email của bạn để đặt lại mật khẩu.</string>"
     <string name="back_with_new_password">Hãy quay lại và đăng nhập với mật khẩu mới để tiếp tục.</string>
     <string name="reset_password">Đặt lại mật khẩu</string>
     <string name="confirm_password">Xác nhận mật khẩu</string>

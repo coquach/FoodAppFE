@@ -1,8 +1,8 @@
 package com.se114.foodapp.domain.use_case.address
 
-import com.example.foodapp.data.model.Address
+import com.example.foodapp.data.model.AddressUI
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
-import com.example.foodapp.domain.use_case.auth.GetCustomerIdUseCase
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
@@ -11,13 +11,13 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class GetAddressUseCase @Inject constructor(
-    private val getCustomerIdUseCase: GetCustomerIdUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
     private val firestore: FirebaseFirestore
 ) {
-    operator fun invoke() = flow<FirebaseResult<List<Address>>> {
+    operator fun invoke() = flow<FirebaseResult<List<AddressUI>>> {
         emit(FirebaseResult.Loading)
         try {
-            val userId = getCustomerIdUseCase()
+            val userId = getUserIdUseCase()
             val addressesRef = firestore.collection("users")
                 .document(userId)
                 .collection("addresses")
@@ -32,7 +32,7 @@ class GetAddressUseCase @Inject constructor(
                 val lon = document.getDouble("lon")
 
                 if (id != null && formatted != null && lat != null && lon != null) {
-                    Address(id, formatted, lat, lon)
+                    AddressUI(id, formatted, lat, lon)
                 } else null
             }
             emit(FirebaseResult.Success(addresses))

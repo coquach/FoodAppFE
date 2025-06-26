@@ -1,42 +1,34 @@
 package com.se114.foodapp
 
 
-import android.animation.ObjectAnimator
 import android.os.Bundle
-import android.view.View
-import android.view.animation.OvershootInterpolator
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.core.animation.doOnEnd
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.BaseFoodAppActivity
 import com.example.foodapp.MainViewModel
-import com.example.foodapp.SplashViewModel
 import com.example.foodapp.navigation.Auth
 import com.example.foodapp.navigation.BottomNavItem
 import com.example.foodapp.navigation.BottomNavigationBar
-import com.example.foodapp.navigation.OrderDetails
-import com.example.foodapp.ui.screen.notification.NotificationViewModel
+import com.example.foodapp.navigation.Notification
+import com.example.foodapp.navigation.bottomBarVisibility
+import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -48,47 +40,14 @@ import kotlinx.coroutines.flow.collectLatest
 @AndroidEntryPoint
 class MainActivity : BaseFoodAppActivity() {
 
-    private val splashViewModel: SplashViewModel by viewModels()
+
 
 
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        installSplashScreen().apply {
-            setKeepOnScreenCondition {
-                !splashViewModel.isLoading.value
-            }
-            setOnExitAnimationListener { screen ->
-                val zoomX = ObjectAnimator.ofFloat(
-                    screen.iconView,
-                    View.SCALE_X,
-                    0.8f,
-                    0f
-                )
-                val zoomY = ObjectAnimator.ofFloat(
-                    screen.iconView,
-                    View.SCALE_Y,
-                    0.8f,
-                    0f
-                )
-                zoomX.duration = 500
-                zoomY.duration = 500
-                zoomX.interpolator = OvershootInterpolator()
-                zoomY.interpolator = OvershootInterpolator()
-                zoomX.doOnEnd {
-                    screen.remove()
-                }
-                zoomY.doOnEnd {
-                    screen.remove()
-                }
-                zoomY.start()
-                zoomX.start()
-            }
-        }
-
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-
+        enableEdgeToEdge()
 
         setContent {
             val systemUiController: SystemUiController = rememberSystemUiController()
@@ -99,8 +58,7 @@ class MainActivity : BaseFoodAppActivity() {
             val darkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(darkMode) }
 
-            val startDestination by splashViewModel.startDestination
-            val isLoading by splashViewModel.isLoading.collectAsState()
+            val screen = viewModel.startDestination.value
 
 
 
@@ -113,11 +71,7 @@ class MainActivity : BaseFoodAppActivity() {
                     BottomNavItem.Notification,
                     BottomNavItem.Setting
                 )
-                val notificationViewModel: NotificationViewModel = hiltViewModel()
-                val unreadCount = notificationViewModel.unreadCount.collectAsStateWithLifecycle()
-                val shouldShowBottomNav = remember {
-                    mutableStateOf(true)
-                }
+                val unreadCount by notificationViewModel.unreadCount.collectAsStateWithLifecycle()
                 val navController = rememberNavController()
 
                 LaunchedEffect(key1 = true) {
@@ -125,41 +79,41 @@ class MainActivity : BaseFoodAppActivity() {
                         when (it) {
 
 
-                            is MainViewModel.HomeEvent.NavigateToOrderDetail -> {
-                                navController.navigate(
-                                    OrderDetails(
-                                        it.order
-                                    )
-                                )
+                            is MainViewModel.UiEvent.NavigateToNotification -> {
+                                navController.navigate(Notification)
                             }
 
-                            is MainViewModel.HomeEvent.NavigateToResetPassword -> {
+                            is MainViewModel.UiEvent.NavigateToResetPassword -> {
 
                             }
-                        }
-                    }
-                }
-                LaunchedEffect(Unit) {
-                    splashViewModel.navigateEventFlow.collectLatest { event ->
-                        when (event) {
-                            is SplashViewModel.UiEvent.NavigateToAuth -> {
+
+                            MainViewModel.UiEvent.NavigateToAuth -> {
                                 navController.navigate(Auth) {
                                     popUpTo(navController.graph.startDestinationId) {
                                         inclusive = true
                                     }
+                                    launchSingleTop = true
                                 }
                             }
                         }
                     }
                 }
-                if (!isLoading) {
+
+                if (screen == null) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Loading()
+                    }
+                } else {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
-                        containerColor = MaterialTheme.colorScheme.background,
                         bottomBar = {
-                            AnimatedVisibility(visible = shouldShowBottomNav.value) {
-                                BottomNavigationBar(navController, navItems, unreadCount)
-                            }
+
+                            BottomNavigationBar(
+                                navController, navItems = navItems, state = bottomBarVisibility(navController), unreadCount = unreadCount
+                            )
 
                         }
 
@@ -169,20 +123,20 @@ class MainActivity : BaseFoodAppActivity() {
                             AppNavGraph(
                                 navController = navController,
                                 innerPadding = PaddingValues(
-                                    bottom = innerPadding.calculateBottomPadding()
+                                    bottom = 75.dp
                                 ),
-                                shouldShowBottomNav = shouldShowBottomNav,
-                                notificationViewModel = notificationViewModel,
-                                startDestination = startDestination,
+                                startDestination = screen,
                                 isDarkMode = isDarkMode,
                                 onThemeUpdated = {
                                     isDarkMode = !isDarkMode
                                 },
-                                sharedTransitionScope = this
+                                sharedTransitionScope = this,
+                                notificationViewModel = notificationViewModel
                             )
                         }
-                    }
 
+
+                    }
                 }
             }
         }

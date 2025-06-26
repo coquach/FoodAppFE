@@ -1,10 +1,11 @@
 package com.se114.foodapp.ui.screen.menu
 
 
-
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,10 +21,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 
 import androidx.compose.runtime.getValue
@@ -35,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,12 +47,17 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Food
+import com.example.foodapp.data.model.Order
 
 import com.example.foodapp.navigation.Category
 import com.example.foodapp.navigation.FoodDetailsAdmin
 import com.example.foodapp.ui.screen.common.FoodList
+
+import com.example.foodapp.ui.screen.components.ChipsGroupWrap
+import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 
 
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -56,10 +66,11 @@ import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.theme.confirm
+import kotlinx.coroutines.flow.MutableStateFlow
 import me.saket.swipe.SwipeAction
 
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SharedTransitionScope.MenuScreen(
     navController: NavController,
@@ -67,15 +78,16 @@ fun SharedTransitionScope.MenuScreen(
     viewModel: FoodListAdminViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var search by remember { mutableStateOf("") }
 
-    val foods = viewModel.getFoodsByIdAndStatus(uiState.tabIndex, uiState.menuIdSelected)
-        .collectAsLazyPagingItems()
+
+    val foods = viewModel.foods.collectAsLazyPagingItems()
+
 
     var showStatusDialog by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
@@ -89,24 +101,25 @@ fun SharedTransitionScope.MenuScreen(
                 }
 
                 FoodListAdmin.Event.GoToAddFood -> {
-                    navController.navigate(FoodDetailsAdmin(food = Food.sample(),isUpdating = false))
+                    navController.navigate(
+                        FoodDetailsAdmin(
+                            food = Food.sample(),
+                            isUpdating = false
+                        )
+                    )
                 }
 
-                FoodListAdmin.Event.Refresh -> {
-                    viewModel.onAction(FoodListAdmin.Action.OnRefresh)
-                    foods.refresh()
+                is FoodListAdmin.Event.ShowToast -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                 }
+
+
             }
         }
     }
 
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        if (handle?.get<Boolean>("shouldRefresh") == true) {
-            handle["shouldRefresh"] = false
-            viewModel.onAction(FoodListAdmin.Action.OnRefresh)
-            foods.refresh()
-        }
+    LaunchedEffect(Unit) {
+        viewModel.getMenus()
     }
 
 
@@ -141,15 +154,14 @@ fun SharedTransitionScope.MenuScreen(
                         end = padding.calculateEndPadding(LayoutDirection.Ltr)
                     )
                 )
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
 
         ) {
 
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+
                 HeaderDefaultView(
                     text = "Danh sách món ăn",
                     icon = Icons.Default.Category,
@@ -158,15 +170,59 @@ fun SharedTransitionScope.MenuScreen(
                     },
                     tintIcon = MaterialTheme.colorScheme.primary
                 )
-                SearchField(
-                    searchInput = search,
-                    searchChange = { search = it }
-                )
                 Spacer(modifier = Modifier.size(8.dp))
-            }
+                SearchField(
+                    searchInput = uiState.nameSearch,
+                    searchChange = {
+                        viewModel.onAction(FoodListAdmin.Action.OnChangeNameSearch(it))
+                    },
+                    searchFilter = {
+                        viewModel.onAction(FoodListAdmin.Action.OnSearchFilter)
+                    },
+                    switchState = uiState.foodFilter.order == "desc",
+                    switchChange = {
+                        when(it){
+                            true -> viewModel.onAction(FoodListAdmin.Action.OnOrderChange("desc"))
+                            false -> viewModel.onAction(FoodListAdmin.Action.OnOrderChange("asc"))
+
+                        }
+                    },
+                    filterChange = {
+                        when(it){
+                            "Id" -> viewModel.onAction(FoodListAdmin.Action.OnSortByChange("id"))
+                            "Giá" -> viewModel.onAction(FoodListAdmin.Action.OnSortByChange("price"))
+                            "Số lượng" -> viewModel.onAction(FoodListAdmin.Action.OnSortByChange("remainingQuantity"))
+
+                        }
+                    },
+                    filters = listOf("Id", "Giá", "Số lượng"),
+                    filterSelected = when(uiState.foodFilter.sortBy){
+                        "id" -> "Id"
+                        "price" -> "Giá"
+                        "remainingQuantity" -> "Số lượng"
+                        else -> "Id"
+
+                    },
+                    placeHolder = "Tìm kiếm theo tên món ăn..."
+                )
 
 
 
+
+            ChipsGroupWrap(
+                modifier = Modifier.fillMaxWidth(),
+                options = uiState.menus.map { it.name },
+                selectedOption = uiState.menuName,
+                onOptionSelected = { selectedName ->
+                    val selectedMenu = uiState.menus.find { it.name == selectedName }
+                    selectedMenu?.let {
+                        viewModel.onAction(FoodListAdmin.Action.OnMenuClicked(it.id!!, it.name))
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.inversePrimary,
+                isFlowLayout = false,
+                shouldSelectDefaultOption = true
+            )
 
             TabWithPager(
                 tabs = listOf("Đang hiển thị", "Đã ẩn"),
@@ -180,8 +236,8 @@ fun SharedTransitionScope.MenuScreen(
                             },
                             endAction = { it ->
                                 SwipeAction(
-                                    icon = rememberVectorPainter(Icons.Default.Visibility),
-                                    background = MaterialTheme.colorScheme.confirm,
+                                    icon = rememberVectorPainter(Icons.Default.VisibilityOff),
+                                    background = MaterialTheme.colorScheme.error,
                                     onSwipe = {
                                         viewModel.onAction(FoodListAdmin.Action.OnFoodSelected(it))
                                         showStatusDialog = true
@@ -215,7 +271,11 @@ fun SharedTransitionScope.MenuScreen(
                         )
                     }),
                 onTabSelected = { index ->
-                    viewModel.onAction(FoodListAdmin.Action.OnTabSelected(index))
+                   when(index){
+                       0 -> viewModel.onAction(FoodListAdmin.Action.OnChangeStatusFood(true))
+                       1 -> viewModel.onAction(FoodListAdmin.Action.OnChangeStatusFood(false))
+
+                   }
                 }
             )
 
@@ -226,7 +286,7 @@ fun SharedTransitionScope.MenuScreen(
         val isActive = uiState.selectedFood!!.active
         FoodAppDialog(
             title = if (isActive) "Ẩn món ăn" else "Hiển thị món ăn",
-            titleColor = MaterialTheme.colorScheme.error,
+            titleColor = if (isActive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.confirm,
             message = "Bạn có chắc chắn muốn xóa ${if (isActive) "ẩn" else "hiển thị"} món đã chọn không?",
             onDismiss = {
 
@@ -239,13 +299,22 @@ fun SharedTransitionScope.MenuScreen(
 
 
             },
-            confirmText = "Xóa",
+            containerConfirmButtonColor = if (isActive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.confirm,
+            confirmText = if (isActive) "Ẩn" else "Hiện",
             dismissText = "Đóng",
             showConfirmButton = true
         )
 
 
     }
+    if (showErrorSheet) {
+        ErrorModalBottomSheet(
+            description = uiState.error.toString(),
+            onDismiss = {
+                showErrorSheet = false
+            })
+    }
+
 }
 
 //@Composable

@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ScreenContainer(
-    isBottomBarVisible: Boolean = false,
     applyStatusBarInset: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -24,7 +23,7 @@ fun ScreenContainer(
             .fillMaxSize()
             .padding(
                 top = 40.dp,
-                bottom = if (isBottomBarVisible) 0.dp else 25.dp
+                bottom = 20.dp
             )
     } else {
         Modifier

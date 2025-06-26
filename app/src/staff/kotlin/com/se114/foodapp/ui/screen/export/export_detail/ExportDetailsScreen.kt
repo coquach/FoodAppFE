@@ -70,7 +70,7 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Inventory
-import com.example.foodapp.ui.screen.components.ComboBoxSampleLazyPaging
+
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -173,25 +173,25 @@ fun ExportDetailsScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
 
             ) {
-                ComboBoxSampleLazyPaging(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    title = "Nhân viên",
-                    textPlaceholder = "Chọn nhân viên",
-                    selected = uiState.export.staffName,
-                    onPositionSelected = { name ->
-                        val selectedSupplier = (0 until staffs.itemCount)
-                            .mapNotNull { index -> staffs[index] }
-                            .find { it.fullName == name }
-                        val supplierId = selectedSupplier?.id
-                        supplierId?.let {
-                            viewModel.onAction(ExportDetailsState.Action.OnChangeStaffId(it))
-                        }
-                    },
-                    options = staffs,
-                    labelExtractor = { staff -> staff.fullName },
-                    enabled = uiState.isEditable,
-                )
+//                ComboBoxSampleLazyPaging(
+//                    modifier = Modifier
+//                        .fillMaxWidth(),
+//                    title = "Nhân viên",
+//                    textPlaceholder = "Chọn nhân viên",
+//                    selected = uiState.export.staffName,
+//                    onPositionSelected = { name ->
+//                        val selectedSupplier = (0 until staffs.itemCount)
+//                            .mapNotNull { index -> staffs[index] }
+//                            .find { it.fullName == name }
+//                        val supplierId = selectedSupplier?.id
+//                        supplierId?.let {
+//                            viewModel.onAction(ExportDetailsState.Action.OnChangeStaffId(it))
+//                        }
+//                    },
+//                    options = staffs,
+//                    labelExtractor = { staff -> staff.fullName },
+//                    enabled = uiState.isEditable,
+//                )
             }
         }
 

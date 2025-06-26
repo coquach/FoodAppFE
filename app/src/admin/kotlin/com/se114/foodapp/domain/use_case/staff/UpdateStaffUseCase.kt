@@ -34,7 +34,7 @@ class UpdateStaffUseCase @Inject constructor(
             )
             val id = staff.id!!
             val partMap = request.toPartMap()
-            val avatar = ImageUtils.getImagePart(context, staff.avatar?.url?.toUri() )
+            val avatar = ImageUtils.getImagePart(context, staff.avatar?.url?.toUri(), "avatar" )
             staffRepository.updateStaff(id, partMap, avatar).collect { emit(it) }
         }catch (e: Exception) {
             emit(ApiResponse.Failure(e.message ?: "Lỗi không xác định", 999))

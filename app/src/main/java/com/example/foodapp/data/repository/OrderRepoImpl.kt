@@ -8,6 +8,7 @@ import com.example.foodapp.data.dto.apiRequestFlow
 
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.dto.request.OrderRequest
+import com.example.foodapp.data.dto.request.OrderStatusRequest
 
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
@@ -35,19 +36,7 @@ class OrderRepoImpl @Inject constructor(
         ).flow
     }
 
-    override fun getOrdersByCustomerId(filter: OrderFilter, customerId: String): Flow<PagingData<Order>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = ITEMS_PER_PAGE,
-                initialLoadSize = ITEMS_PER_PAGE,
-                prefetchDistance = 2,
-                enablePlaceholders = true
-            ),
-            pagingSourceFactory = {
-                OrderPagingSource(orderApi = orderApi, filter = filter, customerId = customerId)
-            }
-        ).flow
-    }
+
 
     override fun createOrder(request: OrderRequest): Flow<ApiResponse<Order>> {
         return apiRequestFlow {
@@ -57,8 +46,8 @@ class OrderRepoImpl @Inject constructor(
 
     override fun updateOrderStatus(
         orderId: Long,
-        status: String,
-    ): Flow<ApiResponse<Order>> {
+        status: OrderStatusRequest,
+    ): Flow<ApiResponse<Unit>> {
         return apiRequestFlow {
             orderApi.updateOrderStatus(orderId, status)
         }

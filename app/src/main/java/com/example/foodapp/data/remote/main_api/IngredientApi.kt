@@ -16,7 +16,7 @@ interface IngredientApi {
     @GET("units/active")
     suspend fun getActiveUnits(): Response<List<com.example.foodapp.data.model.Unit>>
 
-    @GET("units/isActive")
+    @GET("units/inActive")
     suspend fun getHiddenUnits(): Response<List<com.example.foodapp.data.model.Unit>>
 
     @POST("units")

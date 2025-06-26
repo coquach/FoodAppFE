@@ -19,23 +19,20 @@ import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.warehouseGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>
 ) {
     composable<Warehouse>{
-        shouldShowBottomNav.value = true
         ScreenContainer(isBottomBarVisible = true) {
             WarehouseScreen(navController)
         }
 
     }
     composable<Material> {
-        shouldShowBottomNav.value = false
         ScreenContainer {
             MaterialScreen(navController)
         }
     }
     composable<Import> {
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             ImportScreen(navController)
         }
@@ -47,8 +44,6 @@ fun NavGraphBuilder.warehouseGraph(
         ),
 
     ) {
-        shouldShowBottomNav.value = false
-
         ScreenContainer {
             ImportDetailsScreen(navController)
         }

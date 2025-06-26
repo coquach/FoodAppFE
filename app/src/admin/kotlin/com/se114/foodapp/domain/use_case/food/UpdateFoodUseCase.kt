@@ -1,12 +1,9 @@
 package com.se114.foodapp.domain.use_case.food
 
-import android.net.Uri
-import androidx.core.net.toUri
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.domain.repository.FoodRepository
 import com.example.foodapp.utils.ImageUtils
-import com.google.api.Context
 import com.se114.foodapp.data.dto.request.FoodMultipartRequest
 import com.se114.foodapp.ui.screen.menu.food_details.FoodAddUi
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,12 +24,12 @@ class UpdateFoodUseCase @Inject constructor(
                 name = food.name,
                 description = food.description,
                 price = food.price,
+                menuId = food.menuId,
             )
             val foodId = food.id!!
-            val menuId = food.menuId
             val imageParts = food.images?.map { ImageUtils.getImagePart(context, it) }
             val partMap = request.toPartMap()
-            foodRepository.updateFood(foodId, menuId, partMap, imageParts).collect {
+            foodRepository.updateFood(foodId, partMap, imageParts).collect {
                 emit(it)
             }
         } catch (e: Exception) {

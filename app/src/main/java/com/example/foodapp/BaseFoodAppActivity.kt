@@ -1,41 +1,84 @@
 package com.example.foodapp
 
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
-import com.example.foodapp.data.model.Order
-import com.google.gson.Gson
-
+import androidx.core.animation.doOnEnd
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.foodapp.ui.screen.notification.NotificationState
+import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-abstract class BaseFoodAppActivity : ComponentActivity(){
-
+abstract class BaseFoodAppActivity : ComponentActivity() {
+    var showSplashScreen = true
     val viewModel by viewModels<MainViewModel>()
+    val notificationViewModel by viewModels<NotificationViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen().apply {
+            setKeepOnScreenCondition {
+                showSplashScreen
+            }
+            setOnExitAnimationListener { screen ->
+                val zoomX = ObjectAnimator.ofFloat(
+                    screen.iconView,
+                    View.SCALE_X,
+                    0.8f,
+                    0f
+                )
+                val zoomY = ObjectAnimator.ofFloat(
+                    screen.iconView,
+                    View.SCALE_Y,
+                    0.8f,
+                    0f
+                )
+                zoomX.duration = 500L
+                zoomY.duration = 500L
+                zoomX.interpolator = OvershootInterpolator()
+                zoomY.interpolator = OvershootInterpolator()
+                zoomX.doOnEnd {
+                    screen.remove()
+                }
+                zoomY.doOnEnd {
+                    screen.remove()
+                }
+                zoomY.start()
+                zoomX.start()
+            }
+
+        }
         super.onCreate(savedInstanceState)
-        processIntent(intent)
+        CoroutineScope(Dispatchers.IO).launch {
+            delay(2000L)
+            showSplashScreen = false
+        }
+
+
+        processIntent(intent, viewModel)
     }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
+        notificationViewModel.onAction(NotificationState.Action.Retry)
         Log.d("INTENT_CHECK", "Intent extras: ${intent.extras}")
-        processIntent(intent)
+        processIntent(intent, viewModel)
     }
 
-    private fun processIntent(intent: Intent) {
-        if (intent.hasExtra("order_data")) {
-            val orderJson = intent.getStringExtra("order_data")
-            if (!orderJson.isNullOrBlank()) {
-                val gson = Gson()
-                val order = gson.fromJson(orderJson, Order::class.java)
-                viewModel.navigateToOrderDetail(order)
-            }
-            intent.removeExtra("order_data")
+    private fun processIntent(intent: Intent, viewModel: MainViewModel) {
+        if (intent.hasExtra("type")) {
+            viewModel.navigateToNotification()
+            intent.removeExtra("type")
         }
-        intent.data?.let { uri ->
-            viewModel.handleDeeplink(uri)
-        }
+
     }
 }

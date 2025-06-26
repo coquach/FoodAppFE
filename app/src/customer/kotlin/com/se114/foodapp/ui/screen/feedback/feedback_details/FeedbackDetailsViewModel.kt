@@ -81,6 +81,7 @@ class FeedbackDetailsViewModel @Inject constructor(
                 }
             }
 
+
         }
     }
 
@@ -106,6 +107,7 @@ object FeedbackDetail {
         data class OnContentChanged(val content: String) : Action
         data class OnImagesChanged(val images: List<Uri>?) : Action
         data object OnBack : Action
+
 
     }
 }

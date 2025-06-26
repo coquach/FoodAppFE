@@ -21,25 +21,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,10 +48,10 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import com.example.foodapp.R
 import com.example.foodapp.navigation.Notification
-import com.example.foodapp.ui.screen.components.ItemCount
+import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.Loading
+import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.ui.screen.components.charts.BarChartFromEntries
@@ -59,18 +59,16 @@ import com.example.foodapp.ui.screen.components.charts.ChartEntry
 import com.example.foodapp.ui.screen.components.charts.DonutChatSample
 import com.example.foodapp.ui.screen.components.charts.LineChartFromEntries
 import com.example.foodapp.ui.screen.components.charts.MenuDonutSlice
-import com.example.foodapp.ui.screen.notification.NotificationViewModel
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.ui.component.MonthPicker
 
 @Composable
 fun StatisticsScreen(
     navController: NavController,
-    notificationViewModel: NotificationViewModel,
     viewModel: StatisticsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val unReadCount by notificationViewModel.unreadCount.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -88,6 +86,13 @@ fun StatisticsScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.getMonthlyReports()
+        viewModel.getDailyReports()
+        viewModel.getMenuReports()
+    }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -95,37 +100,7 @@ fun StatisticsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Chào mừng bạn, trở lại!",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-
-                )
-            Box(modifier = Modifier.size(50.dp)) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_nofication),
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .align(Alignment.Center)
-                        .clickable {
-                            viewModel.onAction(StaticsState.Action.GoToNotification)
-                        }
-                )
-
-                if (unReadCount > 0) {
-                    ItemCount(unReadCount)
-                }
-
-            }
-        }
+       HeaderDefaultView(text = "Thống kê")
 
 
         Column(
@@ -166,6 +141,7 @@ fun StatisticsScreen(
                             when (uiState.monthlyReportState) {
                                 is StaticsState.MonthlyReportState.Error -> {
                                     Retry(
+                                        modifier = Modifier.fillMaxSize(),
                                         onClicked = {
                                             viewModel.onAction(StaticsState.Action.GetMonthlyReport)
                                         },
@@ -174,19 +150,32 @@ fun StatisticsScreen(
                                 }
 
                                 StaticsState.MonthlyReportState.Loading -> {
-                                    Loading()
+                                    Loading(
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                 }
 
                                 StaticsState.MonthlyReportState.Success -> {
-                                    val totalSales = uiState.monthlyReports.map {
-                                        ChartEntry(
-                                            xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
-                                            value = it.totalSales,
+                                    if(uiState.monthlyReports.isEmpty()){
+                                        Nothing(
+                                            modifier = Modifier.fillMaxSize(),
+                                            icon = Icons.Default.BarChart,
+                                            text = "Chưa có thống kê tháng"
+
+
+                                        )
+                                    }else {
+                                        val totalSales = uiState.monthlyReports.map {
+                                            ChartEntry(
+                                                xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
+                                                value = it.totalSales,
+                                            )
+                                        }
+                                        LineChartFromEntries(
+                                            entries = totalSales,
                                         )
                                     }
-                                    LineChartFromEntries(
-                                        entries = totalSales,
-                                    )
+
                                 }
                             }
                         }
@@ -200,6 +189,7 @@ fun StatisticsScreen(
                             when (uiState.monthlyReportState) {
                                 is StaticsState.MonthlyReportState.Error -> {
                                     Retry(
+                                        modifier = Modifier.fillMaxSize(),
                                         onClicked = {
                                             viewModel.onAction(StaticsState.Action.GetMonthlyReport)
                                         },
@@ -208,19 +198,32 @@ fun StatisticsScreen(
                                 }
 
                                 StaticsState.MonthlyReportState.Loading -> {
-                                    Loading()
+                                    Loading(
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                 }
 
                                 StaticsState.MonthlyReportState.Success -> {
-                                    val netProfits = uiState.monthlyReports.map {
-                                        ChartEntry(
-                                            xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
-                                            value = it.netProfit,
+                                    if(uiState.monthlyReports.isEmpty()){
+                                        Nothing(
+                                            modifier = Modifier.fillMaxSize(),
+                                            icon = Icons.Default.BarChart,
+                                            text = "Chưa có thống kê tháng"
+
+
+                                        )
+                                    } else {
+                                        val netProfits = uiState.monthlyReports.map {
+                                            ChartEntry(
+                                                xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
+                                                value = it.netProfit,
+                                            )
+                                        }
+                                        LineChartFromEntries(
+                                            entries = netProfits,
                                         )
                                     }
-                                    LineChartFromEntries(
-                                        entries = netProfits,
-                                    )
+
                                 }
                             }
                         }
@@ -233,6 +236,7 @@ fun StatisticsScreen(
                             when (uiState.monthlyReportState) {
                                 is StaticsState.MonthlyReportState.Error -> {
                                     Retry(
+                                        modifier = Modifier.fillMaxSize(),
                                         onClicked = {
                                             viewModel.onAction(StaticsState.Action.GetMonthlyReport)
                                         },
@@ -241,19 +245,32 @@ fun StatisticsScreen(
                                 }
 
                                 StaticsState.MonthlyReportState.Loading -> {
-                                    Loading()
+                                    Loading(
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                 }
 
                                 StaticsState.MonthlyReportState.Success -> {
-                                    val totalImportCosts = uiState.monthlyReports.map {
-                                        ChartEntry(
-                                            xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
-                                            value = it.totalImportCost,
+                                    if(uiState.monthlyReports.isEmpty()){
+                                        Nothing(
+                                            modifier = Modifier.fillMaxSize(),
+                                            icon = Icons.Default.BarChart,
+                                            text = "Chưa có thống kê tháng"
+
+
+                                        )
+                                    }else {
+                                        val totalImportCosts = uiState.monthlyReports.map {
+                                            ChartEntry(
+                                                xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
+                                                value = it.totalImportCost,
+                                            )
+                                        }
+                                        LineChartFromEntries(
+                                            entries = totalImportCosts,
                                         )
                                     }
-                                    LineChartFromEntries(
-                                        entries = totalImportCosts,
-                                    )
+
                                 }
                             }
                         }
@@ -266,6 +283,7 @@ fun StatisticsScreen(
                             when (uiState.monthlyReportState) {
                                 is StaticsState.MonthlyReportState.Error -> {
                                     Retry(
+                                        modifier = Modifier.fillMaxSize(),
                                         onClicked = {
                                             viewModel.onAction(StaticsState.Action.GetMonthlyReport)
                                         },
@@ -274,25 +292,39 @@ fun StatisticsScreen(
                                 }
 
                                 StaticsState.MonthlyReportState.Loading -> {
-                                    Loading()
+                                    Loading(
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                 }
 
                                 StaticsState.MonthlyReportState.Success -> {
-                                    val totalSalaries = uiState.monthlyReports.map {
-                                        ChartEntry(
-                                            xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
-                                            value = it.totalSalaries,
+                                    if(uiState.monthlyReports.isEmpty()){
+                                        Nothing(
+                                            modifier = Modifier.fillMaxSize(),
+                                            icon = Icons.Default.BarChart,
+                                            text = "Chưa có thống kê tháng"
+
+
+                                        )
+                                    }else {
+                                        val totalSalaries = uiState.monthlyReports.map {
+                                            ChartEntry(
+                                                xLabel = StringUtils.formatLocalDate(it.reportMonth)!!,
+                                                value = it.totalSalaries,
+                                            )
+                                        }
+                                        LineChartFromEntries(
+                                            entries = totalSalaries,
                                         )
                                     }
-                                    LineChartFromEntries(
-                                        entries = totalSalaries,
-                                    )
+
                                 }
                             }
                         }
 
                     },
                 ),
+                scrollable = true,
                 onTabSelected = {},
                 modifier = Modifier.fillMaxWidth()
 
@@ -375,6 +407,7 @@ fun StatisticsScreen(
                             when (uiState.dailyReportState) {
                                 is StaticsState.DailyReportState.Error -> {
                                     Retry(
+                                        modifier = Modifier.fillMaxSize(),
                                         onClicked = {
                                             viewModel.onAction(StaticsState.Action.GetDailyReport)
                                         },
@@ -383,19 +416,29 @@ fun StatisticsScreen(
                                 }
 
                                 StaticsState.DailyReportState.Loading -> {
-                                    Loading()
+                                    Loading(
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                 }
 
                                 StaticsState.DailyReportState.Success -> {
-                                    val totalSales = uiState.dailyReports.map {
-                                        ChartEntry(
-                                            xLabel = StringUtils.formatLocalDate(it.reportDate)!!,
-                                            value = it.totalSales,
+                                    if(uiState.dailyReports.isEmpty()){
+                                        Nothing(
+                                            modifier = Modifier.fillMaxSize(),
+                                            icon = Icons.Default.BarChart,
+                                            text = "Chưa có thống kê ngày")
+                                    } else {
+                                        val totalSales = uiState.dailyReports.map {
+                                            ChartEntry(
+                                                xLabel = StringUtils.formatLocalDate(it.reportDate)!!,
+                                                value = it.totalSales,
+                                            )
+                                        }
+                                        BarChartFromEntries(
+                                            entries = totalSales,
                                         )
                                     }
-                                    BarChartFromEntries(
-                                        entries = totalSales,
-                                    )
+
                                 }
                             }
                         }
@@ -409,6 +452,7 @@ fun StatisticsScreen(
                             when (uiState.dailyReportState) {
                                 is StaticsState.DailyReportState.Error -> {
                                     Retry(
+                                        modifier = Modifier.fillMaxSize(),
                                         onClicked = {
                                             viewModel.onAction(StaticsState.Action.GetDailyReport)
                                         },
@@ -417,19 +461,29 @@ fun StatisticsScreen(
                                 }
 
                                 StaticsState.DailyReportState.Loading -> {
-                                    Loading()
+                                    Loading(
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
                                 }
 
                                 StaticsState.DailyReportState.Success -> {
-                                    val totalOrders = uiState.dailyReports.map {
-                                        ChartEntry(
-                                            xLabel = StringUtils.formatLocalDate(it.reportDate)!!,
-                                            value = it.totalOrders,
+                                    if(uiState.dailyReports.isEmpty()){
+                                        Nothing(
+                                            modifier = Modifier.fillMaxSize(),
+                                            icon = Icons.Default.BarChart,
+                                            text = "Chưa có thống kê ngày")
+                                    } else {
+                                        val totalOrders = uiState.dailyReports.map {
+                                            ChartEntry(
+                                                xLabel = StringUtils.formatLocalDate(it.reportDate)!!,
+                                                value = it.totalOrders,
+                                            )
+                                        }
+                                        BarChartFromEntries(
+                                            entries = totalOrders,
                                         )
                                     }
-                                    BarChartFromEntries(
-                                        entries = totalOrders,
-                                    )
+
                                 }
                             }
 
@@ -443,7 +497,7 @@ fun StatisticsScreen(
 
             )
             Text(
-                text = "Món ăn bán chạy nhất",
+                text = "Thực đơn bán chạy nhất",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -452,10 +506,11 @@ fun StatisticsScreen(
             )
             Box(modifier = Modifier
                 .fillMaxWidth()
-                .height(350.dp)) {
+                .height(500.dp)) {
                 when (uiState.menuReportState) {
                     is StaticsState.MenuReportState.Error -> {
                         Retry(
+                            modifier = Modifier.fillMaxSize(),
                             onClicked = {
                                 viewModel.onAction(StaticsState.Action.GetMenuReport)
                             },
@@ -464,23 +519,34 @@ fun StatisticsScreen(
                     }
 
                     StaticsState.MenuReportState.Loading -> {
-                        Loading()
+                        Loading(
+                            modifier = Modifier.fillMaxSize(),
+                        )
                     }
 
                     StaticsState.MenuReportState.Success -> {
-                        val donutDates = uiState.menuReports.map {
-                            MenuDonutSlice(
-                                name = StringUtils.formatLocalDate(it.reportDate)!!,
-                                value = it.purchaseCount,
+                        if(uiState.menuReports.isEmpty()){
+                            Nothing(
+                                modifier = Modifier.fillMaxSize(),
+                                icon = Icons.Default.Category,
+                                text = "Chưa có thống kê thực đơn"
                             )
+                        } else {
+                            val donutDates = uiState.menuReports.map {
+                                MenuDonutSlice(
+                                    name = it.menuName,
+                                    value = it.percentage,
+                                )
+                            }
+
+                            DonutChatSample(
+                                data = donutDates,
+                                extractLabel = { it.name },
+                                extractValue = { it.value },
+                                modifier = Modifier.fillMaxSize()
+                                )
                         }
 
-                        DonutChatSample(
-                            data = donutDates,
-                            extractLabel = { it.name },
-                            extractValue = { it.value.toFloat() },
-
-                            )
                     }
                 }
 

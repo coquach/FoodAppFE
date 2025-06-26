@@ -10,10 +10,12 @@ import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
 import com.se114.foodapp.domain.use_case.cart.UpdateCartItemQuantityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -32,25 +34,28 @@ class CartViewModel @Inject constructor(
 
     private val _event = Channel<Cart.Event>()
     val event = _event.receiveAsFlow()
-
+    val checkoutDetails: StateFlow<CheckoutDetails> get() = getCheckOutDetailsUseCase().stateIn(
+        scope = viewModelScope,
+        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        initialValue = CheckoutDetails(BigDecimal(0))
+    )
     init {
         getCartItems()
-        getCheckoutDetails()
     }
-    fun increment(cartItem: CartItem) {
+    private fun increment(cartItem: CartItem) {
         val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
-        val newQty = current + 1
+        val newQty = if (current >= cartItem.remainingQuantity) cartItem.remainingQuantity else current + 1
         updateQuantity(cartItem, newQty)
     }
 
-    fun decrement(cartItem: CartItem) {
+    private fun decrement(cartItem: CartItem) {
         val current = _uiState.value.quantityMap[cartItem.id] ?: cartItem.quantity
         if (current <= 1) return
         val newQty = current - 1
         updateQuantity(cartItem, newQty)
     }
 
-    fun removeItem() {
+    private fun removeItem() {
         viewModelScope.launch {
             try {
                 clearCartUseCase(_uiState.value.selectedItems)
@@ -62,15 +67,14 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    private fun getCartItems(){
+    fun getCartItems(){
         viewModelScope.launch {
             try {
-                getCartUseCase().collect {
-                    _uiState.update { it.copy(cartItems = it.cartItems) }
+                getCartUseCase().collect {response ->
+                    _uiState.update { it.copy(cartItems = response, cartItemState = Cart.CartItemState.Success) }
                 }
             }catch (e: Exception){
-                _uiState.update { it.copy(error = e.message ?: "Đã xảy ra lỗi khi lấy giỏ hàng") }
-                _event.send(Cart.Event.ShowError)
+                _uiState.update { it.copy(cartItemState = Cart.CartItemState.Error(e.message ?: "Đã xảy ra lỗi khi lấy giỏ hàng")) }
             }
         }
     }
@@ -110,23 +114,13 @@ class CartViewModel @Inject constructor(
         if (isSelectAll) _uiState.update { it.copy(selectedItems = cartItems) }
     }
 
-    private fun getCheckoutDetails() {
-        viewModelScope.launch {
-            try {
-                getCheckOutDetailsUseCase.invoke().collect {
-                    _uiState.update { it.copy(checkoutDetails = it.checkoutDetails) }
-                }
-            }catch (e: Exception){
-                _uiState.update { it.copy(error = e.message ?: "Đã xảy ra lỗi khi lấy chi tiết đơn hàng") }
-                _event.send(Cart.Event.ShowError)
-            }
-        }
-    }
+
 
     fun onAction(action: Cart.Action) {
         when (action) {
             is Cart.Action.OnCheckOut -> {
                 viewModelScope.launch {
+                    delay(1200L)
                     _event.send(Cart.Event.NavigateToCheckout)
                 }
             }
@@ -156,6 +150,9 @@ class CartViewModel @Inject constructor(
                     _event.send(Cart.Event.OnBack)
                 }
             }
+            is Cart.Action.Retry -> {
+                getCartItems()
+            }
         }
     }
 }
@@ -165,16 +162,16 @@ object Cart {
     data class UiState(
         val isLoading: Boolean = false,
         val cartItems: List<CartItem> = emptyList(),
-        val checkoutDetails: CheckoutDetails = CheckoutDetails(
-            BigDecimal(0),
-            BigDecimal(0),
-            BigDecimal(0),
-            BigDecimal(0)
-        ),
         val selectedItems: List<CartItem> = emptyList(),
         val quantityMap: Map<Long, Int> = emptyMap(),
         val error: String? = null,
+        val cartItemState: CartItemState = CartItemState.Loading
     )
+    sealed interface CartItemState{
+        data object Loading : CartItemState
+        data object Success : CartItemState
+        data class Error(val message: String) : CartItemState
+    }
 
     sealed interface Event {
         data object OnBack : Event
@@ -190,6 +187,7 @@ object Cart {
         data class OnSelectAll(val isSelectAll: Boolean) : Action
         data object OnRemoveItem : Action
         data object OnBack : Action
+        data object Retry: Action
 
     }
 }

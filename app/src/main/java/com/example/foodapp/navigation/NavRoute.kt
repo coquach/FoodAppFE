@@ -24,6 +24,8 @@ object Login : NavRoute
 @Serializable
 object Home : NavRoute
 
+
+
 @Serializable
 data class FoodDetails(val food: Food) : NavRoute
 
@@ -64,7 +66,10 @@ object CheckoutStaff : NavRoute
 data class OrderSuccess(val orderId: Long) : NavRoute
 
 @Serializable
-data class OrderDetails(val order: Order, val isStaff: Boolean = false) : NavRoute
+data class OrderDetailsCustomer(val order: Order) : NavRoute
+
+@Serializable
+data class OrderDetailsStaff(val order: Order) : NavRoute
 
 @Serializable
 object Setting : NavRoute
@@ -76,15 +81,22 @@ object Welcome : NavRoute
 @Serializable
 object SendEmail: NavRoute
 
+@Serializable
+object SendEmailSuccess: NavRoute
 
 @Serializable
 object ResetPasswordSuccess : NavRoute
 
 @Serializable
-data class ResetPassword(val oobCode: String, val mode: String) : NavRoute
+object ResetPassword : NavRoute
 
 @Serializable
-object Statistics : NavRoute
+object Security : NavRoute
+
+
+
+
+
 
 @Serializable
 object Warehouse : NavRoute
@@ -113,6 +125,9 @@ object Material: NavRoute
 
 @Serializable
 object Import: NavRoute
+
+@Serializable
+object ChatBoxAdmin: NavRoute
 
 
 
@@ -144,6 +159,9 @@ object FoodTableAdmin: NavRoute
 
 @Serializable
 object FoodTableStaff: NavRoute
+
+@Serializable
+data class Tracking(val long: Double, val lat: Double): NavRoute
 
 
 

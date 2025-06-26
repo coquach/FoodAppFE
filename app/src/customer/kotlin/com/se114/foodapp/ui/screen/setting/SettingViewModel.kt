@@ -33,11 +33,9 @@ class SettingViewModel @Inject constructor(
     private val _event = Channel<Setting.Event>()
     val event = _event.receiveAsFlow()
 
-    init {
-        getProfile()
-    }
 
-    private fun getProfile() {
+
+    fun getProfile() {
         viewModelScope.launch {
             loadProfileUseCase().collect { result ->
                 when (result) {
@@ -144,6 +142,11 @@ class SettingViewModel @Inject constructor(
                     _event.send(Setting.Event.ShowLogoutDialog)
                 }
             }
+            is Setting.Action.OnSecurityClicked -> {
+                viewModelScope.launch {
+                    _event.send(Setting.Event.NavigateToSecurity)
+                }
+            }
         }
     }
 }
@@ -156,6 +159,7 @@ class SettingViewModel @Inject constructor(
             )
 
         sealed interface Event {
+            data object NavigateToSecurity : Event
             data object NavigateToAddress : Event
             data object NavigateToVoucher : Event
             data object NavigateToHelp : Event
@@ -177,6 +181,7 @@ class SettingViewModel @Inject constructor(
             data object OnHelpClicked : Action
             data object OnContactClicked : Action
             data object OnPrivacyClicked : Action
+            data object OnSecurityClicked : Action
 
         }
     }

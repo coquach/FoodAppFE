@@ -18,7 +18,7 @@ interface VoucherApi {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
+        @Query("order") order: String = "desc",
         @Query("minQuantity") minQuantity: Int? = null,
         @Query("maxQuantity") maxQuantity: Int? = null,
         @Query("type") type: String? = null,

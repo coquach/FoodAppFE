@@ -1,27 +1,21 @@
 package com.se114.foodapp.ui.screen.address.addAddress
 
+
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
 import com.example.foodapp.data.dto.ApiResponse
-
-import com.example.foodapp.data.model.Address
-
-
+import com.example.foodapp.data.model.AddressUI
 import com.example.foodapp.location.LocationManager
 import com.se114.foodapp.domain.use_case.location.GeoCodingUseCase
 import com.se114.foodapp.domain.use_case.location.ReverseGeoCodeUseCase
-import com.se114.foodapp.ui.screen.address.addAddress.AddAddress.Event.*
+import com.se114.foodapp.ui.screen.address.addAddress.AddAddress.Event.BackToAddressList
 import dagger.hilt.android.lifecycle.HiltViewModel
-
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -145,18 +139,18 @@ class AddAddressViewModel @Inject constructor(
 object AddAddress {
     data class UiState(
         val isLoading: Boolean = false,
-        val address: Address? = null,
+        val address: AddressUI? = null,
         val error: String? = null,
     )
 
     sealed interface Event {
         data object OnBack : Event
-        data class BackToAddressList(val address: Address) : Event
+        data class BackToAddressList(val address: AddressUI) : Event
         data object ShowError : Event
     }
 
     sealed interface Action {
-        data class OnAddAddress(val address: Address ) : Action
+        data class OnAddAddress(val address: AddressUI ) : Action
         data object OnBack : Action
         data class OnReverseGeocode(val lat: Double, val lon: Double) : Action
         data class OnGeocoding(val address: String) : Action

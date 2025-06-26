@@ -16,14 +16,14 @@ import java.io.File
 import java.util.UUID
 
 object ImageUtils {
-    fun getImagePart(context: Context, imageUrl: Uri?): MultipartBody.Part? {
-        val imageFile = if (imageUrl != null && !imageUrl.toString().startsWith("https")) {
+    fun getImagePart(context: Context, imageUrl: Uri?, partName: String = "images"): MultipartBody.Part? {
+        val imageFile = if (imageUrl != null && !imageUrl.toString().startsWith("http")) {
             getFileFromUri(context, imageUrl)
         } else {
             null
         }
 
-        return imageFile?.toMultipartBodyPartOrNull()
+        return imageFile?.toMultipartBodyPartOrNull(partName = partName)
     }
 
     /**
@@ -52,7 +52,7 @@ object ImageUtils {
             throw RuntimeException("Failed to create file from URI", e)
         }
     }
-    private fun File?.toMultipartBodyPartOrNull(partName: String = "imageUrl"): MultipartBody.Part? {
+    private fun File?.toMultipartBodyPartOrNull(partName: String = "images"): MultipartBody.Part? {
         return this?.let {
             val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
             MultipartBody.Part.createFormData(partName, it.name, requestFile)

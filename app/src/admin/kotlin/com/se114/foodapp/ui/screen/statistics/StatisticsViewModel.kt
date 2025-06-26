@@ -10,6 +10,7 @@ import com.se114.foodapp.domain.use_case.report.GetDailyReportUseCase
 import com.se114.foodapp.domain.use_case.report.GetMenuReportUseCase
 import com.se114.foodapp.domain.use_case.report.GetMonthlyReportUseCase
 import com.se114.foodapp.ui.screen.statistics.StaticsState.DailyReportState
+import com.se114.foodapp.ui.screen.statistics.StaticsState.Event.ShowErrorToast
 import com.se114.foodapp.ui.screen.statistics.StaticsState.MenuReportState
 import com.se114.foodapp.ui.screen.statistics.StaticsState.MonthlyReportState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,19 +51,15 @@ class StatisticsViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    init {
-        getMonthlyReports()
-        getDailyReports()
-        getMenuReports()
-    }
 
-    private fun getMonthlyReports() {
+
+    fun getMonthlyReports() {
         viewModelScope.launch {
             getMonthlyReportUseCase.invoke(
-                _uiState.value.fromYear,
-                _uiState.value.fromMonth,
-                _uiState.value.toYear,
-                _uiState.value.toMonth
+                fromYear =_uiState.value.fromYear,
+                fromMonth = _uiState.value.fromMonth,
+               toYear = _uiState.value.toYear,
+                toMonth = _uiState.value.toMonth
             ).collect { result ->
                 when (result) {
                     is ApiResponse.Loading -> {
@@ -93,9 +90,9 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
-    private fun getDailyReports() {
+    fun getDailyReports() {
         viewModelScope.launch {
-            getDailyReportUseCase.invoke(_uiState.value.selectedYear, _uiState.value.selectedMonth)
+            getDailyReportUseCase.invoke(year = _uiState.value.selectedYear, month =  _uiState.value.selectedMonth)
                 .collect { result ->
                     when (result) {
                         is ApiResponse.Loading -> {
@@ -125,7 +122,7 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
-    private fun getMenuReports() {
+    fun getMenuReports() {
         viewModelScope.launch {
             getMenuReportUseCase.invoke(_uiState.value.selectedYear, _uiState.value.selectedMonth)
                 .collect { result ->
@@ -160,39 +157,42 @@ class StatisticsViewModel @Inject constructor(
     fun onAction(action: StaticsState.Action) {
         when (action) {
             is StaticsState.Action.OnChangeFromMonthYear -> {
-                if (action.year <= _uiState.value.toYear && action.month <= _uiState.value.toMonth) {
+                if (isMonthYearBeforeOrEqual(action.year, action.month, _uiState.value.toYear, _uiState.value.toMonth)) {
                     _uiState.update { it.copy(fromMonth = action.month, fromYear = action.year) }
                     getMonthlyReports()
                 } else {
                     viewModelScope.launch {
-                        _event.send(StaticsState.Event.ShowErrorToast("Thời gian không hợp lệ"))
+                        _event.send(ShowErrorToast("Thời gian không hợp lệ"))
                     }
                 }
 
             }
 
             is StaticsState.Action.OnChangeToMonthYear -> {
-                if (action.year >= _uiState.value.fromYear && action.month >= _uiState.value.fromMonth && action.year <= Calendar.getInstance()
-                        .get(Calendar.YEAR) && action.month <= Calendar.getInstance()
-                        .get(Calendar.MONTH) + 1
-                ){
+                val now = Calendar.getInstance()
+                val currentYear = now.get(Calendar.YEAR)
+                val currentMonth = now.get(Calendar.MONTH) + 1 // vì Calendar.MONTH bắt đầu từ 0
+
+                if (
+                    isMonthYearAfterOrEqual(action.year, action.month, _uiState.value.fromYear, _uiState.value.fromMonth) &&
+                    isMonthYearBeforeOrEqual(action.year, action.month, currentYear, currentMonth)
+                ) {
                     _uiState.update { it.copy(toMonth = action.month, toYear = action.year) }
                     getMonthlyReports()
-                }
-                else {
+                } else {
                     viewModelScope.launch {
-                        _event.send(StaticsState.Event.ShowErrorToast("Thời gian không hợp lệ"))
+                        _event.send(ShowErrorToast("Thời gian không hợp lệ"))
                     }
                 }
             }
 
             is StaticsState.Action.OnChangeSelectedMonthYear -> {
                 val (newMonth, newYear) = adjustMonthYear(action.month, action.year)
-                if (newYear <= Calendar.getInstance()
-                        .get(Calendar.YEAR) && newMonth <= Calendar.getInstance()
-                        .get(Calendar.MONTH) + 1
-                ){
+                val now = Calendar.getInstance()
+                val nowMonth = now.get(Calendar.MONTH) + 1
+                val nowYear = now.get(Calendar.YEAR)
 
+                if (isMonthYearBeforeOrEqual(newYear, newMonth, nowYear, nowMonth)) {
                     _uiState.update {
                         it.copy(
                             selectedMonth = newMonth,
@@ -201,11 +201,9 @@ class StatisticsViewModel @Inject constructor(
                     }
                     getDailyReports()
                     getMenuReports()
-                }
-
-                else {
+                } else {
                     viewModelScope.launch {
-                        _event.send(StaticsState.Event.ShowErrorToast("Thời gian vượt hiện tại"))
+                        _event.send(ShowErrorToast("Thời gian vượt hiện tại"))
                     }
                 }
             }
@@ -243,7 +241,7 @@ object StaticsState {
         val fromYear: Int,
         val toMonth: Int,
         val toYear: Int,
-        val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
+        val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1,
         val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR),
 
 
@@ -294,14 +292,22 @@ fun adjustMonthYear(currentMonth: Int, currentYear: Int): Pair<Int, Int> {
 
     // Lùi hoặc tiến nhiều tháng
     while (newMonth < 1) {
-        newMonth += 11
+        newMonth += 12
         newYear -= 1
     }
 
     while (newMonth > 12) {
-        newMonth -= 11
+        newMonth -= 12
         newYear += 1
     }
 
     return newMonth to newYear
+}
+
+fun isMonthYearBeforeOrEqual(y1: Int, m1: Int, y2: Int, m2: Int): Boolean {
+    return y1 < y2 || (y1 == y2 && m1 <= m2)
+}
+
+fun isMonthYearAfterOrEqual(y1: Int, m1: Int, y2: Int, m2: Int): Boolean {
+    return y1 > y2 || (y1 == y2 && m1 >= m2)
 }

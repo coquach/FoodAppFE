@@ -21,9 +21,10 @@ interface StaffApi {
         @Query("page") page: Int,
         @Query("size") size: Int,
         @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
+        @Query("order") order: String = "desc",
         @Query("fullName") fullName: String? = null,
         @Query("gender") gender: String? = null,
+        @Query("status") status: Boolean = true,
     ): Response<PageResponse<Staff>>
 
     @Multipart

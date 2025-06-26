@@ -12,10 +12,13 @@ import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.domain.use_case.voucher.GetVoucherForCustomerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,17 +27,15 @@ class VouchersViewModel @Inject constructor(
     private val getVoucherForCustomerUseCase: GetVoucherForCustomerUseCase,
 ) : ViewModel() {
 
+    private val _uiState = MutableStateFlow(Vouchers.UiState())
+    val uiState: StateFlow<Vouchers.UiState> get() = _uiState.asStateFlow()
 
     private val _event = Channel<Vouchers.Event>()
     val event = _event.receiveAsFlow()
 
 
-    val vouchers: StateFlow<PagingData<Voucher>> =
-        getVoucherForCustomerUseCase(VoucherFilter()).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
+    val vouchers =
+        getVoucherForCustomerUseCase(VoucherFilter())
 
     fun onAction(action: Vouchers.Action) {
         when (action) {
@@ -43,16 +44,38 @@ class VouchersViewModel @Inject constructor(
                     _event.send(Vouchers.Event.OnBack)
                 }
             }
+            is Vouchers.Action.OnChangeNameSearch -> {
+                _uiState.update { it.copy(nameSearch = action.name) }
+            }
+            is Vouchers.Action.OnChangeOrder -> {
+                _uiState.update { it.copy(filter = it.filter.copy(order = action.order)) }
+            }
+            is Vouchers.Action.OnChangeSortByName -> {
+                _uiState.update { it.copy(filter = it.filter.copy(sortBy = action.sort)) }
+            }
+            Vouchers.Action.OnSearchFilter -> {
+
+            }
         }
     }
 }
 
 object Vouchers {
+    data class UiState(
+        val filter: VoucherFilter = VoucherFilter(),
+        val nameSearch: String = "",
+    )
+
     sealed interface Event {
         data object OnBack : Event
     }
 
     sealed interface Action {
         data object OnBack : Action
+        data class OnChangeNameSearch(val name: String) : Action
+        data class OnChangeOrder(val order: String) : Action
+        data class OnChangeSortByName(val sort: String) : Action
+        data object OnSearchFilter : Action
+
     }
 }

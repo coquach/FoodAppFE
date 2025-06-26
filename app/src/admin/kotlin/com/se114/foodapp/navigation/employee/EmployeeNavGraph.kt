@@ -16,10 +16,8 @@ import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.employeeGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>
 ) {
    composable<Employee> {
-       shouldShowBottomNav.value = true
        ScreenContainer(isBottomBarVisible = true) {
            EmployeeScreen(navController)
        }
@@ -28,8 +26,6 @@ fun NavGraphBuilder.employeeGraph(
     composable<EmployeeDetails>(
         typeMap = mapOf(typeOf<Staff>() to staffNavType)
     ) {
-        shouldShowBottomNav.value = false
-
         ScreenContainer {
             StaffDetailsScreen(navController)
         }

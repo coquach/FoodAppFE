@@ -61,6 +61,7 @@ android {
             )
 
 
+
         }
         release {
             buildConfigField(
@@ -116,7 +117,7 @@ android {
             resValue(
                 "string",
                 "app_description",
-                "Quản lý đơn hàng, theo dõi doanh thu, tối ưu vận hành."
+                "Quản lý quán ăn, theo dõi doanh thu, tối ưu vận hành."
             )
         }
         create("staff") {
@@ -132,6 +133,20 @@ android {
                 "string",
                 "app_description",
                 "Hỗ trợ khách hàng, xử lý đơn hàng nhanh chóng."
+            )
+        }
+        create("shipper") {
+            dimension = "environment"
+            applicationIdSuffix = ".shipper"
+            resValue(
+                type = "string",
+                name = "app_name",
+                value = "FA Shipper"
+            )
+            resValue(
+                "string",
+                "app_description",
+                "Theo dõi đơn hàng, giao hàng nhanh chóng."
             )
         }
     }
@@ -206,7 +221,6 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
 
 
-
     //Google Auth
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation("androidx.credentials:credentials:1.5.0")
@@ -240,6 +254,9 @@ dependencies {
     implementation("com.mapbox.extension:maps-compose:11.12.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.mapbox.navigationcore:android:3.9.0")
+
+    //Stripe
+   
 
 }
 

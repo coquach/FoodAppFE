@@ -10,6 +10,7 @@ import java.math.BigDecimal
 data class CartItem(
     val id: Long,
     val name: String,
+    val remainingQuantity: Int,
     val quantity: Int,
     val imageUrl: String?= null,
     @Serializable(with = BigDecimalSerializer::class)

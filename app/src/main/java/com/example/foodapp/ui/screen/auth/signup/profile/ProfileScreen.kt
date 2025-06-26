@@ -63,6 +63,7 @@ import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp.lifecycleOwner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import androidx.core.net.toUri
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -213,9 +214,11 @@ fun ProfileScreen(
                 }
             )
             DatePickerSample(
+                modifier = Modifier.fillMaxWidth(),
                 text = "Ngày sinh",
                 selectedDate = uiState.profile.dob,
-                onDateSelected = { viewModel.onAction(Profile.Action.OnDateOfBirthChanged(it)) }
+                onDateSelected = { viewModel.onAction(Profile.Action.OnDateOfBirthChanged(it)) },
+                maxDate = LocalDate.now()
             )
 
             FoodAppTextField(

@@ -20,7 +20,7 @@ class CreateFeedbackUseCase @Inject constructor(
     operator fun invoke(orderItemId: Long, feedback: FeedbackUi) = flow<ApiResponse<Unit>> {
         emit(ApiResponse.Loading)
         try {
-            val imageParts = feedback.images?.map { ImageUtils.getImagePart(context, it) }
+            val imageParts = feedback.images?.map { ImageUtils.getImagePart(context, it, "images") }
             val request = FeedbackMultipartRequest(
                 orderItemId = orderItemId,
                 content = feedback.content,

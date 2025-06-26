@@ -25,15 +25,7 @@ fun CheckoutDetailsView(
 
     val voucherValue = calculateVoucherValue(voucher, checkoutDetails)
     Column {
-        CheckoutRowItem(
-            title = "Tổng giá", value = checkoutDetails.subTotal
-        )
-        CheckoutRowItem(
-            title = "Thuế GTGT", value = checkoutDetails.tax
-        )
-        CheckoutRowItem(
-            title = "Phí ship", value = checkoutDetails.deliveryFee
-        )
+
         CheckoutRowItem(
             title = "Voucher", value = voucherValue
         )
@@ -74,7 +66,7 @@ fun calculateVoucherValue(voucher: Voucher?, checkoutDetails: CheckoutDetails): 
         val type = VoucherType.valueOf(voucher.type)
         voucherValue = when (type) {
             VoucherType.PERCENTAGE -> {
-                val voucherByOrder = checkoutDetails.subTotal* BigDecimal(voucher.value)
+                val voucherByOrder = checkoutDetails.totalAmount* BigDecimal(voucher.value)
                 if (voucherByOrder > voucher.maxValue) {
                     voucher.maxValue
                 } else {

@@ -25,6 +25,8 @@ class SupplierPagingSource(
             supplierApi.getSuppliers(
                 page = page,
                 size = size,
+                order = filter.order,
+                sortBy = filter.sortBy,
                 name = filter.name,
                 phone = filter.phone,
                 email = filter.email,

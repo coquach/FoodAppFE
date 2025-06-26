@@ -6,11 +6,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodapp.BuildConfig
-import com.example.foodapp.data.remote.AiApi
-import com.example.foodapp.data.remote.OpenCageApi
-import com.example.foodapp.data.remote.OsrmApi
 import com.example.foodapp.data.remote.main_api.FoodApi
-import com.example.foodapp.data.remote.main_api.OrderApi
+import com.example.foodapp.data.remote.main_api.NotificationApi
 import com.example.foodapp.data.remote.main_api.VoucherApi
 import com.example.foodapp.domain.repository.AccountRepository
 import com.example.foodapp.location.LocationManager
@@ -18,12 +15,10 @@ import com.example.foodapp.utils.gson.BigDecimalDeserializer
 import com.example.foodapp.utils.gson.LocalDateDeserializer
 import com.example.foodapp.utils.gson.LocalDateTimeDeserializer
 import com.example.foodapp.utils.gson.LocalTimeDeserializer
-
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.GsonBuilder
-
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,7 +34,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.inject.Named
-
 import javax.inject.Singleton
 
 
@@ -102,15 +96,6 @@ object AppModule {
             .build()
     }
 
-    @Provides
-    @Singleton
-    @Named("NavigationApi")
-    fun provideRetrofitNavigationApi(): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("http://router.project-osrm.org")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
 
 
 
@@ -124,6 +109,12 @@ object AppModule {
     @Singleton
     fun provideVoucherApi(@Named("MainApi") retrofit: Retrofit): VoucherApi {
         return retrofit.create(VoucherApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationApi(@Named("MainApi") retrofit: Retrofit): NotificationApi {
+        return retrofit.create(NotificationApi::class.java)
     }
 
     @Provides

@@ -32,6 +32,8 @@ class AccountRepoImpl @Inject constructor(
             awaitClose { Firebase.auth.removeAuthStateListener(listener) }
         }.distinctUntilChanged()
 
+
+
     override val currentUserId: String?
         get() = Firebase.auth.currentUser?.uid
 
@@ -40,8 +42,15 @@ class AccountRepoImpl @Inject constructor(
         return currentUser.getIdToken(false).await().token
     }
 
-    override fun isEmailVerified(): Boolean {
-        return Firebase.auth.currentUser?.isEmailVerified == true
+    override suspend fun isEmailVerified(): Boolean {
+        val user = Firebase.auth.currentUser ?: return false
+        try {
+            user.reload().await()
+            return user.isEmailVerified
+        } catch (e: Exception) {
+
+            return false
+        }
     }
 
     override fun sendVerifyEmail() {
@@ -97,6 +106,11 @@ class AccountRepoImpl @Inject constructor(
     override suspend fun reAuthenticateWithEmail(email: String, password: String) {
         val credential = EmailAuthProvider.getCredential(email, password)
         Firebase.auth.currentUser?.reauthenticate(credential)?.await()
+    }
+
+    override fun isGoogleLinked(): Boolean {
+        val user = Firebase.auth.currentUser
+        return user?.providerData?.any { it.providerId == "google.com" } == true
     }
 
     override suspend fun linkAccountWithEmail(email: String, password: String) {

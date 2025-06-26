@@ -45,6 +45,7 @@ import androidx.paging.compose.LazyPagingItems
 import coil.compose.AsyncImage
 import com.example.foodapp.R.drawable
 import com.example.foodapp.data.model.Food
+import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
@@ -58,6 +59,7 @@ fun SharedTransitionScope.FoodView(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: (Food) -> Unit,
     isCustomer: Boolean = true,
+    isAnimated: Boolean = true,
     isFullWidth: Boolean = false,
 ) {
 
@@ -94,9 +96,15 @@ fun SharedTransitionScope.FoodView(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(16.dp))
-                    .sharedElement(
-                        state = rememberSharedContentState(key = "image/${food.id}"),
-                        animatedVisibilityScope
+                    .then(
+                        if (isAnimated) {
+                            Modifier.sharedElement(
+                                state = rememberSharedContentState(key = "image/${food.id}"),
+                                animatedVisibilityScope
+                            )
+                        } else {
+                            Modifier // 👈 Modifier.empty, tức là không gắn gì cả
+                        }
                     ),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(drawable.ic_placeholder),
@@ -130,40 +138,41 @@ fun SharedTransitionScope.FoodView(
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(color = MaterialTheme.colorScheme.outlineVariant)
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${food.totalRating}",
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = Color.Yellow
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = "(${food.totalFeedback})",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        maxLines = 1
+                    )
+                }
             }
 
 
 
 
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(color = MaterialTheme.colorScheme.outlineVariant)
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "${food.totalRating}",
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = Color.Yellow
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = "(${food.totalFeedback})",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    maxLines = 1
-                )
-            }
+
 
 
         }
@@ -178,10 +187,15 @@ fun SharedTransitionScope.FoodView(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                modifier = Modifier.sharedElement(
+                modifier = Modifier
+                    .then(
+                        if (isAnimated) {
+                            Modifier.sharedElement(
                     state = rememberSharedContentState(key = "title/${food.id}"),
                     animatedVisibilityScope
-                ),
+                )} else{
+                            Modifier
+                }),
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
@@ -190,10 +204,15 @@ fun SharedTransitionScope.FoodView(
                 color = Color.Gray,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.sharedElement(
-                    state = rememberSharedContentState(key = "description/${food.id}"),
-                    animatedVisibilityScope
-                )
+                modifier = Modifier
+                    .then(
+                        if (isAnimated) {
+                            Modifier.sharedElement(
+                                state = rememberSharedContentState(key = "description/${food.id}"),
+                                animatedVisibilityScope
+                            )} else{
+                            Modifier
+                        })
             )
         }
     }
@@ -204,70 +223,56 @@ fun SharedTransitionScope.FoodView(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.FoodList(
+    modifier: Modifier = Modifier,
     foods: LazyPagingItems<Food>,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onItemClick: (Food) -> Unit,
     isCustomer: Boolean = false,
     isSwipeAction: Boolean = false,
     isFullWidth: Boolean = false,
+    isAnimated: Boolean = true,
     endAction: (@Composable (Food) -> SwipeAction)? = null,
+
 ) {
-    if (foods.itemCount == 0 && foods.loadState.refresh !is LoadState.Loading) {
-        Nothing(
-            text = "Không có món ăn nào",
-            icon = Icons.Default.NoMeals,
-            modifier = Modifier.fillMaxSize()
-        )
-    } else {
-        LazyColumn(
-            modifier = Modifier.heightIn(max = 10000.dp)
+    LazyPagingSample(
+        modifier = modifier,
+        items = foods,
+        textNothing = "Không có món ăn nào",
+        iconNothing = Icons.Default.NoMeals,
+        columns = if (isFullWidth) 1 else 2,
+        key = {food ->
+            food.id
+        }
+    ) {food ->
+        if (isSwipeAction) {
 
-        ) {
-            gridItems(
-                foods, if (isFullWidth) 1 else 2, key = { food -> food.id },
-                itemContent = { food ->
-                    food?.let {
-                        if (isSwipeAction) {
-
-                            SwipeableActionsBox(
-                                modifier = Modifier
-                                    .padding(
-                                        8.dp,
-                                    )
-                                    .clip(RoundedCornerShape(12.dp)),
-                                endActions = endAction?.let { listOf(it(food)) } ?: emptyList()
-                            ) {
-                                FoodView(
-                                    food = food,
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    onClick = { onItemClick(food) },
-                                    isCustomer = isCustomer,
-                                    isFullWidth = isFullWidth
-                                )
-                            }
-
-
-                        } else {
-                            FoodView(
-                                food = food,
-                                animatedVisibilityScope = animatedVisibilityScope,
-                                onClick = { onItemClick(food) },
-                                isCustomer = isCustomer,
-                                isFullWidth = isFullWidth
-                            )
-                        }
-
-                    }
-                },
-                placeholderContent = {
-
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .fillMaxWidth()
-                            .background(Color.Gray.copy(alpha = 0.3f))
+            SwipeableActionsBox(
+                modifier = Modifier
+                    .padding(
+                        8.dp,
                     )
-                }
+                    .clip(RoundedCornerShape(12.dp)),
+                endActions = endAction?.let { listOf(it(food)) } ?: emptyList()
+            ) {
+                FoodView(
+                    food = food,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    onClick = { onItemClick(food) },
+                    isCustomer = isCustomer,
+                    isAnimated = isAnimated,
+                    isFullWidth = isFullWidth
+                )
+            }
+
+
+        } else {
+            FoodView(
+                food = food,
+                animatedVisibilityScope = animatedVisibilityScope,
+                onClick = { onItemClick(food) },
+                isCustomer = isCustomer,
+                isAnimated = isAnimated,
+                isFullWidth = isFullWidth
             )
         }
     }

@@ -4,28 +4,38 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.dto.filter.FoodTableFilter
 import com.example.foodapp.data.dto.request.OrderItemRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 
 import com.example.foodapp.data.model.CheckoutUiModel
+import com.example.foodapp.data.model.FoodTable
 import com.example.foodapp.data.model.Voucher
+import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.data.model.enums.ServingType
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.example.foodapp.domain.use_case.food_table.GetFoodTablesUseCase
 
 import com.se114.foodapp.domain.use_case.cart.GetCartUseCase
 import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
 import com.example.foodapp.domain.use_case.order.PlaceOrderUseCase
 import com.example.foodapp.utils.StringUtils
+import com.se114.foodapp.domain.use_case.cart.ClearAllCartUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -37,6 +47,9 @@ class CheckoutViewModel @Inject constructor(
     private val getCheckoutDetailsUseCase: GetCheckOutDetailsUseCase,
     private val placeOrderUseCase: PlaceOrderUseCase,
     private val getFoodTableUseCase: GetFoodTablesUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
+    private val clearAllCartUseCase: ClearAllCartUseCase,
+
 
 ) : ViewModel() {
 
@@ -51,6 +64,11 @@ class CheckoutViewModel @Inject constructor(
         getCheckoutDetails()
     }
 
+    val foodTables: StateFlow<PagingData<FoodTable>> = getFoodTableUseCase(FoodTableFilter(active = true)).cachedIn(viewModelScope).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000L),
+        initialValue = PagingData.empty()
+    )
     private fun getCartItems() {
         viewModelScope.launch {
             try {
@@ -83,29 +101,17 @@ class CheckoutViewModel @Inject constructor(
 
     private fun placeOrder() {
         viewModelScope.launch {
-            try {
 
-                val request = OrderRequest(
-                    foodTableId = _uiState.value.checkout.foodTableId,
-                    voucherId = _uiState.value.checkout.voucher?.id,
-                    type = _uiState.value.checkout.type,
-                    method = _uiState.value.checkout.method,
-                    startAt = StringUtils.getCurrentVietnamLocalTime(),
-                    paymentAt = StringUtils.getCurrentVietnamLocalTime(),
-                    note = _uiState.value.checkout.note,
-                    address = _uiState.value.checkout.address,
-                    orderItems = _uiState.value.cartItems.map { cartItem ->
-                        OrderItemRequest(
-                            foodId = cartItem.id,
-                            quantity = cartItem.quantity,
-                        )
-                    }
-                )
 
-                placeOrderUseCase(request).collect { result ->
+                placeOrderUseCase(
+                    checkout = _uiState.value.checkout,
+                    cartItems = _uiState.value.cartItems,
+                    sellerId = getUserIdUseCase()
+                ).collect { result ->
                     when (result) {
                         is ApiResponse.Success -> {
                             _uiState.update { it.copy(isLoading = false) }
+                            clearAllCartUseCase()
                             _event.send(Checkout.Event.OrderSuccess(result.data.id))
                         }
 
@@ -125,17 +131,7 @@ class CheckoutViewModel @Inject constructor(
                     }
                 }
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.update {
-                    it.copy(
-                        error = e.message ?: "Đã xảy ra lỗi khi đặt hàng",
-                        isLoading = false
-                    )
-                }
-                _event.send(Checkout.Event.ShowError)
 
-            }
         }
     }
 
@@ -191,9 +187,7 @@ object Checkout {
         val cartItems: List<CartItem> = emptyList(),
         val checkoutDetails: CheckoutDetails = CheckoutDetails(
             BigDecimal(0),
-            BigDecimal(0),
-            BigDecimal(0),
-            BigDecimal(0)
+
         ),
         val error: String? = null,
         val checkout: CheckoutUiModel = CheckoutUiModel(
@@ -201,6 +195,7 @@ object Checkout {
             voucher = null,
             method = PaymentMethod.CASH.display,
             type = ServingType.INSTORE.display,
+            status = OrderStatus.COMPLETED.name,
             note = "",
             address = null,
         ),

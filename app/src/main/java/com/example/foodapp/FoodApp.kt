@@ -7,12 +7,14 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class FoodApp : Application() {
-
     @Inject
     lateinit var foodAppNotificationManager: FoodAppNotificationManager
     override fun onCreate() {
         super.onCreate()
-        foodAppNotificationManager.createChannels()
-        foodAppNotificationManager.getAndStoreToken()
+        if (BuildConfig.FLAVOR != "admin") {
+            foodAppNotificationManager.createChannels()
+        }
+
+
     }
 }

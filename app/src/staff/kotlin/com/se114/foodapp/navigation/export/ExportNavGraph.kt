@@ -16,10 +16,10 @@ import kotlin.reflect.typeOf
 
 fun NavGraphBuilder.exportGraph(
     navController: NavHostController,
-    shouldShowBottomNav: MutableState<Boolean>
+
 ) {
     composable<com.example.foodapp.navigation.Export> {
-        shouldShowBottomNav.value = true
+
         ScreenContainer {
             ExportScreen(navController)
         }
@@ -28,7 +28,7 @@ fun NavGraphBuilder.exportGraph(
     composable<ExportDetails>(
         typeMap = mapOf( typeOf<Export>() to exportNavType)
     ) {
-        shouldShowBottomNav.value = false
+
         ScreenContainer {
             ExportDetailsScreen(navController)
         }

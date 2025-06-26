@@ -6,6 +6,7 @@ import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.response.PageResponse
 import com.example.foodapp.data.model.ChatMessage
 import com.example.foodapp.utils.Constants.ITEMS_PER_PAGE
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -21,6 +22,7 @@ abstract class ApiPagingSource<T : Any> : PagingSource<Int, T>() {
             val response = fetch(currentPage, pageSize).first{it !is ApiResponse.Loading}
             when (response) {
                 is ApiResponse.Success -> {
+
                     val data = response.data
                     val end = data.content.isEmpty() || data.content.size < pageSize
                     if (data.content.isNotEmpty()) {

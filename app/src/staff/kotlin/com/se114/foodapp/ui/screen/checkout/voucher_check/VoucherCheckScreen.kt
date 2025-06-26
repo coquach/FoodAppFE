@@ -65,7 +65,7 @@ fun VoucherCheckScreen(
             HeaderDefaultView(
                 text = "Voucher",
                 onBack = {
-                    navController.navigateUp()
+                    viewModel.onAction(VoucherCheck.Action.OnBack)
                 },
 
                 )
@@ -78,21 +78,19 @@ fun VoucherCheckScreen(
             columns = 1,
             key = {
                 it.id!!
-            }
-        ) {
+            },
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            itemContent = {
+                VoucherCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    voucher = it,
+                    onClick = {
+                        viewModel.onAction(VoucherCheck.Action.OnVoucherSelected(it))
+                    }
+                )
+            },
 
-            VoucherCard(
-                modifier = Modifier.fillMaxWidth(),
-                voucher = it,
-                onClick = {
-                    viewModel.onAction(VoucherCheck.Action.OnVoucherSelected(it))
-                }
             )
-
-
-        }
-
     }
-
 
 }

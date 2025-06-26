@@ -2,14 +2,9 @@ package com.se114.foodapp.ui.screen.supplier
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.OrderFilter
-import com.se114.foodapp.data.dto.filter.SupplierFilter
-import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.Supplier
-import com.example.foodapp.data.model.enums.OrderStatus
+import com.se114.foodapp.data.dto.filter.SupplierFilter
 import com.se114.foodapp.domain.use_case.supplier.AddSupplierUseCase
 import com.se114.foodapp.domain.use_case.supplier.GetSupplierUseCase
 import com.se114.foodapp.domain.use_case.supplier.UpdateStatusSupplierUseCase
@@ -18,13 +13,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,31 +36,7 @@ class SupplierViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    private val suppliersCache = mutableMapOf<Int, StateFlow<PagingData<Supplier>>>()
-
-    private fun refreshAllTabs() {
-        suppliersCache.clear()
-    }
-
-    fun getSuppliersByTab(index: Int): StateFlow<PagingData<Supplier>> {
-        return suppliersCache.getOrPut(index) {
-            val status = when (index) {
-                0 -> true
-                1 -> false
-                else -> true
-            }
-
-            val filter = SupplierFilter(isActive = status)
-
-            getSupplierUseCase.invoke(filter)
-                .cachedIn(viewModelScope)
-                .stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
-                    PagingData.empty()
-                )
-        }
-    }
+    val suppliers = getSupplierUseCase(_uiState.value.filter)
 
 
     private fun addSupplier() {
@@ -75,8 +45,8 @@ class SupplierViewModel @Inject constructor(
                 when (response) {
                     is ApiResponse.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
-                        _event.send(SupplierState.Event.Refresh)
-
+                        _event.send(SupplierState.Event.ShowToastSuccess("Thêm thành công"))
+                        onAction(SupplierState.Action.OnRefresh)
 
                     }
 
@@ -104,7 +74,8 @@ class SupplierViewModel @Inject constructor(
                 when (response) {
                     is ApiResponse.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
-                        _event.send(SupplierState.Event.Refresh)
+                        _event.send(SupplierState.Event.ShowToastSuccess("Cập nhật thành công"))
+                        onAction(SupplierState.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -132,7 +103,8 @@ class SupplierViewModel @Inject constructor(
                     when (response) {
                         is ApiResponse.Success -> {
                             _uiState.update { it.copy(isLoading = false) }
-                            _event.send(SupplierState.Event.Refresh)
+                            _event.send(SupplierState.Event.ShowToastSuccess("Cập nhật trạng thái thành công"))
+                            onAction(SupplierState.Action.OnRefresh)
                         }
 
                         is ApiResponse.Failure -> {
@@ -228,7 +200,13 @@ class SupplierViewModel @Inject constructor(
             }
 
             SupplierState.Action.OnRefresh -> {
-                refreshAllTabs()
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            shouldRefresh = UUID.randomUUID().toString()
+                        )
+                    )
+                }
             }
 
             is SupplierState.Action.OnSupplierSelected -> {
@@ -245,9 +223,16 @@ class SupplierViewModel @Inject constructor(
                 }
             }
 
-            is SupplierState.Action.OnTabSelected -> {
-                _uiState.update { it.copy(tabIndex = action.index) }
+            is SupplierState.Action.OnStatusFilterChange -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            isActive = action.status
+                        )
+                    )
+                }
             }
+
 
         }
     }
@@ -257,7 +242,7 @@ class SupplierViewModel @Inject constructor(
 
 object SupplierState {
     data class UiState(
-        val tabIndex: Int = 0,
+        val filter: SupplierFilter = SupplierFilter(),
         val isLoading: Boolean = false,
         val error: String? = null,
         val supplierSelected: Supplier = Supplier(),
@@ -268,7 +253,7 @@ object SupplierState {
     sealed interface Event {
         data object OnBack : Event
         data object ShowError : Event
-        data object Refresh : Event
+        data class ShowToastSuccess(val message: String): Event
 
     }
 
@@ -285,7 +270,7 @@ object SupplierState {
         data class OnSupplierSelected(val supplier: Supplier) : Action
         data object OnBack : Action
         data object OnRefresh : Action
-        data class OnTabSelected(val index: Int) : Action
+        data class OnStatusFilterChange(val status: Boolean) : Action
 
     }
 }

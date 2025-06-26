@@ -8,17 +8,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -26,6 +32,8 @@ import com.example.foodapp.ui.screen.common.VoucherCard
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.SearchField
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,8 +42,12 @@ fun VouchersScreen(
     navController: NavController,
     viewModel: VouchersViewModel = hiltViewModel(),
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
     var search by remember { mutableStateOf("") }
+    val state = rememberPullToRefreshState()
+    val coroutineScope = rememberCoroutineScope()
+    var refresh by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -75,24 +87,46 @@ fun VouchersScreen(
             )
 
         }
-        LazyPagingSample(
-            items = vouchers,
-            textNothing = "Không có voucher nào cả...",
-            iconNothing = Icons.Default.LocalOffer,
-            columns = 1,
-            key = {
-                it.id!!
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = {
+                viewModel.onAction(Vouchers.Action.OnRefresh)
+            },
+            indicator = {
+                Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = refresh,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    state = state
+                )
+            },
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            state = state,
+            content = {
+                LazyPagingSample(
+                    items = vouchers,
+                    textNothing = "Không có voucher nào cả...",
+                    iconNothing = Icons.Default.LocalOffer,
+                    columns = 1,
+                    key = {
+                        it.id!!
+                    },
+                    itemContent = {
+
+                        VoucherCard(
+                            modifier = Modifier.fillMaxSize().padding(20.dp),
+                            voucher = it,
+                            onClick = {
+
+                            }
+                        )
+                    }
+                )
             }
-        ) {
+        )
 
-            VoucherCard(
-                modifier = Modifier.fillMaxWidth(),
-                voucher = it,
-                onClick = {
-
-                }
-            )
-        }
     }
 
 }
+

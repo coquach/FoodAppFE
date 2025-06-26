@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Button
@@ -53,7 +55,9 @@ import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.navigation.MyAddressList
 import com.example.foodapp.navigation.Profile
+import com.example.foodapp.navigation.Security
 import com.example.foodapp.navigation.VoucherPublic
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.SettingGroup
@@ -69,17 +73,13 @@ fun SettingScreen(
     onThemeUpdated: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
-    val isNotificationMode = rememberSaveable { mutableStateOf(false) }
+
 
     var showErrorSheet by remember { mutableStateOf(false) }
     var showDialogLogout by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        if (handle?.get<Boolean>("shouldRefresh") == true) {
-            handle["shouldRefresh"] = false
-            viewModel.onAction(Setting.Action.OnLoadProfile)
-        }
+    LaunchedEffect(Unit) {
+        viewModel.getProfile()
     }
 
 
@@ -107,6 +107,9 @@ fun SettingScreen(
 
                 Setting.Event.ShowError -> {
                     showErrorSheet = true
+                }
+                Setting.Event.NavigateToSecurity -> {
+                    navController.navigate(Security)
                 }
             }
         }
@@ -175,11 +178,7 @@ fun SettingScreen(
                                 )
                             }
                         )
-                        SettingItem(
-                            Icons.Default.Notifications,
-                            "Thông báo",
-                            toggleState = isNotificationMode
-                        )
+
                         SettingItem(Icons.Default.Language, "Ngôn ngữ", customView = {})
 
                     },
@@ -189,8 +188,11 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
+                        SettingItem(Icons.Default.Lock, "Bảo mật", onClick = {
+                            viewModel.onAction(Setting.Action.OnSecurityClicked)
+                        })
                         SettingItem(Icons.Default.LocationOn, "Địa chỉ", onClick = {viewModel.onAction(Setting.Action.OnAddressClicked)})
-                        SettingItem(Icons.Default.CardGiftcard, "Voucher của tôi", onClick = {viewModel.onAction(Setting.Action.OnVoucherClicked)})
+                        SettingItem(Icons.Default.CardGiftcard, "Voucher", onClick = {viewModel.onAction(Setting.Action.OnVoucherClicked)})
                     }
                 )
             )
@@ -206,16 +208,14 @@ fun SettingScreen(
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-            Button(
+            AppButton(
                 onClick = {
                     viewModel.onAction(Setting.Action.OnLogOutClicked)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
-            ) {
-                Text(text = "Đăng xuất", style = MaterialTheme.typography.bodyMedium)
-            }
+
+               text = "Đăng xuất",
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
     if (showDialogLogout) {
