@@ -300,7 +300,7 @@ fun MaterialScreen(
                                         },
 
                                         thresholdExpend = 10,
-                                        containerColor = MaterialTheme.colorScheme.inversePrimary,
+                                        containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
                                         shouldSelectDefaultOption = false
                                     )
                                 }
@@ -390,7 +390,7 @@ fun MaterialScreen(
 
                                         },
                                         thresholdExpend = 10,
-                                        containerColor = MaterialTheme.colorScheme.inversePrimary,
+                                        containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
                                         shouldSelectDefaultOption = false
                                     )
                                 }
@@ -592,7 +592,7 @@ fun MaterialScreen(
                                         },
 
                                         thresholdExpend = 10,
-                                        containerColor = MaterialTheme.colorScheme.inversePrimary,
+                                        containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
                                         shouldSelectDefaultOption = false
                                     )
                                 }
@@ -676,7 +676,7 @@ fun MaterialScreen(
                                 },
 
                                 thresholdExpend = 10,
-                                containerColor = MaterialTheme.colorScheme.inversePrimary,
+                                containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
                                 shouldSelectDefaultOption = false
                             )
 
