@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Spa
@@ -69,7 +70,9 @@ fun WarehouseScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val inventories = viewModel.inventories.collectAsLazyPagingItems()
+    val inventories = remember(uiState.inventoryFilter) {
+        viewModel.getInventories(uiState.inventoryFilter)
+    }.collectAsLazyPagingItems()
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -150,19 +153,28 @@ fun WarehouseScreen(
                 {
                     InventoryListSection(
                         list = inventories,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onRefresh = {
+                            viewModel.onAction(WarehouseState.Action.OnRefresh)
+                        }
                     )
                 },
                 {
                     InventoryListSection(
                         list = inventories,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onRefresh = {
+                            viewModel.onAction(WarehouseState.Action.OnRefresh)
+                        }
                     )
                 },
                 {
                     InventoryListSection(
                         list = inventories,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onRefresh = {
+                            viewModel.onAction(WarehouseState.Action.OnRefresh)
+                        }
                     )
                 }
             ),
@@ -209,8 +221,10 @@ fun WarehouseScreen(
 fun InventoryListSection(
     modifier: Modifier = Modifier,
     list: LazyPagingItems<Inventory>,
+    onRefresh: () -> kotlin.Unit,
 ) {
     LazyPagingSample(
+        onRefresh = onRefresh,
         modifier = modifier,
         items = list,
         textNothing = "Không có nguyên liệu nào",
@@ -246,11 +260,14 @@ fun InventoryItemView(
                 .height(216.dp)
                 .shadow(
                     elevation = 16.dp,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
                     ambientColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
                     spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
                 )
-                .background(color = MaterialTheme.colorScheme.surface)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(18.dp)
+                )
                 .clickable(
                     onClick = { onClick?.invoke(inventory) },
                 )
@@ -262,7 +279,7 @@ fun InventoryItemView(
                     .height(147.dp)
             ) {
                 Image(
-                    painter = painterResource(R.drawable.image_error),
+                    imageVector = Icons.Default.Category,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
@@ -270,16 +287,7 @@ fun InventoryItemView(
 
                     contentScale = ContentScale.Crop,
                 )
-                Text(
-                    text = StringUtils.formatCurrency(inventory.cost),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.outlineVariant)
-                        .padding(horizontal = 16.dp)
-                        .align(Alignment.TopStart)
-                )
+
 
             }
 
@@ -295,13 +303,24 @@ fun InventoryItemView(
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = "${inventory.quantityRemaining}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "${inventory.quantityRemaining}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                    Text(
+                        text = StringUtils.formatCurrency(inventory.cost),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+
+                    )
+                }
+
             }
         }
     }

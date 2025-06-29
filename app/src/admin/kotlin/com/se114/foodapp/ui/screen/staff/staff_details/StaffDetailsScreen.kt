@@ -241,15 +241,23 @@ fun StaffDetailsScreen(
                 onDateSelected = { viewModel.onAction(StaffDetails.Action.OnChangeBirthDate(it)) }
             )
 
-            DateRangePickerSample(
-                startDate = uiState.staff.startDate,
-                endDate = uiState.staff.endDate,
-                onDateRangeSelected = { start, end ->
-                    viewModel.onAction(StaffDetails.Action.OnChangeStartDate(start))
-                    viewModel.onAction(StaffDetails.Action.OnChangeEndDate(end))
+            DatePickerSample(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Ngày vào làm",
+                selectedDate = uiState.staff.startDate,
+                onDateSelected = {
+                    viewModel.onAction(StaffDetails.Action.OnChangeStartDate(it))
                 },
-                modifier = Modifier.fillMaxWidth()
             )
+            if(uiState.staff.endDate!=null){
+                FoodAppTextField(
+                    value = StringUtils.formatLocalDate(uiState.staff.endDate)!!,
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    labelText = "Ngày nghỉ"
+                )
+            }
             FoodAppTextField(
                 value = uiState.staff.address,
                 onValueChange = {

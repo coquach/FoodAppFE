@@ -169,7 +169,7 @@ class FoodDetailsAdminViewModel @Inject constructor(
                 _uiState.update { it.copy(foodAddUi = it.foodAddUi.copy(defaultQuantity = action.defaultQuantity?: 0)) }
             }
             is AddFood.Action.OnImagesChange -> {
-                _uiState.update { it.copy(foodAddUi = it.foodAddUi.copy(images = action.images)) }
+                _uiState.update { it.copy(foodAddUi = it.foodAddUi.copy(images = it.foodAddUi.images?.plus(action.images)?: emptyList()) ) }
             }
             is AddFood.Action.OnBack -> {
                 viewModelScope.launch {
@@ -212,7 +212,7 @@ object AddFood {
         data class OnDescriptionChange(val description: String) : Action
         data class OnPriceChange(val price: BigDecimal?) : Action
         data class OnDefaultQuantityChange(val defaultQuantity: Int?) : Action
-        data class OnImagesChange(val images: List<Uri>?) : Action
+        data class OnImagesChange(val images: List<Uri>) : Action
         data object OnBack : Action
 
     }
@@ -224,7 +224,7 @@ data class FoodAddUi(
     val name: String = "",
     val menuId: Int = 1,
     val description: String = "",
-    val images: List<Uri>? = null,
+    val images: List<Uri>? = emptyList(),
     val price: BigDecimal = BigDecimal.ZERO,
     val defaultQuantity: Int = 1,
 )

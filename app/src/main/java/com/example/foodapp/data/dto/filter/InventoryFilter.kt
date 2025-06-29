@@ -5,5 +5,6 @@ data class InventoryFilter(
     val sortBy: String = "id",
     val ingredientName: String = "",
     val isExpired: Boolean? = null,
-    val isOutOfStock: Boolean?= null
+    val isOutOfStock: Boolean?= null,
+    val forceRefresh: String? = null,
 )

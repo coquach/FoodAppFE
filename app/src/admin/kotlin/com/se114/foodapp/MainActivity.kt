@@ -54,8 +54,9 @@ class MainActivity : BaseFoodAppActivity() {
 
 
 
-        enableEdgeToEdge()
+
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             val systemUiController: SystemUiController = rememberSystemUiController()
@@ -125,9 +126,7 @@ class MainActivity : BaseFoodAppActivity() {
                         SharedTransitionLayout {
                             AppNavGraph(
                                 navController = navController,
-                                innerPadding = PaddingValues(
-                                    bottom = 75.dp
-                                ),
+                                innerPadding = innerPadding,
                                 startDestination = screen,
                                 isDarkMode = isDarkMode,
                                 onThemeUpdated = {

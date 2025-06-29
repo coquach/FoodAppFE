@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Notifications
@@ -44,6 +45,7 @@ import com.example.foodapp.navigation.FoodTableAdmin
 
 import com.example.foodapp.navigation.Supplier
 import com.example.foodapp.navigation.Voucher
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -99,11 +101,15 @@ fun SettingScreen(
                 }
 
                 SettingState.Event.NavigateToHelp -> {
-                    navController.navigate(ChatBoxAdmin)
+
                 }
 
                 SettingState.Event.NavigateToPrivacy -> {
 
+                }
+
+                SettingState.Event.NavigateToChat -> {
+                    navController.navigate(ChatBoxAdmin)
                 }
             }
         }
@@ -142,11 +148,6 @@ fun SettingScreen(
                                 )
                             }
                         )
-                        SettingItem(
-                            Icons.Default.Notifications,
-                            "Thông báo",
-                            toggleState = isNotificationMode
-                        )
 
 
                     },
@@ -166,6 +167,9 @@ fun SettingScreen(
                         SettingItem(Icons.Default.TableRestaurant, "Bàn tại quán", onClick = {
                             viewModel.onAction(SettingState.Action.OnFoodTableClicked)
                         })
+                        SettingItem(Icons.Default.ChatBubble, "Chat box", onClick = {
+                            viewModel.onAction(SettingState.Action.OnChatClicked)
+                        })
 
                     }
                 )
@@ -181,16 +185,14 @@ fun SettingScreen(
                     }
                 )
             )
-            Button(
+            AppButton(
                 onClick = {
-                    showDialogLogout = true
+                    showDialogLogout =true
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
-            ) {
-                Text(text = "Đăng xuất", style = MaterialTheme.typography.bodyMedium)
-            }
+
+                text = "Đăng xuất",
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
     }
@@ -206,7 +208,7 @@ fun SettingScreen(
             },
             onConfirm = {
                 viewModel.onAction(SettingState.Action.OnLogout)
-                showDialogLogout = false
+
 
             },
             confirmText = "Đăng xuất",

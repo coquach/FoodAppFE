@@ -210,7 +210,7 @@ fun SettingScreen(
             Spacer(modifier = Modifier.height(20.dp))
             AppButton(
                 onClick = {
-                    viewModel.onAction(Setting.Action.OnLogOutClicked)
+                    showDialogLogout = true
                 },
 
                text = "Đăng xuất",
@@ -230,7 +230,7 @@ fun SettingScreen(
             },
             onConfirm = {
                 viewModel.onAction(Setting.Action.OnLogout)
-                showDialogLogout = false
+
 
             },
             confirmText = "Đăng xuất",

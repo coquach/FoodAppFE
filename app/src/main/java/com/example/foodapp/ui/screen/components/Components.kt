@@ -313,6 +313,7 @@ fun FoodItemCounter(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
     ) {
         IconButton(
@@ -337,14 +338,14 @@ fun FoodItemCounter(
             )
         }
 
-        Spacer(modifier = Modifier.size(8.dp))
+
         Text(
             text = "$count",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.height(20.dp),
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.size(8.dp))
+
 
         IconButton(
             onClick = {

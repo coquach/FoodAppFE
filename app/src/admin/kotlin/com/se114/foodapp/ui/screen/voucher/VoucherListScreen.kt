@@ -83,7 +83,9 @@ fun VoucherListScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
+    val vouchers = remember(uiState.filter) {
+        viewModel.getVouchers(uiState.filter)
+    }.collectAsLazyPagingItems()
 
 
     var showVoucherDialog by remember { mutableStateOf(false) }
@@ -206,6 +208,9 @@ fun VoucherListScreen(
 
 
             LazyPagingSample(
+                onRefresh = {
+                    viewModel.onAction(VoucherSate.Action.OnRefresh)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),

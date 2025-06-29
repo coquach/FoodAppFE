@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 
@@ -36,7 +37,7 @@ class FoodListAdminViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-  val foods = getFoodsByMenuIdUseCase.invoke(_uiState.value.foodFilter)
+    fun  getFoods(filter: FoodFilter) = getFoodsByMenuIdUseCase.invoke(filter)
 
     private fun toggleStatusFood() {
         viewModelScope.launch {
@@ -121,7 +122,7 @@ class FoodListAdminViewModel @Inject constructor(
             }
 
             FoodListAdmin.Action.OnRefresh -> {
-
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(forceRefresh = UUID.randomUUID().toString())) }
             }
             is FoodListAdmin.Action.OnChangeNameSearch -> {
                 _uiState.update { it.copy(nameSearch = action.name) }

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +26,7 @@ class WarehouseViewModel @Inject constructor(
     private val _event = Channel<WarehouseState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val inventories = getInventoriesUseCase(_uiState.value.inventoryFilter)
+    fun getInventories(filter: InventoryFilter) = getInventoriesUseCase(filter)
 
     fun onAction(action: WarehouseState.Action) {
         when (action) {
@@ -40,11 +41,10 @@ class WarehouseViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         inventoryFilter = it.inventoryFilter.copy(
-                            ingredientName = _uiState.value.nameSearch,
+                            forceRefresh = UUID.randomUUID().toString()
                         )
                     )
                 }
-
             }
             WarehouseState.Action.OnNavigateToImport -> {
                 viewModelScope.launch {
@@ -71,7 +71,15 @@ class WarehouseViewModel @Inject constructor(
                     it.copy(
                         inventoryFilter = it.inventoryFilter.copy(
                             sortBy = action.sortBy))}}
-            WarehouseState.Action.OnSearchFilter -> {}
+            WarehouseState.Action.OnSearchFilter -> {
+                _uiState.update {
+                    it.copy(
+                        inventoryFilter = it.inventoryFilter.copy(
+                            ingredientName = _uiState.value.nameSearch,
+                        )
+                    )
+                }
+            }
         }
     }
 

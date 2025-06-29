@@ -39,7 +39,7 @@ class ImportViewModel @Inject constructor(
     private val _event = Channel<ImportState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val imports = getImportsUseCase(_uiState.value.filter)
+    fun getImports(filter: ImportFilter) = getImportsUseCase(filter)
 
     private fun deleteImport() {
         viewModelScope.launch {

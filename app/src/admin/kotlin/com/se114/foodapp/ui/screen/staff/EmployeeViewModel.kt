@@ -8,6 +8,7 @@ import com.example.foodapp.data.dto.filter.StaffFilter
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
 import com.se114.foodapp.domain.use_case.staff.DeleteStaffUseCase
+import com.se114.foodapp.domain.use_case.staff.TerminateStaffUseCase
 import com.se114.foodapp.ui.screen.staff.EmployeeSate.Event.GoToDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,17 +25,20 @@ import javax.inject.Inject
 class EmployeeViewModel @Inject constructor(
     private val getStaffUseCase: GetStaffUseCase,
     private val deleteStaffUseCase: DeleteStaffUseCase,
+    private val terminateStaffUseCase: TerminateStaffUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(EmployeeSate.UiState(
-        staffFilter = StaffFilter(status = true)
-    ))
+    private val _uiState = MutableStateFlow(
+        EmployeeSate.UiState(
+            staffFilter = StaffFilter(status = true)
+        )
+    )
     val uiState get() = _uiState.asStateFlow()
 
     private val _event = Channel<EmployeeSate.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val staffs = getStaffUseCase(_uiState.value.staffFilter)
+    fun getStaffs(filter: StaffFilter) = getStaffUseCase(filter)
 
     private fun deleteStaff() {
         viewModelScope.launch {
@@ -65,6 +70,30 @@ class EmployeeViewModel @Inject constructor(
 
     }
 
+    private fun terminateStaff() {
+        viewModelScope.launch {
+            terminateStaffUseCase(_uiState.value.staffSelected!!.id!!).collect { response ->
+                when (response) {
+                    is ApiResponse.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _event.send(EmployeeSate.Event.ShowSuccessToast("Ngưng việc nhân viên thành công"))
+                        onAction(EmployeeSate.Action.OnRefresh)
+                    }
+                    is ApiResponse.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = response.errorMessage)}
+                    _event.send(EmployeeSate.Event.ShowError)
+                    }
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                }
+            }
+        }
+    }
+
     fun onAction(action: EmployeeSate.Action) {
         when (action) {
             is EmployeeSate.Action.OnDeleteStaff -> {
@@ -72,7 +101,11 @@ class EmployeeViewModel @Inject constructor(
             }
 
             is EmployeeSate.Action.OnRefresh -> {
-
+                _uiState.update {
+                    it.copy(
+                        staffFilter = it.staffFilter.copy(forceRefresh = UUID.randomUUID().toString())
+                    )
+                }
             }
 
             is EmployeeSate.Action.OnStaffSelected -> {
@@ -98,26 +131,41 @@ class EmployeeViewModel @Inject constructor(
                     _event.send(EmployeeSate.Event.GoToAddStaff)
                 }
             }
+
             is EmployeeSate.Action.OnSortByChange -> {
                 _uiState.update {
                     it.copy(
                         staffFilter = it.staffFilter.copy(sortBy = action.sortBy)
-                    )}}
+                    )
+                }
+            }
+
             is EmployeeSate.Action.OnOrderChange -> {
                 _uiState.update {
                     it.copy(
                         staffFilter = it.staffFilter.copy(order = action.order)
-                    )}}
+                    )
+                }
+            }
+
             is EmployeeSate.Action.OnNameSearchChange -> {
                 _uiState.update {
                     it.copy(
                         nameSearch = action.nameSearch
-                    )}}
+                    )
+                }
+            }
+
             EmployeeSate.Action.OnSearchFilter -> {
                 _uiState.update {
                     it.copy(
                         staffFilter = it.staffFilter.copy(fullName = _uiState.value.nameSearch)
-                    )}}
+                    )
+                }
+            }
+            EmployeeSate.Action.OnTerminateStaff -> {
+                terminateStaff()
+            }
         }
     }
 }
@@ -150,5 +198,6 @@ object EmployeeSate {
         data object OnDeleteStaff : Action
         data object OnRefresh : Action
         data object OnAddStaff : Action
+        data object OnTerminateStaff : Action
     }
 }

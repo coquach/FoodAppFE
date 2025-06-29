@@ -78,7 +78,10 @@ fun ImportScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val imports = viewModel.imports.collectAsLazyPagingItems()
+    val imports = remember(uiState.filter) {
+        viewModel.getImports(uiState.filter)
+    }.collectAsLazyPagingItems()
+
 
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
@@ -224,6 +227,9 @@ fun ImportScreen(
             )
 
             LazyPagingSample(
+                onRefresh = {
+                    viewModel.onAction(ImportState.Action.OnRefresh)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),

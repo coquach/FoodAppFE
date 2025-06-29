@@ -18,7 +18,7 @@ fun NavGraphBuilder.employeeGraph(
     navController: NavHostController,
 ) {
    composable<Employee> {
-       ScreenContainer(isBottomBarVisible = true) {
+       ScreenContainer {
            EmployeeScreen(navController)
        }
 

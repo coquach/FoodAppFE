@@ -104,7 +104,7 @@ class FeedbackDetailsViewModel @Inject constructor(
     }
     private fun deleteFeedback() {
         viewModelScope.launch {
-            deleteFeedbackUseCase(orderItemId).collect { result ->
+            deleteFeedbackUseCase(_uiState.value.feedback.id!!).collect { result ->
                 when (result) {
                     is ApiResponse.Success -> {
                         _event.send(FeedbackDetail.Event.BackToAfterFeedback("Xóa đánh giá thành công"))

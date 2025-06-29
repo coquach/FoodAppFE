@@ -45,7 +45,7 @@ class VoucherListViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    val vouchers = getVouchersUseCase(_uiState.value.filter)
+    fun getVouchers(filter: VoucherFilter)= getVouchersUseCase(filter)
 
     private fun createVoucher() {
         viewModelScope.launch {
@@ -357,5 +357,6 @@ object VoucherSate {
         data class OnOrderChange(val order: String) : Action
         data class OnSortByChange(val sort: String) : Action
         data class OnDateChange(val startDate: LocalDate?, val endDate: LocalDate?): Action
+
     }
 }

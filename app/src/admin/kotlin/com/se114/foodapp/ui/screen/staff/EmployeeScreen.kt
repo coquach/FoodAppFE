@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -76,11 +78,12 @@ fun EmployeeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
+    var isDelete by rememberSaveable { mutableStateOf(false) }
 
-    val staffs = viewModel.staffs.collectAsLazyPagingItems()
+    val staffs = remember(uiState.staffFilter) {
+        viewModel.getStaffs(uiState.staffFilter)
+    }.collectAsLazyPagingItems()
     val context = LocalContext.current
-
-
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -149,7 +152,7 @@ fun EmployeeScreen(
             )
             SearchField(
                 searchInput = uiState.nameSearch,
-                searchChange ={
+                searchChange = {
                     viewModel.onAction(EmployeeSate.Action.OnNameSearchChange(it))
                 },
                 searchFilter = {
@@ -157,26 +160,26 @@ fun EmployeeScreen(
                 },
                 switchState = uiState.staffFilter.order == "desc",
                 switchChange = {
-                    when(it){
+                    when (it) {
                         true -> viewModel.onAction(EmployeeSate.Action.OnOrderChange("desc"))
                         false -> viewModel.onAction(EmployeeSate.Action.OnOrderChange("asc"))
                     }
                 },
                 filterChange = {
-                    when(it){
+                    when (it) {
                         "Id" -> viewModel.onAction(EmployeeSate.Action.OnSortByChange("id"))
                         "Tên" -> viewModel.onAction(EmployeeSate.Action.OnSortByChange("fullName"))
                         "Lương" -> viewModel.onAction(EmployeeSate.Action.OnSortByChange("basicSalary"))
                     }
                 },
                 filters = listOf("Id", "Tên", "Lương"),
-                filterSelected = when(uiState.staffFilter.sortBy){
+                filterSelected = when (uiState.staffFilter.sortBy) {
                     "id" -> "Id"
                     "fullName" -> "Tên"
                     "basicSalary" -> "Lương"
                     else -> "Id"
                 },
-                placeHolder = "Tìm kiếm theo tên nhân viên..."
+                placeHolder = "Tìm kiếm theo tên..."
             )
 
             TabWithPager(
@@ -184,6 +187,62 @@ fun EmployeeScreen(
                 pages = listOf(
                     {
                         LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(EmployeeSate.Action.OnRefresh)
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                            items = staffs,
+                            textNothing = "Không có nhân viên nào",
+                            iconNothing = Icons.Default.Groups,
+                            columns = 2,
+                            key = {
+                                it.id!!
+                            }
+                        ) {
+                            EmployeeItemView(
+                                staff = it,
+                                onClick = {
+                                    viewModel.onAction(EmployeeSate.Action.OnStaffClicked(it))
+                                },
+                                startAction = {
+                                    SwipeAction(
+                                        icon = rememberVectorPainter(Icons.Default.PersonOff),
+                                        background = MaterialTheme.colorScheme.outline,
+                                        onSwipe = {
+                                            viewModel.onAction(
+                                                EmployeeSate.Action.OnStaffSelected(
+                                                    it
+                                                )
+                                            )
+                                            isDelete = false
+                                            showDialogDelete = true
+
+                                        }
+                                    )
+                                },
+                                endAction = {
+                                    SwipeAction(
+                                        icon = rememberVectorPainter(Icons.Default.Close),
+                                        background = MaterialTheme.colorScheme.error,
+                                        onSwipe = {
+                                            viewModel.onAction(
+                                                EmployeeSate.Action.OnStaffSelected(
+                                                    it
+                                                )
+                                            )
+                                            isDelete = true
+                                            showDialogDelete = true
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    },
+                    {
+                        LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(EmployeeSate.Action.OnRefresh)
+                            },
                             modifier = Modifier.fillMaxSize(),
                             items = staffs,
                             textNothing = "Không có nhân viên nào",
@@ -208,39 +267,23 @@ fun EmployeeScreen(
                                                     it
                                                 )
                                             )
+                                            isDelete = true
                                             showDialogDelete = true
                                         }
                                     )
                                 }
                             )
                         }
-                    },
-                    {
-                        LazyPagingSample(
-                            modifier = Modifier.fillMaxSize(),
-                            items = staffs,
-                            textNothing = "Không có nhân viên nào",
-                            iconNothing = Icons.Default.Groups,
-                            columns = 2,
-                            key = {
-                                it.id!!
-                            }
-                        ) {
-                            EmployeeItemView(
-                                staff = it,
-                                onClick = {
-                                    viewModel.onAction(EmployeeSate.Action.OnStaffClicked(it))
-                                },
-                            )
-                        }
                     }
                 ),
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 onTabSelected = {
-                   when(it){
-                       0 -> viewModel.onAction(EmployeeSate.Action.OnChangeStatusFilter(true))
-                       1 -> viewModel.onAction(EmployeeSate.Action.OnChangeStatusFilter(false))
-                   }
+                    when (it) {
+                        0 -> viewModel.onAction(EmployeeSate.Action.OnChangeStatusFilter(true))
+                        1 -> viewModel.onAction(EmployeeSate.Action.OnChangeStatusFilter(false))
+                    }
                 }
             )
         }
@@ -249,19 +292,22 @@ fun EmployeeScreen(
     if (showDialogDelete) {
 
         FoodAppDialog(
-            title = "Xóa nhân viên",
-            titleColor = MaterialTheme.colorScheme.error,
-            message = "Bạn có chắc chắn muốn xóa nhân viên đã chọn ra khỏi danh sách không?",
+            title = if (isDelete) "Xóa nhân viên" else "Ngưng việc",
+            titleColor = if (isDelete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            message = if (isDelete) "Bạn có chắc chắn muốn xóa nhân viên đã chọn ra khỏi danh sách không?" else "Bạn có chắc chắn muốn ngưng việc nhân viên đã chọn không?",
             onDismiss = {
-
                 showDialogDelete = false
             },
             onConfirm = {
-                viewModel.onAction(EmployeeSate.Action.OnDeleteStaff)
+                if (isDelete) {
+                    viewModel.onAction(EmployeeSate.Action.OnDeleteStaff)
+                } else {
+                    viewModel.onAction(EmployeeSate.Action.OnTerminateStaff)
+                }
                 showDialogDelete = false
 
             },
-            confirmText = "Xóa",
+            confirmText = if (isDelete) "Xóa" else "Ngưng",
             dismissText = "Đóng",
             showConfirmButton = true
         )
@@ -279,16 +325,12 @@ fun EmployeeScreen(
 }
 
 
-
-
-
-
-
 @Composable
 fun EmployeeItemView(
     staff: Staff,
     onClick: (Staff) -> Unit,
-    endAction: (@Composable (Staff) -> SwipeAction)?= null,
+    startAction: (@Composable (Staff) -> SwipeAction)? = null,
+    endAction: (@Composable (Staff) -> SwipeAction)? = null,
 ) {
     SwipeableActionsBox(
         modifier = Modifier
@@ -296,6 +338,7 @@ fun EmployeeItemView(
                 8.dp,
             )
             .clip(RoundedCornerShape(12.dp)),
+        startActions = startAction?.let { listOf(it(staff)) } ?: emptyList(),
         endActions = endAction?.let { listOf(it(staff)) } ?: emptyList()
     ) {
         Row(

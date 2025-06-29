@@ -15,7 +15,12 @@ fun NavGraphBuilder.authGraph(
     navController: NavHostController,
 ) {
     composable<Auth> {
-        ScreenContainer(applyStatusBarInset = false) {  AuthScreen(navController, isCustomer = false) }
+        ScreenContainer(applyStatusBarInset = false) {
+            AuthScreen(
+                navController,
+                isCustomer = false
+            )
+        }
 
     }
     composable<Login> {

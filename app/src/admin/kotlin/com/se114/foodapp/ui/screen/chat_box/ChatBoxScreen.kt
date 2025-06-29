@@ -605,7 +605,7 @@ fun EditChatKnowledgeEntryCard(
         }
         ComboBoxSample(
             modifier = Modifier
-                .weight(1f),
+                .fillMaxWidth(),
             textPlaceholder = "...",
             selected = intentTypes.find { it.id == chatKnowledgeEntry.id }?.name,
             onPositionSelected = onPositionSelected,

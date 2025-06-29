@@ -13,28 +13,26 @@ import com.example.foodapp.data.remote.main_api.SupplierApi
 import kotlinx.coroutines.flow.Flow
 
 
-class SupplierPagingSource(
-    private val supplierApi: SupplierApi,
-    private val filter: SupplierFilter
-) : ApiPagingSource<Supplier>() {
-    override suspend fun fetch(
-        page: Int,
-        size: Int,
-    ): Flow<ApiResponse<PageResponse<Supplier>>> {
-        return apiRequestFlow {
-            supplierApi.getSuppliers(
-                page = page,
-                size = size,
-                order = filter.order,
-                sortBy = filter.sortBy,
-                name = filter.name,
-                phone = filter.phone,
-                email = filter.email,
-                address = filter.address,
-                isActive = filter.isActive
-            )
-        }
-    }
-
-
-}
+//class SupplierPagingSource(
+//    private val supplierApi: SupplierApi,
+//    private val filter: SupplierFilter
+//) : ApiPagingSource<Supplier>() {
+//    override suspend fun fetch(
+//        page: Int,
+//        size: Int,
+//    ): Flow<ApiResponse<PageResponse<Supplier>>> {
+//        return apiRequestFlow {
+//            supplierApi.getSuppliers(
+//                page = page,
+//                size = size,
+//                name = filter.name,
+//                phone = filter.phone,
+//                email = filter.email,
+//                address = filter.address,
+//                isActive = filter.isActive
+//            )
+//        }
+//    }
+//
+//
+//}

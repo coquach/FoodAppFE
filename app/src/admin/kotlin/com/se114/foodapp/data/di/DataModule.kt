@@ -1,9 +1,11 @@
 package com.se114.foodapp.data.di
 
+import com.example.foodapp.data.repository.AIRepoImpl
 import com.example.foodapp.data.repository.FoodTableRepoImpl
 import com.example.foodapp.data.repository.InventoryRepoImpl
 import com.example.foodapp.data.repository.StaffRepoImpl
 import com.example.foodapp.data.repository.VoucherRepoImpl
+import com.example.foodapp.domain.repository.AIRepository
 import com.example.foodapp.domain.repository.FoodTableRepository
 import com.example.foodapp.domain.repository.InventoryRepository
 import com.example.foodapp.domain.repository.StaffRepository
@@ -49,6 +51,8 @@ abstract class DataModule {
     @Binds
     abstract fun provideInventoryRepository(inventoryRepoImpl: InventoryRepoImpl): InventoryRepository
 
+    @Binds
+    abstract fun provideAIRepository(aiRepoImpl: AIRepoImpl): AIRepository
 
 
 }

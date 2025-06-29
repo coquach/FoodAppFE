@@ -72,7 +72,7 @@ import me.saket.swipe.SwipeAction
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SharedTransitionScope.MenuScreen(
+fun SharedTransitionScope.FoodListAdminScreen(
     navController: NavController,
     animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: FoodListAdminViewModel = hiltViewModel(),
@@ -80,7 +80,9 @@ fun SharedTransitionScope.MenuScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 
-    val foods = viewModel.foods.collectAsLazyPagingItems()
+    val foods = remember(uiState.foodFilter) {
+        viewModel.getFoods(uiState.foodFilter)
+    }.collectAsLazyPagingItems()
 
 
     var showStatusDialog by rememberSaveable { mutableStateOf(false) }
@@ -244,7 +246,10 @@ fun SharedTransitionScope.MenuScreen(
                                     }
                                 )
                             },
-                            isSwipeAction = true
+                            isSwipeAction = true,
+                            onRefresh = {
+                                viewModel.onAction(FoodListAdmin.Action.OnRefresh)
+                            }
 
                         )
 
@@ -267,7 +272,10 @@ fun SharedTransitionScope.MenuScreen(
                                     }
                                 )
                             },
-                            isSwipeAction = true
+                            isSwipeAction = true,
+                            onRefresh = {
+                                viewModel.onAction(FoodListAdmin.Action.OnRefresh)
+                            }
                         )
                     }),
                 onTabSelected = { index ->

@@ -145,9 +145,6 @@ class StaffDetailsViewModel @Inject constructor(
                 _uiState.update { it.copy(staff = it.staff.copy(birthDate = action.value)) }
             }
 
-            is StaffDetails.Action.OnChangeEndDate -> {
-                _uiState.update { it.copy(staff = it.staff.copy(endDate = action.value)) }
-            }
 
             is StaffDetails.Action.OnChangeFullName -> {
                 _uiState.update { it.copy(staff = it.staff.copy(fullName = action.value)) }
@@ -210,7 +207,6 @@ object StaffDetails {
         data class OnChangeAvatar(val value: Uri?) : Action
         data class OnChangeBirthDate(val value: LocalDate?) : Action
         data class OnChangeStartDate(val value: LocalDate?) : Action
-        data class OnChangeEndDate(val value: LocalDate?) : Action
         data class OnChangeBasicSalary(val value: BigDecimal?) : Action
         data object AddStaff : Action
         data object UpdateStaff : Action
