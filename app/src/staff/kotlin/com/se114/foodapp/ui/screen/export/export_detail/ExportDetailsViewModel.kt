@@ -209,13 +209,6 @@ class ExportDetailsViewModel @Inject constructor(
                 }
             }
 
-            is ExportDetailsState.Action.OnChangeStaffId -> {
-                _uiState.update {
-                    it.copy(
-                        export = it.export.copy(staffId = action.staffId)
-                    )
-                }
-            }
 
             is ExportDetailsState.Action.OnChangeExpiryDate -> {
                 _uiState.update {
@@ -304,7 +297,6 @@ object ExportDetailsState {
     sealed interface Action {
         data object OnBack : Action
         data class OnExportDetailsSelected(val exportDetails: ExportDetailUIModel) : Action
-        data class OnChangeStaffId(val staffId: Long) : Action
         data class OnChangeInventory(val inventory: Inventory) : Action
         data class OnChangeQuantity(val quantity: BigDecimal) : Action
         data class OnChangeExpiryDate(val expiryDate: LocalDate) : Action

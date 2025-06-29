@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,9 @@ fun OrderListScreen(
     viewModel: OrderListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val orders = viewModel.orders.collectAsLazyPagingItems()
+    val orders = remember(uiState.orderFilter) {
+        viewModel.getOrders(uiState.orderFilter)
+    }.collectAsLazyPagingItems()
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -61,17 +64,7 @@ fun OrderListScreen(
         HeaderDefaultView(
             text = "Đơn hàng"
         )
-        DateRangePickerSample(
-            modifier = Modifier.width(170.dp),
-            startDateText = "Bắt đầu",
-            endDateText = "Kết thúc",
-            onDateRangeSelected = { startDate, endDate ->
-                viewModel.onAction(OrderList.Action.OnChangeDateFilter(startDate, endDate))
-            },
-            startDate = uiState.orderFilter.startDate,
-            endDate = uiState.orderFilter.endDate,
 
-        )
         TabWithPager(
             tabs = listOf("Sắp tới", "Lịch sử"),
             pages = listOf(
@@ -97,8 +90,8 @@ fun OrderListScreen(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             onTabSelected = {
                 when (it) {
-                    0 -> viewModel.onAction(OrderList.Action.OnTabChanged(OrderStatus.PENDING.name))
-                    1 -> viewModel.onAction(OrderList.Action.OnTabChanged(null))
+                    0 -> viewModel.onAction(OrderList.Action.OnTabChanged(status = OrderStatus.PENDING.name, notStatus = null))
+                    1 -> viewModel.onAction(OrderList.Action.OnTabChanged(status = null, notStatus = OrderStatus.PENDING.name))
                 }
             }
         )

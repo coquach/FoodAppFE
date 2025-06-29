@@ -34,8 +34,7 @@ class VouchersViewModel @Inject constructor(
     val event = _event.receiveAsFlow()
 
 
-    val vouchers =
-        getVoucherForCustomerUseCase(VoucherFilter())
+    fun getVouchers(filter: VoucherFilter) = getVoucherForCustomerUseCase(filter)
 
     fun onAction(action: Vouchers.Action) {
         when (action) {

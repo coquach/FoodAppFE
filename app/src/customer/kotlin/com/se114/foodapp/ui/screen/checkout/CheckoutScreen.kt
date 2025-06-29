@@ -168,7 +168,7 @@ fun CheckoutScreen(
 
         )
         NoteInput(
-            note = uiState.checkout.note,
+            note = uiState.checkout.note?:"",
             onNoteChange = {
                 viewModel.onAction(Checkout.Action.OnNoteChanged(it))
             },

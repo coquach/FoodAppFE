@@ -30,7 +30,7 @@ class ImportPagingSource(
                 size = size,
                 order = filter.order,
                 sortBy = filter.sortBy,
-                supplierId = filter.supplierId,
+                supplierName = filter.supplierName,
                 startDate = StringUtils.formatLocalDate(filter.startDate),
                 endDate = StringUtils.formatLocalDate(filter.endDate),
 

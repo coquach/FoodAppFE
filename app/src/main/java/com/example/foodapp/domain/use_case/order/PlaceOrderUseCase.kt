@@ -29,7 +29,7 @@ class PlaceOrderUseCase @Inject constructor(
             emit(ApiResponse.Loading)
             val now = StringUtils.getFormattedCurrentVietnamDateTime()
             val request = OrderRequest(
-                foodTableId = checkout.foodTableId,
+                foodTableId = checkout.foodTableNumber,
                 voucherId = checkout.voucher?.id,
                 type = checkout.type,
                 method = PaymentMethod.fromDisplay(checkout.method)!!.name,

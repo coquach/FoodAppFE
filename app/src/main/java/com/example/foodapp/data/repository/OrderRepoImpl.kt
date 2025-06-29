@@ -7,6 +7,7 @@ import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.apiRequestFlow
 
 import com.example.foodapp.data.dto.filter.OrderFilter
+import com.example.foodapp.data.dto.request.OrderItemRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 import com.example.foodapp.data.dto.request.OrderStatusRequest
 
@@ -50,6 +51,36 @@ class OrderRepoImpl @Inject constructor(
     ): Flow<ApiResponse<Unit>> {
         return apiRequestFlow {
             orderApi.updateOrderStatus(orderId, status)
+        }
+    }
+
+    override fun checkOutOrder(
+        orderId: Long,
+        request: Map<String, Long?>,
+    ): Flow<ApiResponse<Unit>> {
+        return apiRequestFlow {
+            orderApi.checkOutOrder(orderId, request)
+        }
+    }
+
+    override fun cancelOrder(orderId: Long): Flow<ApiResponse<Unit>> {
+        return apiRequestFlow {
+            orderApi.cancelOrder(orderId)
+        }
+    }
+
+    override fun getOrdersByFoodTableId(tableId: Int): Flow<ApiResponse<Order>> {
+        return apiRequestFlow {
+            orderApi.getOrdersByFoodTableId(tableId)
+        }
+    }
+
+    override fun upsertOrderItems(
+        orderId: Long,
+        request: Map<String, List<OrderItemRequest>>,
+    ): Flow<ApiResponse<Order>> {
+        return apiRequestFlow {
+            orderApi.upsertOrderItems(orderId, request)
         }
     }
 

@@ -9,7 +9,7 @@ import com.example.foodapp.data.model.Supplier
 import kotlinx.coroutines.flow.Flow
 
 interface SupplierRepository {
-    fun getSuppliers(filter: SupplierFilter): Flow<PagingData<Supplier>>
+    fun getSuppliers(filter: SupplierFilter): Flow<ApiResponse<List<Supplier>>>
     fun createSupplier(request: SupplierRequest): Flow<ApiResponse<Supplier>>
     fun updateSupplier(id: Long, request: SupplierRequest): Flow<ApiResponse<Supplier>>
     fun setActiveSupplier(id: Long, isActive: Boolean): Flow<ApiResponse<Unit>>

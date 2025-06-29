@@ -1,6 +1,7 @@
 package com.se114.foodapp.ui.screen.home
 
 import android.Manifest
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,35 +63,40 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.example.foodapp.data.model.Food
+import com.example.foodapp.data.model.enums.FoodTableStatus
 import com.example.foodapp.navigation.Cart
+import com.example.foodapp.navigation.Home
 import com.example.foodapp.ui.screen.common.FoodList
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
+import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.FoodItemCounter
+import com.example.foodapp.ui.screen.components.FoodTableCard
 import com.example.foodapp.ui.screen.components.ItemCount
+import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.SearchField
+import com.example.foodapp.ui.screen.components.TabWithPager
 import com.example.foodapp.utils.StringUtils
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.flow.MutableStateFlow
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
-    ExperimentalPermissionsApi::class
-)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun SharedTransitionScope.HomeStaffScreen(
+fun HomeStaffScreen(
     navController: NavController,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: HomeStaffViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foods by viewModel.foodsTabManager.tabDataMap.collectAsStateWithLifecycle()
-    val emptyFoods = MutableStateFlow<PagingData<Food>>(PagingData.empty()).collectAsLazyPagingItems()
+    val foodTables = remember(uiState.filter) {
+        viewModel.getFoodTables(uiState.filter)
+    }.collectAsLazyPagingItems()
 
-    var isOpenFoodDialog by rememberSaveable { mutableStateOf(false) }
+    var isOpenDialog by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
 
@@ -101,33 +108,20 @@ fun SharedTransitionScope.HomeStaffScreen(
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle)
             .collect { event ->
                 when (event) {
-                    HomeStaffState.Event.GoToCart -> {
-                        navController.navigate(Cart)
-                    }
 
-
-                    HomeStaffState.Event.OnAddToCart -> {
-                        Toast.makeText(context, "Đã thêm món trong giỏ hàng", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-
-                    HomeStaffState.Event.OnItemAlreadyInCart -> {
-                        Toast.makeText(
-                            context,
-                            "Đã câp nhật món trong giỏ hàng",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
 
                     HomeStaffState.Event.ShowError -> {
                         showErrorSheet = true
                     }
 
+                    is HomeStaffState.Event.NavigateToCheckout -> {
+
+                    }
                 }
             }
     }
     val notificationPermissionState =
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
             permission = Manifest.permission.POST_NOTIFICATIONS
         ) else null
 
@@ -140,47 +134,10 @@ fun SharedTransitionScope.HomeStaffScreen(
 
         }
     }
-    Scaffold(
-        floatingActionButton =
-            {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
 
-                    MyFloatingActionButton(
-                        onClick = {
-                            viewModel.onAction(HomeStaffState.Action.OnCartClicked)
-                        },
-                        bgColor = MaterialTheme.colorScheme.onPrimary,
-                    ) {
-                        Box(modifier = Modifier.size(56.dp)) {
-                            Icon(
-                                imageVector = Icons.Default.ShoppingCart,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .align(Center)
-                                    .size(24.dp)
-                            )
-
-                            if (uiState.cartSize > 0) {
-                                ItemCount(uiState.cartSize)
-                            }
-                        }
-                    }
-                }
-
-            }
-    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    PaddingValues(
-                        start = padding.calculateStartPadding(LayoutDirection.Ltr),
-                        end = padding.calculateEndPadding(LayoutDirection.Ltr)
-                    )
-                )
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -192,62 +149,118 @@ fun SharedTransitionScope.HomeStaffScreen(
             SearchField(
                 searchInput = uiState.nameSearch,
                 searchChange = {
-                    viewModel.onAction(HomeStaffState.Action.OnSearch(it))
+                    viewModel.onAction(HomeStaffState.Action.OnNameSearchChange(it))
+                },
+                searchFilter = {
+                    viewModel.onAction(HomeStaffState.Action.OnSearchFilter)
+                },
+                switchState = uiState.filter.order == "asc",
+                switchChange = {
+                    when(it){
+                        true -> viewModel.onAction(HomeStaffState.Action.OnOrderChange("asc"))
+                        false -> viewModel.onAction(HomeStaffState.Action.OnOrderChange("desc"))
+                    }
+                },
+                filterChange = {
+                    when(it){
+                        "Số chỗ ngồi" -> viewModel.onAction(HomeStaffState.Action.OnSortByChange("seatCapacity"))
+                        "Tên bàn" -> viewModel.onAction(HomeStaffState.Action.OnSortByChange("tableName"))
+                    }
+                },
+                filters = listOf(
+                    "Số chỗ ngồi",
+                    "Tên bàn"
+                ),
+                filterSelected = when(uiState.filter.sortBy){
+                    "seatCapacity" -> "Số chỗ ngồi"
+                    "tableName" -> "Tên bàn"
+                    else -> "Số chỗ ngồi"
+                },
+                placeHolder = "Tìm kiếm bàn ăn theo tên",
+            )
+            TabWithPager(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                tabs = listOf("Đang trống", "Đã đặt"),
+                pages = listOf(
+                    {
+                        LazyPagingSample(
+                            modifier = Modifier.fillMaxSize(),
+                            items = foodTables,
+                            textNothing = "Không có bàn nào",
+                            iconNothing = Icons.Default.TableRestaurant,
+                            onRetry = {
+                                viewModel.getFoodTables(uiState.filter)
+                            },
+                            columns = 2,
+                            key = {
+                                it.id!!
+                            }
+                        ) {
+                            FoodTableCard(
+                                foodTable = it
+                            ) {
+                                viewModel.onAction(HomeStaffState.Action.OnFoodTableSelected(it))
+                                isOpenDialog = true
+
+                            }
+                        }
+                    },
+                    {
+                        LazyPagingSample(
+                            modifier = Modifier.fillMaxSize(),
+                            items = foodTables,
+                            textNothing = "Không có bàn nào",
+                            iconNothing = Icons.Default.TableRestaurant,
+                            onRetry = {
+                                viewModel.getFoodTables(uiState.filter)
+                            },
+                            columns = 2,
+                            key = {
+                                it.id!!
+                            }
+                        ) {
+                            FoodTableCard(
+                                foodTable = it
+                            ) {
+                                viewModel.onAction(HomeStaffState.Action.OnNavigateToOrder(it.id!!))
+
+                            }
+                        }
+                    }
+                ),
+                onTabSelected = {
+                    when (it){
+                        0 -> viewModel.onAction(HomeStaffState.Action.OnStatusChange(FoodTableStatus.EMPTY.name))
+                        1 -> viewModel.onAction(HomeStaffState.Action.OnStatusChange(FoodTableStatus.OCCUPIED.name))
+                    }
                 }
             )
 
 
 
-            ChipsGroupWrap(
-                modifier = Modifier.fillMaxWidth(),
-                options = uiState.menus.map { it.name },
-                selectedOption = uiState.menuName,
-                onOptionSelected = { selectedName ->
-                    val selectedMenu = uiState.menus.find { it.name == selectedName }
-                    selectedMenu?.let {
-                        viewModel.onAction(HomeStaffState.Action.OnMenuClicked(it.id!!, it.name))
-                        viewModel.getFoodsFlow(it.id)
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.outline,
-                isFlowLayout = false,
-                shouldSelectDefaultOption = true
-            )
 
-            FoodList(
-                foods = foods[uiState.foodFilter.menuId]?.flow?.collectAsLazyPagingItems() ?: emptyFoods,
-                animatedVisibilityScope = animatedVisibilityScope,
-                onItemClick = {
-                    viewModel.onAction(HomeStaffState.Action.OnFoodClicked(it))
-                    isOpenFoodDialog = true
-                },
-                isCustomer = false,
-                modifier = Modifier.fillMaxWidth().weight(1f)
-            )
+
 
 
         }
 
 
-    }
-    if (isOpenFoodDialog) {
-        FoodHomeStaffDialog(
+
+    if (isOpenDialog) {
+        FoodAppDialog(
+            title = "Tạo hóa đơn",
+            titleColor = MaterialTheme.colorScheme.primary,
+            message = "Bạn muốn tạo hóa đơn cho bàn này",
             onDismiss = {
-                isOpenFoodDialog = false
+                isOpenDialog = false
             },
-            food = uiState.foodSelected!!,
-            animatedVisibilityScope = animatedVisibilityScope,
+            containerConfirmButtonColor = MaterialTheme.colorScheme.primary,
             onConfirm = {
-                viewModel.onAction(HomeStaffState.Action.OnAddToCart)
-                isOpenFoodDialog = false
+                viewModel.onAction(HomeStaffState.Action.CreateOrderForTable)
             },
-            isLoading = uiState.isLoading,
-            onIncreaseQuantity = {
-                viewModel.onAction(HomeStaffState.Action.OnChangeQuantity(uiState.foodSelected!!.quantity + 1))
-            },
-            onDecreaseQuantity = {
-                viewModel.onAction(HomeStaffState.Action.OnChangeQuantity(uiState.foodSelected!!.quantity - 1))
-            }
+            confirmText = "Xác nhận",
+            dismissText = "Đóng",
+
         )
     }
 
@@ -263,165 +276,3 @@ fun SharedTransitionScope.HomeStaffScreen(
 }
 
 
-@Composable
-fun FoodHomeStaffDialog(
-    modifier: Modifier = Modifier,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-    onIncreaseQuantity: () -> Unit,
-    onDecreaseQuantity: () -> Unit,
-    isLoading: Boolean,
-    food: FoodUiHomeStaffModel,
-    animatedVisibilityScope: AnimatedVisibilityScope
-){
-    Dialog(
-        onDismissRequest = onDismiss,
-    ) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(500.dp)
-                .background(
-                    MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(30.dp)
-
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-
-                ) {
-                    AsyncImage(
-                        model = food.image,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(82.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = food.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = "Rating",
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-
-                    Text(
-                        text = "${food.totalRating}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-
-                    )
-
-                    Icon(
-                        imageVector = Icons.Filled.Favorite,
-                        contentDescription = "Liked",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.Red
-                    )
-
-                    Text(
-                        text = "${food.totalLike}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-
-                    )
-
-                    Icon(
-                        imageVector = Icons.Filled.Feedback,
-                        contentDescription = "Feedback",
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Text(
-                        text = "(${food.totalFeedback}+)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-
-
-                }
-
-                HorizontalDivider(
-                    thickness = 0.3.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                )
-                Text(
-                    text = food.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-
-                ) {
-                    Text(
-                        text = StringUtils.formatCurrency(food.price),
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    FoodItemCounter(
-                        count = food.quantity,
-                        onCounterIncrement = onIncreaseQuantity,
-                        onCounterDecrement = onDecreaseQuantity
-                    )
-
-                }
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-                ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = MaterialTheme.colorScheme.outline
-                        ),
-                        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline),
-                        modifier = Modifier.heightIn(48.dp),
-                        shape = RoundedCornerShape(12.dp)
-
-
-                    ) {
-                        Text(text = "Đóng", modifier = Modifier.padding(horizontal = 16.dp))
-                    }
-
-
-                    LoadingButton(
-                        onClick = onConfirm,
-                        loading = isLoading,
-                        text = "Thêm"
-                    )
-                }
-
-
-            }
-        }
-    }
-}

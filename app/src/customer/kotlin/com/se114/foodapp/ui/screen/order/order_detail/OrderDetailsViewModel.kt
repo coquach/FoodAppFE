@@ -50,7 +50,7 @@ class OrderDetailsViewModel @Inject constructor(
         viewModelScope.launch {
 
             updateStatusOrderUseCase.invoke(
-                _state.value.order.id,
+                _state.value.order.id!!,
                 OrderStatusRequest(
                     status = status,
                     customerId = getUserIdUseCase()

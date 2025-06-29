@@ -29,7 +29,6 @@ class UpdateStaffUseCase @Inject constructor(
                 address = staff.address,
                 birthDate = StringUtils.formatLocalDate(staff.birthDate)!!,
                 startDate = StringUtils.formatLocalDate(staff.startDate)!!,
-                endDate = StringUtils.formatLocalDate(staff.endDate)!!,
                 basicSalary = staff.basicSalary
             )
             val id = staff.id!!

@@ -8,10 +8,11 @@ import java.math.BigDecimal
 @Serializable
 data class OrderItem(
     val id: Long,
+    val foodId: Long?=null,
     val foodName: String,
     @Serializable(with = BigDecimalSerializer::class)
     val price: BigDecimal,
     val quantity: Int,
-    val foodImages: List<ImageInfo>
+    val foodImage: String?=null
 
 )

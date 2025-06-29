@@ -19,7 +19,6 @@ class CreateExportUseCase @Inject constructor(
         try {
             emit(ApiResponse.Loading)
             val request = ExportRequest(
-                staffId = export.staffId,
                 exportDate = StringUtils.formatLocalDate(export.exportDate)!!,
                 exportDetails = exportDetails.map {
                     ExportDetailRequest(

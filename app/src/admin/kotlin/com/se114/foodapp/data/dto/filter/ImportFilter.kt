@@ -5,7 +5,7 @@ import java.time.LocalDate
 data class ImportFilter(
     val order: String = "desc",
     val sortBy: String = "id",
-    val  supplierId: Long?=null,
+    val  supplierName: String="",
     val startDate: LocalDate?= null,
     val endDate: LocalDate?= null,
     val forceRefresh: String?=null

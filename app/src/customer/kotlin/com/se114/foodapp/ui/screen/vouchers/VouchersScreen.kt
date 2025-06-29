@@ -36,7 +36,9 @@ fun VouchersScreen(
     viewModel: VouchersViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
+    val vouchers = remember(uiState.filter) {
+        viewModel.getVouchers(uiState.filter)
+    }.collectAsLazyPagingItems()
 
 
     val lifecycleOwner = LocalLifecycleOwner.current

@@ -54,7 +54,8 @@ fun SearchField(
     filterChange: (String) -> Unit,
     filters: List<String>,
     filterSelected: String,
-    placeHolder: String
+    placeHolder: String,
+    isFilterBox: Boolean = true
 ) {
     val focusManager = LocalFocusManager.current
     var wasFocused by remember { mutableStateOf(false) }
@@ -99,102 +100,105 @@ fun SearchField(
                 unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
             )
         )
-        var expanded by remember { mutableStateOf(false) }
-        var isSwitchOn by remember { mutableStateOf(switchState) }
-        Box() {
-            IconButton(
-                onClick = {
-                    expanded = !expanded
-                },
-                modifier = Modifier
-                    .size(50.dp)
-                    .shadow(8.dp, RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(16.dp)
-                    ),
-                colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .width(220.dp)
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Thứ tự",
-                                color = MaterialTheme.colorScheme.outline,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.ExtraBold,
+        if(isFilterBox){
+            var expanded by remember { mutableStateOf(false) }
+            var isSwitchOn by remember { mutableStateOf(switchState) }
+            Box() {
+                IconButton(
+                    onClick = {
+                        expanded = !expanded
+                    },
+                    modifier = Modifier
+                        .size(50.dp)
+                        .shadow(8.dp, RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(16.dp)
+                        ),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .width(220.dp)
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Thứ tự",
+                                    color = MaterialTheme.colorScheme.outline,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.ExtraBold,
 
-                                )
-                            Switch(
-                                checked = isSwitchOn,
-                                onCheckedChange = {
-                                    isSwitchOn = it
-                                    switchChange(it)
-                                },
-                                thumbContent = {
-                                    if (isSwitchOn) {
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowDownward,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(12.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowUpward,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(12.dp)
-                                        )
+                                    )
+                                Switch(
+                                    checked = isSwitchOn,
+                                    onCheckedChange = {
+                                        isSwitchOn = it
+                                        switchChange(it)
+                                    },
+                                    thumbContent = {
+                                        if (isSwitchOn) {
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDownward,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(12.dp),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        } else {
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowUpward,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
+                        },
+                        onClick = {
+
                         }
-                    },
-                    onClick = {
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            ChipsGroupWrap(
+                                modifier = Modifier.padding(2.dp),
+                                text = "Sắp xếp",
+                                options = filters,
+                                selectedOption = filterSelected,
+                                onOptionSelected = {
+                                    filterChange(it)
+                                },
+                                containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
+                            )
+                        },
+                        onClick = {
 
-                    }
-                )
-                DropdownMenuItem(
-                    text = {
-                        ChipsGroupWrap(
-                            modifier = Modifier.padding(2.dp),
-                            text = "Sắp xếp",
-                            options = filters,
-                            selectedOption = filterSelected,
-                            onOptionSelected = {
-                                filterChange(it)
-                            },
-                            containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
-                        )
-                    },
-                    onClick = {
+                        }
+                    )
 
-                    }
-                )
-
+                }
             }
         }
+
 
 
     }

@@ -37,6 +37,13 @@ class WarehouseViewModel @Inject constructor(
                    )
                 }}
             WarehouseState.Action.OnRefresh -> {
+                _uiState.update {
+                    it.copy(
+                        inventoryFilter = it.inventoryFilter.copy(
+                            ingredientName = _uiState.value.nameSearch,
+                        )
+                    )
+                }
 
             }
             WarehouseState.Action.OnNavigateToImport -> {

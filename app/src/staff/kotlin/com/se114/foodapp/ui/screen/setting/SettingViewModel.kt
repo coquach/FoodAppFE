@@ -2,16 +2,12 @@ package com.se114.foodapp.ui.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
 import com.example.foodapp.domain.use_case.auth.LogOutUseCase
-import com.se114.foodapp.domain.use_case.cart.ClearAllCartUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingViewModel @Inject constructor(
     private val logOutUseCase: LogOutUseCase,
-    private val clearAllCartUseCase: ClearAllCartUseCase
+
 
 ) : ViewModel() {
 
@@ -40,18 +36,6 @@ class SettingViewModel @Inject constructor(
                     }
 
                     is FirebaseResult.Success -> {
-                        try {
-                            clearAllCartUseCase() // <-- sẽ throw nếu có lỗi
-                        } catch (e: Exception) {
-                            _uiState.update {
-                                it.copy(
-                                    error = e.message ?: "Đã có lỗi xảy khi xóa giỏ hàng",
-                                    isLoading = false
-                                )
-                            }
-                            _event.send(SettingState.Event.ShowError)
-                            return@collect
-                        }
                         _uiState.update { it.copy(isLoading = false) }
                     }
 
@@ -73,11 +57,6 @@ class SettingViewModel @Inject constructor(
             SettingState.Action.OnContactClicked -> {
                 viewModelScope.launch {
                     _event.send(SettingState.Event.NavigateToContact)
-                }
-            }
-            SettingState.Action.OnFoodTableClicked -> {
-                viewModelScope.launch {
-                    _event.send(SettingState.Event.NavigateToFoodTable)
                 }
             }
             SettingState.Action.OnHelpClicked -> {
@@ -109,7 +88,6 @@ object SettingState{
     sealed interface Event{
         data object ShowError : Event
         data object NavigateToVoucher : Event
-        data object NavigateToFoodTable : Event
         data object NavigateToHelp : Event
         data object NavigateToContact : Event
         data object NavigateToPrivacy : Event
@@ -118,7 +96,6 @@ object SettingState{
     sealed interface Action{
         data object OnLogout : Action
         data object OnVoucherClicked : Action
-        data object OnFoodTableClicked : Action
         data object OnHelpClicked : Action
         data object OnContactClicked : Action
         data object OnPrivacyClicked : Action

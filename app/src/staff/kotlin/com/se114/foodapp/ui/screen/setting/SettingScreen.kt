@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,7 +37,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import com.example.foodapp.navigation.FoodTableStaff
 import com.example.foodapp.navigation.VoucherPublic
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -84,9 +82,7 @@ fun SettingScreen(
                     navController.navigate(VoucherPublic)
                 }
 
-                is SettingState.Event.NavigateToFoodTable -> {
-                    navController.navigate(FoodTableStaff)
-                }
+
 
                 SettingState.Event.NavigateToContact -> {
 
@@ -153,9 +149,7 @@ fun SettingScreen(
                             Icons.Default.CardGiftcard,
                             "Voucher & Khuyến mãi",
                             onClick = { viewModel.onAction(SettingState.Action.OnVoucherClicked) })
-                        SettingItem(Icons.Default.TableRestaurant, "Bàn tại quán", onClick = {
-                            viewModel.onAction(SettingState.Action.OnFoodTableClicked)
-                        })
+
                     }
                 )
             )

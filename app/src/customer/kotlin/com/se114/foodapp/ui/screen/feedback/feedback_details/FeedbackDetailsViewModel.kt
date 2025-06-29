@@ -7,10 +7,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 
 import com.example.foodapp.data.dto.ApiResponse
+import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.model.FeedbackUi
+import com.example.foodapp.data.model.toUi
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.example.foodapp.navigation.FeedbackDetails
 
 import com.se114.foodapp.domain.use_case.feedback.CreateFeedbackUseCase
+import com.se114.foodapp.domain.use_case.feedback.DeleteFeedbackUseCase
+import com.se114.foodapp.domain.use_case.feedback.GetFeedbackByOrderItemIdUseCase
+import com.se114.foodapp.domain.use_case.feedback.UpdateFeedbackUseCase
+import com.se114.foodapp.ui.screen.feedback.feedback_details.FeedbackDetail.GetFeedbackState
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 import kotlinx.coroutines.channels.Channel
@@ -26,6 +33,9 @@ import javax.inject.Inject
 class FeedbackDetailsViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val createFeedbackUseCase: CreateFeedbackUseCase,
+    private val getFeedbackByOrderItemIdUseCase: GetFeedbackByOrderItemIdUseCase,
+    private val updateFeedbackUseCase: UpdateFeedbackUseCase,
+    private val deleteFeedbackUseCase: DeleteFeedbackUseCase,
 ) : ViewModel() {
 
     private val orderItemId = savedStateHandle.toRoute<FeedbackDetails>().orderItemId
@@ -35,6 +45,23 @@ class FeedbackDetailsViewModel @Inject constructor(
 
     private val _event = Channel<FeedbackDetail.Event>()
     val event = _event.receiveAsFlow()
+
+    fun getFeedback() {
+        viewModelScope.launch {
+            getFeedbackByOrderItemIdUseCase(orderItemId).collect { result ->
+                when (result) {
+                    is ApiResponse.Success -> {
+                        _uiState.update { it.copy(feedback = result.data.toUi(), feedbackState = GetFeedbackState.Success) }}
+                    is ApiResponse.Failure -> {
+                        _uiState.update { it.copy(feedbackState = GetFeedbackState.Error(result.errorMessage)) }
+                    }
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(feedbackState = GetFeedbackState.Loading) }
+                    }
+                }
+            }
+        }
+    }
 
     private fun createFeedback() {
         viewModelScope.launch {
@@ -92,7 +119,14 @@ object FeedbackDetail {
         val isLoading: Boolean = false,
         val error: String? = null,
         val feedback: FeedbackUi = FeedbackUi(),
+        val feedbackState: GetFeedbackState = GetFeedbackState.Loading,
     )
+
+    sealed interface GetFeedbackState{
+        data object Success: GetFeedbackState
+        data class Error(val errorMessage: String): GetFeedbackState
+        data object Loading: GetFeedbackState
+    }
 
     sealed interface Event {
         data object BackToAfterFeedback : Event

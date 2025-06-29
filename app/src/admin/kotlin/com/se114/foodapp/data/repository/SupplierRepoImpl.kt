@@ -18,16 +18,16 @@ import javax.inject.Inject
 class SupplierRepoImpl @Inject constructor(
     private val supplierApi: SupplierApi
 ) : SupplierRepository {
-    override fun getSuppliers(filter: SupplierFilter): Flow<PagingData<Supplier>> {
-        return Pager(
-            config = PagingConfig(pageSize = ITEMS_PER_PAGE,
-                initialLoadSize = ITEMS_PER_PAGE,
-                prefetchDistance = 2,
-                enablePlaceholders = true),
-            pagingSourceFactory = {
-                SupplierPagingSource(supplierApi = supplierApi, filter = filter)
-            }
-        ).flow
+    override fun getSuppliers(filter: SupplierFilter): Flow<ApiResponse<List<Supplier>>> {
+       return apiRequestFlow {
+           supplierApi.getSuppliers(
+               name = filter.name,
+               phone = filter.phone,
+               email = filter.email,
+               address = filter.address,
+               isActive = filter.isActive
+           )
+       }
     }
 
     override fun createSupplier(request: SupplierRequest): Flow<ApiResponse<Supplier>> {

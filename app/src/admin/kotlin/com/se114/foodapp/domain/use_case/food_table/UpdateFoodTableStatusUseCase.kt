@@ -1,7 +1,6 @@
-package com.example.foodapp.domain.use_case.food_table
+package com.se114.foodapp.domain.use_case.food_table
 
 import com.example.foodapp.data.dto.ApiResponse
-
 import com.example.foodapp.domain.repository.FoodTableRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
@@ -13,12 +12,17 @@ class UpdateFoodTableStatusUseCase @Inject constructor(
 ) {
     operator fun invoke(id: Int) = flow<ApiResponse<Unit>> {
         try {
-            foodTableRepository.updateFoodTableStatus(id).collect{
+            foodTableRepository.updateFoodTableStatus(id).collect {
                 emit(it)
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
-            emit(ApiResponse.Failure(e.message ?: "Đã xảy ra lỗi khi cập nhật trạng thái bàn ăn", 999))
+            emit(
+                ApiResponse.Failure(
+                    e.message ?: "Đã xảy ra lỗi khi cập nhật trạng thái bàn ăn",
+                    999
+                )
+            )
         }
     }.flowOn(Dispatchers.IO)
 }

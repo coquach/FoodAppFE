@@ -35,12 +35,7 @@ class VouchersViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    val vouchers: StateFlow<PagingData<Voucher>> =
-        getVoucherForCustomerUseCase(VoucherFilter()).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            PagingData.empty()
-        )
+    fun getVouchers(filter: VoucherFilter) = getVoucherForCustomerUseCase(filter)
 
     fun onAction(action: Vouchers.Action) {
         when (action) {
@@ -49,13 +44,16 @@ class VouchersViewModel @Inject constructor(
                     _event.send(Vouchers.Event.OnBack)
                 }
             }
-
-            is Vouchers.Action.OnRefresh -> {
-                viewModelScope.launch {
-                    _uiState.update { it.copy(isRefreshing = true) }
-                    delay(3000)
-                    _uiState.update { it.copy(isRefreshing = false) }
-                }
+            is Vouchers.Action.OnChangeNameSearch -> {
+                _uiState.update { it.copy(nameSearch = action.name) }
+            }
+            is Vouchers.Action.OnChangeOrder -> {
+                _uiState.update { it.copy(filter = it.filter.copy(order = action.order)) }
+            }
+            is Vouchers.Action.OnChangeSortByName -> {
+                _uiState.update { it.copy(filter = it.filter.copy(sortBy = action.sort)) }
+            }
+            Vouchers.Action.OnSearchFilter -> {
 
             }
         }
@@ -65,7 +63,8 @@ class VouchersViewModel @Inject constructor(
 
 object Vouchers {
     data class UiState(
-        val isRefreshing: Boolean = false,
+        val filter: VoucherFilter = VoucherFilter(),
+        val nameSearch: String = "",
     )
 
     sealed interface Event {
@@ -74,6 +73,10 @@ object Vouchers {
 
     sealed interface Action {
         data object OnBack : Action
-        data object OnRefresh : Action
+        data class OnChangeNameSearch(val name: String) : Action
+        data class OnChangeOrder(val order: String) : Action
+        data class OnChangeSortByName(val sort: String) : Action
+        data object OnSearchFilter : Action
+
     }
 }

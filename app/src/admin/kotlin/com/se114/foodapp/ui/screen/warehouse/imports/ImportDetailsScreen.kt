@@ -104,7 +104,7 @@ fun ImportDetailsScreen(
 
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val suppliers = viewModel.suppliers.collectAsLazyPagingItems()
+
 
 
 
@@ -167,6 +167,7 @@ fun ImportDetailsScreen(
         }
     }
     LaunchedEffect(Unit) {
+        viewModel.getSuppliers()
         viewModel.getIngredients()
     }
     Column(
@@ -197,20 +198,20 @@ fun ImportDetailsScreen(
             ) {
 
 
-//                CustomPagingDropdown(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    title = "Nhà cung cấp",
-//                    textPlaceholder = "Chọn nhà cung cấp",
-//                    selected = uiState.import.supplierName,
-//                    onItemSelected = { item ->
-//
-//                            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(item.id!!))
-//
-//                    },
-//                    items = suppliers,
-//                    enabled = uiState.isEditable,
-//                    labelExtractor = { supplier -> supplier.name },
-//                )
+ComboBoxSample(
+    modifier = Modifier.fillMaxWidth(),
+    title = "Nhà cung cấp",
+    textPlaceholder = "Chọn nhà cung cấp...",
+    selected = uiState.import.supplierName,
+    onPositionSelected = {selected ->
+        val selectedSupplier = uiState.suppliers.find { it.name == selected }
+        selectedSupplier?.let {
+            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(it.id!!))
+        }
+    },
+    options = uiState.suppliers.map { it.name },
+    enabled = uiState.isEditable
+)
 
 
             }

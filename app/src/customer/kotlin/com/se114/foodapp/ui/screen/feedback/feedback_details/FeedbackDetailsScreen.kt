@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,8 +69,10 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImageListPicker
+import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.NoteInput
+import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -115,6 +118,9 @@ fun FeedbackDetailsScreen(
             }
         }
     }
+    LaunchedEffect(Unit) {
+        viewModel.getFeedback()
+    }
    
     Column(
         modifier = Modifier
@@ -130,84 +136,104 @@ fun FeedbackDetailsScreen(
 
 
         )
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
-        ) {
+        when(uiState.feedbackState){
+            is FeedbackDetail.GetFeedbackState.Error -> {
+                val message = (uiState.feedbackState as FeedbackDetail.GetFeedbackState.Error).errorMessage
+                Retry(
+                    message = message,
+                    onClicked = {
+                        viewModel.getFeedback()
+                    },
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
+            }
+            FeedbackDetail.GetFeedbackState.Loading -> {
+                Loading(
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
+            }
+            FeedbackDetail.GetFeedbackState.Success -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
+                ) {
 
 
-            AsyncImage(
-                model = null,
-                contentDescription = "Food",
-                modifier = Modifier
-                    .size(100.dp)
-                    .shadow(8.dp, shape = CircleShape)
-                    .clip(CircleShape)
-                    .border(4.dp, MaterialTheme.colorScheme.background, CircleShape),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.ic_placeholder),
-                error = painterResource(id = R.drawable.ic_placeholder)
-            )
+//                    AsyncImage(
+//                        model = null,
+//                        contentDescription = "Food",
+//                        modifier = Modifier
+//                            .size(100.dp)
+//                            .shadow(8.dp, shape = CircleShape)
+//                            .clip(CircleShape)
+//                            .border(4.dp, MaterialTheme.colorScheme.background, CircleShape),
+//                        contentScale = ContentScale.Crop,
+//                        placeholder = painterResource(id = R.drawable.ic_placeholder),
+//                        error = painterResource(id = R.drawable.ic_placeholder)
+//                    )
 
 
-            Text(
-                text = "Bạn nghĩ gì về món ăn?\n Hãy đánh giá ngay!",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Text(
-                text = when (uiState.feedback.rating) {
+                    Text(
+                        text = "Bạn nghĩ gì về món ăn?\n Hãy đánh giá ngay!",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = when (uiState.feedback.rating) {
 
-                    5 -> "Tuyệt vời"
-                    4 -> "Ngon"
-                    3 -> "Ổn"
-                    2 -> "Hơi tệ"
-                    else -> "Thất vọng"
+                            5 -> "Tuyệt vời"
+                            4 -> "Ngon"
+                            3 -> "Ổn"
+                            2 -> "Hơi tệ"
+                            else -> "Thất vọng"
 
-                },
-                style = TextStyle(
-                    color = when (uiState.feedback.rating) {
-                        5 -> Color(0xFF4CAF50)
-                        4 -> Color(0xFF8BC34A)
-                        3 -> Color(0xFFFFC107)
-                        2 -> Color(0xFFFF9800)
-                        else -> Color(0xFFF44336)
-                    }
-                ),
-                fontWeight = FontWeight.Bold,
-                fontSize = 25.sp
-            )
-            StarRatingBar(
-                rating = uiState.feedback.rating,
-                onRatingChanged = {
-                    viewModel.onAction(FeedbackDetail.Action.OnRatingChanged(it))
-                },
-            )
-            ImageListPicker(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                imageList = uiState.feedback.images?: emptyList(),
-                onUpdateImages = {
-                    viewModel.onAction(FeedbackDetail.Action.OnImagesChanged(it))
+                        },
+                        style = TextStyle(
+                            color = when (uiState.feedback.rating) {
+                                5 -> Color(0xFF4CAF50)
+                                4 -> Color(0xFF8BC34A)
+                                3 -> Color(0xFFFFC107)
+                                2 -> Color(0xFFFF9800)
+                                else -> Color(0xFFF44336)
+                            }
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 25.sp
+                    )
+                    StarRatingBar(
+                        rating = uiState.feedback.rating,
+                        onRatingChanged = {
+                            viewModel.onAction(FeedbackDetail.Action.OnRatingChanged(it))
+                        },
+                    )
+                    ImageListPicker(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        imageList = uiState.feedback.images?: emptyList(),
+                        onUpdateImages = {
+                            viewModel.onAction(FeedbackDetail.Action.OnImagesChanged(it))
+                        }
+                    )
+                    NoteInput(
+                        note = uiState.feedback.content?: "",
+                        onNoteChange = {
+                            viewModel.onAction(FeedbackDetail.Action.OnContentChanged(it))
+                        },
+                        textHolder = "Nhập đánh giá.."
+                    )
+                    LoadingButton(
+                        onClick = {
+                            viewModel.onAction(FeedbackDetail.Action.OnFeedbackClicked)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Xác nhận",
+                        loading = uiState.isLoading
+                    )
+
                 }
-            )
-            NoteInput(
-                note = uiState.feedback.content?: "",
-                onNoteChange = {
-                    viewModel.onAction(FeedbackDetail.Action.OnContentChanged(it))
-                },
-                textHolder = "Nhập đánh giá.."
-            )
-        LoadingButton(
-            onClick = {
-                viewModel.onAction(FeedbackDetail.Action.OnFeedbackClicked)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            text = "Xác nhận",
-            loading = uiState.isLoading
-        )
-
+            }
         }
+
 
     }
     if (showErrorSheet) {

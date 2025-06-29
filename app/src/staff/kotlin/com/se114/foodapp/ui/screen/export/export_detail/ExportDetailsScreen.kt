@@ -160,40 +160,7 @@ fun ExportDetailsScreen(
             },
             text = "Thông tin đơn xuất"
         )
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
 
-            ) {
-//                ComboBoxSampleLazyPaging(
-//                    modifier = Modifier
-//                        .fillMaxWidth(),
-//                    title = "Nhân viên",
-//                    textPlaceholder = "Chọn nhân viên",
-//                    selected = uiState.export.staffName,
-//                    onPositionSelected = { name ->
-//                        val selectedSupplier = (0 until staffs.itemCount)
-//                            .mapNotNull { index -> staffs[index] }
-//                            .find { it.fullName == name }
-//                        val supplierId = selectedSupplier?.id
-//                        supplierId?.let {
-//                            viewModel.onAction(ExportDetailsState.Action.OnChangeStaffId(it))
-//                        }
-//                    },
-//                    options = staffs,
-//                    labelExtractor = { staff -> staff.fullName },
-//                    enabled = uiState.isEditable,
-//                )
-            }
-        }
 
         if (uiState.exportDetails.isEmpty() && !isCreating) {
             Box(

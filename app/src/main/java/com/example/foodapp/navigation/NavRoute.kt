@@ -7,6 +7,7 @@ import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.Staff
 
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 
 interface NavRoute
 
@@ -60,7 +61,12 @@ object AddAddress : NavRoute
 object CheckoutCustomer : NavRoute
 
 @Serializable
-object CheckoutStaff : NavRoute
+data class CheckoutStaff(val foodTableID: Int) : NavRoute
+
+@Serializable
+object GetFoodForStaff: NavRoute
+
+
 
 @Serializable
 data class OrderSuccess(val orderId: Long) : NavRoute
@@ -150,6 +156,9 @@ object VoucherPublic : NavRoute
 @Serializable
 object VoucherCheck : NavRoute
 
+@Serializable
+data class VoucherCheckStaff(val totalPrice: String) : NavRoute
+
 
 @Serializable
 data class FeedbackDetails(val orderItemId: Long) : NavRoute
@@ -157,11 +166,12 @@ data class FeedbackDetails(val orderItemId: Long) : NavRoute
 @Serializable
 object FoodTableAdmin: NavRoute
 
-@Serializable
-object FoodTableStaff: NavRoute
+
 
 @Serializable
 data class Tracking(val long: Double, val lat: Double): NavRoute
+
+
 
 
 

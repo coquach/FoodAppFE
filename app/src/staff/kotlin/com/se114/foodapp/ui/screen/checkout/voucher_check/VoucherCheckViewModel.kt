@@ -1,19 +1,20 @@
 package com.se114.foodapp.ui.screen.checkout.voucher_check
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
 import com.example.foodapp.data.dto.filter.VoucherFilter
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.domain.use_case.voucher.GetVoucherForCustomerUseCase
-import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
+import com.example.foodapp.navigation.VoucherCheckStaff
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -21,10 +22,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VoucherCheckViewModel @Inject constructor(
-    private val getCheckoutDetailsUseCase: GetCheckOutDetailsUseCase,
+
     private val getVoucherForCustomerUseCase: GetVoucherForCustomerUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val totalPrice = savedStateHandle.toRoute<VoucherCheckStaff>().totalPrice
 
     private val _event = Channel<VoucherCheck.Event>()
     val event = _event.receiveAsFlow()
@@ -40,19 +43,18 @@ class VoucherCheckViewModel @Inject constructor(
     private fun getVouchers() {
         viewModelScope.launch {
 
-            val checkout = getCheckoutDetailsUseCase().first()
-            val totalAmount = checkout.totalAmount
 
+           val totalAmount = totalPrice.toBigDecimal()
             getVoucherForCustomerUseCase(
-                filter = VoucherFilter()
-            )
+               filter = VoucherFilter()
+           )
                 .map { pagingData ->
                     pagingData.filter { it.minOrderPrice <= totalAmount }
                 }
                 .cachedIn(viewModelScope)
                 .collect {
                     _vouchers.value = it
-                }
+               }
         }
 
     }

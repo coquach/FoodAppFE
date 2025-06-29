@@ -34,9 +34,9 @@ class FavoriteViewModel @Inject constructor(
     private val _event = Channel<FavoriteState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val favoriteFoods = getFavoriteFoodUseCase.invoke(_uiState.value.foodFilter).cachedIn(viewModelScope)
+    fun getFavoriteFoods() = getFavoriteFoodUseCase.invoke(FoodFilter())
 
-    val foods = getFoodsByMenuIdUseCase.invoke(_uiState.value.foodFilter)
+    fun getFoods(filter: FoodFilter) = getFoodsByMenuIdUseCase.invoke(filter)
 
 
     fun getMenus() {

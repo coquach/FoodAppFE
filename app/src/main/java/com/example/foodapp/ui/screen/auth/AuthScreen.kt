@@ -58,8 +58,6 @@ fun AuthScreen(
 
 
 
-
-
     val imageSize = remember { mutableStateOf(IntSize.Zero) }
     val brush = Brush.verticalGradient(
         colors = listOf(

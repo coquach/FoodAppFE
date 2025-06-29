@@ -23,7 +23,8 @@ class FoodTablePagingSource @Inject constructor(
                 size = size,
                 sortBy = filter.sortBy,
                 order = filter.order,
-                active = filter.active
+                active = filter.active,
+                status = filter.status,
 
             )
         }

@@ -13,4 +13,5 @@ interface FoodTableRepository {
     fun updateFoodTable(id: Int, request: FoodTableRequest): Flow<ApiResponse<FoodTable>>
     fun deleteFoodTable(id: Int): Flow<ApiResponse<Unit>>
     fun updateFoodTableStatus(id: Int): Flow<ApiResponse<Unit>>
+    fun createOrderForTable(id: Int): Flow<ApiResponse<FoodTable>>
 }

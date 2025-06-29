@@ -3,8 +3,8 @@ package com.se114.foodapp.data.dto.filter
 
 
 data class SupplierFilter (
-    val order: String = "desc",
-    val sortBy: String = "id",
+//    val order: String = "desc",
+//    val sortBy: String = "id",
     val name: String?=null,
     val phone: String?= null,
     val email: String?=null,

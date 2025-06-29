@@ -9,6 +9,7 @@ import com.se114.foodapp.domain.use_case.supplier.AddSupplierUseCase
 import com.se114.foodapp.domain.use_case.supplier.GetSupplierUseCase
 import com.se114.foodapp.domain.use_case.supplier.UpdateStatusSupplierUseCase
 import com.se114.foodapp.domain.use_case.supplier.UpdateSupplierUseCase
+import com.se114.foodapp.ui.screen.supplier.SupplierState.GetSupplierState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -36,7 +37,35 @@ class SupplierViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    val suppliers = getSupplierUseCase(_uiState.value.filter)
+    fun getSuppliers() {
+        viewModelScope.launch {
+            getSupplierUseCase.invoke(_uiState.value.filter).collect { response ->
+                when (response) {
+                    is ApiResponse.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                getSupplierState = GetSupplierState.Success,
+                                suppliers = response.data
+                            )
+                        }
+                    }
+
+                    is ApiResponse.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                getSupplierState = GetSupplierState.Error(response.errorMessage)
+                            )
+                        }
+                    }
+
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(getSupplierState = GetSupplierState.Loading) }
+                    }
+
+                }
+            }
+        }
+    }
 
 
     private fun addSupplier() {
@@ -44,9 +73,10 @@ class SupplierViewModel @Inject constructor(
             addSupplierUseCase.invoke(_uiState.value.supplierSelected).collect { response ->
                 when (response) {
                     is ApiResponse.Success -> {
-                        _uiState.update { it.copy(isLoading = false) }
+                        _uiState.update { it.copy(isLoading = false,
+                            suppliers = it.suppliers + response.data) }
                         _event.send(SupplierState.Event.ShowToastSuccess("Thêm thành công"))
-                        onAction(SupplierState.Action.OnRefresh)
+
 
                     }
 
@@ -73,9 +103,12 @@ class SupplierViewModel @Inject constructor(
             updateSupplierUseCase.invoke(_uiState.value.supplierSelected).collect { response ->
                 when (response) {
                     is ApiResponse.Success -> {
-                        _uiState.update { it.copy(isLoading = false) }
+                        _uiState.update { it.copy(isLoading = false,
+                            suppliers = it.suppliers.map { supplier ->
+                                if (supplier.id == response.data.id) response.data else supplier
+                            }) }
                         _event.send(SupplierState.Event.ShowToastSuccess("Cập nhật thành công"))
-                        onAction(SupplierState.Action.OnRefresh)
+
                     }
 
                     is ApiResponse.Failure -> {
@@ -233,6 +266,24 @@ class SupplierViewModel @Inject constructor(
                 }
             }
 
+            is SupplierState.Action.OnNameSearchChange -> {
+                _uiState.update {
+                    it.copy(
+                        nameSearch = action.name
+                    )
+                }
+            }
+
+            SupplierState.Action.OnSearchFilterChange -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            name = _uiState.value.nameSearch
+                        )
+                    )
+                }
+            }
+
 
         }
     }
@@ -248,12 +299,21 @@ object SupplierState {
         val supplierSelected: Supplier = Supplier(),
         val isUpdating: Boolean = false,
         val isHide: Boolean = false,
+        val getSupplierState: GetSupplierState = GetSupplierState.Loading,
+        val suppliers: List<Supplier> = emptyList(),
+        val nameSearch: String = "",
     )
+
+    sealed interface GetSupplierState {
+        data object Loading : GetSupplierState
+        data object Success : GetSupplierState
+        data class Error(val message: String) : GetSupplierState
+    }
 
     sealed interface Event {
         data object OnBack : Event
         data object ShowError : Event
-        data class ShowToastSuccess(val message: String): Event
+        data class ShowToastSuccess(val message: String) : Event
 
     }
 
@@ -271,6 +331,8 @@ object SupplierState {
         data object OnBack : Action
         data object OnRefresh : Action
         data class OnStatusFilterChange(val status: Boolean) : Action
+        data class OnNameSearchChange(val name: String) : Action
+        data object OnSearchFilterChange : Action
 
     }
 }

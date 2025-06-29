@@ -65,9 +65,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun WarehouseScreen(
     navController: NavController,
-    viewModel: WarehouseViewModel = hiltViewModel()
+    viewModel: WarehouseViewModel = hiltViewModel(),
 ) {
-   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val inventories = viewModel.inventories.collectAsLazyPagingItems()
 
@@ -79,8 +79,11 @@ fun WarehouseScreen(
                 WarehouseState.Event.NavigateToImport -> {
                     navController.navigate(Import)
                 }
+
                 WarehouseState.Event.NavigateToMaterial -> {
-                    navController.navigate(Material)}
+                    navController.navigate(Material)
+                }
+
                 WarehouseState.Event.Refresh -> {
 
                 }
@@ -112,35 +115,35 @@ fun WarehouseScreen(
                 viewModel.onAction(WarehouseState.Action.OnNavigateToImport)
             }
         )
-SearchField(
-    searchInput = uiState.nameSearch,
-    searchChange = {
-        viewModel.onAction(WarehouseState.Action.OnNameSearch(it))
-    },
-    searchFilter = {
-        viewModel.onAction(WarehouseState.Action.OnSearchFilter)
-    },
-    switchState = uiState.inventoryFilter.order == "desc",
-    switchChange = {
-        when(it){
-            true -> viewModel.onAction(WarehouseState.Action.OnOrderChange("desc"))
-            false -> viewModel.onAction(WarehouseState.Action.OnOrderChange("asc"))
-        }
-    },
-    filterChange = {
-        when(it){
-            "Id" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("id"))
-            "Số lượng" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("quantityRemaining"))
-        }
-    },
-    filters = listOf("Id", "Số lượng"),
-    filterSelected = when(uiState.inventoryFilter.sortBy){
-        "id" -> "Id"
-        "quantityRemaining" -> "Số lượng"
-        else -> "Id"
-    },
-    placeHolder = "Tìm kiếm tồn kho theo tên nguyên liệu..."
-)
+        SearchField(
+            searchInput = uiState.nameSearch,
+            searchChange = {
+                viewModel.onAction(WarehouseState.Action.OnNameSearch(it))
+            },
+            searchFilter = {
+                viewModel.onAction(WarehouseState.Action.OnSearchFilter)
+            },
+            switchState = uiState.inventoryFilter.order == "desc",
+            switchChange = {
+                when (it) {
+                    true -> viewModel.onAction(WarehouseState.Action.OnOrderChange("desc"))
+                    false -> viewModel.onAction(WarehouseState.Action.OnOrderChange("asc"))
+                }
+            },
+            filterChange = {
+                when (it) {
+                    "Id" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("id"))
+                    "Số lượng" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("quantityRemaining"))
+                }
+            },
+            filters = listOf("Id", "Số lượng"),
+            filterSelected = when (uiState.inventoryFilter.sortBy) {
+                "id" -> "Id"
+                "quantityRemaining" -> "Số lượng"
+                else -> "Id"
+            },
+            placeHolder = "Tìm kiếm tồn kho theo tên nguyên liệu..."
+        )
         TabWithPager(
             tabs = listOf("Tồn kho", "Hết hạn", "Đã dùng"),
             pages = listOf(
@@ -163,12 +166,37 @@ SearchField(
                     )
                 }
             ),
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             onTabSelected = { index ->
-                when(index){
-                    0 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = false, isOutOfStock = false)))
-                    1 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = true, isOutOfStock = false)))
-                    2 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = false, isOutOfStock = true)))
+                when (index) {
+                    0 -> viewModel.onAction(
+                        WarehouseState.Action.OnTabSelected(
+                            uiState.inventoryFilter.copy(
+                                isExpired = false,
+                                isOutOfStock = false
+                            )
+                        )
+                    )
+
+                    1 -> viewModel.onAction(
+                        WarehouseState.Action.OnTabSelected(
+                            uiState.inventoryFilter.copy(
+                                isExpired = true,
+                                isOutOfStock = false
+                            )
+                        )
+                    )
+
+                    2 -> viewModel.onAction(
+                        WarehouseState.Action.OnTabSelected(
+                            uiState.inventoryFilter.copy(
+                                isExpired = false,
+                                isOutOfStock = true
+                            )
+                        )
+                    )
                 }
             }
         )
@@ -203,7 +231,7 @@ fun InventoryListSection(
 @Composable
 fun InventoryItemView(
     inventory: Inventory,
-    onClick: ((Inventory) -> Unit) ? = null,
+    onClick: ((Inventory) -> Unit)? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

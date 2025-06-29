@@ -61,4 +61,9 @@ class FoodTableRepoImpl @Inject constructor(
         }
 
     }
+    override fun createOrderForTable(id: Int): Flow<ApiResponse<FoodTable>> {
+        return apiRequestFlow {
+            foodTableApi.createOrderForFoodTable(id)
+        }
+    }
 }

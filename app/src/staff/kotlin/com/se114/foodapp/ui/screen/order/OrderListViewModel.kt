@@ -6,9 +6,7 @@ import androidx.paging.PagingData
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
-import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.example.foodapp.domain.use_case.order.GetOrdersUseCase
-import com.example.foodapp.utils.TabCacheManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -18,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,42 +33,12 @@ class OrderListViewModel @Inject constructor(
     private val _event = Channel<OrderListState.Event>()
     val event get() = _event.receiveAsFlow()
 
+    fun getOrders(filter: OrderFilter) = getOrdersUseCase(filter)
 
-    val ordersTabManager = TabCacheManager<Int, Order>(
-        scope = viewModelScope,
-        getFilter = { tabIndex ->
-            val status = getOrderStatusForTab(tabIndex)
-            _state.value.orderFilter.copy(status = status?.name)
-        },
-        loadData = { filter ->
-            getOrdersUseCase(filter as OrderFilter)
-        }
-    )
-
-    fun getOrdersFlow(tabIndex: Int){
-        return ordersTabManager.getFlowForTab(tabIndex)
-    }
-
-
-
-
-    private fun getOrderStatusForTab(tabIndex: Int): OrderStatus? {
-        return when (tabIndex) {
-            0 -> OrderStatus.PENDING
-            1 -> OrderStatus.CONFIRMED
-            2 -> OrderStatus.READY
-            3 -> OrderStatus.SHIPPING
-            4 -> OrderStatus.COMPLETED
-            5 -> OrderStatus.CANCELLED
-            else -> null
-        }
-    }
 
     fun onAction(action: OrderListState.Action){
         when(action){
-            is OrderListState.Action.OnTabSelected -> {
-                _state.update { it.copy(tabIndex = action.index) }
-            }
+
             is OrderListState.Action.OnOrderClicked -> {
                 viewModelScope.launch {
                     _event.send(OrderListState.Event.GoToDetail(action.order))
@@ -78,7 +46,19 @@ class OrderListViewModel @Inject constructor(
             }
             OrderListState.Action.OnRefresh -> {
 
-                getOrdersFlow(_state.value.tabIndex)
+            }
+            is OrderListState.Action.OnDateChange -> {
+                _state.update {
+                    it.copy(
+                        orderFilter = it.orderFilter.copy(
+                            startDate = action.startDate,
+                            endDate = action.endDate))}
+            }
+            is OrderListState.Action.OnStatusFilterChange -> {
+                _state.update {
+                    it.copy(
+                        orderFilter = it.orderFilter.copy(
+                            status = action.status))}
             }
         }
     }
@@ -94,14 +74,14 @@ private data class TabData(
 object OrderListState{
     data class UiState(
         val orderFilter: OrderFilter = OrderFilter(),
-        val tabIndex: Int = 0,
     )
     sealed interface Event{
         data class GoToDetail(val order: Order): Event
     }
 
     sealed interface Action{
-        data class OnTabSelected(val index: Int): Action
+        data class OnStatusFilterChange(val status: String): Action
+        data class OnDateChange(val startDate: LocalDate?, val endDate: LocalDate?): Action
         data class OnOrderClicked(val order: Order): Action
         data object OnRefresh: Action
 

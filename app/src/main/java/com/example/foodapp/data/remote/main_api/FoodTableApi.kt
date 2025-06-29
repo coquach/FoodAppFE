@@ -21,6 +21,7 @@ interface FoodTableApi {
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "asc",
         @Query("active") active: Boolean?=null,
+        @Query("status") status: String?=null,
 
     ): Response<PageResponse<FoodTable>>
 
@@ -42,6 +43,11 @@ interface FoodTableApi {
     suspend fun deleteFoodTable(
         @Path("id") id: Int,
     ): Response<Unit>
+
+    @PATCH("food-tables/{id}/orders")
+    suspend fun createOrderForFoodTable(
+        @Path("id") id: Int,
+    ): Response<FoodTable>
 
 
 }

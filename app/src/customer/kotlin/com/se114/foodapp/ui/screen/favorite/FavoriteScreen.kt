@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -36,8 +37,10 @@ fun SharedTransitionScope.FavoriteScreen(
     viewModel: FavoriteViewModel = hiltViewModel()
 ){
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foods = viewModel.foods.collectAsLazyPagingItems()
-    val foodFavorite = viewModel.favoriteFoods.collectAsLazyPagingItems()
+    val foods = remember(uiState.foodFilter) {
+        viewModel.getFoods(uiState.foodFilter)
+    }.collectAsLazyPagingItems()
+    val foodFavorite = viewModel.getFavoriteFoods().collectAsLazyPagingItems()
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
