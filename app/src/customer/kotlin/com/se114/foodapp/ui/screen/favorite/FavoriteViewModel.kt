@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -78,7 +79,7 @@ class FavoriteViewModel @Inject constructor(
                 _uiState.update { it.copy(foodFilter = it.foodFilter.copy(menuId = action.id), menuName = action.name) }
             }
             FavoriteState.Action.OnRefresh -> {
-
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(forceRefresh = UUID.randomUUID().toString())) }
             }
             is FavoriteState.Action.OnOrderChange -> {
                 _uiState.update { it.copy(foodFilter = it.foodFilter.copy(order = action.order)) }

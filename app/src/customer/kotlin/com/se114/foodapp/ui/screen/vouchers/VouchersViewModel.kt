@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,6 +56,15 @@ class VouchersViewModel @Inject constructor(
             Vouchers.Action.OnSearchFilter -> {
 
             }
+            Vouchers.Action.OnRefresh -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                           forceRefresh = UUID.randomUUID().toString()
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -70,6 +80,7 @@ object Vouchers {
     }
 
     sealed interface Action {
+        data object OnRefresh : Action
         data object OnBack : Action
         data class OnChangeNameSearch(val name: String) : Action
         data class OnChangeOrder(val order: String) : Action

@@ -34,7 +34,6 @@ class PlaceOrderUseCase @Inject constructor(
                 type = checkout.type,
                 method = PaymentMethod.fromDisplay(checkout.method)!!.name,
                 startedAt = now,
-                paymentAt = now,
                 note = checkout.note,
                 address = checkout.address,
                 orderItems = cartItems.map { cartItem ->

@@ -101,6 +101,9 @@ fun VouchersScreen(
 
 
         LazyPagingSample(
+            onRefresh = {
+                viewModel.onAction(Vouchers.Action.OnRefresh)
+            },
             modifier = Modifier.fillMaxWidth().weight(1f),
             items = vouchers,
             textNothing = "Không có voucher nào cả...",

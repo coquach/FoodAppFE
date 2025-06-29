@@ -74,6 +74,9 @@ fun OrderListScreen(
                         orders = orders,
                         onItemClick = {
                             viewModel.onAction(OrderList.Action.OnOrderClicked(it))
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderList.Action.OnRefresh)
                         }
                     )
                 },
@@ -83,6 +86,9 @@ fun OrderListScreen(
                         orders = orders,
                         onItemClick = {
                             viewModel.onAction(OrderList.Action.OnOrderClicked(it))
+                        },
+                        onRefresh = {
+                            viewModel.onAction(OrderList.Action.OnRefresh)
                         }
                     )
                 }

@@ -27,15 +27,20 @@ interface FeedbackApi {
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "desc",
     ): Response<PageResponse<Feedback>>
+
+    @Multipart
     @POST("feedbacks")
     suspend fun createFeedback(
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
+        @Part images: List<MultipartBody.Part>? = null,
     ): Response<Feedback>
 
+    @Multipart
     @PUT("feedbacks/{id}")
     suspend fun updateFeedback(
         @Path("id") id: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
+        @Part images: List<MultipartBody.Part>? = null,
     ): Response<Feedback>
 
 

@@ -289,17 +289,16 @@ fun ErrorModalBottomSheet(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            Button(
+            AppButton(
                 onClick = {
                     scope.launch {
                         sheetState.hide()
                         onDismiss()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Đóng")
-            }
+                modifier = Modifier.fillMaxWidth(),
+                text = "Đóng",
+            )
         }
     }
 }
@@ -844,6 +843,7 @@ fun <T : Any> LazyPagingSample(
     textNothing: String,
     iconNothing: ImageVector,
     onRetry: (() -> Unit)? = null,
+    onRefresh: (() -> Unit)? = null,
     columns: Int = 1,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable (T) -> Unit,
@@ -864,6 +864,7 @@ fun <T : Any> LazyPagingSample(
         onRefresh = {
           coroutineScope.launch {
               isRefreshing = true
+              onRefresh?.invoke()
               delay(1000L)
               isRefreshing = false
           }
@@ -946,6 +947,7 @@ fun <T : Any> LazyPagingSample(
         }
         Indicator(
             modifier = Modifier.align(Alignment.TopCenter),
+            color = MaterialTheme.colorScheme.onPrimary,
             isRefreshing = isRefreshing,
             state = pullState
         )
@@ -956,7 +958,7 @@ fun <T : Any> LazyPagingSample(
 
 @Composable
 fun NoteInput(
-    modifier: Modifier = Modifier.height(200.dp),
+    modifier: Modifier = Modifier.height(300.dp),
     note: String,
     onNoteChange: (String) -> Unit,
     maxLines: Int = 5,

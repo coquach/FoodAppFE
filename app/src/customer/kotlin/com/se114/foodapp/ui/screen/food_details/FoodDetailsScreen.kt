@@ -1,15 +1,8 @@
 package com.se114.foodapp.ui.screen.food_details
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -27,11 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Feedback
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,8 +29,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -68,7 +56,6 @@ import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.ui.component.ImageCarousel
 import com.se114.foodapp.ui.screen.feedback.FeedbackList
-
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
@@ -79,7 +66,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
     viewModel: FoodDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val feedbacks = viewModel.feedbacks.collectAsLazyPagingItems()
+    val feedbacks = viewModel.getFeedbacks().collectAsLazyPagingItems()
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -120,7 +107,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         val images = uiState.food.images?.map {
             it.url
@@ -152,12 +140,11 @@ fun SharedTransitionScope.FoodDetailsScreen(
             modifier = Modifier
                 .fillMaxWidth()
 
-
         ) {
             Text(
                 text = StringUtils.formatCurrency(uiState.food.price),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineLarge
+                style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.weight(1f))
             FoodItemCounter(
@@ -209,13 +196,15 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
                     text = successMessage,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.size(16.dp))
+
                 AppButton(
                     onClick = {
                         showSuccessDialog = false
@@ -332,7 +321,7 @@ fun SharedTransitionScope.FoodDetail(
         )
         Text(
             text = description,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .padding(top = 8.dp)
                 .sharedElement(
@@ -365,7 +354,7 @@ fun SharedTransitionScope.MenuHeader(
                 .clip(RoundedCornerShape(16.dp))
                 .background(color = MaterialTheme.colorScheme.onPrimary)
                 .padding(4.dp)
-                .zIndex(1f),
+                .zIndex(2f),
 
             ) {
             Icon(
@@ -379,14 +368,13 @@ fun SharedTransitionScope.MenuHeader(
 
 
         IconButton(
-            onClick = { onFavoriteButton },
+            onClick = onFavoriteButton,
             modifier = Modifier
-
                 .size(50.dp)
                 .clip(CircleShape)
                 .background(if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 .align(Alignment.TopEnd)
-                .zIndex(1f)
+                .zIndex(2f)
 
         ) {
             Icon(
@@ -397,6 +385,7 @@ fun SharedTransitionScope.MenuHeader(
             )
         }
         ImageCarousel(
+            modifier = Modifier.zIndex(1f),
             images = images,
             animatedVisibilityScope = animatedVisibilityScope,
             foodId = foodId

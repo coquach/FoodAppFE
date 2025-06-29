@@ -6,4 +6,5 @@ data class FoodFilter(
     val name: String? = null,
     val status: Boolean=  true,
     val menuId: Int?=null,
+    val forceRefresh: String?=null
 )

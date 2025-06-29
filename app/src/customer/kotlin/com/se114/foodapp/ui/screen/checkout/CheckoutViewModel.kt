@@ -114,7 +114,7 @@ class CheckoutViewModel @Inject constructor(
                         is ApiResponse.Success -> {
                             _uiState.update { it.copy(isLoading = false) }
                             clearAllCartUseCase()
-                            _event.send(Checkout.Event.OrderSuccess(result.data.id!!))
+                            _event.send(Checkout.Event.OrderSuccess(result.data.id))
                         }
 
                         is ApiResponse.Failure -> {

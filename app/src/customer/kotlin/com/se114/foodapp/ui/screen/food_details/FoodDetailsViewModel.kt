@@ -47,7 +47,7 @@ class FoodDetailsViewModel @Inject constructor(
     private val _event = Channel<FoodDetails.Event>()
     val event = _event.receiveAsFlow()
 
-    val feedbacks = getFeedbacksUseCase(foodArgument.food.id)
+    fun getFeedbacks() = getFeedbacksUseCase(foodArgument.food.id)
 
 
     private fun addToCart(food: Food) {

@@ -17,4 +17,5 @@ data class OrderFilter(
     val foodTableId: Int? = null,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
+    val forceRefresh: String?=null
 )

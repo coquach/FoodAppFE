@@ -232,6 +232,7 @@ fun SharedTransitionScope.FoodList(
     isFullWidth: Boolean = false,
     isAnimated: Boolean = true,
     endAction: (@Composable (Food) -> SwipeAction)? = null,
+    onRefresh: () -> Unit = {}
 
 ) {
     LazyPagingSample(
@@ -242,7 +243,8 @@ fun SharedTransitionScope.FoodList(
         columns = if (isFullWidth) 1 else 2,
         key = {food ->
             food.id
-        }
+        },
+        onRefresh = onRefresh
     ) {food ->
         if (isSwipeAction) {
 

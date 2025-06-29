@@ -41,6 +41,7 @@ import kotlin.math.absoluteValue
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.ImageCarousel(
+    modifier: Modifier= Modifier,
     images: List<String>,
     animatedVisibilityScope: AnimatedVisibilityScope,
     foodId: Long,
@@ -50,7 +51,7 @@ fun SharedTransitionScope.ImageCarousel(
         images.size
     }
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         HorizontalPager(
@@ -115,7 +116,7 @@ fun SharedTransitionScope.CardContent(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(image)
                     .crossfade(true)
-                    .scale(Scale.FILL)
+                    .scale(Scale.FIT)
                     .build(),
                 contentDescription = "Image",
                 contentScale = ContentScale.Crop,
@@ -127,7 +128,7 @@ fun SharedTransitionScope.CardContent(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(image)
                     .crossfade(true)
-                    .scale(Scale.FILL)
+                    .scale(Scale.FIT)
                     .build(),
                 contentDescription = "Image",
                 contentScale = ContentScale.Crop,

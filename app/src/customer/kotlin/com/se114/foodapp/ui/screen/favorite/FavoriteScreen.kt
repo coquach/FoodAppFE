@@ -134,7 +134,10 @@ fun SharedTransitionScope.FavoriteScreen(
                             },
                             isCustomer = true,
                             isFullWidth = true,
-                            modifier = Modifier.fillMaxWidth().weight(1f)
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                            onRefresh = {
+                                viewModel.onAction(FavoriteState.Action.OnRefresh)
+                            }
                         )
 
                     }

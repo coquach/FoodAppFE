@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,6 +53,9 @@ class OrderListViewModel @Inject constructor(
                 _uiState.update { it.copy(orderFilter = it.orderFilter.copy(status = action.status, notStatus = action.notStatus)) }
             }
 
+            is OrderList.Action.OnRefresh -> {
+                _uiState.update { it.copy(orderFilter = it.orderFilter.copy(forceRefresh = UUID.randomUUID().toString())) }
+            }
 
 
         }
@@ -71,5 +75,6 @@ object OrderList {
     sealed interface Action {
         data class OnTabChanged(val status: String?, val notStatus: String?) : Action
         data class OnOrderClicked(val order: Order) : Action
+        data object OnRefresh : Action
     }
 }

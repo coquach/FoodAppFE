@@ -6,6 +6,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -82,19 +83,22 @@ fun ImagePickerBottomSheet(
 
         ModalBottomSheet(
             onDismissRequest = { onDismiss() },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Chọn ảnh", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
+                Text("Chọn ảnh", fontSize = 20.sp, style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary)
+
 
                 // Button chọn từ thư viện
-                Button(
+                AppButton(
                     onClick = {
                         if (galleryPermissionState != null) {
                             if (galleryPermissionState.status.isGranted) {
@@ -107,17 +111,15 @@ fun ImagePickerBottomSheet(
                         }
                     },
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Chọn ảnh từ thư viện")
-                }
+                        .fillMaxWidth(),
+                    text = "Chọn ảnh từ thư viện"
+                )
 
 
-                Spacer(modifier = Modifier.height(12.dp))
+
 
                 // Button chụp ảnh
-                Button(
+                AppButton(
                     onClick = {
                         if (cameraPermissionState.status.isGranted) {
                             launchCameraWithNewUri()
@@ -126,29 +128,22 @@ fun ImagePickerBottomSheet(
                         }
                     },
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Chụp ảnh")
-                }
+                        .fillMaxWidth(),
+                    text = "Chụp ảnh"
+                )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Button(
+                AppButton(
                     onClick = {
                         coroutineScope.launch {
                             sheetState.hide()
                             onDismiss()
                         }
                     },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Huỷ")
-                }
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "Hủy",
+                    backgroundColor = MaterialTheme.colorScheme.outline
+                )
 
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 

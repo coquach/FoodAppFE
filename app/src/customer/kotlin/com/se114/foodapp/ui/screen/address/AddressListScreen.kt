@@ -238,13 +238,8 @@ fun AddressSection(
                 .clip(RoundedCornerShape(28.dp))
                 .shadow(12.dp, RoundedCornerShape(28.dp))
                 .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            MaterialTheme.colorScheme.background
-
-                        )
-                    )
+                    MaterialTheme.colorScheme.primaryContainer,
+                    RoundedCornerShape(28.dp)
                 )
                 .clickable {
                     onClick.invoke()

@@ -51,9 +51,9 @@ class FeedbackDetailsViewModel @Inject constructor(
             getFeedbackByOrderItemIdUseCase(orderItemId).collect { result ->
                 when (result) {
                     is ApiResponse.Success -> {
-                        _uiState.update { it.copy(feedback = result.data.toUi(), feedbackState = GetFeedbackState.Success) }}
+                        _uiState.update { it.copy(feedback = result.data.toUi(), feedbackState = GetFeedbackState.Success, isUpdating = true) }}
                     is ApiResponse.Failure -> {
-                        _uiState.update { it.copy(feedbackState = GetFeedbackState.Error(result.errorMessage)) }
+                        _uiState.update { it.copy(feedbackState = GetFeedbackState.Error(result.errorMessage), feedback = FeedbackUi()) }
                     }
                     is ApiResponse.Loading -> {
                         _uiState.update { it.copy(feedbackState = GetFeedbackState.Loading) }
@@ -68,7 +68,7 @@ class FeedbackDetailsViewModel @Inject constructor(
             createFeedbackUseCase(orderItemId, uiState.value.feedback).collect { result ->
                 when (result) {
                     is ApiResponse.Success -> {
-                        _event.send(FeedbackDetail.Event.BackToAfterFeedback)
+                        _event.send(FeedbackDetail.Event.BackToAfterFeedback("Tạo đánh giá thành công"))
                     }
 
                     is ApiResponse.Failure -> {
@@ -77,7 +77,44 @@ class FeedbackDetailsViewModel @Inject constructor(
                     }
 
                     is ApiResponse.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateFeedback() {
+        viewModelScope.launch {
+            updateFeedbackUseCase(orderItemId, uiState.value.feedback).collect { result ->
+                when (result) {
+                    is ApiResponse.Success -> {
+                        _event.send(FeedbackDetail.Event.BackToAfterFeedback("Cập nhật đánh giá thành công"))
+                    }
+                    is ApiResponse.Failure -> {
+                        _uiState.update { it.copy(error = result.errorMessage) }
+                        _event.send(FeedbackDetail.Event.ShowError)
+                    }
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                    }
+                }
+            }
+        }
+    }
+    private fun deleteFeedback() {
+        viewModelScope.launch {
+            deleteFeedbackUseCase(orderItemId).collect { result ->
+                when (result) {
+                    is ApiResponse.Success -> {
+                        _event.send(FeedbackDetail.Event.BackToAfterFeedback("Xóa đánh giá thành công"))
+                    }
+                    is ApiResponse.Failure -> {
+                        _uiState.update { it.copy(error = result.errorMessage) }
+                        _event.send(FeedbackDetail.Event.ShowError)
+                    }
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
                     }
                 }
             }
@@ -108,7 +145,12 @@ class FeedbackDetailsViewModel @Inject constructor(
                 }
             }
 
-
+            FeedbackDetail.Action.OnDelete -> {
+                deleteFeedback()
+            }
+            FeedbackDetail.Action.OnUpdate -> {
+                updateFeedback()
+            }
         }
     }
 
@@ -120,6 +162,7 @@ object FeedbackDetail {
         val error: String? = null,
         val feedback: FeedbackUi = FeedbackUi(),
         val feedbackState: GetFeedbackState = GetFeedbackState.Loading,
+        val isUpdating: Boolean = false
     )
 
     sealed interface GetFeedbackState{
@@ -129,7 +172,7 @@ object FeedbackDetail {
     }
 
     sealed interface Event {
-        data object BackToAfterFeedback : Event
+        data class BackToAfterFeedback(val message: String) : Event
         data object ShowError : Event
         data object OnBack : Event
 
@@ -141,6 +184,8 @@ object FeedbackDetail {
         data class OnContentChanged(val content: String) : Action
         data class OnImagesChanged(val images: List<Uri>?) : Action
         data object OnBack : Action
+        data object OnDelete : Action
+        data object OnUpdate : Action
 
 
     }

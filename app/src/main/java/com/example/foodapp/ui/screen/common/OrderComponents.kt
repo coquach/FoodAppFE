@@ -168,7 +168,7 @@ fun OrderListSection(
     modifier: Modifier = Modifier,
     orders: LazyPagingItems<Order>,
     onItemClick: (Order) -> Unit,
-
+    onRefresh: () -> Unit = {},
 
 ) {
 
@@ -189,7 +189,7 @@ fun OrderListSection(
                        }
                    )
                },
-
+                onRefresh = onRefresh
                )
 
 
