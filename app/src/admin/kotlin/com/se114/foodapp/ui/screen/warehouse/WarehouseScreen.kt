@@ -145,7 +145,7 @@ fun WarehouseScreen(
                 "quantityRemaining" -> "Số lượng"
                 else -> "Id"
             },
-            placeHolder = "Tìm kiếm tồn kho theo tên nguyên liệu..."
+            placeHolder = "Tìm kiếm tồn kho theo tên..."
         )
         TabWithPager(
             tabs = listOf("Tồn kho", "Hết hạn", "Đã dùng"),

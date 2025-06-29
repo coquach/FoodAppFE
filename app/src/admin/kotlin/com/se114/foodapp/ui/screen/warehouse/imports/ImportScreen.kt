@@ -212,7 +212,7 @@ fun ImportScreen(
                     "totalPrice" -> "Tổng giá"
                     else -> "Id"
                 },
-                placeHolder = "Tìm kiếm theo tên nhà cung cấp..."
+                placeHolder = "Tìm kiếm theo tên NCC..."
             )
 
             DateRangePickerSample(

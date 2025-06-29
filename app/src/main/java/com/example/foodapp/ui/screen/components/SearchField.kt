@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 
@@ -70,7 +71,7 @@ fun SearchField(
             value = searchInput,
             onValueChange = { searchChange(it) },
             placeholder = {
-                Text(text = placeHolder, color = MaterialTheme.colorScheme.outline)
+                Text(text = placeHolder, color = MaterialTheme.colorScheme.outline, overflow = TextOverflow.Ellipsis)
             },
             modifier = Modifier
                 .weight(1f).onFocusChanged { focusState ->
