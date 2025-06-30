@@ -84,6 +84,12 @@ fun SharedTransitionScope.CardContent(
     foodId: Long,
 ) {
     val pageOffset = (paperState.currentPage - index) + paperState.currentPageOffsetFraction
+    val sharedModifier = if (index == 0) {
+        Modifier.sharedElement(
+            state = rememberSharedContentState(key = "title/$foodId"),
+            animatedVisibilityScope = animatedVisibilityScope
+        )
+    } else Modifier
     Card(
         shape = RoundedCornerShape(18.dp),
         modifier = Modifier
@@ -103,38 +109,20 @@ fun SharedTransitionScope.CardContent(
                     stop =  1f.dp,
                     fraction = 1f - pageOffset.absoluteValue.coerceIn(0f, 1f)
                 ).value
-            }
+            }.then(sharedModifier)
     ) {
-        if (index == 0) {
-            AsyncImage(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .sharedElement(
-                        state = rememberSharedContentState(key = "title/${foodId}"),
-                        animatedVisibilityScope
-                    ),
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(image)
-                    .crossfade(true)
-                    .scale(Scale.FIT)
-                    .build(),
-                contentDescription = "Image",
-                contentScale = ContentScale.Crop,
-            )
-        } else {
+
             AsyncImage(
                 modifier = Modifier
                     .fillMaxSize(),
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(image)
                     .crossfade(true)
-                    .scale(Scale.FIT)
+                    .scale(Scale.FILL)
                     .build(),
                 contentDescription = "Image",
                 contentScale = ContentScale.Crop,
             )
-        }
-
 
     }
 }

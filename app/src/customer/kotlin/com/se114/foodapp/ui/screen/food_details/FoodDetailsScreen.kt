@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -342,7 +343,7 @@ fun SharedTransitionScope.MenuHeader(
     onFavoriteButton: () -> Unit,
     isFavorite: Boolean,
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
         IconButton(
             onClick = {
                 onBackButton.invoke()
@@ -354,6 +355,7 @@ fun SharedTransitionScope.MenuHeader(
                 .clip(RoundedCornerShape(16.dp))
                 .background(color = MaterialTheme.colorScheme.onPrimary)
                 .padding(4.dp)
+                .align(Alignment.TopStart)
                 .zIndex(2f),
 
             ) {
@@ -385,7 +387,7 @@ fun SharedTransitionScope.MenuHeader(
             )
         }
         ImageCarousel(
-            modifier = Modifier.zIndex(1f),
+            modifier = Modifier.fillMaxWidth().zIndex(1f),
             images = images,
             animatedVisibilityScope = animatedVisibilityScope,
             foodId = foodId
