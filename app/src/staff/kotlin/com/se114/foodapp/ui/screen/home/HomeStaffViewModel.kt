@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,7 +69,11 @@ class HomeStaffViewModel @Inject constructor(
 
 
             HomeStaffState.Action.OnRefresh -> {
-
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(forceRefresh = UUID.randomUUID().toString())
+                    )
+                }
             }
             is HomeStaffState.Action.OnSearch -> {
                 _uiState.update {

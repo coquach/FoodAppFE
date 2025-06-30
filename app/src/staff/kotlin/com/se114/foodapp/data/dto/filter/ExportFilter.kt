@@ -8,4 +8,5 @@ data class ExportFilter(
     val staffId: Long? = null,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
+    val forceRefresh: String?=null
 )

@@ -105,6 +105,9 @@ fun VouchersScreen(
 
 
                 LazyPagingSample(
+                    onRefresh = {
+                        viewModel.onAction(Vouchers.Action.OnRefresh)
+                    },
                     items = vouchers,
                     textNothing = "Không có voucher nào cả...",
                     iconNothing = Icons.Default.LocalOffer,

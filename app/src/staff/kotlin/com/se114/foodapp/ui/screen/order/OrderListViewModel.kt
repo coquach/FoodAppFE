@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,7 +46,12 @@ class OrderListViewModel @Inject constructor(
                 }
             }
             OrderListState.Action.OnRefresh -> {
-
+                _state.update {
+                    it.copy(
+                        orderFilter = it.orderFilter.copy(
+                            forceRefresh = UUID.randomUUID().toString())
+                    )
+                }
             }
             is OrderListState.Action.OnDateChange -> {
                 _state.update {
@@ -66,10 +72,7 @@ class OrderListViewModel @Inject constructor(
 
 
 }
-private data class TabData(
-    val flow: MutableStateFlow<PagingData<Order>> = MutableStateFlow(PagingData.empty()),
-    var loadJob: Job? = null,
-)
+
 
 object OrderListState{
     data class UiState(

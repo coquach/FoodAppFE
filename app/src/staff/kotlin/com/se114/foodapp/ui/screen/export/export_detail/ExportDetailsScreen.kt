@@ -91,7 +91,6 @@ fun ExportDetailsScreen(
     viewModel: ExportDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val staffs = viewModel.staffs.collectAsLazyPagingItems()
     val inventories = viewModel.inventories.collectAsLazyPagingItems()
 
 

@@ -43,16 +43,14 @@ import kotlinx.coroutines.flow.collectLatest
 class MainActivity : BaseFoodAppActivity() {
 
 
-
-
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
 
 
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
 
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             val systemUiController: SystemUiController = rememberSystemUiController()
@@ -88,9 +86,6 @@ class MainActivity : BaseFoodAppActivity() {
                                 navController.navigate(Notification)
                             }
 
-                            is MainViewModel.UiEvent.NavigateToResetPassword -> {
-
-                            }
 
                             MainViewModel.UiEvent.NavigateToAuth -> {
                                 navController.navigate(Auth) {
@@ -117,7 +112,7 @@ class MainActivity : BaseFoodAppActivity() {
                         bottomBar = {
 
                             BottomNavigationBar(
-                                navController, navItems = navItems, state = bottomBarVisibility(navController)
+                                navController, navItems = navItems, state = bottomBarVisibility(navController), unreadCount = unreadCount
                             )
 
                         }
@@ -127,9 +122,7 @@ class MainActivity : BaseFoodAppActivity() {
                         SharedTransitionLayout {
                             AppNavGraph(
                                 navController = navController,
-                                innerPadding = PaddingValues(
-                                    bottom = 75.dp
-                                ),
+                                innerPadding = innerPadding,
                                 startDestination = screen,
                                 isDarkMode = isDarkMode,
                                 onThemeUpdated = {

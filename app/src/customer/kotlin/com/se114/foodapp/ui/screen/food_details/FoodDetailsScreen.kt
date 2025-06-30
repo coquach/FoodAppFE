@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.food_details
 
+import android.widget.Space
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -47,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.navigation.Cart
@@ -111,21 +113,57 @@ fun SharedTransitionScope.FoodDetailsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    viewModel.onAction(FoodDetails.Action.OnBack)
+                },
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(color = MaterialTheme.colorScheme.onPrimary)
+
+
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBackIosNew,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(30.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = {
+                    viewModel.onAction(FoodDetails.Action.OnFavorite(uiState.food.id))
+                },
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(if (uiState.food.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+
+
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = "Favorite",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
         val images = uiState.food.images?.map {
             it.url
         }
-        MenuHeader(
+        ImagesFoods(
             images = images ?: emptyList(),
             foodId = uiState.food.id,
-            onBackButton = {
-                navController.popBackStack()
-            },
-            onFavoriteButton = {
-                viewModel.onAction(FoodDetails.Action.OnFavorite(uiState.food.id))
-            },
-
             animatedVisibilityScope = animatedVisibilityScope,
-            isFavorite = uiState.food.liked
         )
         FoodDetail(
             modifier = Modifier.fillMaxWidth(),
@@ -172,7 +210,9 @@ fun SharedTransitionScope.FoodDetailsScreen(
             )
             FeedbackList(
                 feedbacks = feedbacks,
-                modifier = Modifier.fillMaxWidth().weight(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
             )
         }
         LoadingButton(
@@ -184,7 +224,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
             loading = uiState.isLoading,
             enabled = !uiState.isLoading,
 
-        )
+            )
     }
 
     if (showSuccessDialog) {
@@ -335,59 +375,19 @@ fun SharedTransitionScope.FoodDetail(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.MenuHeader(
+fun SharedTransitionScope.ImagesFoods(
     images: List<String>,
     foodId: Long,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    onBackButton: () -> Unit,
-    onFavoriteButton: () -> Unit,
-    isFavorite: Boolean,
 ) {
-    Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
-        IconButton(
-            onClick = {
-                onBackButton.invoke()
-            },
-            modifier = Modifier
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentHeight()) {
 
-                .padding(16.dp)
-                .size(50.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(color = MaterialTheme.colorScheme.onPrimary)
-                .padding(4.dp)
-                .align(Alignment.TopStart)
-                .zIndex(2f),
-
-            ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBackIosNew,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(30.dp)
-            )
-        }
-
-
-        IconButton(
-            onClick = onFavoriteButton,
-            modifier = Modifier
-                .size(50.dp)
-                .clip(CircleShape)
-                .background(if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
-                .align(Alignment.TopEnd)
-                .zIndex(2f)
-
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = "Favorite",
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(30.dp)
-            )
-        }
         ImageCarousel(
-            modifier = Modifier.fillMaxWidth().zIndex(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(1f),
             images = images,
             animatedVisibilityScope = animatedVisibilityScope,
             foodId = foodId

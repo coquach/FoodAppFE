@@ -54,7 +54,7 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showErrorSheet by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
+
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -143,12 +143,12 @@ fun LoginScreen(
                     ),
                     label = stringResource(R.string.password)
                 )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                if(isCustomer){
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
 //                    Row(
 //                        verticalAlignment = Alignment.CenterVertically,
@@ -167,17 +167,19 @@ fun LoginScreen(
 //                    }
 
 
-                    TextButton(onClick = {
-                        viewModel.onAction(Login.Action.ForgotPasswordClicked)
-                    }) {
-                        Text(
-                            text = stringResource(R.string.forgot_password),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        TextButton(onClick = {
+                            viewModel.onAction(Login.Action.ForgotPasswordClicked)
+                        }) {
+                            Text(
+                                text = stringResource(R.string.forgot_password),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
+
 
                 LoadingButton(
                     modifier = Modifier.fillMaxWidth(),

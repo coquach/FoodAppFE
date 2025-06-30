@@ -105,6 +105,9 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
                         orders = orders,
                         onItemClick = {
@@ -118,6 +121,9 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
                         orders = orders,
                         onItemClick = {
@@ -131,6 +137,9 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
                         orders = orders,
                         onItemClick = {
@@ -144,6 +153,9 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
                         orders = orders,
                         onItemClick = {
@@ -156,6 +168,9 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
                         orders = orders,
                         onItemClick = {

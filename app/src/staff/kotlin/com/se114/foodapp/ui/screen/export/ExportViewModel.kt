@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,7 +53,7 @@ class ExportViewModel @Inject constructor(
                             )
                         }
                         _event.send(ExportState.Event.ShowSuccessToast("Xóa đơn xuất thành công"))
-                        _event.send(ExportState.Event.OnRefresh)
+                        onAction(ExportState.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -97,8 +98,12 @@ class ExportViewModel @Inject constructor(
             }
 
             ExportState.Action.OnRefresh -> {
-                viewModelScope.launch {
-                    _event.send(ExportState.Event.OnRefresh)
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            forceRefresh = UUID.randomUUID().toString()
+                        )
+                    )
                 }
             }
 
@@ -147,7 +152,7 @@ object ExportState {
         data object AddExport : Event
         data class GoToDetail(val export: Export) : Event
         data object NotifyCantDelete : Event
-        data object OnRefresh : Event
+
 
     }
 

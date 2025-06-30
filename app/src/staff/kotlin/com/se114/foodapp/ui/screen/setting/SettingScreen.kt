@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import com.example.foodapp.navigation.VoucherPublic
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -162,16 +163,13 @@ fun SettingScreen(
                     }
                 )
             )
-            Button(
+            AppButton(
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     showDialogLogout = true
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(horizontal = 48.dp, vertical = 16.dp)
-            ) {
-                Text(text = "Đăng xuất", style = MaterialTheme.typography.bodyMedium)
-            }
+                text = "Đăng xuất",
+            )
         }
 
     }

@@ -79,7 +79,7 @@ fun ExportScreen(
     val exports = remember(uiState.filter) {
         viewModel.getExports(uiState.filter)
     }.collectAsLazyPagingItems()
-    var search by remember { mutableStateOf("") }
+
 
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
@@ -120,9 +120,6 @@ fun ExportScreen(
                     )
                 }
 
-                ExportState.Event.OnRefresh -> {
-                    exports.refresh()
-                }
 
                 ExportState.Event.ShowError -> {
                     showErrorSheet = true
@@ -176,10 +173,10 @@ fun ExportScreen(
 
         ) {
 
-                HeaderDefaultView(
-                    text = "Phiếu xuất hàng",
+            HeaderDefaultView(
+                text = "Phiếu xuất hàng",
 
-                    )
+                )
             DateRangePickerSample(
                 modifier = Modifier.width(170.dp),
                 startDateText = "Bắt đầu",
@@ -192,6 +189,9 @@ fun ExportScreen(
             )
 
             LazyPagingSample(
+                onRefresh = {
+                    viewModel.onAction(ExportState.Action.OnRefresh)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -325,7 +325,7 @@ fun ExportCard(export: Export, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
     ) {

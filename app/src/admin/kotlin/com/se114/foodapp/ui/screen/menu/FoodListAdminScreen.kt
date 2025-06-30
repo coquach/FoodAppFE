@@ -172,7 +172,7 @@ fun SharedTransitionScope.FoodListAdminScreen(
                     },
                     tintIcon = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.size(8.dp))
+
                 SearchField(
                     searchInput = uiState.nameSearch,
                     searchChange = {

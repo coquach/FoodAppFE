@@ -119,9 +119,7 @@ class MainActivity : BaseFoodAppActivity() {
                         SharedTransitionLayout {
                             AppNavGraph(
                                 navController = navController,
-                                innerPadding = PaddingValues(
-                                    bottom = 75.dp
-                                ),
+                                innerPadding = innerPadding,
                                 startDestination = screen,
                                 isDarkMode = isDarkMode,
                                 onThemeUpdated = {

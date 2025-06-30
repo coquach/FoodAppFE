@@ -65,6 +65,7 @@ import coil.compose.AsyncImage
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.enums.FoodTableStatus
 import com.example.foodapp.navigation.Cart
+import com.example.foodapp.navigation.CheckoutStaff
 import com.example.foodapp.navigation.Home
 import com.example.foodapp.ui.screen.common.FoodList
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
@@ -72,6 +73,7 @@ import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.FoodTableCard
+import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ItemCount
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.LoadingButton
@@ -115,7 +117,7 @@ fun HomeStaffScreen(
                     }
 
                     is HomeStaffState.Event.NavigateToCheckout -> {
-
+                        navController.navigate(CheckoutStaff(event.id))
                     }
                 }
             }
@@ -144,7 +146,9 @@ fun HomeStaffScreen(
 
 
         ) {
-
+            HeaderDefaultView(
+                text = "Bàn tại quán"
+            )
 
             SearchField(
                 searchInput = uiState.nameSearch,
@@ -184,6 +188,9 @@ fun HomeStaffScreen(
                 pages = listOf(
                     {
                         LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(HomeStaffState.Action.OnRefresh)
+                            },
                             modifier = Modifier.fillMaxSize(),
                             items = foodTables,
                             textNothing = "Không có bàn nào",
@@ -207,6 +214,9 @@ fun HomeStaffScreen(
                     },
                     {
                         LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(HomeStaffState.Action.OnRefresh)
+                            },
                             modifier = Modifier.fillMaxSize(),
                             items = foodTables,
                             textNothing = "Không có bàn nào",

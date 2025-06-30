@@ -38,7 +38,7 @@ import kotlin.reflect.typeOf
 @HiltViewModel
 class ExportDetailsViewModel @Inject constructor(
 
-    private val getStaffUseCase: GetStaffUseCase,
+
     private val getInventoriesUseCase: GetInventoriesUseCase,
     private val createExportUseCase: CreateExportUseCase,
     private val updateExportUseCase: UpdateExportUseCase,
@@ -68,12 +68,6 @@ class ExportDetailsViewModel @Inject constructor(
     private val _event = Channel<ExportDetailsState.Event>()
     val event get() = _event.receiveAsFlow()
 
-
-    val staffs: StateFlow<PagingData<Staff>> =
-        getStaffUseCase.invoke(StaffFilter()).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000), PagingData.empty()
-        )
 
     val inventories: StateFlow<PagingData<Inventory>> =
         getInventoriesUseCase.invoke(InventoryFilter()).cachedIn(viewModelScope).stateIn(

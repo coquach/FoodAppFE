@@ -89,17 +89,16 @@ fun OrderDetailScreen(
         }
     }
 
-    val distance =
-        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<Double?>(
-            "distance",
-            null
+    val isShippingCompleted =
+        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<Boolean>(
+            "isShippingCompleted",
+            false
         )
             ?.collectAsStateWithLifecycle()
 
-    LaunchedEffect(key1 = distance?.value) {
-        distance?.value?.let {
-            val canUpdateStatus = it <= 200
-            viewModel.onAction(OrderDetailsState.Action.OnChangeCanUpdateStatus(canUpdateStatus))
+    LaunchedEffect(key1 = isShippingCompleted?.value) {
+        isShippingCompleted?.value?.let {
+            viewModel.onAction(OrderDetailsState.Action.OnChangeCanUpdateStatus(it))
         }
     }
     Column(
