@@ -54,7 +54,6 @@ fun OrderDetailScreen(
                         "Cập nhật tình trạng đơn hàng thành công",
                         Toast.LENGTH_SHORT
                     ).show()
-                    navController.previousBackStackEntry?.savedStateHandle?.set("updated", true)
                     navController.popBackStack()
                 }
 

@@ -1,6 +1,7 @@
 package com.example.foodapp.data.remote.main_api
 
 import com.example.foodapp.data.dto.request.OrderItemRequest
+import com.example.foodapp.data.dto.request.OrderItemsBatchRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 import com.example.foodapp.data.dto.request.OrderStatusRequest
 import com.example.foodapp.data.dto.response.PageResponse
@@ -66,7 +67,7 @@ interface OrderApi {
   @POST("orders/{id}/order-items/batch")
   suspend fun upsertOrderItems(
       @Path("id") id: Long,
-      @Body request: Map<String, List<OrderItemRequest>>
+      @Body request: OrderItemsBatchRequest,
   ): Response<Order>
 
 }

@@ -9,3 +9,7 @@ data class OrderItemRequest(
     val foodId: Long,
     val quantity: Int,
 )
+
+data class OrderItemsBatchRequest(
+    val orderItems: List<OrderItemRequest>
+)

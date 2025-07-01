@@ -39,10 +39,7 @@ fun VouchersScreen(
     val vouchers = remember(uiState.filter) {
         viewModel.getVouchers(uiState.filter)
     }.collectAsLazyPagingItems()
-    var search by remember { mutableStateOf("") }
-    val state = rememberPullToRefreshState()
-    val coroutineScope = rememberCoroutineScope()
-    var refresh by remember { mutableStateOf(false) }
+
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -99,7 +96,7 @@ fun VouchersScreen(
                     "quantity" -> "Số lượng"
                     else -> "Giá trị"
                 },
-                placeHolder = "Tìm kiếm theo tên voucher..."
+                placeHolder = "Tìm kiếm theo code..."
             )
 
 

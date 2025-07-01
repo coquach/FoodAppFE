@@ -8,6 +8,7 @@ import com.example.foodapp.data.dto.apiRequestFlow
 
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.dto.request.OrderItemRequest
+import com.example.foodapp.data.dto.request.OrderItemsBatchRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 import com.example.foodapp.data.dto.request.OrderStatusRequest
 
@@ -77,10 +78,10 @@ class OrderRepoImpl @Inject constructor(
 
     override fun upsertOrderItems(
         orderId: Long,
-        request: Map<String, List<OrderItemRequest>>,
+        request: OrderItemsBatchRequest,
     ): Flow<ApiResponse<Order>> {
         return apiRequestFlow {
-            orderApi.upsertOrderItems(orderId, request)
+            orderApi.upsertOrderItems(id =orderId, request = request)
         }
     }
 

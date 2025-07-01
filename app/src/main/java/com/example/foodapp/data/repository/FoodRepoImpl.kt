@@ -75,7 +75,7 @@ class FoodRepoImpl @Inject constructor(
         ).flow
     }
 
-    override  fun toggleLike(foodId: Long): Flow<ApiResponse<Unit>> {
+    override  fun toggleLike(foodId: Long): Flow<ApiResponse<Boolean>> {
         return apiRequestFlow {
             foodApi.toggleLike(foodId)
         }

@@ -12,6 +12,7 @@ import com.example.foodapp.data.model.Menu
 import com.example.foodapp.domain.use_case.food.GetMenusUseCase
 import com.example.foodapp.navigation.FoodDetailsAdmin
 import com.example.foodapp.navigation.FoodNavType
+import com.example.foodapp.ui.screen.components.validateField
 import com.se114.foodapp.data.mapper.toFoodAddUi
 import com.se114.foodapp.domain.use_case.food.CreateFoodUseCase
 import com.se114.foodapp.domain.use_case.food.UpdateFoodUseCase
@@ -143,6 +144,54 @@ class FoodDetailsAdminViewModel @Inject constructor(
 
         }
     }
+    fun validate(type: String) {
+        val current = _uiState.value.foodAddUi
+       var nameError: String? = current.name
+        var priceError: String? = current.price.toPlainString()
+        var descriptionError: String? = current.description
+        var defaultQuantityError: String? = current.defaultQuantity.toString()
+        when (type) {
+            "name" -> {
+                nameError = validateField(
+                    current.name.trim(),
+                    "Tên không hợp lệ"
+                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+
+
+            }
+
+            "price" -> {
+                priceError = validateField(
+                    current.price.toPlainString().trim(),
+                    "Giá phải lớn hơn 0"
+                ) { it.toBigDecimal() > BigDecimal.ZERO } }
+
+            "defaultQuantity" -> {
+                defaultQuantityError = validateField(
+                    current.defaultQuantity.toString().trim(),
+                    "Số lượng phải lớn hơn 0"
+                ) { it.toInt() > 0 }}
+
+            "description" -> {
+                descriptionError = validateField(
+                    current.description.trim(),
+                    "Mô tả không hợp lệ"
+
+                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+            }
+
+        }
+        val isValid = current.name.isNotBlank() && current.price > BigDecimal.ZERO && current.defaultQuantity > 0 && current.description.isNotBlank() && nameError == null && priceError == null && descriptionError == null
+        _uiState.update {
+            it.copy(
+                nameError = nameError,
+                priceError = priceError,
+                descriptionError = descriptionError,
+                defaultQuantityError = defaultQuantityError,
+                isValid = isValid
+            )
+        }
+    }
 
     fun onAction(action: AddFood.Action) {
         when (action) {
@@ -190,7 +239,13 @@ object AddFood {
         val foodAddUi: FoodAddUi,
         val isUpdating: Boolean = false,
         val menus: List<Menu> = emptyList(),
-        val menuState: FoodListAdmin.MenuSate = FoodListAdmin.MenuSate.Loading
+        val menuState: FoodListAdmin.MenuSate = FoodListAdmin.MenuSate.Loading,
+        val nameError: String? = null,
+        val isValid: Boolean = false,
+        val priceError: String? = null,
+        val descriptionError: String? = null,
+        val defaultQuantityError: String? = null,
+
     )
     sealed interface MenuSate{
         data object Loading: MenuSate

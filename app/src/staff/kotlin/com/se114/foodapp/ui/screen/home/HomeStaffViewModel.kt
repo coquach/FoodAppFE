@@ -11,6 +11,7 @@ import com.se114.foodapp.domain.use_case.food_table.CreateOrderForTableUseCase
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,7 +57,7 @@ class HomeStaffViewModel @Inject constructor(
                         _uiState.update { it.copy(isLoading = true) }
                     }
                     is ApiResponse.Success -> {
-                        _uiState.update { it.copy(isLoading = false) }
+                        delay(1000L)
                         _event.send(HomeStaffState.Event.NavigateToCheckout(_uiState.value.foodTableSelected?.id!!))
                     }
                 }

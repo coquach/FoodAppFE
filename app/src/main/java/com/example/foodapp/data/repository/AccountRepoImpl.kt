@@ -64,6 +64,7 @@ class AccountRepoImpl @Inject constructor(
     }
 
     override fun getUserProfile(): Account {
+        Firebase.auth.currentUser?.reload()
         return Firebase.auth.currentUser?.toAppUser() ?: Account()
     }
 
@@ -153,6 +154,6 @@ fun FirebaseUser.toAppUser(): Account {
         email = this.email ?: "",
         phoneNumber = this.phoneNumber?: "",
         displayName = this.displayName ?: "",
-        avatar = this.photoUrl,
+        avatar = this.photoUrl.toString()
     )
 }

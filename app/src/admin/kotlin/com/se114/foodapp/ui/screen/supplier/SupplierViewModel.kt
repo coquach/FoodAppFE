@@ -275,7 +275,9 @@ class SupplierViewModel @Inject constructor(
                             name = _uiState.value.nameSearch
                         )
                     )
+
                 }
+                getSuppliers()
             }
 
 

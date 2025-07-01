@@ -14,7 +14,7 @@ import javax.inject.Inject
 class ToggleLikecUseCase @Inject constructor(
     private val foodRepository: FoodRepository,
 ) {
-    suspend operator fun invoke(foodId: Long)= flow <ApiResponse<Unit>> {
+    suspend operator fun invoke(foodId: Long)= flow <ApiResponse<Boolean>> {
          try {
             foodRepository.toggleLike(foodId).collect {
                 emit(it)

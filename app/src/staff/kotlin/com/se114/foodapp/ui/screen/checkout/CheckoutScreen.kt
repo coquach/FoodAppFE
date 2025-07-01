@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -137,7 +138,9 @@ fun CheckoutScreen(
                     navController.navigate(GetFoodForStaff)
                 }
 
-
+                Checkout.Event.isSaveOrderItems -> {
+                    isSaveOrderItems = true
+                }
             }
         }
     }
@@ -156,9 +159,9 @@ fun CheckoutScreen(
     }
 
     val orderItems =
-        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<List<OrderItem>>(
+        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<List<OrderItem>?>(
             "orderItems",
-            emptyList()
+            null
         )?.collectAsStateWithLifecycle()
     LaunchedEffect(key1 = orderItems?.value) {
         orderItems?.value?.let {
@@ -249,7 +252,7 @@ fun CheckoutScreen(
                                                 it.quantity + 1
                                             )
                                         )
-                                        isSaveOrderItems = true
+                                        isSaveOrderItems = false
                                     },
                                     onDecrement = {
                                         viewModel.onAction(
@@ -258,7 +261,7 @@ fun CheckoutScreen(
                                                 it.quantity - 1
                                             )
                                         )
-                                        isSaveOrderItems = true
+                                        isSaveOrderItems = false
                                     }
                                 )
                             }
@@ -434,6 +437,7 @@ fun VoucherCard(voucher: Voucher?, onVoucherClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .clickable {

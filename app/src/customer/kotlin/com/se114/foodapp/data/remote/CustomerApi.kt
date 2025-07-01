@@ -13,7 +13,7 @@ interface CustomerApi {
     @PATCH("customers/{customerId}/avatar")
     suspend fun updateAvatar(
         @Path("customerId") customerId: String,
-        @Part avatar: MultipartBody.Part?=null
+        @Part avatar: MultipartBody.Part
     ): Response<Unit>
 
 }

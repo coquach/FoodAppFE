@@ -59,7 +59,7 @@ interface FoodApi {
     @POST("foods/{foodId}/like-toggle")
     suspend fun toggleLike(
         @Path("foodId") foodId: Long,
-    ): Response<Unit>
+    ): Response<Boolean>
 
     @PATCH("foods/{foodId}/status-toggle")
     suspend fun toggleStatus(

@@ -45,7 +45,7 @@ class VoucherListViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    fun getVouchers(filter: VoucherFilter)= getVouchersUseCase(filter)
+    fun getVouchers(filter: VoucherFilter) = getVouchersUseCase(filter)
 
     private fun createVoucher() {
         viewModelScope.launch {
@@ -300,7 +300,16 @@ class VoucherListViewModel @Inject constructor(
                 }
             }
 
-            VoucherSate.Action.OnSearchFilter -> {}
+            VoucherSate.Action.OnSearchFilter -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            code = _uiState.value.nameSearch,
+                        )
+                    )
+                }
+            }
+
             is VoucherSate.Action.OnSortByChange -> {
                 _uiState.update {
                     it.copy(
@@ -308,10 +317,14 @@ class VoucherListViewModel @Inject constructor(
                     )
                 }
             }
+
             is VoucherSate.Action.OnDateChange -> {
                 _uiState.update {
                     it.copy(
-                        filter = it.filter.copy(startDate = action.startDate, endDate = action.endDate)
+                        filter = it.filter.copy(
+                            startDate = action.startDate,
+                            endDate = action.endDate
+                        )
                     )
                 }
             }
@@ -356,7 +369,7 @@ object VoucherSate {
         data object OnSearchFilter : Action
         data class OnOrderChange(val order: String) : Action
         data class OnSortByChange(val sort: String) : Action
-        data class OnDateChange(val startDate: LocalDate?, val endDate: LocalDate?): Action
+        data class OnDateChange(val startDate: LocalDate?, val endDate: LocalDate?) : Action
 
     }
 }

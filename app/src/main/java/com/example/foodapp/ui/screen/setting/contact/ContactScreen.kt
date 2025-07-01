@@ -68,9 +68,8 @@ fun ContactScreen(
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .size(100.dp)
-                        .shadow(8.dp, shape = CircleShape)
                         .clip(CircleShape)
-                        .border(4.dp, MaterialTheme.colorScheme.background, CircleShape),
+                        .border(2.dp, MaterialTheme.colorScheme.background, CircleShape),
                     contentScale = ContentScale.Crop,
 
                     )

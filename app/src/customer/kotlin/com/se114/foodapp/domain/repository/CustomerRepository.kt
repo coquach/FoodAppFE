@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 
 interface CustomerRepository {
-    fun updateAvatar(customerId: String, avatar: MultipartBody.Part?): Flow<ApiResponse<Unit>>
+    fun updateAvatar(customerId: String, avatar: MultipartBody.Part): Flow<ApiResponse<Unit>>
 }

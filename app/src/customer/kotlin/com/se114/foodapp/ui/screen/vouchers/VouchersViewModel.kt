@@ -54,7 +54,13 @@ class VouchersViewModel @Inject constructor(
                 _uiState.update { it.copy(filter = it.filter.copy(sortBy = action.sort)) }
             }
             Vouchers.Action.OnSearchFilter -> {
-
+_uiState.update {
+    it.copy(
+        filter = it.filter.copy(
+            code = _uiState.value.nameSearch,
+        )
+    )
+}
             }
             Vouchers.Action.OnRefresh -> {
                 _uiState.update {

@@ -96,7 +96,7 @@ fun VouchersScreen(
                 "quantity" -> "Số lượng"
                 else -> "Giá trị"
             },
-            placeHolder = "Tìm kiếm theo tên voucher..."
+            placeHolder = "Tìm kiếm theo code..."
         )
 
 

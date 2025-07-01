@@ -13,7 +13,7 @@ class CustomerRepoImpl @Inject constructor(
 ) : CustomerRepository{
     override fun updateAvatar(
         customerId: String,
-        avatar: MultipartBody.Part?,
+        avatar: MultipartBody.Part,
     ): Flow<ApiResponse<Unit>> {
         return apiRequestFlow {
             customerApi.updateAvatar(customerId, avatar)

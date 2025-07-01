@@ -184,7 +184,7 @@ fun HomeStaffScreen(
             )
             TabWithPager(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                tabs = listOf("Đang trống", "Đã đặt"),
+                tabs = listOf("Đang trống", "Đang dùng"),
                 pages = listOf(
                     {
                         LazyPagingSample(

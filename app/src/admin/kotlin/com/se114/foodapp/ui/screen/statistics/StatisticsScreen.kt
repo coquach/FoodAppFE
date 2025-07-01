@@ -74,7 +74,6 @@ fun StatisticsScreen(
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
-
                 StaticsState.Event.GoToNotification -> {
                     navController.navigate(Notification)
                 }

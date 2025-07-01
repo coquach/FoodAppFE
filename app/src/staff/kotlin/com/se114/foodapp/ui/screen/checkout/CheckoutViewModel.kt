@@ -168,12 +168,7 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             upsertOrderItemsUseCase(
                 orderId = _uiState.value.checkout.id!!,
-                orderItems = _uiState.value.orderItems.map {
-                    OrderItemRequest(
-                        foodId = it.foodId!!,
-                        quantity = it.quantity,
-                    )
-                },
+                orderItems = orderItems,
 
             ).collect { result ->
                 when (result) {
@@ -185,6 +180,7 @@ class CheckoutViewModel @Inject constructor(
                             )
                         }
                         _event.send(Checkout.Event.ShowToastSuccess("Cập nhật chi tiết đơn hàng thành công"))
+                        _event.send(Checkout.Event.isSaveOrderItems)
                     }
 
                     is ApiResponse.Loading -> {
@@ -251,7 +247,23 @@ class CheckoutViewModel @Inject constructor(
             }
 
             is Checkout.Action.OnOrderItemsChanged -> {
-                _uiState.update { it.copy(orderItems = action.orderItems) }
+                val currentItems = _uiState.value.orderItems.toMutableList()
+
+                action.orderItems.forEach { newItem ->
+                    val index = currentItems.indexOfFirst { it.foodId == newItem.foodId }
+                    if (index != -1) {
+
+                        val existingItem = currentItems[index]
+                        currentItems[index] = existingItem.copy(
+                            quantity = existingItem.quantity + newItem.quantity
+                        )
+                    } else {
+
+                        currentItems.add(newItem)
+                    }
+                }
+
+                _uiState.update { it.copy(orderItems = currentItems) }
             }
             is Checkout.Action.OnQuantityChange -> {
                 if(action.quantity == 0) removeOrderItems(action.id)
@@ -296,6 +308,7 @@ object Checkout {
         data object OnBack : Event
         data class OrderSuccess(val orderId: Long) : Event
         data object NavigateToGetFood: Event
+        data object isSaveOrderItems : Event
     }
 
     sealed interface GetOrderState {

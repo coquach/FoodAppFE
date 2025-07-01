@@ -93,7 +93,7 @@ class FoodDetailsViewModel @Inject constructor(
                     }
 
                     is ApiResponse.Success -> {
-                        _uiState.update { it.copy(error = null) }
+                        _uiState.update { it.copy(food = it.food.copy(liked = result.data)) }
                     }
 
                     ApiResponse.Loading -> {

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +35,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,6 +58,7 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
+import com.example.foodapp.ui.screen.components.ValidateTextField
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.ui.theme.onConfirm
@@ -191,13 +195,20 @@ fun ProfileScreen(
 
 
             }
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.profile.displayName,
                 onValueChange = { viewModel.onAction(Profile.Action.OnDisplayNameChanged(it)) },
                 labelText = stringResource(R.string.full_name),
+                errorMessage = uiState.displayNameError,
+                validate = {
+                    viewModel.validate("displayName")
+                },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                maxLines = 1
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
             )
 
             RadioGroupWrap(
@@ -217,14 +228,21 @@ fun ProfileScreen(
                 maxDate = LocalDate.now()
             )
 
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.profile.phoneNumber,
                 onValueChange = {
                     viewModel.onAction(Profile.Action.OnPhoneNumberChanged(it))
                 },
+                errorMessage = uiState.phoneNumberError,
+                validate = {
+                    viewModel.validate("phoneNumber")
+                },
                 labelText = stringResource(R.string.phone_number),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
                 maxLines = 1
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -234,6 +252,7 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 text = if (uiState.isUpdating) "Cập nhật" else "Xác nhận",
                 loading = uiState.isLoading,
+                enabled =  uiState.isValid
             )
         }
 

@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.filter.OrderFilter
 import com.example.foodapp.data.dto.request.OrderItemRequest
+import com.example.foodapp.data.dto.request.OrderItemsBatchRequest
 import com.example.foodapp.data.dto.request.OrderRequest
 import com.example.foodapp.data.dto.request.OrderStatusRequest
 import com.example.foodapp.data.model.Order
@@ -17,7 +18,7 @@ interface OrderRepository {
     fun checkOutOrder(orderId: Long, request: Map<String, Long?>): Flow<ApiResponse<Unit>>
     fun cancelOrder(orderId: Long): Flow<ApiResponse<Unit>>
     fun getOrdersByFoodTableId(tableId: Int): Flow<ApiResponse<Order>>
-    fun upsertOrderItems(orderId: Long, request: Map<String, List<OrderItemRequest>>): Flow<ApiResponse<Order>>
+    fun upsertOrderItems(orderId: Long, request: OrderItemsBatchRequest): Flow<ApiResponse<Order>>
 
 
 }
