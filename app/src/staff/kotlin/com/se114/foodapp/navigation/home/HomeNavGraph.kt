@@ -4,10 +4,14 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.example.foodapp.navigation.CheckoutStaff
 import com.example.foodapp.navigation.GetFoodForStaff
 import com.example.foodapp.navigation.Home
+import com.example.foodapp.navigation.OrderSuccess
 import com.example.foodapp.navigation.VoucherCheck
+import com.example.foodapp.navigation.VoucherCheckStaff
+import com.example.foodapp.ui.screen.order_success.OrderSuccessScreen
 import com.example.foodapp.utils.ScreenContainer
 import com.se114.foodapp.ui.screen.checkout.CheckoutScreen
 import com.se114.foodapp.ui.screen.checkout.get_foods.GetFoodsScreen
@@ -36,6 +40,7 @@ fun NavGraphBuilder.homeGraph(
         }
 
     }
+
     with(sharedTransitionScope) {
         composable<GetFoodForStaff> {
             ScreenContainer {
@@ -47,9 +52,16 @@ fun NavGraphBuilder.homeGraph(
         }
     }
 
-    composable<VoucherCheck>{
+    composable<VoucherCheckStaff>{
         ScreenContainer {
             VoucherCheckScreen(navController)
+        }
+    }
+
+    composable<OrderSuccess> {
+        val orderID = it.toRoute<OrderSuccess>().orderId
+        ScreenContainer {
+            OrderSuccessScreen(navController = navController, orderID = orderID)
         }
     }
 

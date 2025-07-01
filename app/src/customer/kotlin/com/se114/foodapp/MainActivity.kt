@@ -112,7 +112,6 @@ class MainActivity : BaseFoodAppActivity() {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         bottomBar = {
-
                             BottomNavigationBar(
                                 navController, navItems = navItems, state = bottomBarVisibility(navController),
                                 unreadCount = unreadCount

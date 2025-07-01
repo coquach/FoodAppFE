@@ -149,7 +149,7 @@ object FoodDetails {
     data class UiState(
         val isLoading: Boolean = false,
         val error: String? = null,
-        val food: Food = Food.sample(),
+        val food: Food,
         val quantity: Int = 1,
 
         )

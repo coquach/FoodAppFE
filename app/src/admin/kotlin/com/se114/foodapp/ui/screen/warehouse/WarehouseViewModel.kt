@@ -90,7 +90,6 @@ object WarehouseState{
         val nameSearch: String = "",
     )
     sealed interface Event{
-        data object Refresh: Event
         data object NavigateToImport: Event
         data object NavigateToMaterial: Event
     }

@@ -170,11 +170,6 @@ fun SharedTransitionScope.FoodView(
             }
 
 
-
-
-
-
-
         }
 
         Column(
@@ -191,11 +186,13 @@ fun SharedTransitionScope.FoodView(
                     .then(
                         if (isAnimated) {
                             Modifier.sharedElement(
-                    state = rememberSharedContentState(key = "title/${food.id}"),
-                    animatedVisibilityScope
-                )} else{
+                                state = rememberSharedContentState(key = "title/${food.id}"),
+                                animatedVisibilityScope
+                            )
+                        } else {
                             Modifier
-                }),
+                        }
+                    ),
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
@@ -210,9 +207,11 @@ fun SharedTransitionScope.FoodView(
                             Modifier.sharedElement(
                                 state = rememberSharedContentState(key = "description/${food.id}"),
                                 animatedVisibilityScope
-                            )} else{
+                            )
+                        } else {
                             Modifier
-                        })
+                        }
+                    )
             )
         }
     }
@@ -232,20 +231,20 @@ fun SharedTransitionScope.FoodList(
     isFullWidth: Boolean = false,
     isAnimated: Boolean = true,
     endAction: (@Composable (Food) -> SwipeAction)? = null,
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
 
-) {
+    ) {
     LazyPagingSample(
         modifier = modifier,
         items = foods,
         textNothing = "Không có món ăn nào",
         iconNothing = Icons.Default.NoMeals,
         columns = if (isFullWidth) 1 else 2,
-        key = {food ->
+        key = { food ->
             food.id
         },
         onRefresh = onRefresh
-    ) {food ->
+    ) { food ->
         if (isSwipeAction) {
 
             SwipeableActionsBox(

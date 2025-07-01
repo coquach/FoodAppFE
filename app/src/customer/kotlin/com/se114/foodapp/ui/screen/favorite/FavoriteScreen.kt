@@ -132,6 +132,7 @@ fun SharedTransitionScope.FavoriteScreen(
                             onItemClick = {
                                 viewModel.onAction(FavoriteState.Action.OnFoodClick(it))
                             },
+                            isAnimated = true,
                             isCustomer = true,
                             isFullWidth = true,
                             modifier = Modifier.fillMaxWidth().weight(1f),

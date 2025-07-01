@@ -1,6 +1,5 @@
-package com.example.foodapp.ui.screen.auth.signup.profile
+package com.se114.foodapp.ui.screen.setting.profile
 
-import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -59,10 +58,6 @@ import com.example.foodapp.ui.screen.components.RadioGroupWrap
 import com.example.foodapp.ui.theme.FoodAppTheme
 import com.example.foodapp.ui.theme.confirm
 import com.example.foodapp.ui.theme.onConfirm
-import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp.lifecycleOwner
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import androidx.core.net.toUri
 import java.time.LocalDate
 
 
@@ -134,6 +129,7 @@ fun ProfileScreen(
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
 
         ) {
         if (uiState.isUpdating)
@@ -146,7 +142,7 @@ fun ProfileScreen(
         else HeaderDefaultView(
             text = "Thông tin cá nhân"
         )
-        Spacer(modifier = Modifier.size(20.dp))
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -231,7 +227,7 @@ fun ProfileScreen(
                 singleLine = true,
                 maxLines = 1
             )
-
+            Spacer(modifier = Modifier.weight(1f))
 
             LoadingButton(
                 onClick = { viewModel.onAction(Profile.Action.OnUpdateProfile) },

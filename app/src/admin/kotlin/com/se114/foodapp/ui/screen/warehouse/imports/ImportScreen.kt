@@ -133,7 +133,7 @@ fun ImportScreen(
                 ImportState.Event.NotifyCantDelete -> {
                     Toast.makeText(
                         context,
-                        "Không thể xóa phiếu nhập vì đã quá hạn 3 ngày",
+                        "Không thể xóa phiếu nhập vì đã quá hạn",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -253,7 +253,7 @@ fun ImportScreen(
                             background = MaterialTheme.colorScheme.error,
                             onSwipe = {
                                 isDeletable =
-                                    it.importDate?.plusDays(3)?.isAfter(LocalDate.now()) == true
+                                    it.importDate == LocalDate.now()
 
                                 if (isDeletable) {
                                     viewModel.onAction(ImportState.Action.OnImportSelected(it.id!!))

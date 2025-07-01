@@ -75,10 +75,9 @@ class AccountRepoImpl @Inject constructor(
         Firebase.auth.createUserWithEmailAndPassword(email, password).await()
     }
 
-    override suspend fun updateProfile(photoUrl: Uri?, name: String) {
+    override suspend fun updateProfile(name: String) {
         val userProfileChangeRequest = userProfileChangeRequest {
             displayName = name
-            photoUri = photoUrl
         }
         Firebase.auth.currentUser?.updateProfile(userProfileChangeRequest)?.await()
     }

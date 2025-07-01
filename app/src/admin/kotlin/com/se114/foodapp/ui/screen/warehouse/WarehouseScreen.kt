@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Spa
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -87,9 +88,6 @@ fun WarehouseScreen(
                     navController.navigate(Material)
                 }
 
-                WarehouseState.Event.Refresh -> {
-
-                }
             }
         }
     }
@@ -278,14 +276,13 @@ fun InventoryItemView(
                     .fillMaxWidth()
                     .height(147.dp)
             ) {
-                Image(
+                Icon(
                     imageVector = Icons.Default.Category,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(16.dp)),
-
-                    contentScale = ContentScale.Crop,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
 
 
@@ -309,7 +306,7 @@ fun InventoryItemView(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "${inventory.quantityRemaining}",
+                        text = "SL: ${inventory.quantityRemaining}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.outline,
                     )

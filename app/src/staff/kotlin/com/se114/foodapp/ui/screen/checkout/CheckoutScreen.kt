@@ -58,6 +58,7 @@ import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.model.OrderItem
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.PaymentMethod
+import com.example.foodapp.navigation.GetFoodForStaff
 import com.example.foodapp.navigation.OrderSuccess
 import com.example.foodapp.navigation.VoucherCheck
 import com.example.foodapp.navigation.VoucherCheckStaff
@@ -133,7 +134,7 @@ fun CheckoutScreen(
                 }
 
                 Checkout.Event.NavigateToGetFood -> {
-
+                    navController.navigate(GetFoodForStaff)
                 }
 
 
@@ -187,23 +188,12 @@ fun CheckoutScreen(
             text = "Xác nhận đơn hàng",
             icon = Icons.Default.Fastfood,
             iconClick = {
-
+                viewModel.onAction(Checkout.Action.NavigateToGetFood)
             }
         )
 
         when (uiState.getOrdersState) {
-            is Checkout.GetOrderState.Error -> {
-                val message = (uiState.getOrdersState as Checkout.GetOrderState.Error).message
-                Retry(
-                    message = message,
-                    onClicked = {
-                        viewModel.getOrderByFoodTableId()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                )
-            }
+
 
             Checkout.GetOrderState.Loading -> {
                 Loading(
@@ -213,7 +203,7 @@ fun CheckoutScreen(
                 )
             }
 
-            Checkout.GetOrderState.Success -> {
+            else -> {
                 if (uiState.orderItems.isEmpty()) {
                     Nothing(
                         text = "Chưa có món ăn nào trong đơn hàng",

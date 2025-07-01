@@ -113,8 +113,8 @@ fun VoucherCard(
     Box(modifier = modifier.height(170.dp)) {
         Row(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.inversePrimary.copy(blue = 0.5f), RoundedCornerShape(12.dp))
-                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(18.dp))
+                .clip(RoundedCornerShape(18.dp))
                 .fillMaxSize()
                 .padding(2.dp)
                 .clickable {

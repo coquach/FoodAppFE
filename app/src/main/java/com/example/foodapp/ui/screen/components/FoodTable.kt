@@ -57,6 +57,7 @@ fun FoodTableCard(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(16.dp))
+                    .padding(horizontal = 8.dp)
                 ,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
                 contentScale = ContentScale.Crop

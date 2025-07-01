@@ -169,7 +169,7 @@ class FoodDetailsAdminViewModel @Inject constructor(
                 _uiState.update { it.copy(foodAddUi = it.foodAddUi.copy(defaultQuantity = action.defaultQuantity?: 0)) }
             }
             is AddFood.Action.OnImagesChange -> {
-                _uiState.update { it.copy(foodAddUi = it.foodAddUi.copy(images = it.foodAddUi.images?.plus(action.images)?: emptyList()) ) }
+                _uiState.update { it.copy(foodAddUi = it.foodAddUi.copy(images = action.images) ) }
             }
             is AddFood.Action.OnBack -> {
                 viewModelScope.launch {

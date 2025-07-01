@@ -51,7 +51,7 @@ class ExportDetailsViewModel @Inject constructor(
     private val exportDetails = export.exportDetails.map {
         it.toExportDetailUiModel()
     }
-    val isEditable = export.exportDate?.plusDays(1)?.isAfter(LocalDate.now()) == true
+    val isEditable = export.exportDate == LocalDate.now()
 
 
     private val isUpdated = arguments.isUpdating
@@ -78,10 +78,30 @@ class ExportDetailsViewModel @Inject constructor(
 
     private fun addExportDetails() {
         val newExportDetails = _uiState.value.exportDetailsSelected
-        _uiState.update {
-            it.copy(
-                exportDetails = it.exportDetails + newExportDetails
+        val currentList = _uiState.value.exportDetails
+
+
+        val existingDetailIndex = currentList.indexOfFirst {
+            it.inventoryId == newExportDetails.inventoryId
+        }
+
+        if (existingDetailIndex != -1) {
+
+            val updatedList = currentList.toMutableList()
+            val existingDetail = updatedList[existingDetailIndex]
+            val updatedDetail = existingDetail.copy(
+                quantity = existingDetail.quantity + newExportDetails.quantity
             )
+            updatedList[existingDetailIndex] = updatedDetail
+
+            _uiState.update {
+                it.copy(exportDetails = updatedList)
+            }
+        } else {
+            // Nếu không trùng -> thêm mới
+            _uiState.update {
+                it.copy(exportDetails = currentList + newExportDetails)
+            }
         }
     }
 
@@ -180,7 +200,8 @@ class ExportDetailsViewModel @Inject constructor(
                     it.copy(
                         exportDetailsSelected = it.exportDetailsSelected.copy(
                             inventoryId = action.inventory.id,
-                            ingredientName = action.inventory.ingredientName
+                            ingredientName = action.inventory.ingredientName,
+                            quantityMaximum = action.inventory.quantityRemaining
                         )
                     )
                 }

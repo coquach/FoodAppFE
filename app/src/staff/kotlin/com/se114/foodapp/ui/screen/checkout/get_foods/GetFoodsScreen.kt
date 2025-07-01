@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -49,6 +50,7 @@ import coil.compose.AsyncImage
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.ui.screen.common.FoodList
 import com.example.foodapp.ui.screen.components.AppButton
+import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.SearchField
@@ -129,6 +131,20 @@ fun SharedTransitionScope.GetFoodsScreen(
                 },
                 placeHolder = "Tìm kiếm món ăn theo tên"
             )
+            ChipsGroupWrap(
+                modifier = Modifier.padding(8.dp),
+                options = uiState.menus.map { it.name },
+                selectedOption = uiState.menuSelected,
+                onOptionSelected = { selectedName ->
+                    val selectedMenu = uiState.menus.find { it.name == selectedName }
+                    selectedMenu?.let {
+                        viewModel.onAction(GetFoodsState.Action.OnMenuSelected(it.id!!, it.name))
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
+                isFlowLayout = false,
+                shouldSelectDefaultOption = true
+            )
             FoodList(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,6 +161,7 @@ fun SharedTransitionScope.GetFoodsScreen(
         }
 
         AnimatedVisibility(
+            modifier = Modifier.align(Alignment.BottomCenter),
             visible = uiState.foodStaffsUi.isNotEmpty(),
             enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
             exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
@@ -153,15 +170,16 @@ fun SharedTransitionScope.GetFoodsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp)
-                    .align(Alignment.BottomCenter)
+                    .shadow(8.dp, RoundedCornerShape(18.dp))
                     .clip(RoundedCornerShape(18.dp))
                     .background(
                         MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(18.dp)
                     )
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    ,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().weight(1f)

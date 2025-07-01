@@ -54,7 +54,8 @@ val orderNavType = object : NavType<Order>(false) {
 
         val order = parseValue(orderJson)
         val updatedOrderItems = order.orderItems.map { item ->
-            item.copy(foodImage =  URLDecoder.decode(item.foodImage, "UTF-8"))
+            val decode = item.foodImage?.let { URLDecoder.decode(it, "UTF-8") }
+            item.copy(foodImage =  decode)
         }
 
         return order.copy(orderItems = updatedOrderItems)
@@ -67,9 +68,8 @@ val orderNavType = object : NavType<Order>(false) {
 
     override fun serializeAsValue(value: Order): String {
         val updatedOrderItems = value.orderItems.map { item ->
-
-
-            item.copy(foodImage = URLEncoder.encode(item.foodImage, "UTF-8"))
+            val encodedImage = item.foodImage?.let { URLEncoder.encode(it, "UTF-8") }
+            item.copy(foodImage = encodedImage)
         }
 
         val updatedOrder = value.copy(orderItems = updatedOrderItems)

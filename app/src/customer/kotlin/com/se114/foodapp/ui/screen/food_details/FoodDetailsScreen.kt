@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -69,7 +70,9 @@ fun SharedTransitionScope.FoodDetailsScreen(
     viewModel: FoodDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val feedbacks = viewModel.getFeedbacks().collectAsLazyPagingItems()
+    val feedbacks = remember {
+        viewModel.getFeedbacks()
+    }.collectAsLazyPagingItems()
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -160,11 +163,14 @@ fun SharedTransitionScope.FoodDetailsScreen(
         val images = uiState.food.images?.map {
             it.url
         }
-        ImagesFoods(
-            images = images ?: emptyList(),
-            foodId = uiState.food.id,
+        ImageCarousel(
+            modifier = Modifier
+                .fillMaxWidth(),
+            images = images?: emptyList(),
             animatedVisibilityScope = animatedVisibilityScope,
+            foodId = uiState.food.id
         )
+
         FoodDetail(
             modifier = Modifier.fillMaxWidth(),
             title = uiState.food.name,
@@ -243,7 +249,8 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 Text(
                     text = successMessage,
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
 
                 AppButton(
@@ -301,12 +308,9 @@ fun SharedTransitionScope.FoodDetail(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.sharedElement(
-                state = rememberSharedContentState(key = "title/${foodId}"),
-                animatedVisibilityScope
-            ),
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+
         )
 
         Row(
@@ -364,7 +368,6 @@ fun SharedTransitionScope.FoodDetail(
             text = description,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
-                .padding(top = 8.dp)
                 .sharedElement(
                     state = rememberSharedContentState(key = "description/${foodId}"),
                     animatedVisibilityScope
@@ -373,29 +376,7 @@ fun SharedTransitionScope.FoodDetail(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun SharedTransitionScope.ImagesFoods(
-    images: List<String>,
-    foodId: Long,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-) {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .wrapContentHeight()) {
 
-        ImageCarousel(
-            modifier = Modifier
-                .fillMaxWidth()
-                .zIndex(1f),
-            images = images,
-            animatedVisibilityScope = animatedVisibilityScope,
-            foodId = foodId
-        )
-
-
-    }
-}
 
 
 

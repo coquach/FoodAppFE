@@ -212,7 +212,7 @@ fun SharedTransitionScope.FoodListAdminScreen(
 
 
             ChipsGroupWrap(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.padding(8.dp),
                 options = uiState.menus.map { it.name },
                 selectedOption = uiState.menuName,
                 onOptionSelected = { selectedName ->

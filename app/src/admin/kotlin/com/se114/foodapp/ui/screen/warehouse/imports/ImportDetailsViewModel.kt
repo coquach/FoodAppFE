@@ -57,7 +57,7 @@ class ImportDetailsViewModel @Inject constructor(
         it.toImportDetailUiModel()
     }
     private val mode = arguments.isUpdating
-    private val isEditable = import.importDate?.plusDays(3)?.isAfter(LocalDate.now()) == true
+    private val isEditable = import.importDate  == LocalDate.now()
 
 
     private val _uiState =
@@ -227,10 +227,10 @@ fun onAction(action: ImportDetailsState.Action) {
             }
         }
 
-        is ImportDetailsState.Action.OnChangeSupplierId -> {
+        is ImportDetailsState.Action.OnChangeSupplier -> {
             _uiState.update {
                 it.copy(
-                    import = it.import.copy(supplierId = action.supplierId)
+                    import = it.import.copy(supplierId = action.supplierId, supplierName = action.supplierName)
                 )
             }
         }
@@ -340,7 +340,7 @@ object ImportDetailsState {
     sealed interface Action {
         data object OnBack : Action
         data class OnImportDetailsSelected(val importDetails: ImportDetailUIModel) : Action
-        data class OnChangeSupplierId(val supplierId: Long) : Action
+        data class OnChangeSupplier(val supplierId: Long, val supplierName: String) : Action
 
         data class OnChangeIngredient(val ingredient: Ingredient) : Action
         data class OnChangeExpiryDate(val expiryDate: LocalDate) : Action

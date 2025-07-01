@@ -35,7 +35,7 @@ class FoodTableViewModel @Inject constructor(
     private val _event = Channel<FoodTableState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val foodTables = getFoodTablesUseCase(_uiState.value.foodTableFilter)
+    fun getFoodTables(filter: FoodTableFilter) = getFoodTablesUseCase(filter)
 
 
     private fun createFoodTable() {

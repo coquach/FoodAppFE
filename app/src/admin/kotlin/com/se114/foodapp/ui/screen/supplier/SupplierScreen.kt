@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -216,7 +217,7 @@ fun SupplierScreen(
                                     },
                                     endAction = { it ->
                                         SwipeAction(
-                                            icon = rememberVectorPainter(Icons.Default.Visibility),
+                                            icon = rememberVectorPainter(Icons.Default.VisibilityOff),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
                                                 viewModel.onAction(
@@ -283,7 +284,7 @@ fun SupplierScreen(
                                                 )
                                                 viewModel.onAction(
                                                     SupplierState.Action.OnUpdateHide(
-                                                        true
+                                                        false
                                                     )
                                                 )
                                                 showSetActiveDialog = true

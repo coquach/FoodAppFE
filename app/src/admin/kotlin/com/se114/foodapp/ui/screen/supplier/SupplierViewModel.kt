@@ -233,13 +233,7 @@ class SupplierViewModel @Inject constructor(
             }
 
             SupplierState.Action.OnRefresh -> {
-                _uiState.update {
-                    it.copy(
-                        filter = it.filter.copy(
-                            shouldRefresh = UUID.randomUUID().toString()
-                        )
-                    )
-                }
+                getSuppliers()
             }
 
             is SupplierState.Action.OnSupplierSelected -> {

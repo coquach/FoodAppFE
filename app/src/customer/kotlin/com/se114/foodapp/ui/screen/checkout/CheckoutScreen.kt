@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -235,7 +236,7 @@ fun CheckoutScreen(
             }
         )
         Payment(
-            method = uiState.checkout.method,
+            method = uiState.checkout.method?: PaymentMethod.CASH.getDisplayName(),
             onSelected = {
                 val method = PaymentMethod.fromDisplay(it)!!.name
                 viewModel.onAction(Checkout.Action.OnPaymentMethodChanged(method))
@@ -272,6 +273,7 @@ fun AddressCard(address: String?, onAddressClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .clickable {
@@ -329,6 +331,7 @@ fun VoucherCard(voucher: Voucher?, onVoucherClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .clickable {
@@ -385,6 +388,7 @@ fun Payment(method: String, onSelected: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .padding(10.dp),

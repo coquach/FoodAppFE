@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -38,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,9 +65,11 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.Retry
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ChatBoxScreen(
     navController: NavController,
@@ -78,6 +84,7 @@ fun ChatBoxScreen(
     var isEditChatKnowledgeEntryMode by remember { mutableStateOf(false) }
 
 
+    val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
@@ -97,6 +104,7 @@ fun ChatBoxScreen(
             }
         }
     }
+
     LaunchedEffect(Unit) {
         viewModel.getChatKnowledgeEntry()
         viewModel.getIntentTypes()
@@ -207,9 +215,7 @@ fun ChatBoxScreen(
                     }
 
                 }
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(200.dp)
-                ) {
+
                     when(uiState.intentTypeListState){
                         is ChatBoxState.IntentTypeList.Error -> {
                             val error = (uiState.intentTypeListState as ChatBoxState.IntentTypeList.Error).message
@@ -218,12 +224,12 @@ fun ChatBoxScreen(
                                 onClicked = {
                                     viewModel.getIntentTypes()
                                 },
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxWidth().height(200.dp)
                             )
                         }
                         ChatBoxState.IntentTypeList.Loading -> {
                             Loading(
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxWidth().height(200.dp)
                             )
                         }
                         ChatBoxState.IntentTypeList.Success -> {
@@ -232,7 +238,7 @@ fun ChatBoxScreen(
                                     icon = Icons.Default.Queue,
                                     iconSize = 24.dp,
                                     text = "Không có loại ý định nào",
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier.fillMaxWidth().height(200.dp)
                                 )
                             }else{
                                 ChipsGroupWrap(
@@ -258,7 +264,7 @@ fun ChatBoxScreen(
                             }
                         }
                     }
-                }
+
 
 
             }
@@ -359,9 +365,7 @@ fun ChatBoxScreen(
                     }
 
                 }
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(200.dp)
-                ) {
+
                     when(uiState.chatKnowLedgeListState){
                         is ChatBoxState.ChatKnowLedgeList.Error -> {
                             val error = (uiState.chatKnowLedgeListState as ChatBoxState.ChatKnowLedgeList.Error).message
@@ -370,12 +374,12 @@ fun ChatBoxScreen(
                                 onClicked = {
                                     viewModel.getChatKnowledgeEntry()
                                 },
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxWidth().height(200.dp)
                             )
                         }
                         ChatBoxState.ChatKnowLedgeList.Loading -> {
                             Loading(
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxWidth().height(200.dp)
                             )
                         }
                         ChatBoxState.ChatKnowLedgeList.Success -> {
@@ -384,7 +388,7 @@ fun ChatBoxScreen(
                                     icon = Icons.Default.Interests,
                                     iconSize = 24.dp,
                                     text = "Không có loại kiến thức nào",
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier.fillMaxWidth().height(200.dp)
                                 )
                             }else{
                                 ChipsGroupWrap(
@@ -410,7 +414,7 @@ fun ChatBoxScreen(
                             }
                         }
                     }
-                }
+
 
 
             }
@@ -607,7 +611,7 @@ fun EditChatKnowledgeEntryCard(
             modifier = Modifier
                 .fillMaxWidth(),
             textPlaceholder = "...",
-            selected = intentTypes.find { it.id == chatKnowledgeEntry.id }?.name,
+            selected = chatKnowledgeEntry.intentType?.name,
             onPositionSelected = onPositionSelected,
             options = intentTypes.map { it.name },
         )

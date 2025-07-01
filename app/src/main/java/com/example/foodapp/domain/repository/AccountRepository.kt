@@ -17,7 +17,7 @@ interface AccountRepository {
     fun sendVerifyEmail()
     suspend fun reloadToken()
     suspend fun createAccountWithEmail(email: String, password: String)
-    suspend fun updateProfile(photoUrl: Uri?, name: String)
+    suspend fun updateProfile(name: String)
     suspend fun linkAccountWithGoogle(idToken: String)
     suspend fun linkAccountWithEmail(email: String, password: String)
     suspend fun signInWithGoogle(idToken: String)

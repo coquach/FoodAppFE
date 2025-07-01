@@ -51,6 +51,7 @@ import androidx.navigation.NavController
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.FoodTable
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -73,8 +74,9 @@ fun FoodTableScreen(
     viewModel: FoodTableViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foodTables = viewModel.foodTables.collectAsLazyPagingItems()
-    val emptyFoodTable =  MutableStateFlow<PagingData<FoodTable>>(PagingData.empty()).collectAsLazyPagingItems()
+    val foodTables = remember(uiState.foodTableFilter){
+        viewModel.getFoodTables(uiState.foodTableFilter)
+    }.collectAsLazyPagingItems()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var showErrorSheet by remember { mutableStateOf(false) }
@@ -151,6 +153,9 @@ fun FoodTableScreen(
                 pages = listOf(
                     {
                         LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(FoodTableState.Action.OnRefresh)
+                            },
                             modifier = Modifier.fillMaxSize(),
                             items = foodTables,
                             textNothing = "Không có bàn ăn nào",
@@ -189,6 +194,9 @@ fun FoodTableScreen(
                         }
                     }, {
                         LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(FoodTableState.Action.OnRefresh)
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
@@ -277,7 +285,8 @@ fun FoodTableScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     ChipsGroupWrap(
-                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.padding(8.dp),
                         text = "Số ghế",
                         options = listOf("1", "2", "3", "4", "5", "6"),
                         selectedOption = uiState.foodTableSelected.seatCapacity.toString(),
@@ -292,20 +301,15 @@ fun FoodTableScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                     ) {
-                        Button(
+                        AppButton(
                             onClick = {
                                 showFoodTableDialog = false
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.outline
-                            ),
-                            modifier = Modifier.heightIn(48.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            backgroundColor = MaterialTheme.colorScheme.outline,
+                            text = "Đóng",
 
 
-                        ) {
-                            Text(text = "Đóng", modifier = Modifier.padding(horizontal = 16.dp))
-                        }
+                        )
 
 
                         LoadingButton(
@@ -332,8 +336,7 @@ fun FoodTableScreen(
     if (showDeleteDialog) {
         FoodAppDialog(
             title = if (uiState.foodTableSelected.active) "Ẩn bàn " else "Hiện bàn ",
-            message = if (uiState.foodTableSelected.active) "Bạn có chắc chắn muốn ẩn bàn  này không?"
-            else "Bạn có chắc chắn muốn hiện bàn này không?",
+            message = if (uiState.foodTableSelected.active) "Bạn có chắc chắn muốn ẩn bàn này không?" else "Bạn có chắc chắn muốn hiện bàn này không?",
             onDismiss = {
                 showDeleteDialog = false
             },

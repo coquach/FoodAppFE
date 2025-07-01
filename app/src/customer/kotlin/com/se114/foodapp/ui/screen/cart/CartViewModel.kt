@@ -123,6 +123,7 @@ class CartViewModel @Inject constructor(
         when (action) {
             is Cart.Action.OnCheckOut -> {
                 viewModelScope.launch {
+                    _uiState.update { it.copy(isLoading = true) }
                     delay(1200L)
                     _event.send(Cart.Event.NavigateToCheckout)
                 }

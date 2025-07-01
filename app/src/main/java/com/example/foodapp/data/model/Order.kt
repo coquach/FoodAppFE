@@ -40,7 +40,7 @@ data class CheckoutUiModel(
     val id: Long? = null,
     val foodTableNumber: Int? = null,
     val voucher: Voucher? = null,
-    val method: String,
+    val method: String?=null,
     val type: String,
     val note: String?=null,
     val phone: String? = null,
@@ -50,7 +50,7 @@ data class CheckoutUiModel(
 fun Order.toCheckoutUiModel() = CheckoutUiModel(
     id = id,
     foodTableNumber = tableNumber,
-    voucher = null,
+    voucher = Voucher(value = voucherDiscount?: 0.0),
     method = method,
     type = type,
     note = note,

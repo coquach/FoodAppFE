@@ -174,7 +174,7 @@ object GetFoodsState {
     data class UiState(
         val menus: List<Menu> = emptyList(),
         val getMenusState: GetMenusState = GetMenusState.Loading,
-        val filter: FoodFilter = FoodFilter(),
+        val filter: FoodFilter = FoodFilter(menuId= 1),
         val nameSearch: String = "",
         val menuSelected: String? = null,
         val foodStaffsUi: List<FoodUiStaffModel> = emptyList(),

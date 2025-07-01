@@ -32,7 +32,7 @@ class PlaceOrderUseCase @Inject constructor(
                 foodTableId = checkout.foodTableNumber,
                 voucherId = checkout.voucher?.id,
                 type = checkout.type,
-                method = PaymentMethod.fromDisplay(checkout.method)!!.name,
+                method = PaymentMethod.fromDisplay(checkout.method!!)!!.name,
                 startedAt = now,
                 note = checkout.note,
                 address = checkout.address,

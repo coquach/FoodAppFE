@@ -484,7 +484,7 @@ fun HeaderDefaultView(
         if (onBack != null) {
             IconCustomButton(
                 onClick = onBack,
-                icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                icon = onBackIcon,
                 containerColor = Color.Transparent,
                 iconColor = MaterialTheme.colorScheme.primary
             )
@@ -949,6 +949,7 @@ fun <T : Any> LazyPagingSample(
         Indicator(
             modifier = Modifier.align(Alignment.TopCenter),
             color = MaterialTheme.colorScheme.onPrimary,
+            containerColor = MaterialTheme.colorScheme.primary,
             isRefreshing = isRefreshing,
             state = pullState
         )

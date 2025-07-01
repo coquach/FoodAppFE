@@ -14,7 +14,7 @@ import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.data.model.enums.ServingType
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
 import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
-import com.example.foodapp.domain.use_case.auth.LoadProfileUseCase
+import com.se114.foodapp.domain.use_case.user.LoadProfileUseCase
 import com.example.foodapp.domain.use_case.order.PlaceOrderUseCase
 import com.se114.foodapp.domain.use_case.cart.ClearAllCartUseCase
 import com.se114.foodapp.domain.use_case.cart.GetCartUseCase

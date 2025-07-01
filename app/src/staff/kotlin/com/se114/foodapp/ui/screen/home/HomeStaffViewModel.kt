@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.filter.FoodTableFilter
 import com.example.foodapp.data.model.FoodTable
+import com.example.foodapp.data.model.enums.FoodTableStatus
 import com.example.foodapp.domain.use_case.food_table.GetFoodTablesUseCase
 import com.se114.foodapp.domain.use_case.food_table.CreateOrderForTableUseCase
 
@@ -144,7 +145,7 @@ object HomeStaffState {
         val isLoading: Boolean = false,
         val error: String? = null,
         val nameSearch: String = "",
-        val filter: FoodTableFilter = FoodTableFilter(),
+        val filter: FoodTableFilter = FoodTableFilter(status = FoodTableStatus.EMPTY.name),
         val foodTableSelected: FoodTable?=null,
     )
 

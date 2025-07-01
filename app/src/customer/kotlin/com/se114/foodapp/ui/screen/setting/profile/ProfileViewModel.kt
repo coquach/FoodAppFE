@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.auth.signup.profile
+package com.se114.foodapp.ui.screen.setting.profile
 
 
 import android.net.Uri
@@ -10,14 +10,13 @@ import androidx.navigation.toRoute
 import com.example.foodapp.data.model.Account
 
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
-import com.example.foodapp.domain.use_case.auth.LoadProfileUseCase
-import com.example.foodapp.domain.use_case.auth.UpdateProfileUseCase
+import com.se114.foodapp.domain.use_case.user.LoadProfileUseCase
+import com.se114.foodapp.domain.use_case.user.UpdateProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch

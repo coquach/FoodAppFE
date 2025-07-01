@@ -10,6 +10,8 @@ import com.se114.foodapp.data.repository.OpenCageRepoImpl
 import com.example.foodapp.domain.repository.OrderRepository
 import com.example.foodapp.domain.repository.VoucherRepository
 import com.example.foodapp.domain.repository.AIRepository
+import com.se114.foodapp.data.repository.CustomerRepoImpl
+import com.se114.foodapp.domain.repository.CustomerRepository
 import com.se114.foodapp.domain.repository.FeedbackRepository
 import com.se114.foodapp.domain.repository.OpenCageRepository
 import dagger.Binds
@@ -39,4 +41,7 @@ abstract class DataModule {
 
     @Binds
     abstract fun provideOrderRepository(orderRepoImpl: OrderRepoImpl): OrderRepository
+
+    @Binds
+    abstract fun provideCustomerRepository(customerRepoImpl: CustomerRepoImpl): CustomerRepository
 }

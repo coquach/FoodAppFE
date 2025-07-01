@@ -24,7 +24,7 @@ class AddToCartUseCase @Inject constructor(
 
     operator fun invoke(food: Food, quantity: Int): Flow<Result> = flow {
         emit(Result.Loading)
-        delay(2000L)
+        delay(1500L)
         val cartItems = cartRepository.getCartItems().first()
         val current = cartItems.toMutableList()
         val index = current.indexOfFirst { it.id == food.id }

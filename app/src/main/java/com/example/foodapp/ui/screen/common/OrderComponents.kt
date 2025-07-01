@@ -86,7 +86,7 @@ fun OrderDetailsText(order: Order) {
                )
 
                DetailsTextRow(
-                   text ="Phương thức: ${PaymentMethod.fromName(order.method)!!.getDisplayName()}",
+                   text ="Phương thức: ${PaymentMethod.fromName(order.method)?.getDisplayName()?: "Không xác định"}",
                    icon = Icons.Default.Payments,
                    color = MaterialTheme.colorScheme.confirm
                )

@@ -215,7 +215,7 @@ fun ExportScreen(
                                 background = MaterialTheme.colorScheme.error,
                                 onSwipe = {
                                     isDeletable =
-                                        it.exportDate?.plusDays(1)?.isAfter(LocalDate.now()) == true
+                                        it.exportDate == LocalDate.now()
                                     if (isDeletable) {
                                         viewModel.onAction(ExportState.Action.OnExportSelected(it))
                                         showDialogDelete = true
@@ -300,13 +300,13 @@ fun ExportDetail(export: Export) {
 
 
                 DetailsTextRow(
-                    text = "${export.id}",
+                    text = "Mã phiếu: ${export.id}",
                     icon = Icons.Default.Tag,
                     color = MaterialTheme.colorScheme.outline
                 )
 
                 DetailsTextRow(
-                    text = StringUtils.formatLocalDate(export.exportDate) ?: "",
+                    text = "Ngày tạo: ${StringUtils.formatLocalDate(export.exportDate)}",
                     icon = Icons.Default.DateRange,
                     color = MaterialTheme.colorScheme.outline
                 )
