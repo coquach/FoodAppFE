@@ -40,7 +40,7 @@ interface FeedbackApi {
     suspend fun updateFeedback(
         @Path("id") id: Long,
         @PartMap request: Map<String, @JvmSuppressWildcards RequestBody>,
-        @Part images: List<MultipartBody.Part>? = null,
+        @Part images: List<MultipartBody.Part?>? = null,
     ): Response<Feedback>
 
 

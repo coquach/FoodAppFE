@@ -13,6 +13,7 @@ import com.example.foodapp.data.model.ImageInfo
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.navigation.EmployeeDetails
 import com.example.foodapp.navigation.staffNavType
+import com.example.foodapp.ui.screen.components.validateField
 
 import com.se114.foodapp.domain.use_case.staff.CreateStaffUseCase
 import com.se114.foodapp.domain.use_case.staff.UpdateStaffUseCase
@@ -111,6 +112,55 @@ class StaffDetailsViewModel @Inject constructor(
         }
     }
 
+    fun validate(type: String) {
+        val current = _uiState.value
+        var fullNameError: String? = current.nameError
+        var phoneError: String? = current.priceError
+        var addressError: String? = current.descriptionError
+        var basicSalaryError: String? = current.defaultQuantityError
+        when (type) {
+            "name" -> {
+                nameError = validateField(
+                    current.foodAddUi.name.trim(),
+                    "Tên không hợp lệ"
+                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+
+
+            }
+
+            "price" -> {
+                priceError = validateField(
+                    current.foodAddUi.price.toPlainString().trim(),
+                    "Giá phải lớn hơn 0"
+                ) { it.toBigDecimal() > BigDecimal.ZERO } }
+
+            "defaultQuantity" -> {
+                defaultQuantityError = validateField(
+                    current.foodAddUi.defaultQuantity.toString().trim(),
+                    "Số lượng phải lớn hơn 0"
+                ) { it.toInt() > 0 }}
+
+            "description" -> {
+                descriptionError = validateField(
+                    current.foodAddUi.description.trim(),
+                    "Mô tả không hợp lệ"
+
+                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+            }
+
+        }
+        val isValid = current.foodAddUi.name.isNotBlank() && current.foodAddUi.price > BigDecimal.ZERO && current.foodAddUi.defaultQuantity > 0 && current.foodAddUi.description.isNotBlank()
+        _uiState.update {
+            it.copy(
+                nameError = nameError,
+                priceError = priceError,
+                descriptionError = descriptionError,
+                defaultQuantityError = defaultQuantityError,
+                isValid = isValid
+            )
+        }
+    }
+
     fun onAction(action: StaffDetails.Action) {
         when (action) {
             is StaffDetails.Action.AddStaff -> {
@@ -189,6 +239,11 @@ object StaffDetails {
         val errorMessage: String? = null,
         val staff: Staff,
         val isUpdating: Boolean = false,
+        val isValid: Boolean = false,
+        val fullNameError: String? = null,
+        val phoneError: String? = null,
+        val addressError: String? = null,
+        val basicSalaryError: String? = null,
     )
 
     sealed interface Event {

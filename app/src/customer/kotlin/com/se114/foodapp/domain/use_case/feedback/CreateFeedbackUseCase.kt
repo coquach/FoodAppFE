@@ -22,7 +22,7 @@ class CreateFeedbackUseCase @Inject constructor(
     operator fun invoke(orderItemId: Long, feedback: FeedbackUi) = flow<ApiResponse<Unit>> {
         emit(ApiResponse.Loading)
         try {
-            val imageParts = feedback.images?.map { ImageUtils.getImagePart(context, it, "images") }
+            val imageParts = feedback.images?.map { ImageUtils.getImagePart(context, it, "images")!! }
             val request = FeedbackMultipartRequest(
                 orderItemId = orderItemId,
                 content = feedback.content,
@@ -30,7 +30,7 @@ class CreateFeedbackUseCase @Inject constructor(
                 customerId = getUserIdUseCase()
             )
             val partMap = request.toPartMap()
-            feedbackRepository.createFeedback(partMap, imageParts).collect { result ->
+            feedbackRepository.createFeedback(request =partMap, images = imageParts).collect { result ->
                 when (result) {
                     is ApiResponse.Success -> {
                         emit(ApiResponse.Success(Unit))

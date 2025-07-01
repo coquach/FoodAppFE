@@ -43,11 +43,12 @@ class FeedbackRepoImpl @Inject constructor(
 
     override fun createFeedback(
         request: Map<String, @JvmSuppressWildcards RequestBody>,
-        images: List<MultipartBody.Part?>?,
+        images: List<MultipartBody.Part>?,
     ): Flow<ApiResponse<Feedback>> {
         return apiRequestFlow {
             feedbackApi.createFeedback(
                 request = request,
+                images = images
             )
         }
     }
@@ -61,6 +62,7 @@ class FeedbackRepoImpl @Inject constructor(
             feedbackApi.updateFeedback(
                 id = id,
                 request = request,
+                images = images
             )
         }
     }

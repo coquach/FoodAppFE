@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -132,7 +133,9 @@ fun FeedbackDetailsScreen(
                     Text(
                         text = "Bạn nghĩ gì về món ăn?\n Hãy đánh giá ngay!",
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = when (uiState.feedback.rating) {
@@ -170,6 +173,7 @@ fun FeedbackDetailsScreen(
                         }
                     )
                     NoteInput(
+                        modifier = Modifier.height(200.dp),
                         note = uiState.feedback.content ?: "",
                         onNoteChange = {
                             viewModel.onAction(FeedbackDetail.Action.OnContentChanged(it))
@@ -197,6 +201,7 @@ fun FeedbackDetailsScreen(
                                 onClick = {
                                     viewModel.onAction(FeedbackDetail.Action.OnDelete)
                                 },
+                                backgroundColor = MaterialTheme.colorScheme.error,
                                 enable = !uiState.isLoading
                             )
                         }

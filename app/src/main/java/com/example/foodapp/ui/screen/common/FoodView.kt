@@ -51,6 +51,7 @@ import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
+import java.util.Locale
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -121,6 +122,7 @@ fun SharedTransitionScope.FoodView(
                     .align(Alignment.TopStart)
             )
             if (isCustomer) {
+
                 Box(
                     modifier = Modifier
                         .padding(8.dp)
@@ -147,8 +149,13 @@ fun SharedTransitionScope.FoodView(
                         .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val averageRating = if (food.totalFeedbacks == 0) {
+                        0.0
+                    } else {
+                        String.format(Locale.getDefault(),"%.1f", food.totalRating / food.totalFeedbacks)
+                    }
                     Text(
-                        text = "${food.totalRating}",
+                        text =  "$averageRating",
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 1
                     )
@@ -161,7 +168,7 @@ fun SharedTransitionScope.FoodView(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = "(${food.totalFeedback})",
+                        text = "(${food.totalFeedbacks})",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                         maxLines = 1

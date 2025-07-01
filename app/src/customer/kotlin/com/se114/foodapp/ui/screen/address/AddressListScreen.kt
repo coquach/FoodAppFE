@@ -45,6 +45,7 @@ import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.Nothing
+import com.example.foodapp.ui.screen.components.Retry
 import com.se114.foodapp.ui.screen.address.AddressList.Action.OnSelectAddress
 import com.se114.foodapp.ui.screen.address.AddressList.Action.OnSelectToBackCheckOut
 import me.saket.swipe.SwipeAction
@@ -124,23 +125,25 @@ fun AddressListScreen(
         )
         when (uiState.addressesState) {
             is AddressList.AddressesState.Error -> {
-                Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
+
                     val message =
                         (uiState.addressesState as AddressList.AddressesState.Error).message
                     Text(text = message, style = MaterialTheme.typography.bodyMedium)
-                    Button(onClick = {  }) {
-                        Text(text = "Tải lại")
-                    }
+                Retry(
+                    message = message,
+                    onClicked ={
+                        viewModel.getAddress()
+                    },
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
 
-                }
+
             }
 
             AddressList.AddressesState.Loading -> {
-                Loading()
+                Loading(
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
             }
 
             AddressList.AddressesState.Success -> {
@@ -210,6 +213,7 @@ fun AddressListScreen(
                     viewModel.onAction(OnSelectAddress(null))
 
                 },
+                titleColor = MaterialTheme.colorScheme.error,
                 confirmText = "Xóa",
                 dismissText = "Đóng",
                 showConfirmButton = true

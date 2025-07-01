@@ -18,7 +18,7 @@ data class Food(
     val remainingQuantity: Int,
     val active: Boolean,
     val totalRating: Double,
-    val totalFeedback: Int,
+    val totalFeedbacks: Int,
     val totalLikes: Int,
     val liked: Boolean,
 ){
@@ -33,7 +33,7 @@ data class Food(
             remainingQuantity = 1,
             active = true,
             totalRating = 5.0,
-            totalFeedback = 234,
+            totalFeedbacks = 234,
             totalLikes = 500,
             liked = false
         )

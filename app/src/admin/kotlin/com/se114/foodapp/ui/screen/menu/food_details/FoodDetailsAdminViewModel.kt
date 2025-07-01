@@ -145,15 +145,15 @@ class FoodDetailsAdminViewModel @Inject constructor(
         }
     }
     fun validate(type: String) {
-        val current = _uiState.value.foodAddUi
-       var nameError: String? = current.name
-        var priceError: String? = current.price.toPlainString()
-        var descriptionError: String? = current.description
-        var defaultQuantityError: String? = current.defaultQuantity.toString()
+        val current = _uiState.value
+        var nameError: String? = current.nameError
+        var priceError: String? = current.priceError
+        var descriptionError: String? = current.descriptionError
+        var defaultQuantityError: String? = current.defaultQuantityError
         when (type) {
             "name" -> {
                 nameError = validateField(
-                    current.name.trim(),
+                    current.foodAddUi.name.trim(),
                     "Tên không hợp lệ"
                 ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
 
@@ -162,26 +162,26 @@ class FoodDetailsAdminViewModel @Inject constructor(
 
             "price" -> {
                 priceError = validateField(
-                    current.price.toPlainString().trim(),
+                    current.foodAddUi.price.toPlainString().trim(),
                     "Giá phải lớn hơn 0"
                 ) { it.toBigDecimal() > BigDecimal.ZERO } }
 
             "defaultQuantity" -> {
                 defaultQuantityError = validateField(
-                    current.defaultQuantity.toString().trim(),
+                    current.foodAddUi.defaultQuantity.toString().trim(),
                     "Số lượng phải lớn hơn 0"
                 ) { it.toInt() > 0 }}
 
             "description" -> {
                 descriptionError = validateField(
-                    current.description.trim(),
+                    current.foodAddUi.description.trim(),
                     "Mô tả không hợp lệ"
 
                 ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
             }
 
         }
-        val isValid = current.name.isNotBlank() && current.price > BigDecimal.ZERO && current.defaultQuantity > 0 && current.description.isNotBlank() && nameError == null && priceError == null && descriptionError == null
+        val isValid = current.foodAddUi.name.isNotBlank() && current.foodAddUi.price > BigDecimal.ZERO && current.foodAddUi.defaultQuantity > 0 && current.foodAddUi.description.isNotBlank()
         _uiState.update {
             it.copy(
                 nameError = nameError,

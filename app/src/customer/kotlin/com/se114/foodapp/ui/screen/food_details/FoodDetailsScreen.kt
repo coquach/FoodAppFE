@@ -61,6 +61,7 @@ import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.ui.component.ImageCarousel
 import com.se114.foodapp.ui.screen.feedback.FeedbackList
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -114,7 +115,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -178,7 +179,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
             foodId = uiState.food.id,
             animatedVisibilityScope = animatedVisibilityScope,
             totalRating = uiState.food.totalRating,
-            totalFeedbacks = uiState.food.totalFeedback,
+            totalFeedbacks = uiState.food.totalFeedbacks,
             totalLikes = uiState.food.totalLikes,
         )
         Row(
@@ -324,8 +325,13 @@ fun SharedTransitionScope.FoodDetail(
                 tint = MaterialTheme.colorScheme.primary
             )
 
+            val averageRating = if (totalFeedbacks == 0) {
+                0.0
+            } else {
+                String.format(Locale.getDefault(),"%.1f", totalRating / totalFeedbacks)
+            }
             Text(
-                text = "$totalRating",
+                text = "$averageRating",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.align(Alignment.CenterVertically)
 

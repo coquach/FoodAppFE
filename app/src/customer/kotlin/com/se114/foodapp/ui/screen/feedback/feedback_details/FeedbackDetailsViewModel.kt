@@ -72,7 +72,7 @@ class FeedbackDetailsViewModel @Inject constructor(
                     }
 
                     is ApiResponse.Failure -> {
-                        _uiState.update { it.copy(error = result.errorMessage) }
+                        _uiState.update { it.copy(error = result.errorMessage, isLoading = false) }
                         _event.send(FeedbackDetail.Event.ShowError)
                     }
 
@@ -92,7 +92,7 @@ class FeedbackDetailsViewModel @Inject constructor(
                         _event.send(FeedbackDetail.Event.BackToAfterFeedback("Cập nhật đánh giá thành công"))
                     }
                     is ApiResponse.Failure -> {
-                        _uiState.update { it.copy(error = result.errorMessage) }
+                        _uiState.update { it.copy(error = result.errorMessage, isLoading = false) }
                         _event.send(FeedbackDetail.Event.ShowError)
                     }
                     is ApiResponse.Loading -> {
@@ -110,7 +110,7 @@ class FeedbackDetailsViewModel @Inject constructor(
                         _event.send(FeedbackDetail.Event.BackToAfterFeedback("Xóa đánh giá thành công"))
                     }
                     is ApiResponse.Failure -> {
-                        _uiState.update { it.copy(error = result.errorMessage) }
+                        _uiState.update { it.copy(error = result.errorMessage, isLoading = false) }
                         _event.send(FeedbackDetail.Event.ShowError)
                     }
                     is ApiResponse.Loading -> {

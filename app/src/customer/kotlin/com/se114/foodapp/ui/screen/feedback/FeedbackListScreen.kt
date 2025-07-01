@@ -70,7 +70,9 @@ fun FeedbackItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp))
+
+
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -145,7 +147,11 @@ fun FeedbackItem(
             if (imageUrls.isNotEmpty()) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
+                    contentPadding = PaddingValues(8.dp),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(16.dp)),
+                    verticalAlignment = Alignment.CenterVertically
+
+
                 ) {
                     items(imageUrls) { imageUrl ->
                         AsyncImage(
