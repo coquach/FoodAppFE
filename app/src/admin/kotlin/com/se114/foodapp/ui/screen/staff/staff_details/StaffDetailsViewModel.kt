@@ -112,54 +112,54 @@ class StaffDetailsViewModel @Inject constructor(
         }
     }
 
-    fun validate(type: String) {
-        val current = _uiState.value
-        var fullNameError: String? = current.nameError
-        var phoneError: String? = current.priceError
-        var addressError: String? = current.descriptionError
-        var basicSalaryError: String? = current.defaultQuantityError
-        when (type) {
-            "name" -> {
-                nameError = validateField(
-                    current.foodAddUi.name.trim(),
-                    "Tên không hợp lệ"
-                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
-
-
-            }
-
-            "price" -> {
-                priceError = validateField(
-                    current.foodAddUi.price.toPlainString().trim(),
-                    "Giá phải lớn hơn 0"
-                ) { it.toBigDecimal() > BigDecimal.ZERO } }
-
-            "defaultQuantity" -> {
-                defaultQuantityError = validateField(
-                    current.foodAddUi.defaultQuantity.toString().trim(),
-                    "Số lượng phải lớn hơn 0"
-                ) { it.toInt() > 0 }}
-
-            "description" -> {
-                descriptionError = validateField(
-                    current.foodAddUi.description.trim(),
-                    "Mô tả không hợp lệ"
-
-                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
-            }
-
-        }
-        val isValid = current.foodAddUi.name.isNotBlank() && current.foodAddUi.price > BigDecimal.ZERO && current.foodAddUi.defaultQuantity > 0 && current.foodAddUi.description.isNotBlank()
-        _uiState.update {
-            it.copy(
-                nameError = nameError,
-                priceError = priceError,
-                descriptionError = descriptionError,
-                defaultQuantityError = defaultQuantityError,
-                isValid = isValid
-            )
-        }
-    }
+//    fun validate(type: String) {
+//        val current = _uiState.value
+//        var fullNameError: String? = current.fullNameError
+//        var phoneError: String? = current.phoneError
+//        var addressError: String? = current.addressError
+//        var basicSalaryError: String? = current.basicSalaryError
+//        when (type) {
+//            "fullName" -> {
+//                fullNameError = validateField(
+//                    current.staff.fullName.trim(),
+//                    "Tên không hợp lệ"
+//                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+//
+//
+//            }
+//
+//            "phone" -> {
+//                phoneError = validateField(
+//                    current.staff.price.toPlainString().trim(),
+//                    "Giá phải lớn hơn 0"
+//                ) { it.toBigDecimal() > BigDecimal.ZERO } }
+//
+//            "defaultQuantity" -> {
+//                defaultQuantityError = validateField(
+//                    current.foodAddUi.defaultQuantity.toString().trim(),
+//                    "Số lượng phải lớn hơn 0"
+//                ) { it.toInt() > 0 }}
+//
+//            "description" -> {
+//                descriptionError = validateField(
+//                    current.foodAddUi.description.trim(),
+//                    "Mô tả không hợp lệ"
+//
+//                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+//            }
+//
+//        }
+//        val isValid = current.foodAddUi.name.isNotBlank() && current.foodAddUi.price > BigDecimal.ZERO && current.foodAddUi.defaultQuantity > 0 && current.foodAddUi.description.isNotBlank()
+//        _uiState.update {
+//            it.copy(
+//                nameError = nameError,
+//                priceError = priceError,
+//                descriptionError = descriptionError,
+//                defaultQuantityError = defaultQuantityError,
+//                isValid = isValid
+//            )
+//        }
+//    }
 
     fun onAction(action: StaffDetails.Action) {
         when (action) {

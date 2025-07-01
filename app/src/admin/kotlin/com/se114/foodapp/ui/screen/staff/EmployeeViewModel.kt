@@ -30,7 +30,7 @@ class EmployeeViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         EmployeeSate.UiState(
-            staffFilter = StaffFilter(status = true)
+            staffFilter = StaffFilter(active = true)
         )
     )
     val uiState get() = _uiState.asStateFlow()
@@ -115,7 +115,7 @@ class EmployeeViewModel @Inject constructor(
             is EmployeeSate.Action.OnChangeStatusFilter -> {
                 _uiState.update {
                     it.copy(
-                        staffFilter = it.staffFilter.copy(status = action.status)
+                        staffFilter = it.staffFilter.copy(active = action.status)
                     )
                 }
             }

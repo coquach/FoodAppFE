@@ -10,6 +10,7 @@ import com.se114.foodapp.ui.screen.warehouse.imports.ImportDetailUIModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -22,7 +23,7 @@ class CreateImportUseCase @Inject constructor(
             try {
                 val request = ImportRequest(
                     supplierId = import.supplierId,
-                    importDate = StringUtils.formatDateTime(input = LocalDateTime.now())!!,
+                    importDate = StringUtils.formatLocalDate(LocalDate.now())!!,
                     importDetails = importDetails.map {
                         ImportDetailRequest(
                             ingredientId = it.ingredient?.id,

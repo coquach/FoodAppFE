@@ -26,7 +26,7 @@ class StaffPagingSource @Inject constructor(
                 order = filter.order,
                 fullName = filter.fullName,
                 gender = filter.gender,
-                status = filter.status,
+                active = filter.active,
 
             )
         }
