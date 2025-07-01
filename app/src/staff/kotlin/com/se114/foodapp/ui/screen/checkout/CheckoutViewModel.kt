@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.checkout
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -50,8 +51,11 @@ class CheckoutViewModel @Inject constructor(
     private val _event = Channel<Checkout.Event>()
     val event = _event.receiveAsFlow()
 
+    init{
+        getOrderByFoodTableId()
+    }
 
-    fun getOrderByFoodTableId() {
+    private fun getOrderByFoodTableId() {
         viewModelScope.launch {
             getOrderByFoodTableIdUseCase(foodTableId).collect { result ->
                 when (result) {
@@ -154,6 +158,13 @@ class CheckoutViewModel @Inject constructor(
     }
 
     private fun upsertOrderItems() {
+        val orderItems = _uiState.value.orderItems.map {
+            OrderItemRequest(
+                foodId = it.foodId!!,
+                quantity = it.quantity,
+            )
+        }
+        Log.d("CheckoutViewModel", "upsertOrderItems: $orderItems")
         viewModelScope.launch {
             upsertOrderItemsUseCase(
                 orderId = _uiState.value.checkout.id!!,
@@ -163,6 +174,7 @@ class CheckoutViewModel @Inject constructor(
                         quantity = it.quantity,
                     )
                 },
+
             ).collect { result ->
                 when (result) {
                     is ApiResponse.Success -> {

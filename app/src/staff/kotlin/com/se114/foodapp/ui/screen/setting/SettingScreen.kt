@@ -4,10 +4,8 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Message
@@ -16,11 +14,8 @@ import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +32,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
+import com.example.foodapp.navigation.Contact
+import com.example.foodapp.navigation.Help
+import com.example.foodapp.navigation.Privacy
 import com.example.foodapp.navigation.VoucherPublic
 import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
@@ -86,15 +84,15 @@ fun SettingScreen(
 
 
                 SettingState.Event.NavigateToContact -> {
-
+                    navController.navigate(Contact)
                 }
 
                 SettingState.Event.NavigateToHelp -> {
-
+navController.navigate(Help)
                 }
 
                 SettingState.Event.NavigateToPrivacy -> {
-
+navController.navigate(Privacy)
                 }
             }
         }
@@ -133,12 +131,7 @@ fun SettingScreen(
                                 )
                             }
                         )
-                        SettingItem(
-                            Icons.Default.Notifications,
-                            "Thông báo",
-                            toggleState = isNotificationMode
-                        )
-                        SettingItem(Icons.Default.Language, "Ngôn ngữ", customView = {})
+
 
                     },
                 )
@@ -157,9 +150,9 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hỏi đáp & trợ giúp")
-                        SettingItem(Icons.AutoMirrored.Filled.Message, "Liên hệ")
-                        SettingItem(Icons.Default.PrivacyTip, "Chính sách bảo mật")
+                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hướng dẫn sử dụng", onClick = {viewModel.onAction(SettingState.Action.OnHelpClicked)})
+                        SettingItem(Icons.AutoMirrored.Filled.Message, "Liên hệ", onClick = {viewModel.onAction(SettingState.Action.OnContactClicked)})
+                        SettingItem(Icons.Default.PrivacyTip, "Chính sách bảo mật", onClick = {viewModel.onAction(SettingState.Action.OnPrivacyClicked)})
                     }
                 )
             )

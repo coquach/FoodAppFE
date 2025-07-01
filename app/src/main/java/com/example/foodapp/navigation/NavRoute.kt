@@ -172,6 +172,16 @@ object FoodTableAdmin: NavRoute
 data class Tracking(val long: Double, val lat: Double): NavRoute
 
 
+@Serializable
+object Help: NavRoute
+
+@Serializable
+object Contact: NavRoute
+
+@Serializable
+object Privacy: NavRoute
+
+
 
 
 

@@ -68,7 +68,7 @@ class MainActivity : BaseFoodAppActivity() {
             FoodAppTheme(darkTheme = isDarkMode) {
 
                 val navItems = listOf(
-                    BottomNavItem.Order,
+                    BottomNavItem.Home,
                     BottomNavItem.Notification,
                     BottomNavItem.Setting
                 )

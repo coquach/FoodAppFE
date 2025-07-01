@@ -53,7 +53,10 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.foodapp.R
+import com.example.foodapp.navigation.Contact
+import com.example.foodapp.navigation.Help
 import com.example.foodapp.navigation.MyAddressList
+import com.example.foodapp.navigation.Privacy
 import com.example.foodapp.navigation.Profile
 import com.example.foodapp.navigation.Security
 import com.example.foodapp.navigation.VoucherPublic
@@ -98,9 +101,15 @@ fun SettingScreen(
                 Setting.Event.NavigateToAddress -> {
                     navController.navigate(MyAddressList(isCheckout = false))
                 }
-                Setting.Event.NavigateToContact -> {}
-                Setting.Event.NavigateToHelp -> {}
-                Setting.Event.NavigateToPrivacy -> {}
+                Setting.Event.NavigateToContact -> {
+                    navController.navigate(Contact)
+                }
+                Setting.Event.NavigateToHelp -> {
+                    navController.navigate(Help)
+                }
+                Setting.Event.NavigateToPrivacy -> {
+                    navController.navigate(Privacy)
+                }
                 Setting.Event.NavigateToVoucher -> {
                     navController.navigate(VoucherPublic)
                 }
@@ -179,7 +188,6 @@ fun SettingScreen(
                             }
                         )
 
-                        SettingItem(Icons.Default.Language, "Ngôn ngữ", customView = {})
 
                     },
                 )
@@ -200,9 +208,9 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hỏi đáp & trợ giúp")
-                        SettingItem(Icons.AutoMirrored.Filled.Message, "Liên hệ")
-                        SettingItem(Icons.Default.PrivacyTip, "Chính sách bảo mật")
+                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hướng dẫn sử dụng", onClick = {viewModel.onAction(Setting.Action.OnHelpClicked)})
+                        SettingItem(Icons.AutoMirrored.Filled.Message, "Liên hệ", onClick = {viewModel.onAction(Setting.Action.OnContactClicked)})
+                        SettingItem(Icons.Default.PrivacyTip, "Chính sách bảo mật", onClick = {viewModel.onAction(Setting.Action.OnPrivacyClicked)})
                     }
                 )
             )

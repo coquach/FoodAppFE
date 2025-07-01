@@ -167,9 +167,10 @@ fun CheckoutScreen(
     }
 
 
-    LaunchedEffect(Unit) {
-        viewModel.getOrderByFoodTableId()
-    }
+//    LaunchedEffect(Unit) {
+//        viewModel.getOrderByFoodTableId()
+//
+//    }
 
 
 
@@ -289,7 +290,7 @@ fun CheckoutScreen(
                         },
                         label = "Edit button",
                     ) {
-                        if (it) {
+                        if (!it) {
                             LoadingButton(
                                 onClick = {
                                     viewModel.onAction(Checkout.Action.SaveOrderItems)

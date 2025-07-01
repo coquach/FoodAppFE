@@ -28,6 +28,8 @@ class ChatBoxViewModel @Inject constructor(
 
     private val _isLoading = mutableStateOf(false)
     val isLoading = _isLoading.value
+
+
     fun setMessage(value: String) {
         _message.value = value
     }
@@ -87,6 +89,7 @@ class ChatBoxViewModel @Inject constructor(
                        }
 
                        is ApiResponse.Loading -> {
+
                             _isLoading.value = true
                            _tempMessages.update { oldList ->
                                oldList + userMessage + botTypingMessage

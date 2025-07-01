@@ -61,6 +61,13 @@ class GetFoodsViewModel @Inject constructor(
     fun getFoodsByMenuId(filter: FoodFilter) = getFoodsByMenuIdUseCase(filter)
 
     private fun addFoodList(food: Food) {
+        val currentList = _uiState.value.foodStaffsUi
+
+
+        val isExist = currentList.any { it.id == food.id }
+
+        if (isExist) return
+
         val foodUi = FoodUiStaffModel(
             id = food.id,
             name = food.name,
@@ -70,7 +77,10 @@ class GetFoodsViewModel @Inject constructor(
             remainingQuantity = food.remainingQuantity,
             quantity = 1,
         )
-        _uiState.update { it.copy(foodStaffsUi = it.foodStaffsUi + foodUi) }
+
+        _uiState.update {
+            it.copy(foodStaffsUi = currentList + foodUi)
+        }
     }
 
     private fun removeFoodUi(id: Long) {

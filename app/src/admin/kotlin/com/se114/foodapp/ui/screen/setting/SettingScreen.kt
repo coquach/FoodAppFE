@@ -41,7 +41,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import com.example.foodapp.navigation.ChatBoxAdmin
+import com.example.foodapp.navigation.Contact
 import com.example.foodapp.navigation.FoodTableAdmin
+import com.example.foodapp.navigation.Help
+import com.example.foodapp.navigation.Privacy
 
 import com.example.foodapp.navigation.Supplier
 import com.example.foodapp.navigation.Voucher
@@ -97,15 +100,15 @@ fun SettingScreen(
                 }
 
                 SettingState.Event.NavigateToContact -> {
-
+                    navController.navigate(Contact)
                 }
 
                 SettingState.Event.NavigateToHelp -> {
-
+                    navController.navigate(Help)
                 }
 
                 SettingState.Event.NavigateToPrivacy -> {
-
+                    navController.navigate(Privacy)
                 }
 
                 SettingState.Event.NavigateToChat -> {
@@ -177,17 +180,21 @@ fun SettingScreen(
             SettingGroup(
                 items = listOf(
                     {
-                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hỏi đáp & trợ giúp", onClick = {
+                        SettingItem(Icons.AutoMirrored.Filled.Help, "Hướng dẫn sử dụng", onClick = {
                             viewModel.onAction(SettingState.Action.OnHelpClicked)
                         })
-                        SettingItem(Icons.AutoMirrored.Filled.Message, "Liên hệ")
-                        SettingItem(Icons.Default.PrivacyTip, "Chính sách bảo mật")
+                        SettingItem(Icons.AutoMirrored.Filled.Message, "Liên hệ", onClick = {
+                            viewModel.onAction(SettingState.Action.OnContactClicked)
+                        })
+                        SettingItem(Icons.Default.PrivacyTip, "Chính sách bảo mật", onClick = {
+                            viewModel.onAction(SettingState.Action.OnPrivacyClicked)
+                        })
                     }
                 )
             )
             AppButton(
                 onClick = {
-                    showDialogLogout =true
+                    showDialogLogout = true
                 },
 
                 text = "Đăng xuất",

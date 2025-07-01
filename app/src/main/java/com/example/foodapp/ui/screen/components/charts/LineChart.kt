@@ -41,7 +41,7 @@ fun <T> LineChartFromEntries(
     }
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(40.dp)
+        .axisStepSize(80.dp)
         .backgroundColor(Color.Transparent)
         .steps(entries.size - 1)
         .labelData { i -> entries.getOrNull(i)?.xLabel ?: "" }
@@ -99,7 +99,7 @@ fun <T> LineChartFromEntries(
     LineChart(
         modifier = modifier
             .fillMaxWidth()
-            .height(300.dp),
+            .height(350.dp),
         lineChartData = lineChartData
     )
 }
