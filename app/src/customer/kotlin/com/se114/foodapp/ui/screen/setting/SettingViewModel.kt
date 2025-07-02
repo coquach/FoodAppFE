@@ -128,7 +128,7 @@ class SettingViewModel @Inject constructor(
 
             is Setting.Action.OnPrivacyClicked -> {
                 viewModelScope.launch {
-                    _event.send(Setting.Event.NavigateToProfile)
+                    _event.send(Setting.Event.NavigateToPrivacy)
                 }
 
             }
