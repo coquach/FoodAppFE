@@ -136,6 +136,7 @@ val lifecycleOwner = LocalLifecycleOwner.current
                         viewModel.onAction(AddFood.Action.OnMenuChange(it.id!!, it.name))
                     }
                 },
+                modifier = Modifier.padding(8.dp),
                 containerColor = MaterialTheme.colorScheme.inversePrimary,
                 shouldSelectDefaultOption = true
             )

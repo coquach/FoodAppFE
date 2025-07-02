@@ -59,6 +59,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.VoucherType
 import com.example.foodapp.ui.screen.common.VoucherCard
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
@@ -272,17 +273,18 @@ fun VoucherListScreen(
                             MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(16.dp)
                         )
-                        .padding(30.dp)
+                        .padding(20.dp)
 
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .weight(1f)
                                 .verticalScroll(rememberScrollState()),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -370,23 +372,18 @@ fun VoucherListScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                         ) {
-                            Button(
+                            AppButton(
                                 onClick = {
                                     showVoucherDialog = false
                                 },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.outline
-                                ),
-                                modifier = Modifier.heightIn(48.dp),
-                                shape = RoundedCornerShape(12.dp)
+                               backgroundColor = MaterialTheme.colorScheme.outline,
+                                text = "Đóng",
 
 
-                            ) {
-                                Text(text = "Đóng", modifier = Modifier.padding(horizontal = 16.dp))
-                            }
+                            )
 
 
-                            Button(
+                            AppButton(
                                 onClick = {
 
                                     if (uiState.isUpdating) {
@@ -397,14 +394,8 @@ fun VoucherListScreen(
                                     showVoucherDialog = false
 
                                 },
-                                modifier = Modifier.heightIn(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                            ) {
-                                Text(
-                                    text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
-                                    modifier = Modifier.padding(horizontal = 8.dp)
-                                )
-                            }
+                                text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
+                            )
 
 
                         }

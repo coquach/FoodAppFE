@@ -225,7 +225,7 @@ fun StaffDetailsScreen(
             )
 
             ChipsGroupWrap(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.padding(8.dp),
                 text = "Chức vụ",
                 options = listOf("Bán hàng", "Giao Hàng"),
                 selectedOption = uiState.staff.position,

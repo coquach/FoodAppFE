@@ -73,6 +73,7 @@ import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
+import com.example.foodapp.ui.theme.confirm
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -275,7 +276,7 @@ fun SupplierScreen(
                                     endAction = { it ->
                                         SwipeAction(
                                             icon = rememberVectorPainter(Icons.Default.Visibility),
-                                            background = MaterialTheme.colorScheme.error,
+                                            background = MaterialTheme.colorScheme.confirm,
                                             onSwipe = {
                                                 viewModel.onAction(
                                                     SupplierState.Action.OnSupplierSelected(
@@ -434,6 +435,8 @@ fun SupplierScreen(
                 showSetActiveDialog = false
 
             },
+            titleColor = if (uiState.isHide) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.confirm,
+            containerConfirmButtonColor =  if (uiState.isHide) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.confirm,
             confirmText = if (uiState.isHide) "Ẩn" else "Hiện",
             dismissText = "Đóng",
             showConfirmButton = true

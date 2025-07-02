@@ -258,6 +258,7 @@ class SupplierViewModel @Inject constructor(
                         )
                     )
                 }
+                getSuppliers()
             }
 
             is SupplierState.Action.OnNameSearchChange -> {
@@ -289,7 +290,7 @@ class SupplierViewModel @Inject constructor(
 
 object SupplierState {
     data class UiState(
-        val filter: SupplierFilter = SupplierFilter(),
+        val filter: SupplierFilter = SupplierFilter(isActive = true),
         val isLoading: Boolean = false,
         val error: String? = null,
         val supplierSelected: Supplier = Supplier(),
