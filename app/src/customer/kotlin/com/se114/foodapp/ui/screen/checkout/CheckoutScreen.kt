@@ -235,13 +235,13 @@ fun CheckoutScreen(
                 viewModel.onAction(Checkout.Action.OnChooseVoucher)
             }
         )
-        Payment(
-            method = uiState.checkout.method?: PaymentMethod.CASH.getDisplayName(),
-            onSelected = {
-                val method = PaymentMethod.fromDisplay(it)!!.name
-                viewModel.onAction(Checkout.Action.OnPaymentMethodChanged(method))
-            }
-        )
+//        Payment(
+//            method = uiState.checkout.method?: PaymentMethod.CASH.getDisplayName(),
+//            onSelected = {
+//                val method = PaymentMethod.fromDisplay(it)!!.name
+//                viewModel.onAction(Checkout.Action.OnPaymentMethodChanged(method))
+//            }
+//        )
         CheckoutRowItem(
             title = "Tổng cộng",
             value =  uiState.checkoutDetails.totalAmount + calculateVoucherValue(uiState.checkout.voucher,uiState.checkoutDetails),
@@ -253,7 +253,8 @@ fun CheckoutScreen(
             },
             text = "Hoàn thành",
             loading = uiState.isLoading,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = uiState.checkout.address != null
 
         )
     }
