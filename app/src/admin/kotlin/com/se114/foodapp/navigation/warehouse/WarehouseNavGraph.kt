@@ -1,7 +1,6 @@
 package com.se114.foodapp.navigation.warehouse
 
 
-import androidx.compose.runtime.MutableState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -21,7 +20,7 @@ fun NavGraphBuilder.warehouseGraph(
     navController: NavHostController,
 ) {
     composable<Warehouse>{
-        ScreenContainer(isBottomBarVisible = true) {
+        ScreenContainer {
             WarehouseScreen(navController)
         }
 

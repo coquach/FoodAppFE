@@ -14,10 +14,9 @@ import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.data.model.enums.ServingType
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
 import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
-import com.example.foodapp.domain.use_case.auth.LoadProfileUseCase
+import com.se114.foodapp.domain.use_case.user.LoadProfileUseCase
 import com.example.foodapp.domain.use_case.order.PlaceOrderUseCase
 import com.se114.foodapp.domain.use_case.cart.ClearAllCartUseCase
-import com.se114.foodapp.domain.use_case.cart.ClearCartUseCase
 import com.se114.foodapp.domain.use_case.cart.GetCartUseCase
 import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -168,9 +167,7 @@ class CheckoutViewModel @Inject constructor(
                 _uiState.update { it.copy(checkout = _uiState.value.checkout.copy(type = action.type)) }
             }
 
-            is Checkout.Action.OnFoodTableIdChanged -> {
-                _uiState.update { it.copy(checkout = _uiState.value.checkout.copy(foodTableId = action.id)) }
-            }
+
 
             is Checkout.Action.OnChooseVoucher -> {
                 viewModelScope.launch {
@@ -200,7 +197,7 @@ object Checkout {
         ),
         val error: String? = null,
         val checkout: CheckoutUiModel = CheckoutUiModel(
-            foodTableId = null,
+            foodTableNumber = null,
             voucher = null,
             method = PaymentMethod.CASH.display,
             type = ServingType.ONLINE.name,
@@ -227,7 +224,6 @@ object Checkout {
         data class OnNoteChanged(val note: String) : Action
         data class OnPaymentMethodChanged(val method: String) : Action
         data class OnServingTypeChanged(val type: String) : Action
-        data class OnFoodTableIdChanged(val id: Int?) : Action
         data class OnVoucherChanged(val voucher: Voucher) : Action
         data class OnAddressChanged(val address: Address) : Action
     }

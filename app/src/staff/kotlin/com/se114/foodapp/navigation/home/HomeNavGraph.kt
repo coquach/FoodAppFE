@@ -1,17 +1,20 @@
 package com.se114.foodapp.navigation.home
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.runtime.MutableState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.example.foodapp.navigation.Cart
+import androidx.navigation.toRoute
 import com.example.foodapp.navigation.CheckoutStaff
+import com.example.foodapp.navigation.GetFoodForStaff
 import com.example.foodapp.navigation.Home
+import com.example.foodapp.navigation.OrderSuccess
 import com.example.foodapp.navigation.VoucherCheck
+import com.example.foodapp.navigation.VoucherCheckStaff
+import com.example.foodapp.ui.screen.order_success.OrderSuccessScreen
 import com.example.foodapp.utils.ScreenContainer
-import com.se114.foodapp.ui.screen.cart.CartScreen
 import com.se114.foodapp.ui.screen.checkout.CheckoutScreen
+import com.se114.foodapp.ui.screen.checkout.get_foods.GetFoodsScreen
 import com.se114.foodapp.ui.screen.checkout.voucher_check.VoucherCheckScreen
 import com.se114.foodapp.ui.screen.home.HomeStaffScreen
 
@@ -20,23 +23,16 @@ fun NavGraphBuilder.homeGraph(
     navController: NavHostController,
     sharedTransitionScope: SharedTransitionScope
 ) {
-    with(sharedTransitionScope) {
+
         composable<Home> {
 
             ScreenContainer {
-                HomeStaffScreen(navController, this)
+                HomeStaffScreen(navController)
             }
 
         }
-    }
 
-    composable<Cart>{
 
-        ScreenContainer {
-            CartScreen(navController)
-        }
-
-    }
     composable<CheckoutStaff> {
 
         ScreenContainer {
@@ -44,9 +40,28 @@ fun NavGraphBuilder.homeGraph(
         }
 
     }
-    composable<VoucherCheck>{
+
+    with(sharedTransitionScope) {
+        composable<GetFoodForStaff> {
+            ScreenContainer {
+                GetFoodsScreen(
+                    navController,
+                    animatedVisibilityScope = this
+                )
+            }
+        }
+    }
+
+    composable<VoucherCheckStaff>{
         ScreenContainer {
             VoucherCheckScreen(navController)
+        }
+    }
+
+    composable<OrderSuccess> {
+        val orderID = it.toRoute<OrderSuccess>().orderId
+        ScreenContainer {
+            OrderSuccessScreen(navController = navController, orderID = orderID)
         }
     }
 

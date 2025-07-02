@@ -51,6 +51,7 @@ import com.example.foodapp.ui.screen.components.gridItems
 import com.example.foodapp.utils.StringUtils
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
+import java.util.Locale
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -121,6 +122,7 @@ fun SharedTransitionScope.FoodView(
                     .align(Alignment.TopStart)
             )
             if (isCustomer) {
+
                 Box(
                     modifier = Modifier
                         .padding(8.dp)
@@ -147,8 +149,13 @@ fun SharedTransitionScope.FoodView(
                         .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val averageRating = if (food.totalFeedbacks == 0) {
+                        0.0
+                    } else {
+                        String.format(Locale.getDefault(),"%.1f", food.totalRating / food.totalFeedbacks)
+                    }
                     Text(
-                        text = "${food.totalRating}",
+                        text =  "$averageRating",
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 1
                     )
@@ -161,18 +168,13 @@ fun SharedTransitionScope.FoodView(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = "(${food.totalFeedback})",
+                        text = "(${food.totalFeedbacks})",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                         maxLines = 1
                     )
                 }
             }
-
-
-
-
-
 
 
         }
@@ -191,11 +193,13 @@ fun SharedTransitionScope.FoodView(
                     .then(
                         if (isAnimated) {
                             Modifier.sharedElement(
-                    state = rememberSharedContentState(key = "title/${food.id}"),
-                    animatedVisibilityScope
-                )} else{
+                                state = rememberSharedContentState(key = "title/${food.id}"),
+                                animatedVisibilityScope
+                            )
+                        } else {
                             Modifier
-                }),
+                        }
+                    ),
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
@@ -210,9 +214,11 @@ fun SharedTransitionScope.FoodView(
                             Modifier.sharedElement(
                                 state = rememberSharedContentState(key = "description/${food.id}"),
                                 animatedVisibilityScope
-                            )} else{
+                            )
+                        } else {
                             Modifier
-                        })
+                        }
+                    )
             )
         }
     }
@@ -232,18 +238,20 @@ fun SharedTransitionScope.FoodList(
     isFullWidth: Boolean = false,
     isAnimated: Boolean = true,
     endAction: (@Composable (Food) -> SwipeAction)? = null,
+    onRefresh: () -> Unit = {},
 
-) {
+    ) {
     LazyPagingSample(
         modifier = modifier,
         items = foods,
         textNothing = "Không có món ăn nào",
         iconNothing = Icons.Default.NoMeals,
         columns = if (isFullWidth) 1 else 2,
-        key = {food ->
+        key = { food ->
             food.id
-        }
-    ) {food ->
+        },
+        onRefresh = onRefresh
+    ) { food ->
         if (isSwipeAction) {
 
             SwipeableActionsBox(

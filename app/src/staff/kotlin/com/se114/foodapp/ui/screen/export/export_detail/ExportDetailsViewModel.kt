@@ -38,7 +38,7 @@ import kotlin.reflect.typeOf
 @HiltViewModel
 class ExportDetailsViewModel @Inject constructor(
 
-    private val getStaffUseCase: GetStaffUseCase,
+
     private val getInventoriesUseCase: GetInventoriesUseCase,
     private val createExportUseCase: CreateExportUseCase,
     private val updateExportUseCase: UpdateExportUseCase,
@@ -51,7 +51,7 @@ class ExportDetailsViewModel @Inject constructor(
     private val exportDetails = export.exportDetails.map {
         it.toExportDetailUiModel()
     }
-    val isEditable = export.exportDate?.plusDays(1)?.isAfter(LocalDate.now()) == true
+    val isEditable = export.exportDate == LocalDate.now()
 
 
     private val isUpdated = arguments.isUpdating
@@ -69,12 +69,6 @@ class ExportDetailsViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    val staffs: StateFlow<PagingData<Staff>> =
-        getStaffUseCase.invoke(StaffFilter()).cachedIn(viewModelScope).stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000), PagingData.empty()
-        )
-
     val inventories: StateFlow<PagingData<Inventory>> =
         getInventoriesUseCase.invoke(InventoryFilter()).cachedIn(viewModelScope).stateIn(
             viewModelScope,
@@ -84,10 +78,30 @@ class ExportDetailsViewModel @Inject constructor(
 
     private fun addExportDetails() {
         val newExportDetails = _uiState.value.exportDetailsSelected
-        _uiState.update {
-            it.copy(
-                exportDetails = it.exportDetails + newExportDetails
+        val currentList = _uiState.value.exportDetails
+
+
+        val existingDetailIndex = currentList.indexOfFirst {
+            it.inventoryId == newExportDetails.inventoryId
+        }
+
+        if (existingDetailIndex != -1) {
+
+            val updatedList = currentList.toMutableList()
+            val existingDetail = updatedList[existingDetailIndex]
+            val updatedDetail = existingDetail.copy(
+                quantity = existingDetail.quantity + newExportDetails.quantity
             )
+            updatedList[existingDetailIndex] = updatedDetail
+
+            _uiState.update {
+                it.copy(exportDetails = updatedList)
+            }
+        } else {
+            // Nếu không trùng -> thêm mới
+            _uiState.update {
+                it.copy(exportDetails = currentList + newExportDetails)
+            }
         }
     }
 
@@ -186,7 +200,8 @@ class ExportDetailsViewModel @Inject constructor(
                     it.copy(
                         exportDetailsSelected = it.exportDetailsSelected.copy(
                             inventoryId = action.inventory.id,
-                            ingredientName = action.inventory.ingredientName
+                            ingredientName = action.inventory.ingredientName,
+                            quantityMaximum = action.inventory.quantityRemaining
                         )
                     )
                 }
@@ -209,13 +224,6 @@ class ExportDetailsViewModel @Inject constructor(
                 }
             }
 
-            is ExportDetailsState.Action.OnChangeStaffId -> {
-                _uiState.update {
-                    it.copy(
-                        export = it.export.copy(staffId = action.staffId)
-                    )
-                }
-            }
 
             is ExportDetailsState.Action.OnChangeExpiryDate -> {
                 _uiState.update {
@@ -304,7 +312,6 @@ object ExportDetailsState {
     sealed interface Action {
         data object OnBack : Action
         data class OnExportDetailsSelected(val exportDetails: ExportDetailUIModel) : Action
-        data class OnChangeStaffId(val staffId: Long) : Action
         data class OnChangeInventory(val inventory: Inventory) : Action
         data class OnChangeQuantity(val quantity: BigDecimal) : Action
         data class OnChangeExpiryDate(val expiryDate: LocalDate) : Action

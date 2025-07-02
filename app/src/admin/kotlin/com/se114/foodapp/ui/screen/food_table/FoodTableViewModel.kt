@@ -2,28 +2,18 @@ package com.se114.foodapp.ui.screen.food_table
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.filter.FoodTableFilter
-import com.example.foodapp.data.dto.filter.StaffFilter
 import com.example.foodapp.data.model.FoodTable
-import com.example.foodapp.data.model.Staff
 import com.example.foodapp.domain.use_case.food_table.GetFoodTablesUseCase
-import com.example.foodapp.domain.use_case.food_table.UpdateFoodTableStatusUseCase
-import com.example.foodapp.utils.TabCacheManager
-import com.google.android.play.integrity.internal.ac
+import com.se114.foodapp.domain.use_case.food_table.UpdateFoodTableStatusUseCase
 import com.se114.foodapp.domain.use_case.food_table.CreateFoodTableUseCase
-import com.se114.foodapp.domain.use_case.food_table.DeleteFoodTableUseCase
 import com.se114.foodapp.domain.use_case.food_table.UpdateFoodTableUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -38,14 +28,14 @@ class FoodTableViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        FoodTableState.UiState(
-            foodTableFilter = FoodTableFilter(active = true)
-        )
+        FoodTableState.UiState()
     )
     val uiState get() = _uiState.asStateFlow()
 
     private val _event = Channel<FoodTableState.Event>()
     val event get() = _event.receiveAsFlow()
+
+    fun getFoodTables(filter: FoodTableFilter) = getFoodTablesUseCase(filter)
 
 
     private fun createFoodTable() {

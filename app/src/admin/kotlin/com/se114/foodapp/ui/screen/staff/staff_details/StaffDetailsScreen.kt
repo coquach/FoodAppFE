@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -71,7 +72,9 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
+import com.example.foodapp.ui.screen.components.ValidateTextField
 import com.example.foodapp.utils.StringUtils
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -189,7 +192,7 @@ fun StaffDetailsScreen(
 
 
             }
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.staff.fullName,
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangeFullName(it))
@@ -199,7 +202,12 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                labelText = "Họ và tên"
+                labelText = "Họ và tên",
+                errorMessage = uiState.fullNameError,
+                validate = {
+                    viewModel.validate("fullName")
+                },
+
             )
             RadioGroupWrap(
                 text = "Giới tính",
@@ -210,7 +218,7 @@ fun StaffDetailsScreen(
                     viewModel.onAction(StaffDetails.Action.OnChangeGender(it))
                 }
             )
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.staff.phone,
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangePhone(it))
@@ -220,11 +228,15 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                labelText = "Số điện thoại"
+                labelText = "Số điện thoại",
+                errorMessage = uiState.phoneError,
+                validate = {
+                    viewModel.validate("phone")
+                },
             )
 
             ChipsGroupWrap(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.padding(8.dp),
                 text = "Chức vụ",
                 options = listOf("Bán hàng", "Giao Hàng"),
                 selectedOption = uiState.staff.position,
@@ -238,19 +250,28 @@ fun StaffDetailsScreen(
             DatePickerSample(
                 text = "Ngày sinh",
                 selectedDate = uiState.staff.birthDate,
-                onDateSelected = { viewModel.onAction(StaffDetails.Action.OnChangeBirthDate(it)) }
+                onDateSelected = { viewModel.onAction(StaffDetails.Action.OnChangeBirthDate(it)) },
+                maxDate = LocalDate.now()
             )
 
-            DateRangePickerSample(
-                startDate = uiState.staff.startDate,
-                endDate = uiState.staff.endDate,
-                onDateRangeSelected = { start, end ->
-                    viewModel.onAction(StaffDetails.Action.OnChangeStartDate(start))
-                    viewModel.onAction(StaffDetails.Action.OnChangeEndDate(end))
+            DatePickerSample(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Ngày vào làm",
+                selectedDate = uiState.staff.startDate,
+                onDateSelected = {
+                    viewModel.onAction(StaffDetails.Action.OnChangeStartDate(it))
                 },
-                modifier = Modifier.fillMaxWidth()
             )
-            FoodAppTextField(
+            if(uiState.staff.endDate!=null){
+                FoodAppTextField(
+                    value = StringUtils.formatLocalDate(uiState.staff.endDate)!!,
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    labelText = "Ngày nghỉ"
+                )
+            }
+            ValidateTextField(
                 value = uiState.staff.address,
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangeAddress(it))
@@ -260,9 +281,13 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Next
                 ),
-                labelText = "Địa chỉ"
+                labelText = "Địa chỉ",
+                errorMessage = uiState.addressError,
+                validate = {
+                    viewModel.validate("address")
+                },
             )
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.staff.basicSalary.toPlainString(),
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangeBasicSalary(it.toBigDecimalOrNull()))
@@ -272,7 +297,11 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
-                labelText = "Lương cơ bản"
+                labelText = "Lương cơ bản",
+                errorMessage = uiState.basicSalaryError,
+                validate = {
+                    viewModel.validate("basicSalary")
+                },
             )
 
         }
@@ -289,6 +318,7 @@ fun StaffDetailsScreen(
             modifier = Modifier.fillMaxWidth(),
             text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
             loading = uiState.isLoading,
+            enabled = uiState.isValid
 
         )
         
@@ -378,10 +408,11 @@ fun HistorySalarySection(
                 text = "${data.month}/${data.year}",
                 icon = Icons.Default.DateRange
             )
+            Spacer(modifier = Modifier.weight(1f))
             DetailsTextRow(
                 text = StringUtils.formatCurrency(data.currentSalary),
                 icon = Icons.Default.MonetizationOn,
-                color = MaterialTheme.colorScheme.onPrimary
+
             )
         }
 

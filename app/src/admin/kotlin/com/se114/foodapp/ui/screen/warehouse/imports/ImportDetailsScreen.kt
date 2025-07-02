@@ -104,8 +104,6 @@ fun ImportDetailsScreen(
 
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val suppliers = viewModel.suppliers.collectAsLazyPagingItems()
-
 
 
     val totalCost by remember {
@@ -117,7 +115,7 @@ fun ImportDetailsScreen(
     var isCreating by rememberSaveable { mutableStateOf(false) }
     var isEditMode by rememberSaveable { mutableStateOf(false) }
 
-    
+
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
@@ -156,10 +154,11 @@ fun ImportDetailsScreen(
                 ImportDetailsState.Event.ShowError -> {
                     showErrorSheet = true
                 }
+
                 is ImportDetailsState.Event.NotifyCantEdit -> {
                     Toast.makeText(
                         navController.context,
-                        "Không thể sửa phiếu nhập này vì đã quá hạn 3 ngày",
+                        "Không thể sửa phiếu nhập này vì đã quá hạn",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -167,6 +166,7 @@ fun ImportDetailsScreen(
         }
     }
     LaunchedEffect(Unit) {
+        viewModel.getSuppliers()
         viewModel.getIngredients()
     }
     Column(
@@ -197,20 +197,25 @@ fun ImportDetailsScreen(
             ) {
 
 
-//                CustomPagingDropdown(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    title = "Nhà cung cấp",
-//                    textPlaceholder = "Chọn nhà cung cấp",
-//                    selected = uiState.import.supplierName,
-//                    onItemSelected = { item ->
-//
-//                            viewModel.onAction(ImportDetailsState.Action.OnChangeSupplierId(item.id!!))
-//
-//                    },
-//                    items = suppliers,
-//                    enabled = uiState.isEditable,
-//                    labelExtractor = { supplier -> supplier.name },
-//                )
+                ComboBoxSample(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = "Nhà cung cấp",
+                    textPlaceholder = "Chọn nhà cung cấp...",
+                    selected = uiState.import.supplierName,
+                    onPositionSelected = { selected ->
+                        val selectedSupplier = uiState.suppliers.find { it.name == selected }
+                        selectedSupplier?.let {
+                            viewModel.onAction(
+                                ImportDetailsState.Action.OnChangeSupplier(
+                                    it.id!!,
+                                    it.name
+                                )
+                            )
+                        }
+                    },
+                    options = uiState.suppliers.map { it.name },
+                    enabled = uiState.isEditable
+                )
 
 
             }
@@ -226,8 +231,13 @@ fun ImportDetailsScreen(
                 ) {
                     IconButton(
                         onClick = {
-                            viewModel.onAction(ImportDetailsState.Action.OnImportDetailsSelected(ImportDetailUIModel()))
-                            isCreating = true },
+                            viewModel.onAction(
+                                ImportDetailsState.Action.OnImportDetailsSelected(
+                                    ImportDetailUIModel()
+                                )
+                            )
+                            isCreating = true
+                        },
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
@@ -276,7 +286,7 @@ fun ImportDetailsScreen(
                                         (slideOutVertically { -it } + fadeOut())
                             },
                             label = "Creating Switch"
-                        ){creating ->
+                        ) { creating ->
                             if (creating) {
                                 ImportDetailsEditCard(
                                     importDetail = uiState.importDetailsSelected,
@@ -333,14 +343,14 @@ fun ImportDetailsScreen(
                             }
 
 
-
-
-                    }
+                        }
 
                     }
-                    items(uiState.importDetails, key = { importDetails -> importDetails.localId }) { importDetails ->
+                    items(
+                        uiState.importDetails,
+                        key = { importDetails -> importDetails.localId }) { importDetails ->
                         val isEditing = isEditMode &&
-                            uiState.importDetailsSelected.localId == importDetails.localId
+                                uiState.importDetailsSelected.localId == importDetails.localId
 
                         AnimatedContent(
                             targetState = isEditing,
@@ -422,7 +432,7 @@ fun ImportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Edit),
                                             background = MaterialTheme.colorScheme.primary,
                                             onSwipe = {
-                                                if (uiState.isEditable && !isCreating) {
+                                                if (if(uiState.isUpdating) uiState.isEditable && !isCreating  else !isCreating ) {
 
                                                     viewModel.onAction(
                                                         ImportDetailsState.Action.OnImportDetailsSelected(
@@ -430,7 +440,7 @@ fun ImportDetailsScreen(
                                                         )
                                                     )
                                                     isEditMode = true
-                                                }else{
+                                                } else {
                                                     viewModel.onAction(ImportDetailsState.Action.NotifyCantEdit)
                                                 }
 
@@ -442,14 +452,14 @@ fun ImportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Delete),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
-                                                if (uiState.isEditable && !isCreating) {
+                                                if (if(uiState.isUpdating) uiState.isEditable && !isCreating  else !isCreating ) {
                                                     viewModel.onAction(
 
                                                         ImportDetailsState.Action.DeleteImportDetails(
                                                             importDetails.localId
                                                         )
                                                     )
-                                                }else{
+                                                } else {
                                                     viewModel.onAction(ImportDetailsState.Action.NotifyCantEdit)
                                                 }
 
@@ -467,11 +477,15 @@ fun ImportDetailsScreen(
 
                     }
                     item {
-                        if (uiState.isEditable && !isCreating && !isEditMode) {
+                        if (if(uiState.isUpdating) uiState.isEditable && !isCreating && !isEditMode else !isCreating && !isEditMode) {
                             IconButton(
                                 onClick = {
                                     isCreating = true
-                                    viewModel.onAction(ImportDetailsState.Action.OnImportDetailsSelected(ImportDetailUIModel()))
+                                    viewModel.onAction(
+                                        ImportDetailsState.Action.OnImportDetailsSelected(
+                                            ImportDetailUIModel()
+                                        )
+                                    )
                                     coroutineScope.launch {
                                         listState.animateScrollToItem(0)
                                     }
@@ -547,7 +561,7 @@ fun ImportDetailsCard(importDetail: ImportDetailUIModel) {
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inversePrimary.copy(blue = 0.5f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         Row(
             modifier = Modifier
@@ -660,7 +674,8 @@ fun ImportDetailsEditCard(
 
                         onChangeProductionDate(selectedStartDate!!)
                         onChangeExpiryDate(selectedEndDate!!)
-                    }
+                    },
+                    isColumn = true
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically

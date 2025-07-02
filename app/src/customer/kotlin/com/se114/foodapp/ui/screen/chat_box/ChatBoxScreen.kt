@@ -193,7 +193,7 @@ fun MessageInput(
         IconButton(
             onClick = {
 
-                    if (message.isNotEmpty() && !isLoading) {
+                    if (message.isNotBlank() && !isLoading) {
                         val messageSend = message.trim()
                         onMessageSend(messageSend)
                         onMessageChange("")
@@ -206,7 +206,7 @@ fun MessageInput(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = "Send",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = if(message.isNotBlank() && !isLoading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 modifier = Modifier.size(24.dp)
             )
         }

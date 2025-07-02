@@ -13,4 +13,6 @@ interface StaffRepository {
     fun createStaff(request: Map<String, @JvmSuppressWildcards RequestBody>, image: MultipartBody.Part? = null): Flow<ApiResponse<Staff>>
     fun updateStaff(id: Long, request: Map<String, @JvmSuppressWildcards RequestBody>, image: MultipartBody.Part? = null): Flow<ApiResponse<Staff>>
     fun deleteStaff(id: Long): Flow<ApiResponse<Unit>>
+    fun terminateStaff(id: Long): Flow<ApiResponse<Staff>>
+
 }

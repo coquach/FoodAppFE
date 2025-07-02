@@ -105,6 +105,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 
@@ -289,17 +292,16 @@ fun ErrorModalBottomSheet(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            Button(
+            AppButton(
                 onClick = {
                     scope.launch {
                         sheetState.hide()
                         onDismiss()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Đóng")
-            }
+                modifier = Modifier.fillMaxWidth(),
+                text = "Đóng",
+            )
         }
     }
 }
@@ -314,6 +316,7 @@ fun FoodItemCounter(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
     ) {
         IconButton(
@@ -338,14 +341,14 @@ fun FoodItemCounter(
             )
         }
 
-        Spacer(modifier = Modifier.size(8.dp))
+
         Text(
             text = "$count",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.height(20.dp),
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.size(8.dp))
+
 
         IconButton(
             onClick = {
@@ -484,7 +487,7 @@ fun HeaderDefaultView(
         if (onBack != null) {
             IconCustomButton(
                 onClick = onBack,
-                icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                icon = onBackIcon,
                 containerColor = Color.Transparent,
                 iconColor = MaterialTheme.colorScheme.primary
             )
@@ -844,6 +847,7 @@ fun <T : Any> LazyPagingSample(
     textNothing: String,
     iconNothing: ImageVector,
     onRetry: (() -> Unit)? = null,
+    onRefresh: (() -> Unit)? = null,
     columns: Int = 1,
     key: ((item: T) -> Any)? = null,
     itemContent: @Composable (T) -> Unit,
@@ -864,6 +868,7 @@ fun <T : Any> LazyPagingSample(
         onRefresh = {
           coroutineScope.launch {
               isRefreshing = true
+              onRefresh?.invoke()
               delay(1000L)
               isRefreshing = false
           }
@@ -946,6 +951,8 @@ fun <T : Any> LazyPagingSample(
         }
         Indicator(
             modifier = Modifier.align(Alignment.TopCenter),
+            color = MaterialTheme.colorScheme.onPrimary,
+            containerColor = MaterialTheme.colorScheme.primary,
             isRefreshing = isRefreshing,
             state = pullState
         )
@@ -956,7 +963,7 @@ fun <T : Any> LazyPagingSample(
 
 @Composable
 fun NoteInput(
-    modifier: Modifier = Modifier.height(200.dp),
+    modifier: Modifier = Modifier.height(300.dp),
     note: String,
     onNoteChange: (String) -> Unit,
     maxLines: Int = 5,
@@ -984,7 +991,11 @@ fun NoteInput(
         ),
         textStyle = MaterialTheme.typography.bodyMedium,
         shape = RoundedCornerShape(8.dp),
-        maxLines = maxLines
+        maxLines = maxLines,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Done
+        )
     )
 }
 

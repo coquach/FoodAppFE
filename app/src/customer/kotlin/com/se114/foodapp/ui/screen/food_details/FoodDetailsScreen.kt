@@ -1,15 +1,9 @@
 package com.se114.foodapp.ui.screen.food_details
 
-import androidx.compose.animation.AnimatedContent
+import android.widget.Space
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,20 +12,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Feedback
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,8 +32,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.navigation.Cart
@@ -68,8 +60,8 @@ import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.ui.component.ImageCarousel
 import com.se114.foodapp.ui.screen.feedback.FeedbackList
-
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +71,9 @@ fun SharedTransitionScope.FoodDetailsScreen(
     viewModel: FoodDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val feedbacks = viewModel.feedbacks.collectAsLazyPagingItems()
+    val feedbacks = remember {
+        viewModel.getFeedbacks()
+    }.collectAsLazyPagingItems()
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -120,24 +114,64 @@ fun SharedTransitionScope.FoodDetailsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = {
+                    viewModel.onAction(FoodDetails.Action.OnBack)
+                },
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(color = MaterialTheme.colorScheme.onPrimary)
+
+
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBackIosNew,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(30.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = {
+                    viewModel.onAction(FoodDetails.Action.OnFavorite(uiState.food.id))
+                },
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(if (uiState.food.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+
+
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = "Favorite",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+        }
         val images = uiState.food.images?.map {
             it.url
         }
-        MenuHeader(
-            images = images ?: emptyList(),
-            foodId = uiState.food.id,
-            onBackButton = {
-                navController.popBackStack()
-            },
-            onFavoriteButton = {
-                viewModel.onAction(FoodDetails.Action.OnFavorite(uiState.food.id))
-            },
-
+        ImageCarousel(
+            modifier = Modifier
+                .fillMaxWidth(),
+            images = images?: emptyList(),
             animatedVisibilityScope = animatedVisibilityScope,
-            isFavorite = uiState.food.liked
+            foodId = uiState.food.id
         )
+
         FoodDetail(
             modifier = Modifier.fillMaxWidth(),
             title = uiState.food.name,
@@ -145,19 +179,18 @@ fun SharedTransitionScope.FoodDetailsScreen(
             foodId = uiState.food.id,
             animatedVisibilityScope = animatedVisibilityScope,
             totalRating = uiState.food.totalRating,
-            totalFeedbacks = uiState.food.totalFeedback,
+            totalFeedbacks = uiState.food.totalFeedbacks,
             totalLikes = uiState.food.totalLikes,
         )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
 
-
         ) {
             Text(
                 text = StringUtils.formatCurrency(uiState.food.price),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineLarge
+                style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.weight(1f))
             FoodItemCounter(
@@ -184,7 +217,9 @@ fun SharedTransitionScope.FoodDetailsScreen(
             )
             FeedbackList(
                 feedbacks = feedbacks,
-                modifier = Modifier.fillMaxWidth().weight(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
             )
         }
         LoadingButton(
@@ -196,7 +231,7 @@ fun SharedTransitionScope.FoodDetailsScreen(
             loading = uiState.isLoading,
             enabled = !uiState.isLoading,
 
-        )
+            )
     }
 
     if (showSuccessDialog) {
@@ -209,13 +244,16 @@ fun SharedTransitionScope.FoodDetailsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
                     text = successMessage,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.size(16.dp))
+
                 AppButton(
                     onClick = {
                         showSuccessDialog = false
@@ -271,12 +309,9 @@ fun SharedTransitionScope.FoodDetail(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.sharedElement(
-                state = rememberSharedContentState(key = "title/${foodId}"),
-                animatedVisibilityScope
-            ),
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+
         )
 
         Row(
@@ -290,8 +325,13 @@ fun SharedTransitionScope.FoodDetail(
                 tint = MaterialTheme.colorScheme.primary
             )
 
+            val averageRating = if (totalFeedbacks == 0) {
+                0.0
+            } else {
+                String.format(Locale.getDefault(),"%.1f", totalRating / totalFeedbacks)
+            }
             Text(
-                text = "$totalRating",
+                text = "$averageRating",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.align(Alignment.CenterVertically)
 
@@ -332,9 +372,8 @@ fun SharedTransitionScope.FoodDetail(
         )
         Text(
             text = description,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
-                .padding(top = 8.dp)
                 .sharedElement(
                     state = rememberSharedContentState(key = "description/${foodId}"),
                     animatedVisibilityScope
@@ -343,68 +382,7 @@ fun SharedTransitionScope.FoodDetail(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun SharedTransitionScope.MenuHeader(
-    images: List<String>,
-    foodId: Long,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    onBackButton: () -> Unit,
-    onFavoriteButton: () -> Unit,
-    isFavorite: Boolean,
-) {
-    Box(modifier = Modifier.fillMaxWidth()) {
-        IconButton(
-            onClick = {
-                onBackButton.invoke()
-            },
-            modifier = Modifier
 
-                .padding(16.dp)
-                .size(50.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(color = MaterialTheme.colorScheme.onPrimary)
-                .padding(4.dp)
-                .zIndex(1f),
-
-            ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBackIosNew,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(30.dp)
-            )
-        }
-
-
-        IconButton(
-            onClick = { onFavoriteButton },
-            modifier = Modifier
-
-                .size(50.dp)
-                .clip(CircleShape)
-                .background(if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
-                .align(Alignment.TopEnd)
-                .zIndex(1f)
-
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = "Favorite",
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(30.dp)
-            )
-        }
-        ImageCarousel(
-            images = images,
-            animatedVisibilityScope = animatedVisibilityScope,
-            foodId = foodId
-        )
-
-
-    }
-}
 
 
 

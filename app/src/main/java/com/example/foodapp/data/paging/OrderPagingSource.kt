@@ -31,6 +31,8 @@ class OrderPagingSource @Inject constructor(
                     sellerId = filter.sellerId,
                     shipperId = filter.shipperId,
                     type = filter.type,
+                    foodTableId = filter.foodTableId,
+                    notStatus = filter.notStatus,
                     paymentMethod = filter.paymentMethod,
                     startDate = StringUtils.formatLocalDate(filter.startDate),
                     endDate = StringUtils.formatLocalDate(filter.endDate)

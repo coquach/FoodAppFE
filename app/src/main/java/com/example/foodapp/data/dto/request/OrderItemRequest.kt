@@ -5,6 +5,11 @@ import com.google.gson.annotations.SerializedName
 
 
 data class OrderItemRequest(
+    val id: Long?=null,
     val foodId: Long,
     val quantity: Int,
+)
+
+data class OrderItemsBatchRequest(
+    val orderItems: List<OrderItemRequest>
 )

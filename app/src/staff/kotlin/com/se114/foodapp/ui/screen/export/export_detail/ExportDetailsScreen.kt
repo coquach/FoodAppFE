@@ -1,5 +1,6 @@
 package com.se114.foodapp.ui.screen.export.export_detail
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -91,15 +92,12 @@ fun ExportDetailsScreen(
     viewModel: ExportDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val staffs = viewModel.staffs.collectAsLazyPagingItems()
     val inventories = viewModel.inventories.collectAsLazyPagingItems()
 
 
     var isCreating by rememberSaveable { mutableStateOf(false) }
     var isEditMode by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
-
-
 
 
     val listState = rememberLazyListState()
@@ -114,9 +112,11 @@ fun ExportDetailsScreen(
                 ExportDetailsState.Event.GoBack -> {
                     navController.popBackStack()
                 }
+
                 ExportDetailsState.Event.ShowError -> {
-                   showErrorSheet = true
-                    }
+                    showErrorSheet = true
+                }
+
                 ExportDetailsState.Event.BackToAfterModify -> {
                     if (uiState.isUpdating) {
                         Toast.makeText(
@@ -140,7 +140,7 @@ fun ExportDetailsScreen(
                 ExportDetailsState.Event.NotifyCantEdit -> {
                     Toast.makeText(
                         navController.context,
-                        "Không thể sửa đơn xuất vì quá hạn 1 ngày",
+                        "Không thể sửa đơn xuất vì quá hạn",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -160,40 +160,7 @@ fun ExportDetailsScreen(
             },
             text = "Thông tin đơn xuất"
         )
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
 
-            ) {
-//                ComboBoxSampleLazyPaging(
-//                    modifier = Modifier
-//                        .fillMaxWidth(),
-//                    title = "Nhân viên",
-//                    textPlaceholder = "Chọn nhân viên",
-//                    selected = uiState.export.staffName,
-//                    onPositionSelected = { name ->
-//                        val selectedSupplier = (0 until staffs.itemCount)
-//                            .mapNotNull { index -> staffs[index] }
-//                            .find { it.fullName == name }
-//                        val supplierId = selectedSupplier?.id
-//                        supplierId?.let {
-//                            viewModel.onAction(ExportDetailsState.Action.OnChangeStaffId(it))
-//                        }
-//                    },
-//                    options = staffs,
-//                    labelExtractor = { staff -> staff.fullName },
-//                    enabled = uiState.isEditable,
-//                )
-            }
-        }
 
         if (uiState.exportDetails.isEmpty() && !isCreating) {
             Box(
@@ -205,7 +172,11 @@ fun ExportDetailsScreen(
                 ) {
                     IconButton(
                         onClick = {
-                            viewModel.onAction(ExportDetailsState.Action.OnExportDetailsSelected(ExportDetailUIModel()))
+                            viewModel.onAction(
+                                ExportDetailsState.Action.OnExportDetailsSelected(
+                                    ExportDetailUIModel()
+                                )
+                            )
                             isCreating = true
                             isInventoryDialog = true
                         },
@@ -249,37 +220,49 @@ fun ExportDetailsScreen(
                     state = listState
 
                 ) {
-                    item {
-                        AnimatedContent(
-                            targetState = isCreating,
-                            transitionSpec = {
-                                (slideInVertically { it } + fadeIn()) togetherWith
-                                        (slideOutVertically { -it } + fadeOut())
-                            },
-                            label = "Creating Switch"){creating ->
-                            if (creating) {
-                                ExportDetailsCard(
-                                    exportDetail = uiState.exportDetailsSelected,
-                                    onIncrement = {
-                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity + BigDecimal.ONE))
-                                    },
-                                    onDecrement = {
-                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity - BigDecimal.ONE))
-                                    },
-                                    onUpdate = {
-                                        viewModel.onAction(ExportDetailsState.Action.AddExportDetails)
-                                        isCreating = false
-                                    },
-                                    onClose = { isCreating = false },
-                                    isUpdating = false
-                                )
-                            }
-
-                        }
-
-                    }
-                    items(uiState.exportDetails, key = { exportDetails -> exportDetails.localId }) { exportDetails ->
-                        val isEditing = isEditMode && uiState.exportDetailsSelected.localId == exportDetails.localId
+//                    item {
+//                        AnimatedContent(
+//                            targetState = isCreating,
+//                            transitionSpec = {
+//                                (slideInVertically { it } + fadeIn()) togetherWith
+//                                        (slideOutVertically { -it } + fadeOut())
+//                            },
+//                            label = "Creating Switch"
+//                        ) { creating ->
+//                            if (creating) {
+//                                ExportDetailsCard(
+//                                    exportDetail = uiState.exportDetailsSelected,
+//                                    onIncrement = {
+//                                        viewModel.onAction(
+//                                            ExportDetailsState.Action.OnChangeQuantity(
+//                                                uiState.exportDetailsSelected.quantity + BigDecimal.ONE
+//                                            )
+//                                        )
+//                                    },
+//                                    onDecrement = {
+//                                        viewModel.onAction(
+//                                            ExportDetailsState.Action.OnChangeQuantity(
+//                                                uiState.exportDetailsSelected.quantity - BigDecimal.ONE
+//                                            )
+//                                        )
+//                                    },
+//                                    onUpdate = {
+//                                        viewModel.onAction(ExportDetailsState.Action.AddExportDetails)
+//                                        isCreating = false
+//                                    },
+//                                    onClose = { isCreating = false },
+//
+//                                )
+//                            }
+//
+//                        }
+//
+//                    }
+                    items(
+                        items = uiState.exportDetails,
+                        key = { exportDetails -> exportDetails.localId }) { exportDetails ->
+                        val isEditing = isEditMode &&
+                             uiState.exportDetailsSelected.localId == exportDetails.localId
 
                         AnimatedContent(
                             targetState = isEditing,
@@ -294,10 +277,18 @@ fun ExportDetailsScreen(
                                 ExportDetailsCard(
                                     exportDetail = uiState.exportDetailsSelected,
                                     onIncrement = {
-                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity + BigDecimal.ONE))
+                                        viewModel.onAction(
+                                            ExportDetailsState.Action.OnChangeQuantity(
+                                                uiState.exportDetailsSelected.quantity + BigDecimal.ONE
+                                            )
+                                        )
                                     },
                                     onDecrement = {
-                                        viewModel.onAction(ExportDetailsState.Action.OnChangeQuantity(uiState.exportDetailsSelected.quantity - BigDecimal.ONE))
+                                        viewModel.onAction(
+                                            ExportDetailsState.Action.OnChangeQuantity(
+                                                uiState.exportDetailsSelected.quantity - BigDecimal.ONE
+                                            )
+                                        )
                                     },
                                     onUpdate = {
                                         viewModel.onAction(ExportDetailsState.Action.UpdateExportDetails)
@@ -320,10 +311,14 @@ fun ExportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Edit),
                                             background = MaterialTheme.colorScheme.primary,
                                             onSwipe = {
-                                                if (uiState.isEditable && !isCreating) {
-                                                   viewModel.onAction(ExportDetailsState.Action.OnExportDetailsSelected(exportDetails))
+                                                if (if(uiState.isUpdating) uiState.isEditable && !isCreating else !isCreating) {
+                                                    viewModel.onAction(
+                                                        ExportDetailsState.Action.OnExportDetailsSelected(
+                                                            exportDetails
+                                                        )
+                                                    )
                                                     isEditMode = true
-                                                }else{
+                                                } else {
                                                     viewModel.onAction(ExportDetailsState.Action.NotifyCantEdit)
 
                                                 }
@@ -336,10 +331,14 @@ fun ExportDetailsScreen(
                                             icon = rememberVectorPainter(Icons.Default.Delete),
                                             background = MaterialTheme.colorScheme.error,
                                             onSwipe = {
-                                                if (uiState.isEditable && !isCreating) {
-                                                    viewModel.onAction(ExportDetailsState.Action.DeleteExportDetails(exportDetails.localId))
-                                                }
-                                                else{
+
+                                                if (if(uiState.isUpdating) uiState.isEditable && !isCreating else !isCreating) {
+                                                    viewModel.onAction(
+                                                        ExportDetailsState.Action.DeleteExportDetails(
+                                                            exportDetails.localId
+                                                        )
+                                                    )
+                                                } else {
                                                     viewModel.onAction(ExportDetailsState.Action.NotifyCantEdit)
                                                 }
 
@@ -356,14 +355,17 @@ fun ExportDetailsScreen(
 
                     }
                     item {
-                        if (uiState.isEditable && !isCreating && !isEditMode) {
+                        if (if(uiState.isUpdating) uiState.isEditable && !isCreating && !isEditMode else !isCreating && !isEditMode ) {
                             IconButton(
                                 onClick = {
+                                    viewModel.onAction(
+                                        ExportDetailsState.Action.OnExportDetailsSelected(
+                                            ExportDetailUIModel()
+                                        )
+                                    )
                                     isInventoryDialog = true
                                     isCreating = true
-                                    coroutineScope.launch {
-                                        listState.animateScrollToItem(0)
-                                    }
+
                                 },
                                 modifier = Modifier
                                     .padding(10.dp)
@@ -387,7 +389,7 @@ fun ExportDetailsScreen(
         }
 
         AnimatedVisibility(
-            visible = uiState.isEditable  && !isEditMode,
+            visible = uiState.isEditable && !isEditMode,
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },
                 animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
@@ -397,17 +399,17 @@ fun ExportDetailsScreen(
                 animationSpec = tween(durationMillis = 300)
             )
         ) {
-                LoadingButton(
-                    onClick = {
-                        if (uiState.isUpdating) viewModel.onAction(ExportDetailsState.Action.UpdateExport)
-                        else viewModel.onAction(ExportDetailsState.Action.CreateExport)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
-                    loading = false,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+            LoadingButton(
+                onClick = {
+                    if (uiState.isUpdating) viewModel.onAction(ExportDetailsState.Action.UpdateExport)
+                    else viewModel.onAction(ExportDetailsState.Action.CreateExport)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
+                loading = false,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
 
         }
     }
@@ -426,8 +428,8 @@ fun ExportDetailsScreen(
                     .background(
                         MaterialTheme.colorScheme.surfaceBright,
                         shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(30.dp)
+                    ).padding(10.dp)
+
 
             ) {
                 Column(
@@ -449,7 +451,8 @@ fun ExportDetailsScreen(
                         )
                     } else {
                         LazyColumn(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(2.dp),
 
                         ) {
                             gridItems(
@@ -459,7 +462,13 @@ fun ExportDetailsScreen(
                                         InventoryPick(
                                             inventory = inventory,
                                             onClick = {
-                                                viewModel.onAction(ExportDetailsState.Action.OnChangeInventory(inventory))
+                                                viewModel.onAction(
+                                                    ExportDetailsState.Action.OnChangeInventory(
+                                                        inventory
+                                                    )
+                                                )
+                                                viewModel.onAction(ExportDetailsState.Action.AddExportDetails)
+                                                isCreating = false
                                                 isInventoryDialog = false
                                             }
                                         )
@@ -471,8 +480,9 @@ fun ExportDetailsScreen(
 
                     Button(
                         onClick = {
-                            isInventoryDialog = false
                             isCreating = false
+                            isInventoryDialog = false
+
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.outline
@@ -500,16 +510,17 @@ fun InventoryPick(
 ) {
     Column(
         modifier = Modifier
+            .padding(8.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(
                 color = MaterialTheme.colorScheme.inversePrimary
             )
-            .padding(8.dp)
+            .padding(12.dp)
             .clickable {
                 onClick.invoke(inventory)
             },
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         DetailsTextRow(
@@ -517,21 +528,18 @@ fun InventoryPick(
             icon = Icons.Default.Inventory,
             color = MaterialTheme.colorScheme.onSecondary
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            DetailsTextRow(
-                text = "HSD: ${StringUtils.formatLocalDate(inventory.expiryDate)}",
-                icon = Icons.Default.DateRange,
-                color = MaterialTheme.colorScheme.onSecondary
-            )
-            DetailsTextRow(
-                text = "Số lượng: ${inventory.quantityRemaining} ${inventory.unit}",
-                icon = Icons.Default.Tag,
-                color = MaterialTheme.colorScheme.onSecondary
-            )
-        }
+
+        DetailsTextRow(
+            text = "HSD: ${StringUtils.formatLocalDate(inventory.expiryDate)}",
+            icon = Icons.Default.DateRange,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
+        DetailsTextRow(
+            text = "Số lượng: ${inventory.quantityRemaining} ${inventory.unit}",
+            icon = Icons.Default.Tag,
+            color = MaterialTheme.colorScheme.onSecondary
+        )
+
     }
 
 }
@@ -578,12 +586,12 @@ fun ExportDetailsCard(
                     DetailsTextRow(
                         text = "Nguyên liệu: ${exportDetail.ingredientName}",
                         icon = Icons.Default.Inventory,
-                        color = if (isUpdating) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSecondary
+                        color = if (isUpdating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSecondary
                     )
                     DetailsTextRow(
                         text = "HSD: ${StringUtils.formatLocalDate(exportDetail.expiryDate)}",
                         icon = Icons.Default.DateRange,
-                        color = if (isUpdating) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSecondary
+                        color = if (isUpdating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSecondary
                     )
 
                     if (isUpdating) {
@@ -616,6 +624,7 @@ fun ExportDetailsCard(
                 Button(
                     onClick = { onClose?.invoke() },
                     modifier = Modifier
+                        .height(50.dp)
                         .weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline),
                     shape = RoundedCornerShape(12.dp)

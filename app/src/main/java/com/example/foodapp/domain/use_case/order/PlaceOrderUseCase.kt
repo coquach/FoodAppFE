@@ -29,12 +29,11 @@ class PlaceOrderUseCase @Inject constructor(
             emit(ApiResponse.Loading)
             val now = StringUtils.getFormattedCurrentVietnamDateTime()
             val request = OrderRequest(
-                foodTableId = checkout.foodTableId,
+                foodTableId = checkout.foodTableNumber,
                 voucherId = checkout.voucher?.id,
                 type = checkout.type,
-                method = PaymentMethod.fromDisplay(checkout.method)!!.name,
+                method = PaymentMethod.fromDisplay(checkout.method!!)!!.name,
                 startedAt = now,
-                paymentAt = now,
                 note = checkout.note,
                 address = checkout.address,
                 orderItems = cartItems.map { cartItem ->

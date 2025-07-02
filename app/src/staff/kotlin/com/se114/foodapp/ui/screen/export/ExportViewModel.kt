@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,9 +38,7 @@ class ExportViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    val exports: StateFlow<PagingData<Export>> =
-        getExportsUseCase(ExportFilter()).cachedIn(viewModelScope)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PagingData.empty())
+    fun getExports(filter: ExportFilter) = getExportsUseCase(filter)
 
 
     private fun deleteExport() {
@@ -53,7 +53,7 @@ class ExportViewModel @Inject constructor(
                             )
                         }
                         _event.send(ExportState.Event.ShowSuccessToast("Xóa đơn xuất thành công"))
-                        _event.send(ExportState.Event.OnRefresh)
+                        onAction(ExportState.Action.OnRefresh)
                     }
 
                     is ApiResponse.Failure -> {
@@ -98,8 +98,12 @@ class ExportViewModel @Inject constructor(
             }
 
             ExportState.Action.OnRefresh -> {
-                viewModelScope.launch {
-                    _event.send(ExportState.Event.OnRefresh)
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            forceRefresh = UUID.randomUUID().toString()
+                        )
+                    )
                 }
             }
 
@@ -110,9 +114,21 @@ class ExportViewModel @Inject constructor(
                     )
                 }
             }
+
             ExportState.Action.NotifyCantDelete -> {
                 viewModelScope.launch {
                     _event.send(ExportState.Event.NotifyCantDelete)
+                }
+            }
+
+            is ExportState.Action.OnDateChange -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            startDate = action.startDate,
+                            endDate = action.endDate,
+                        )
+                    )
                 }
             }
 
@@ -126,6 +142,7 @@ object ExportState {
         val isLoading: Boolean = false,
         val error: String? = null,
         val exportSelected: Export = Export(),
+        val filter: ExportFilter = ExportFilter(),
 
         )
 
@@ -135,7 +152,7 @@ object ExportState {
         data object AddExport : Event
         data class GoToDetail(val export: Export) : Event
         data object NotifyCantDelete : Event
-        data object OnRefresh : Event
+
 
     }
 
@@ -146,6 +163,7 @@ object ExportState {
         data object OnRefresh : Action
         data class OnExportSelected(val export: Export) : Action
         data object NotifyCantDelete : Action
+        data class OnDateChange(val startDate: LocalDate?, val endDate: LocalDate?) : Action
 
     }
 }

@@ -74,7 +74,6 @@ fun StatisticsScreen(
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
-
                 StaticsState.Event.GoToNotification -> {
                     navController.navigate(Notification)
                 }
@@ -504,13 +503,11 @@ fun StatisticsScreen(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.fillMaxWidth()
             )
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)) {
+
                 when (uiState.menuReportState) {
                     is StaticsState.MenuReportState.Error -> {
                         Retry(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxWidth().height(350.dp),
                             onClicked = {
                                 viewModel.onAction(StaticsState.Action.GetMenuReport)
                             },
@@ -520,14 +517,14 @@ fun StatisticsScreen(
 
                     StaticsState.MenuReportState.Loading -> {
                         Loading(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxWidth().height(350.dp),
                         )
                     }
 
                     StaticsState.MenuReportState.Success -> {
                         if(uiState.menuReports.isEmpty()){
                             Nothing(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxWidth(),
                                 icon = Icons.Default.Category,
                                 text = "Chưa có thống kê thực đơn"
                             )
@@ -550,7 +547,7 @@ fun StatisticsScreen(
                     }
                 }
 
-            }
+
 
         }
 

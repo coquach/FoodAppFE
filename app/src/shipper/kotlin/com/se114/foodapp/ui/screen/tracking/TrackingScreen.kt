@@ -1,5 +1,10 @@
 package com.se114.foodapp.ui.screen.tracking
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import com.example.foodapp.R
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.permissions.LocationPermissionHandler
@@ -59,6 +65,7 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
+import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -79,9 +86,13 @@ fun TrackingScreen(
             when (it) {
                 TrackingViewModel.TrackingEvent.BackToOrderDetails -> {
                     navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "distance",
-                        distance
+                        "isShippingCompleted",
+                        true
                     )
+                    navController.popBackStack()
+                }
+
+                TrackingViewModel.TrackingEvent.OnBack -> {
                     navController.popBackStack()
                 }
             }
@@ -197,7 +208,7 @@ fun TrackingScreen(
                 )
                 FloatingActionButton(
                     onClick = {
-                        viewModel.onBackToOrderDetails()
+                        viewModel.onBack()
                     },
                     modifier = Modifier
                         .padding(vertical = 30.dp, horizontal = 16.dp)
@@ -246,6 +257,21 @@ fun TrackingScreen(
                             icon = Icons.Default.Navigation,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
+                    }
+                    distance?.absoluteValue?.let {
+                        AnimatedVisibility(
+                            visible = it<150,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
+                        ){
+                            AppButton(
+                                text = "Giao hàng",
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    viewModel.onBackToOrderDetails()
+                                },
+                            )
+                        }
                     }
                 }
 

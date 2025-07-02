@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.navigation.OrderDetailsStaff
 import com.example.foodapp.ui.screen.common.OrderListSection
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
@@ -45,27 +47,12 @@ fun OrderListScreen(
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    val orders by viewModel.ordersTabManager.tabDataMap.collectAsStateWithLifecycle()
+    val orders = remember(uiState.orderFilter) {
+        viewModel.getOrders(uiState.orderFilter)
+    }.collectAsLazyPagingItems()
 
-    val handle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(handle) {
-        val condition = handle?.get<Boolean>("updated") == true
 
-        if (condition) {
-            handle["updated"] = false
-            viewModel.onAction(OrderListState.Action.OnRefresh)
-        }
-    }
 
-    LaunchedEffect(Unit) {
-        viewModel.getOrdersFlow(uiState.tabIndex)
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.ordersTabManager.refreshAllTabs()
-        }
-    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -93,7 +80,7 @@ fun OrderListScreen(
 
         }
     }
-    val emptyOrders = MutableStateFlow<PagingData<Order>>(PagingData.empty()).collectAsLazyPagingItems()
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
@@ -110,8 +97,11 @@ fun OrderListScreen(
                 {
 
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
-                        orders = orders[0]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
+                        orders = orders,
                         onItemClick = {
                             viewModel.onAction(
                                 OrderListState.Action.OnOrderClicked(it)
@@ -123,8 +113,11 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
-                        orders = orders[1]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
+                        orders = orders,
                         onItemClick = {
                             viewModel.onAction(
                                 OrderListState.Action.OnOrderClicked(it)
@@ -136,8 +129,11 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
-                        orders = orders[2]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
+                        orders = orders,
                         onItemClick = {
                             viewModel.onAction(
                                 OrderListState.Action.OnOrderClicked(it)
@@ -149,8 +145,11 @@ fun OrderListScreen(
                 },
                 {
                     OrderListSection(
+                        onRefresh = {
+                            viewModel.onAction(OrderListState.Action.OnRefresh)
+                        },
                         modifier = Modifier.fillMaxSize(),
-                        orders = orders[3]?.flow?.collectAsLazyPagingItems() ?: emptyOrders,
+                        orders = orders,
                         onItemClick = {
                             viewModel.onAction(
                                 OrderListState.Action.OnOrderClicked(it)
@@ -164,8 +163,12 @@ fun OrderListScreen(
             ),
             scrollable = true,
             onTabSelected = {
-                viewModel.onAction(OrderListState.Action.OnTabSelected(it))
-                viewModel.getOrdersFlow(it)
+               when(it){
+                   0 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.PENDING.name))
+                   1 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.SHIPPING.name))
+                   2 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.COMPLETED.name))
+                   3 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.CANCELLED.name))
+               }
             }
         )
 

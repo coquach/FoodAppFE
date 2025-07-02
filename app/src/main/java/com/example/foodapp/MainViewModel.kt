@@ -73,7 +73,7 @@ class MainViewModel @Inject constructor(
                 }
             }
             else -> {
-                if(user == null)Auth else Home
+                _startDestination.value= if(user == null)Auth else Home
             }
         }
 

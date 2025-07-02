@@ -64,6 +64,7 @@ class AccountRepoImpl @Inject constructor(
     }
 
     override fun getUserProfile(): Account {
+        Firebase.auth.currentUser?.reload()
         return Firebase.auth.currentUser?.toAppUser() ?: Account()
     }
 
@@ -75,10 +76,9 @@ class AccountRepoImpl @Inject constructor(
         Firebase.auth.createUserWithEmailAndPassword(email, password).await()
     }
 
-    override suspend fun updateProfile(photoUrl: Uri?, name: String) {
+    override suspend fun updateProfile(name: String) {
         val userProfileChangeRequest = userProfileChangeRequest {
             displayName = name
-            photoUri = photoUrl
         }
         Firebase.auth.currentUser?.updateProfile(userProfileChangeRequest)?.await()
     }
@@ -154,6 +154,6 @@ fun FirebaseUser.toAppUser(): Account {
         email = this.email ?: "",
         phoneNumber = this.phoneNumber?: "",
         displayName = this.displayName ?: "",
-        avatar = this.photoUrl,
+        avatar = this.photoUrl.toString()
     )
 }

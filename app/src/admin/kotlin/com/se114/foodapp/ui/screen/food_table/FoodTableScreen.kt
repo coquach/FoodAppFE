@@ -1,9 +1,7 @@
 package com.se114.foodapp.ui.screen.food_table
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,16 +11,15 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.TableRestaurant
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,8 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -55,17 +50,19 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.model.Food
 import com.example.foodapp.data.model.FoodTable
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ChipsGroupWrap
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
 import com.example.foodapp.ui.screen.components.FoodAppTextField
+import com.example.foodapp.ui.screen.components.FoodTableCard
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.MyFloatingActionButton
 import com.example.foodapp.ui.screen.components.TabWithPager
+import com.example.foodapp.ui.theme.confirm
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
@@ -77,8 +74,9 @@ fun FoodTableScreen(
     viewModel: FoodTableViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foodTables by viewModel.foodTablesTabManager.tabDataMap.collectAsStateWithLifecycle()
-    val emptyFoodTable =  MutableStateFlow<PagingData<FoodTable>>(PagingData.empty()).collectAsLazyPagingItems()
+    val foodTables = remember(uiState.foodTableFilter){
+        viewModel.getFoodTables(uiState.foodTableFilter)
+    }.collectAsLazyPagingItems()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var showErrorSheet by remember { mutableStateOf(false) }
@@ -105,9 +103,6 @@ fun FoodTableScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.getFoodTablesFlow(uiState.tabIndex)
-    }
 
     Scaffold(
         floatingActionButton =
@@ -158,8 +153,11 @@ fun FoodTableScreen(
                 pages = listOf(
                     {
                         LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(FoodTableState.Action.OnRefresh)
+                            },
                             modifier = Modifier.fillMaxSize(),
-                            items = foodTables[0]?.flow?.collectAsLazyPagingItems() ?: emptyFoodTable,
+                            items = foodTables,
                             textNothing = "Không có bàn ăn nào",
                             iconNothing = Icons.Default.TableRestaurant,
                             columns = 2,
@@ -175,9 +173,10 @@ fun FoodTableScreen(
                                     .clip(RoundedCornerShape(12.dp)),
                                 endActions = listOf(
                                     SwipeAction(
-                                        icon = rememberVectorPainter(Icons.Default.Delete),
+                                        icon = rememberVectorPainter(Icons.Default.VisibilityOff),
                                         background = MaterialTheme.colorScheme.error,
                                         onSwipe = {
+
                                             viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
                                             showDeleteDialog = true
                                         }
@@ -195,10 +194,13 @@ fun FoodTableScreen(
                         }
                     }, {
                         LazyPagingSample(
+                            onRefresh = {
+                                viewModel.onAction(FoodTableState.Action.OnRefresh)
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
-                            items = foodTables[1]?.flow?.collectAsLazyPagingItems() ?: emptyFoodTable,
+                            items = foodTables,
                             textNothing = "Không có bàn ăn nào",
                             iconNothing = Icons.Default.TableRestaurant,
                             columns = 2,
@@ -214,8 +216,8 @@ fun FoodTableScreen(
                                     .clip(RoundedCornerShape(12.dp)),
                                 endActions = listOf(
                                     SwipeAction(
-                                        icon = rememberVectorPainter(Icons.Default.Delete),
-                                        background = MaterialTheme.colorScheme.error,
+                                        icon = rememberVectorPainter(Icons.Default.Visibility),
+                                        background = MaterialTheme.colorScheme.confirm,
                                         onSwipe = {
                                             viewModel.onAction(FoodTableState.Action.OnFoodTableSelected(it))
                                             showDeleteDialog = true
@@ -236,8 +238,10 @@ fun FoodTableScreen(
                 ),
 
                 onTabSelected = {
-                    viewModel.onAction(FoodTableState.Action.OnTabSelected(it))
-                    viewModel.getFoodTablesFlow(it)
+                  when(it){
+                      0 -> viewModel.onAction(FoodTableState.Action.OnStatusFilterChange(true))
+                      1 -> viewModel.onAction(FoodTableState.Action.OnStatusFilterChange(false))
+                  }
                 },
             )
             
@@ -281,7 +285,8 @@ fun FoodTableScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     ChipsGroupWrap(
-                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.padding(8.dp),
                         text = "Số ghế",
                         options = listOf("1", "2", "3", "4", "5", "6"),
                         selectedOption = uiState.foodTableSelected.seatCapacity.toString(),
@@ -296,20 +301,15 @@ fun FoodTableScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                     ) {
-                        Button(
+                        AppButton(
                             onClick = {
                                 showFoodTableDialog = false
                             },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.outline
-                            ),
-                            modifier = Modifier.heightIn(48.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            backgroundColor = MaterialTheme.colorScheme.outline,
+                            text = "Đóng",
 
 
-                        ) {
-                            Text(text = "Đóng", modifier = Modifier.padding(horizontal = 16.dp))
-                        }
+                        )
 
 
                         LoadingButton(
@@ -336,8 +336,7 @@ fun FoodTableScreen(
     if (showDeleteDialog) {
         FoodAppDialog(
             title = if (uiState.foodTableSelected.active) "Ẩn bàn " else "Hiện bàn ",
-            message = if (uiState.foodTableSelected.active) "Bạn có chắc chắn muốn ẩn bàn  này không?"
-            else "Bạn có chắc chắn muốn hiện bàn  này không?",
+            message = if (uiState.foodTableSelected.active) "Bạn có chắc chắn muốn ẩn bàn này không?" else "Bạn có chắc chắn muốn hiện bàn này không?",
             onDismiss = {
                 showDeleteDialog = false
             },
@@ -360,65 +359,3 @@ fun FoodTableScreen(
 }
 
 
-@Composable
-fun FoodTableCard(
-    foodTable: FoodTable,
-    onClick: (FoodTable) -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .padding(10.dp)
-            .width(162.dp)
-            .height(147.dp)
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(16.dp),
-                ambientColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
-                spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
-            )
-            .background(color = MaterialTheme.colorScheme.surface)
-            .clickable(
-                onClick = { onClick.invoke(foodTable) },
-            )
-            .clip(RoundedCornerShape(16.dp))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Image(
-                imageVector = Icons.Default.TableRestaurant,
-                contentDescription = "Food Table",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(16.dp)),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary),
-            )
-            Text(
-                text = "Bàn ${foodTable.tableNumber}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(color = MaterialTheme.colorScheme.outlineVariant)
-                    .padding(horizontal = 16.dp)
-                    .align(Alignment.BottomStart)
-            )
-
-            Text(
-                text = "Số chỗ: ${foodTable.seatCapacity}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(color = MaterialTheme.colorScheme.outlineVariant)
-                    .padding(horizontal = 16.dp)
-                    .align(Alignment.TopEnd)
-            )
-
-
-        }
-    }
-}

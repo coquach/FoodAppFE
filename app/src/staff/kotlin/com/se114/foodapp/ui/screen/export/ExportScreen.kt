@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -54,6 +55,7 @@ import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.foodapp.data.model.Export
 import com.example.foodapp.navigation.ExportDetails
+import com.example.foodapp.ui.screen.components.DateRangePickerSample
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodAppDialog
@@ -74,8 +76,10 @@ fun ExportScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val exports = viewModel.exports.collectAsLazyPagingItems()
-    var search by remember { mutableStateOf("") }
+    val exports = remember(uiState.filter) {
+        viewModel.getExports(uiState.filter)
+    }.collectAsLazyPagingItems()
+
 
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
@@ -116,9 +120,6 @@ fun ExportScreen(
                     )
                 }
 
-                ExportState.Event.OnRefresh -> {
-                    exports.refresh()
-                }
 
                 ExportState.Event.ShowError -> {
                     showErrorSheet = true
@@ -171,22 +172,26 @@ fun ExportScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
 
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                HeaderDefaultView(
-                    text = "Phiếu xuất hàng",
 
-                    )
-                SearchField(
-                    searchInput = search,
-                    searchChange = { search = it }
+            HeaderDefaultView(
+                text = "Phiếu xuất hàng",
+
                 )
+            DateRangePickerSample(
+                modifier = Modifier.width(170.dp),
+                startDateText = "Bắt đầu",
+                endDateText = "Kết thúc",
+                startDate = uiState.filter.startDate,
+                endDate = uiState.filter.endDate,
+                onDateRangeSelected = { startDate, endDate ->
+                    viewModel.onAction(ExportState.Action.OnDateChange(startDate, endDate))
+                }
+            )
 
-            }
             LazyPagingSample(
+                onRefresh = {
+                    viewModel.onAction(ExportState.Action.OnRefresh)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -210,7 +215,7 @@ fun ExportScreen(
                                 background = MaterialTheme.colorScheme.error,
                                 onSwipe = {
                                     isDeletable =
-                                        it.exportDate?.plusDays(1)?.isAfter(LocalDate.now()) == true
+                                        it.exportDate == LocalDate.now()
                                     if (isDeletable) {
                                         viewModel.onAction(ExportState.Action.OnExportSelected(it))
                                         showDialogDelete = true
@@ -281,7 +286,7 @@ fun ExportDetail(export: Export) {
                 imageVector = Icons.Default.ImportExport,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.size(10.dp))
             Column(
@@ -295,17 +300,13 @@ fun ExportDetail(export: Export) {
 
 
                 DetailsTextRow(
-                    text = "${export.id}",
+                    text = "Mã phiếu: ${export.id}",
                     icon = Icons.Default.Tag,
                     color = MaterialTheme.colorScheme.outline
                 )
+
                 DetailsTextRow(
-                    text = export.staffName,
-                    icon = Icons.Default.Person,
-                    color = MaterialTheme.colorScheme.outline
-                )
-                DetailsTextRow(
-                    text = StringUtils.formatLocalDate(export.exportDate) ?: "",
+                    text = "Ngày tạo: ${StringUtils.formatLocalDate(export.exportDate)}",
                     icon = Icons.Default.DateRange,
                     color = MaterialTheme.colorScheme.outline
                 )
@@ -324,7 +325,7 @@ fun ExportCard(export: Export, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
     ) {

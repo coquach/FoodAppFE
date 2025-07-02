@@ -13,6 +13,7 @@ import com.example.foodapp.data.model.ImageInfo
 import com.example.foodapp.data.model.Staff
 import com.example.foodapp.navigation.EmployeeDetails
 import com.example.foodapp.navigation.staffNavType
+import com.example.foodapp.ui.screen.components.validateField
 
 import com.se114.foodapp.domain.use_case.staff.CreateStaffUseCase
 import com.se114.foodapp.domain.use_case.staff.UpdateStaffUseCase
@@ -111,6 +112,58 @@ class StaffDetailsViewModel @Inject constructor(
         }
     }
 
+    fun validate(type: String) {
+        val current = _uiState.value
+        var fullNameError: String? = current.fullNameError
+        var phoneError: String? = current.phoneError
+        var addressError: String? = current.addressError
+        var basicSalaryError: String? = current.basicSalaryError
+        when (type) {
+            "fullName" -> {
+                fullNameError = validateField(
+                    current.staff.fullName.trim(),
+                    "Tên không hợp lệ"
+                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+
+
+            }
+
+            "phone" -> {
+                phoneError = validateField(
+                    current.staff.phone.trim(),
+                    "Số điện thoại không hợp lệ"
+                ) { it.matches(Regex("^0\\d{9}$")) }
+            }
+
+            "address" -> {
+                addressError = validateField(
+                    current.staff.address.trim(),
+                    "Địa chỉ không hợp lệ"
+                ) { it.matches(Regex("^[\\p{L}0-9\\s,.\\-\\/#()]+\$")) }
+            }
+
+            "basicSalary" -> {
+                basicSalaryError = validateField(
+                    current.staff.basicSalary.toPlainString().trim(),
+                    "Tiền lương phải lớn hơn 0"
+
+                ) { it.toBigDecimal() > BigDecimal.ZERO }
+            }
+
+        }
+        val isValid =
+            current.staff.fullName.isNotBlank() && current.staff.phone.isNotBlank() && current.staff.address.isNotBlank() && fullNameError == null && phoneError == null && addressError == null && basicSalaryError == null
+        _uiState.update {
+            it.copy(
+                fullNameError = fullNameError,
+                phoneError = phoneError,
+                addressError = addressError,
+                basicSalaryError = basicSalaryError,
+                isValid = isValid
+            )
+        }
+    }
+
     fun onAction(action: StaffDetails.Action) {
         when (action) {
             is StaffDetails.Action.AddStaff -> {
@@ -145,9 +198,6 @@ class StaffDetailsViewModel @Inject constructor(
                 _uiState.update { it.copy(staff = it.staff.copy(birthDate = action.value)) }
             }
 
-            is StaffDetails.Action.OnChangeEndDate -> {
-                _uiState.update { it.copy(staff = it.staff.copy(endDate = action.value)) }
-            }
 
             is StaffDetails.Action.OnChangeFullName -> {
                 _uiState.update { it.copy(staff = it.staff.copy(fullName = action.value)) }
@@ -192,6 +242,11 @@ object StaffDetails {
         val errorMessage: String? = null,
         val staff: Staff,
         val isUpdating: Boolean = false,
+        val isValid: Boolean = false,
+        val fullNameError: String? = null,
+        val phoneError: String? = null,
+        val addressError: String? = null,
+        val basicSalaryError: String? = null,
     )
 
     sealed interface Event {
@@ -210,7 +265,6 @@ object StaffDetails {
         data class OnChangeAvatar(val value: Uri?) : Action
         data class OnChangeBirthDate(val value: LocalDate?) : Action
         data class OnChangeStartDate(val value: LocalDate?) : Action
-        data class OnChangeEndDate(val value: LocalDate?) : Action
         data class OnChangeBasicSalary(val value: BigDecimal?) : Action
         data object AddStaff : Action
         data object UpdateStaff : Action

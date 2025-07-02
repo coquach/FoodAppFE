@@ -78,7 +78,10 @@ fun ImportScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val imports = viewModel.imports.collectAsLazyPagingItems()
+    val imports = remember(uiState.filter) {
+        viewModel.getImports(uiState.filter)
+    }.collectAsLazyPagingItems()
+
 
     var showDialogDelete by rememberSaveable { mutableStateOf(false) }
     var showErrorSheet by rememberSaveable { mutableStateOf(false) }
@@ -130,7 +133,7 @@ fun ImportScreen(
                 ImportState.Event.NotifyCantDelete -> {
                     Toast.makeText(
                         context,
-                        "Không thể xóa phiếu nhập vì đã quá hạn 3 ngày",
+                        "Không thể xóa phiếu nhập vì đã quá hạn",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -209,7 +212,7 @@ fun ImportScreen(
                     "totalPrice" -> "Tổng giá"
                     else -> "Id"
                 },
-                placeHolder = "Tìm kiếm theo tên nhà cung cấp..."
+                placeHolder = "Tìm kiếm theo tên NCC..."
             )
 
             DateRangePickerSample(
@@ -224,6 +227,9 @@ fun ImportScreen(
             )
 
             LazyPagingSample(
+                onRefresh = {
+                    viewModel.onAction(ImportState.Action.OnRefresh)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -247,7 +253,7 @@ fun ImportScreen(
                             background = MaterialTheme.colorScheme.error,
                             onSwipe = {
                                 isDeletable =
-                                    it.importDate?.plusDays(3)?.isAfter(LocalDate.now()) == true
+                                    it.importDate == LocalDate.now()
 
                                 if (isDeletable) {
                                     viewModel.onAction(ImportState.Action.OnImportSelected(it.id!!))

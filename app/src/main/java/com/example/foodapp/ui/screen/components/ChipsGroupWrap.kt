@@ -53,7 +53,8 @@ fun ChipsGroupWrap(
     thresholdExpend: Int = 8,
     containerColor: Color = MaterialTheme.colorScheme.outline,
     isFlowLayout: Boolean = true,
-    shouldSelectDefaultOption: Boolean = true
+    shouldSelectDefaultOption: Boolean = true,
+    shape: RoundedCornerShape = RoundedCornerShape(18.dp),
 ) {
     LaunchedEffect(options, selectedOption) {
         if (shouldSelectDefaultOption && options.isNotEmpty() && selectedOption == null ) {
@@ -99,6 +100,7 @@ fun ChipsGroupWrap(
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
                                 containerColor = containerColor
                             ),
+                            shape = shape,
                             border = BorderStroke(0.dp, Color.Transparent),
                             modifier = Modifier.padding(2.dp)
                         )
@@ -136,6 +138,7 @@ fun ChipsGroupWrap(
                             containerColor = containerColor
                         ),
                         border = BorderStroke(0.dp, Color.Transparent),
+                        shape = shape,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }

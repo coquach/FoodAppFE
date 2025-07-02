@@ -7,6 +7,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 data class FeedbackMultipartRequest(
     val orderItemId: Long?,
     val content: String?,
+    val customerId: String,
     val rating: Int
 ) {
     fun toPartMap(): Map<String, @JvmSuppressWildcards RequestBody> {
@@ -17,6 +18,7 @@ data class FeedbackMultipartRequest(
                 map[key] = it.toRequestBody("text/plain".toMediaTypeOrNull())
             }
         }
+        add("customerId", customerId)
         add("orderItemId", orderItemId.toString())
         add("content", content)
         add("rating", rating.toString())

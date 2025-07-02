@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Spa
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,11 +67,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun WarehouseScreen(
     navController: NavController,
-    viewModel: WarehouseViewModel = hiltViewModel()
+    viewModel: WarehouseViewModel = hiltViewModel(),
 ) {
-   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val inventories = viewModel.inventories.collectAsLazyPagingItems()
+    val inventories = remember(uiState.inventoryFilter) {
+        viewModel.getInventories(uiState.inventoryFilter)
+    }.collectAsLazyPagingItems()
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -79,11 +83,11 @@ fun WarehouseScreen(
                 WarehouseState.Event.NavigateToImport -> {
                     navController.navigate(Import)
                 }
-                WarehouseState.Event.NavigateToMaterial -> {
-                    navController.navigate(Material)}
-                WarehouseState.Event.Refresh -> {
 
+                WarehouseState.Event.NavigateToMaterial -> {
+                    navController.navigate(Material)
                 }
+
             }
         }
     }
@@ -112,63 +116,97 @@ fun WarehouseScreen(
                 viewModel.onAction(WarehouseState.Action.OnNavigateToImport)
             }
         )
-SearchField(
-    searchInput = uiState.nameSearch,
-    searchChange = {
-        viewModel.onAction(WarehouseState.Action.OnNameSearch(it))
-    },
-    searchFilter = {
-        viewModel.onAction(WarehouseState.Action.OnSearchFilter)
-    },
-    switchState = uiState.inventoryFilter.order == "desc",
-    switchChange = {
-        when(it){
-            true -> viewModel.onAction(WarehouseState.Action.OnOrderChange("desc"))
-            false -> viewModel.onAction(WarehouseState.Action.OnOrderChange("asc"))
-        }
-    },
-    filterChange = {
-        when(it){
-            "Id" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("id"))
-            "Số lượng" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("quantityRemaining"))
-        }
-    },
-    filters = listOf("Id", "Số lượng"),
-    filterSelected = when(uiState.inventoryFilter.sortBy){
-        "id" -> "Id"
-        "quantityRemaining" -> "Số lượng"
-        else -> "Id"
-    },
-    placeHolder = "Tìm kiếm tồn kho theo tên nguyên liệu..."
-)
+        SearchField(
+            searchInput = uiState.nameSearch,
+            searchChange = {
+                viewModel.onAction(WarehouseState.Action.OnNameSearch(it))
+            },
+            searchFilter = {
+                viewModel.onAction(WarehouseState.Action.OnSearchFilter)
+            },
+            switchState = uiState.inventoryFilter.order == "desc",
+            switchChange = {
+                when (it) {
+                    true -> viewModel.onAction(WarehouseState.Action.OnOrderChange("desc"))
+                    false -> viewModel.onAction(WarehouseState.Action.OnOrderChange("asc"))
+                }
+            },
+            filterChange = {
+                when (it) {
+                    "Id" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("id"))
+                    "Số lượng" -> viewModel.onAction(WarehouseState.Action.OnSortByChange("quantityRemaining"))
+                }
+            },
+            filters = listOf("Id", "Số lượng"),
+            filterSelected = when (uiState.inventoryFilter.sortBy) {
+                "id" -> "Id"
+                "quantityRemaining" -> "Số lượng"
+                else -> "Id"
+            },
+            placeHolder = "Tìm kiếm tồn kho theo tên..."
+        )
         TabWithPager(
             tabs = listOf("Tồn kho", "Hết hạn", "Đã dùng"),
             pages = listOf(
                 {
                     InventoryListSection(
                         list = inventories,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onRefresh = {
+                            viewModel.onAction(WarehouseState.Action.OnRefresh)
+                        }
                     )
                 },
                 {
                     InventoryListSection(
                         list = inventories,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onRefresh = {
+                            viewModel.onAction(WarehouseState.Action.OnRefresh)
+                        }
                     )
                 },
                 {
                     InventoryListSection(
                         list = inventories,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onRefresh = {
+                            viewModel.onAction(WarehouseState.Action.OnRefresh)
+                        }
                     )
                 }
             ),
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             onTabSelected = { index ->
-                when(index){
-                    0 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = false, isOutOfStock = false)))
-                    1 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = true, isOutOfStock = false)))
-                    2 -> viewModel.onAction(WarehouseState.Action.OnTabSelected(uiState.inventoryFilter.copy(isExpired = false, isOutOfStock = true)))
+                when (index) {
+                    0 -> viewModel.onAction(
+                        WarehouseState.Action.OnTabSelected(
+                            uiState.inventoryFilter.copy(
+                                isExpired = false,
+                                isOutOfStock = false
+                            )
+                        )
+                    )
+
+                    1 -> viewModel.onAction(
+                        WarehouseState.Action.OnTabSelected(
+                            uiState.inventoryFilter.copy(
+                                isExpired = true,
+                                isOutOfStock = false
+                            )
+                        )
+                    )
+
+                    2 -> viewModel.onAction(
+                        WarehouseState.Action.OnTabSelected(
+                            uiState.inventoryFilter.copy(
+                                isExpired = false,
+                                isOutOfStock = true
+                            )
+                        )
+                    )
                 }
             }
         )
@@ -181,8 +219,10 @@ SearchField(
 fun InventoryListSection(
     modifier: Modifier = Modifier,
     list: LazyPagingItems<Inventory>,
+    onRefresh: () -> kotlin.Unit,
 ) {
     LazyPagingSample(
+        onRefresh = onRefresh,
         modifier = modifier,
         items = list,
         textNothing = "Không có nguyên liệu nào",
@@ -203,7 +243,7 @@ fun InventoryListSection(
 @Composable
 fun InventoryItemView(
     inventory: Inventory,
-    onClick: ((Inventory) -> Unit) ? = null,
+    onClick: ((Inventory) -> Unit)? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -218,11 +258,14 @@ fun InventoryItemView(
                 .height(216.dp)
                 .shadow(
                     elevation = 16.dp,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
                     ambientColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
                     spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f)
                 )
-                .background(color = MaterialTheme.colorScheme.surface)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(18.dp)
+                )
                 .clickable(
                     onClick = { onClick?.invoke(inventory) },
                 )
@@ -233,25 +276,15 @@ fun InventoryItemView(
                     .fillMaxWidth()
                     .height(147.dp)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.image_error),
+                Icon(
+                    imageVector = Icons.Default.Category,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(16.dp)),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
 
-                    contentScale = ContentScale.Crop,
-                )
-                Text(
-                    text = StringUtils.formatCurrency(inventory.cost),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.outlineVariant)
-                        .padding(horizontal = 16.dp)
-                        .align(Alignment.TopStart)
-                )
 
             }
 
@@ -267,13 +300,24 @@ fun InventoryItemView(
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = "${inventory.quantityRemaining}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "SL: ${inventory.quantityRemaining}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                    Text(
+                        text = StringUtils.formatCurrency(inventory.cost),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline,
+
+                    )
+                }
+
             }
         }
     }

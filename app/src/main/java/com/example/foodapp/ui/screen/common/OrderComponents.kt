@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.screen.common
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import com.example.foodapp.R
 import com.example.foodapp.data.model.Order
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
+import com.example.foodapp.data.model.enums.ServingType
 import com.example.foodapp.ui.screen.components.DetailsTextRow
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.NoteInput
@@ -86,7 +88,7 @@ fun OrderDetailsText(order: Order) {
                )
 
                DetailsTextRow(
-                   text ="Phương thức: ${PaymentMethod.fromName(order.method)!!.getDisplayName()}",
+                   text ="Phương thức: ${PaymentMethod.fromName(order.method)?.getDisplayName()?: "Không xác định"}",
                    icon = Icons.Default.Payments,
                    color = MaterialTheme.colorScheme.confirm
                )
@@ -168,7 +170,7 @@ fun OrderListSection(
     modifier: Modifier = Modifier,
     orders: LazyPagingItems<Order>,
     onItemClick: (Order) -> Unit,
-
+    onRefresh: () -> Unit = {},
 
 ) {
 
@@ -189,7 +191,7 @@ fun OrderListSection(
                        }
                    )
                },
-
+                onRefresh = onRefresh
                )
 
 
@@ -244,10 +246,11 @@ fun OrderDetails(order: Order, isStaff: Boolean = false) {
             }"
         )
         if (isStaff) {
+            val orderType = ServingType.valueOf(order.type).display
             DetailsTextRow(
                 icon = Icons.Default.Category,
                 color = MaterialTheme.colorScheme.secondary,
-                text = "Loại phục vụ: ${order.type}"
+                text = "Loại phục vụ: $orderType"
             )
         }
     }

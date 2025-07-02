@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,9 +35,9 @@ class FavoriteViewModel @Inject constructor(
     private val _event = Channel<FavoriteState.Event>()
     val event get() = _event.receiveAsFlow()
 
-    val favoriteFoods = getFavoriteFoodUseCase.invoke(_uiState.value.foodFilter).cachedIn(viewModelScope)
+    fun getFavoriteFoods() = getFavoriteFoodUseCase.invoke(FoodFilter())
 
-    val foods = getFoodsByMenuIdUseCase.invoke(_uiState.value.foodFilter)
+    fun getFoods(filter: FoodFilter) = getFoodsByMenuIdUseCase.invoke(filter)
 
 
     fun getMenus() {
@@ -78,7 +79,7 @@ class FavoriteViewModel @Inject constructor(
                 _uiState.update { it.copy(foodFilter = it.foodFilter.copy(menuId = action.id), menuName = action.name) }
             }
             FavoriteState.Action.OnRefresh -> {
-
+                _uiState.update { it.copy(foodFilter = it.foodFilter.copy(forceRefresh = UUID.randomUUID().toString())) }
             }
             is FavoriteState.Action.OnOrderChange -> {
                 _uiState.update { it.copy(foodFilter = it.foodFilter.copy(order = action.order)) }

@@ -5,6 +5,7 @@ import java.time.LocalDate
 data class VoucherFilter(
     val order: String = "desc",
     val sortBy: String = "id",
+    val code: String?=null,
     val minQuantity: Int? = null,
     val maxQuantity: Int? = null,
     val type: String?=null,

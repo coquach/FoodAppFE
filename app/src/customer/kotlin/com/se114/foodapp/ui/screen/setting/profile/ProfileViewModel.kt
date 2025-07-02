@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.auth.signup.profile
+package com.se114.foodapp.ui.screen.setting.profile
 
 
 import android.net.Uri
@@ -10,14 +10,14 @@ import androidx.navigation.toRoute
 import com.example.foodapp.data.model.Account
 
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
-import com.example.foodapp.domain.use_case.auth.LoadProfileUseCase
-import com.example.foodapp.domain.use_case.auth.UpdateProfileUseCase
+import com.example.foodapp.ui.screen.components.validateField
+import com.se114.foodapp.domain.use_case.user.LoadProfileUseCase
+import com.se114.foodapp.domain.use_case.user.UpdateProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -66,7 +66,7 @@ class ProfileViewModel @Inject constructor(
             }
 
             is Profile.Action.OnAvatarChanged -> {
-                _uiState.update { it.copy(profile = it.profile.copy(avatar = action.avatar)) }
+                _uiState.update { it.copy(profile = it.profile.copy(avatar = action.avatar?.toString() ?: "")) }
             }
 
             is Profile.Action.OnPhoneNumberChanged -> {
@@ -100,6 +100,41 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun validate(type: String) {
+        val current = _uiState.value
+        var displayNameError: String? = current.displayNameError
+        var phoneNumberError: String? = current.displayNameError
+
+        when (type) {
+            "displayName" -> {
+                displayNameError = validateField(
+                    current.profile.displayName.trim(),
+                    "Tên không hợp lệ"
+                ) { it.matches(Regex("^[\\p{L}][\\p{L} .'-]{1,39}$")) }
+
+
+            }
+
+            "phoneNumber" -> {
+                phoneNumberError = validateField(
+                    current.profile.phoneNumber.trim(),
+                    "Số điện thoại không hợp lệ"
+                ) { it.matches(Regex("^0\\d{9}$")) }
+
+            }
+
+
+
+        }
+        val isValid = current.profile.displayName.isNotBlank() && current.profile.phoneNumber.isNotBlank()  && displayNameError == null && phoneNumberError == null
+        _uiState.update {
+            it.copy(
+                phoneNumberError = phoneNumberError,
+                displayNameError = displayNameError,
+                isValid = isValid
+            )
+        }
+    }
 
     private fun loadProfile() {
         viewModelScope.launch {
@@ -158,6 +193,9 @@ object Profile {
         val isLoading: Boolean = false,
         val error: String? = null,
         val profile: Account = Account(),
+        val displayNameError: String?=null,
+        val phoneNumberError: String?=null,
+        val isValid: Boolean = false,
     )
 
     sealed interface Event {
@@ -175,7 +213,7 @@ object Profile {
         data class OnDateOfBirthChanged(val dateOfBirth: LocalDate) : Action
         data class OnGenderChanged(val gender: String) : Action
         data class OnPhoneNumberChanged(val phoneNumber: String) : Action
-        data class OnAvatarChanged(val avatar: Uri) : Action
+        data class OnAvatarChanged(val avatar: Uri?) : Action
         object OnUpdateProfile : Action
         data object OnBackSetting : Action
         data object OnBackAuth : Action

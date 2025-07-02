@@ -119,6 +119,11 @@ class TrackingViewModel @Inject constructor(
             _event.send(TrackingEvent.BackToOrderDetails)
         }
    }
+    fun onBack() {
+        viewModelScope.launch {
+            _event.send(TrackingEvent.OnBack)
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()
@@ -126,6 +131,7 @@ class TrackingViewModel @Inject constructor(
     }
     sealed class TrackingEvent {
         data object BackToOrderDetails : TrackingEvent()
+        data object OnBack: TrackingEvent()
 
     }
 

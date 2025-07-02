@@ -16,11 +16,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +41,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -167,14 +173,24 @@ fun CheckoutScreen(
             },
 
         )
-        NoteInput(
-            note = uiState.checkout.note,
-            onNoteChange = {
+        FoodAppTextField(
+            value = uiState.checkout.note?: "",
+            onValueChange = {
                 viewModel.onAction(Checkout.Action.OnNoteChanged(it))
             },
-            maxLines = 2,
-            textHolder = "Nhập ghi chú",
-            modifier = Modifier.height(50.dp)
+            modifier = Modifier.fillMaxWidth(),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Notes,
+                    contentDescription = "Note",
+                    tint = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.size(24.dp))
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Text,
+                imeAction = androidx.compose.ui.text.input.ImeAction.Done
+            ),
+
         )
         Surface(
             modifier = Modifier
@@ -220,7 +236,7 @@ fun CheckoutScreen(
             }
         )
         Payment(
-            method = uiState.checkout.method,
+            method = uiState.checkout.method?: PaymentMethod.CASH.getDisplayName(),
             onSelected = {
                 val method = PaymentMethod.fromDisplay(it)!!.name
                 viewModel.onAction(Checkout.Action.OnPaymentMethodChanged(method))
@@ -257,6 +273,7 @@ fun AddressCard(address: String?, onAddressClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .clickable {
@@ -314,6 +331,7 @@ fun VoucherCard(voucher: Voucher?, onVoucherClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .clickable {
@@ -370,6 +388,7 @@ fun Payment(method: String, onSelected: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .padding(10.dp),
@@ -380,9 +399,11 @@ fun Payment(method: String, onSelected: (String) -> Unit) {
         RadioGroupWrap(
             modifier = Modifier,
             text = "Phương thức thanh toán",
-            options = PaymentMethod.entries.map { it.display },
+            options = PaymentMethod.entries.map { it.getDisplayName() },
             selectedOption = method,
-            onOptionSelected = onSelected,
+            onOptionSelected = {
+                onSelected.invoke(it)
+            },
             optionIcons = listOf(Icons.Default.Money, Icons.Default.Payment),
         )
 

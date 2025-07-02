@@ -65,7 +65,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAiApi(@Named("AiApi") retrofit: Retrofit): AiApi {
+    fun provideAiApi(@Named("MainApi") retrofit: Retrofit): AiApi {
         return retrofit.create(AiApi::class.java)
     }
 }

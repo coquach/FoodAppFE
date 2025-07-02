@@ -35,6 +35,12 @@ class StaffRepoImpl @Inject constructor(
         ).flow
     }
 
+    override fun terminateStaff(id: Long): Flow<ApiResponse<Staff>> {
+        return apiRequestFlow {
+            staffApi.terminateStaff(id)
+        }
+    }
+
     override fun createStaff(
         request: Map<String, @JvmSuppressWildcards RequestBody>,
         image: MultipartBody.Part?,

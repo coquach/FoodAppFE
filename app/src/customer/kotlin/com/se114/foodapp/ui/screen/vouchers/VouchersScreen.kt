@@ -36,7 +36,9 @@ fun VouchersScreen(
     viewModel: VouchersViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
+    val vouchers = remember(uiState.filter) {
+        viewModel.getVouchers(uiState.filter)
+    }.collectAsLazyPagingItems()
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -94,11 +96,14 @@ fun VouchersScreen(
                 "quantity" -> "Số lượng"
                 else -> "Giá trị"
             },
-            placeHolder = "Tìm kiếm theo tên voucher..."
+            placeHolder = "Tìm kiếm theo code..."
         )
 
 
         LazyPagingSample(
+            onRefresh = {
+                viewModel.onAction(Vouchers.Action.OnRefresh)
+            },
             modifier = Modifier.fillMaxWidth().weight(1f),
             items = vouchers,
             textNothing = "Không có voucher nào cả...",

@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.foodapp.data.model.Order
+import com.example.foodapp.navigation.Home
 import com.example.foodapp.navigation.OrderDetailsStaff
 import com.example.foodapp.navigation.OrderList
 import com.example.foodapp.navigation.Tracking
@@ -19,7 +20,7 @@ fun NavGraphBuilder.orderGraph(
     navController: NavHostController,
     ) {
 
-    composable<OrderList> {
+    composable<Home> {
         ScreenContainer {
             OrderListScreen(navController)
         }

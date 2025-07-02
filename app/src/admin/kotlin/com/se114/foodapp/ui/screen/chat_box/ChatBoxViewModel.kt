@@ -383,46 +383,98 @@ class ChatBoxViewModel @Inject constructor(
             is ChatBoxState.Action.CreateChatKnowledgeEntry -> {
                 createChatKnowledgeEntry()
             }
+
             is ChatBoxState.Action.UpdateChatKnowledgeEntry -> {
                 updateChatKnowledgeEntry()
             }
+
             is ChatBoxState.Action.DeleteChatKnowledgeEntry -> {
-                deleteChatKnowledgeEntry()}
+                deleteChatKnowledgeEntry()
+            }
+
             is ChatBoxState.Action.CreateIntentType -> {
                 createIntentType()
             }
+
             is ChatBoxState.Action.UpdateIntentType -> {
                 updateIntentType()
             }
+
             is ChatBoxState.Action.DeleteIntentType -> {
-                deleteIntentType()}
+                deleteIntentType()
+            }
+
             is ChatBoxState.Action.OnChatKnowledgeEntrySelected -> {
                 _uiState.update {
                     it.copy(
                         chatKnowledgeEntrySelected = action.chatKnowledgeEntry
-                    )}}
+                    )
+                }
+            }
+
             is ChatBoxState.Action.OnIntentTypeSelected -> {
                 _uiState.update {
                     it.copy(
                         intentTypeSelected = action.intentType
-                    )}}
+                    )
+                }
+            }
+
             is ChatBoxState.Action.OnTitleChanged -> {
                 _uiState.update {
                     it.copy(
                         chatKnowledgeEntrySelected = it.chatKnowledgeEntrySelected.copy(
-                            title = action.title))}}
+                            title = action.title
+                        )
+                    )
+                }
+            }
+
             is ChatBoxState.Action.OnContentChanged -> {
                 _uiState.update {
                     it.copy(
                         chatKnowledgeEntrySelected = it.chatKnowledgeEntrySelected.copy(
-                            content = action.content))}}
+                            content = action.content
+                        )
+                    )
+                }
+            }
+
             is ChatBoxState.Action.OnNameChanged -> {
                 _uiState.update {
                     it.copy(
                         intentTypeSelected = it.intentTypeSelected.copy(
-                            name = action.name))}}
+                            name = action.name
+                        )
+                    )
+                }
+            }
 
+            ChatBoxState.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(ChatBoxState.Event.OnBack)
+                }
+            }
+
+            is ChatBoxState.Action.OnEditState -> {
+                _uiState.update {
+                    it.copy(
+                        isUpdating = action.isUpdating
+                    )
+                }
+            }
+
+            is ChatBoxState.Action.OnIntentTypeChanged -> {
+                _uiState.update {
+                    it.copy(
+                        chatKnowledgeEntrySelected = it.chatKnowledgeEntrySelected.copy(
+                            intentType = action.intentType
+                        )
+                    )
+                }
+            }
         }
+
     }
 
 
@@ -438,6 +490,7 @@ object ChatBoxState {
         val intentTypeList: List<IntentType> = emptyList(),
         val chatKnowLedgeListState: ChatKnowLedgeList = ChatKnowLedgeList.Loading,
         val intentTypeListState: IntentTypeList = IntentTypeList.Loading,
+        val isUpdating: Boolean = false,
     )
 
     sealed interface ChatKnowLedgeList {
@@ -456,6 +509,7 @@ object ChatBoxState {
     sealed interface Event {
         data class ShowToast(val message: String) : Event
         data object ShowError : Event
+        data object OnBack : Event
     }
 
     sealed interface Action {
@@ -469,7 +523,10 @@ object ChatBoxState {
         data class OnIntentTypeSelected(val intentType: IntentType) : Action
         data class OnTitleChanged(val title: String) : Action
         data class OnContentChanged(val content: String) : Action
+        data class OnIntentTypeChanged(val intentType: IntentType) : Action
         data class OnNameChanged(val name: String) : Action
+        data object OnBack : Action
+        data class OnEditState(val isUpdating: Boolean) : Action
 
 
     }

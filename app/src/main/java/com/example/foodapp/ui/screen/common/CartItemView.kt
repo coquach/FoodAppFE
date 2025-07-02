@@ -111,7 +111,7 @@ fun OrderItemView(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         AsyncImage(
-            model = orderItem.foodImages.firstOrNull()?.url ,
+            model = orderItem.foodImage ,
             contentDescription = null,
             modifier = Modifier
                 .size(82.dp)

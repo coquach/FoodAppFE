@@ -47,7 +47,7 @@ class FoodDetailsViewModel @Inject constructor(
     private val _event = Channel<FoodDetails.Event>()
     val event = _event.receiveAsFlow()
 
-    val feedbacks = getFeedbacksUseCase(foodArgument.food.id)
+    fun getFeedbacks() = getFeedbacksUseCase(foodArgument.food.id)
 
 
     private fun addToCart(food: Food) {
@@ -93,7 +93,7 @@ class FoodDetailsViewModel @Inject constructor(
                     }
 
                     is ApiResponse.Success -> {
-                        _uiState.update { it.copy(error = null) }
+                        _uiState.update { it.copy(food = it.food.copy(liked = result.data)) }
                     }
 
                     ApiResponse.Loading -> {
@@ -149,7 +149,7 @@ object FoodDetails {
     data class UiState(
         val isLoading: Boolean = false,
         val error: String? = null,
-        val food: Food = Food.sample(),
+        val food: Food,
         val quantity: Int = 1,
 
         )

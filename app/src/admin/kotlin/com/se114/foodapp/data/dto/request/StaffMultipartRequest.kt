@@ -13,7 +13,7 @@ data class StaffMultipartRequest(
     val address: String,
     val birthDate: String, // "dd-MM-yyyy"
     val startDate: String,
-    val endDate: String?,
+
     val basicSalary: BigDecimal
 ) {
     fun toPartMap(): Map<String, @JvmSuppressWildcards RequestBody> {
@@ -32,7 +32,6 @@ data class StaffMultipartRequest(
         add("address", address)
         add("birthDate", birthDate)
         add("startDate", startDate)
-        add("endDate", endDate)
         add("basicSalary", basicSalary.toPlainString())
 
         return map

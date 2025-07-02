@@ -5,6 +5,7 @@ import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.request.FeedbackMultipartRequest
 import com.example.foodapp.data.model.Feedback
 import com.example.foodapp.data.model.FeedbackUi
+import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
 import com.example.foodapp.utils.ImageUtils
 import com.se114.foodapp.domain.repository.FeedbackRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,19 +16,21 @@ import javax.inject.Inject
 
 class CreateFeedbackUseCase @Inject constructor(
     private val feedbackRepository: FeedbackRepository,
+    private val getUserIdUseCase: GetUserIdUseCase,
     @ApplicationContext val context: Context,
 ) {
     operator fun invoke(orderItemId: Long, feedback: FeedbackUi) = flow<ApiResponse<Unit>> {
         emit(ApiResponse.Loading)
         try {
-            val imageParts = feedback.images?.map { ImageUtils.getImagePart(context, it, "images") }
+            val imageParts = feedback.images?.map { ImageUtils.getImagePart(context, it, "images")!! }
             val request = FeedbackMultipartRequest(
                 orderItemId = orderItemId,
                 content = feedback.content,
                 rating = feedback.rating,
+                customerId = getUserIdUseCase()
             )
             val partMap = request.toPartMap()
-            feedbackRepository.createFeedback(partMap, imageParts).collect { result ->
+            feedbackRepository.createFeedback(request =partMap, images = imageParts).collect { result ->
                 when (result) {
                     is ApiResponse.Success -> {
                         emit(ApiResponse.Success(Unit))

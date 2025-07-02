@@ -9,6 +9,6 @@ fun Food.toFoodAddUi() = FoodAddUi (
         name = this.name,
         description = this.description,
         price = this.price,
-        images = this.images?.map { it.url.toUri() },
+        images = this.images?.map { it.url.toUri() }?: emptyList(),
         defaultQuantity = defaultQuantity
     )

@@ -18,7 +18,7 @@ import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailSc
 import com.example.foodapp.ui.screen.auth.forgot_password.send_email.SendEmailSuccessScreen
 import com.example.foodapp.ui.screen.auth.login.LoginScreen
 import com.example.foodapp.ui.screen.auth.signup.SignUpScreen
-import com.example.foodapp.ui.screen.auth.signup.profile.ProfileScreen
+import com.se114.foodapp.ui.screen.setting.profile.ProfileScreen
 import com.example.foodapp.utils.ScreenContainer
 
 fun NavGraphBuilder.authGraph(

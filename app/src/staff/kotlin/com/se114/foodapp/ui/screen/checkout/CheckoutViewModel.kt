@@ -1,41 +1,33 @@
 package com.se114.foodapp.ui.screen.checkout
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import com.example.foodapp.data.model.CartItem
-import com.example.foodapp.data.model.CheckoutDetails
 import com.example.foodapp.data.dto.ApiResponse
-import com.example.foodapp.data.dto.filter.FoodTableFilter
 import com.example.foodapp.data.dto.request.OrderItemRequest
-import com.example.foodapp.data.dto.request.OrderRequest
+import com.example.foodapp.data.model.CheckoutDetails
 
 import com.example.foodapp.data.model.CheckoutUiModel
-import com.example.foodapp.data.model.FoodTable
+import com.example.foodapp.data.model.Order
+import com.example.foodapp.data.model.OrderItem
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.OrderStatus
 import com.example.foodapp.data.model.enums.PaymentMethod
 import com.example.foodapp.data.model.enums.ServingType
-import com.example.foodapp.domain.use_case.auth.GetUserIdUseCase
-import com.example.foodapp.domain.use_case.food_table.GetFoodTablesUseCase
+import com.example.foodapp.data.model.toCheckoutUiModel
+import com.example.foodapp.navigation.CheckoutStaff
+import com.se114.foodapp.domain.use_case.order.CancelOrderUseCase
 
-import com.se114.foodapp.domain.use_case.cart.GetCartUseCase
-import com.se114.foodapp.domain.use_case.cart.GetCheckOutDetailsUseCase
-import com.example.foodapp.domain.use_case.order.PlaceOrderUseCase
-import com.example.foodapp.utils.StringUtils
-import com.se114.foodapp.domain.use_case.cart.ClearAllCartUseCase
+import com.se114.foodapp.domain.use_case.order.CheckoutOrderUseCase
+import com.se114.foodapp.domain.use_case.order.GetOrderByFoodTableIdUseCase
+import com.se114.foodapp.domain.use_case.order.UpsertOrderItemsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -43,96 +35,182 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
-    private val getCartUseCase: GetCartUseCase,
-    private val getCheckoutDetailsUseCase: GetCheckOutDetailsUseCase,
-    private val placeOrderUseCase: PlaceOrderUseCase,
-    private val getFoodTableUseCase: GetFoodTablesUseCase,
-    private val getUserIdUseCase: GetUserIdUseCase,
-    private val clearAllCartUseCase: ClearAllCartUseCase,
+
+    saveStateHandle: SavedStateHandle,
+    private val upsertOrderItemsUseCase: UpsertOrderItemsUseCase,
+    private val getOrderByFoodTableIdUseCase: GetOrderByFoodTableIdUseCase,
+    private val checkoutOrderUseCase: CheckoutOrderUseCase,
+    private val cancelOrderUseCase: CancelOrderUseCase,
 
 
-) : ViewModel() {
-
+    ) : ViewModel() {
+    private val foodTableId = saveStateHandle.toRoute<CheckoutStaff>().foodTableID
     private val _uiState = MutableStateFlow(Checkout.UiState())
     val uiState = _uiState.asStateFlow()
 
     private val _event = Channel<Checkout.Event>()
     val event = _event.receiveAsFlow()
 
-    init {
-        getCartItems()
-        getCheckoutDetails()
+    init{
+        getOrderByFoodTableId()
     }
 
-    val foodTables: StateFlow<PagingData<FoodTable>> = getFoodTableUseCase(FoodTableFilter(active = true)).cachedIn(viewModelScope).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000L),
-        initialValue = PagingData.empty()
-    )
-    private fun getCartItems() {
+    private fun getOrderByFoodTableId() {
         viewModelScope.launch {
-            try {
-                val cartItems = getCartUseCase.invoke().first()
-                _uiState.update { it.copy(cartItems = cartItems) }
+            getOrderByFoodTableIdUseCase(foodTableId).collect { result ->
+                when (result) {
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(getOrdersState = Checkout.GetOrderState.Loading) }
+                    }
 
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message ?: "Đã xảy ra lỗi khi lấy giỏ hàng") }
-                _event.send(Checkout.Event.ShowError)
-            }
-        }
-    }
-
-    private fun getCheckoutDetails() {
-        viewModelScope.launch {
-            try {
-                val checkoutDetails = getCheckoutDetailsUseCase.invoke().first()
-                _uiState.update { it.copy(checkoutDetails = checkoutDetails) }
-
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        error = e.message ?: "Đã xảy ra lỗi khi lấy chi tiết giá đơn hàng"
-                    )
-                }
-                _event.send(Checkout.Event.ShowError)
-            }
-        }
-    }
-
-    private fun placeOrder() {
-        viewModelScope.launch {
-
-
-                placeOrderUseCase(
-                    checkout = _uiState.value.checkout,
-                    cartItems = _uiState.value.cartItems,
-                    sellerId = getUserIdUseCase()
-                ).collect { result ->
-                    when (result) {
-                        is ApiResponse.Success -> {
-                            _uiState.update { it.copy(isLoading = false) }
-                            clearAllCartUseCase()
-                            _event.send(Checkout.Event.OrderSuccess(result.data.id))
+                    is ApiResponse.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                getOrdersState = Checkout.GetOrderState.Success,
+                                checkout = result.data.toCheckoutUiModel(),
+                                orderItems = result.data.orderItems,
+                            )
                         }
+                    }
 
-                        is ApiResponse.Failure -> {
-                            _uiState.update {
-                                it.copy(
-                                    error = result.errorMessage,
-                                    isLoading = false
-                                )
-                            }
-                            _event.send(Checkout.Event.ShowError)
-                        }
-
-                        is ApiResponse.Loading -> {
-                            _uiState.update { it.copy(isLoading = true) }
+                    is ApiResponse.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                getOrdersState = Checkout.GetOrderState.Error(result.errorMessage),
+                            )
                         }
                     }
                 }
-
-
+            }
         }
+    }
+
+    private fun checkoutOrder() {
+        viewModelScope.launch {
+            checkoutOrderUseCase(
+                orderId = _uiState.value.checkout.id!!,
+                voucherId = _uiState.value.checkout.voucher?.id
+            ).collect { result ->
+                when (result) {
+                    is ApiResponse.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = null,
+                            )
+                        }
+                        _event.send(Checkout.Event.OrderSuccess(_uiState.value.checkout.id!!))
+                    }
+
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+
+                    is ApiResponse.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.errorMessage
+                            )
+                        }
+                        _event.send(Checkout.Event.ShowError)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun cancelOrder() {
+        viewModelScope.launch {
+            cancelOrderUseCase(
+                orderId = _uiState.value.checkout.id!!,
+            ).collect { result ->
+                when (result) {
+                    is ApiResponse.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = null,
+                            )
+
+                        }
+                        _event.send(Checkout.Event.ShowToastSuccess("Hủy đơn hàng thành công"))
+                        _event.send(Checkout.Event.OnBack)
+                    }
+
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+
+                    is ApiResponse.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.errorMessage
+                            )
+
+                        }
+                        _event.send(Checkout.Event.ShowError)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun upsertOrderItems() {
+        val orderItems = _uiState.value.orderItems.map {
+            OrderItemRequest(
+                foodId = it.foodId!!,
+                quantity = it.quantity,
+            )
+        }
+        Log.d("CheckoutViewModel", "upsertOrderItems: $orderItems")
+        viewModelScope.launch {
+            upsertOrderItemsUseCase(
+                orderId = _uiState.value.checkout.id!!,
+                orderItems = orderItems,
+
+            ).collect { result ->
+                when (result) {
+                    is ApiResponse.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = null,
+                            )
+                        }
+                        _event.send(Checkout.Event.ShowToastSuccess("Cập nhật chi tiết đơn hàng thành công"))
+                        _event.send(Checkout.Event.isSaveOrderItems)
+                    }
+
+                    is ApiResponse.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+
+                    is ApiResponse.Failure -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.errorMessage
+                            )
+                        }
+                        _event.send(Checkout.Event.ShowError)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun removeOrderItems(id: Long){
+        _uiState.update { it.copy(orderItems = _uiState.value.orderItems.filter { it.id != id }) }
+    }
+
+    private fun updateQuantity(id: Long, quantity: Int){
+        _uiState.update { it.copy(orderItems = _uiState.value.orderItems.map {
+            if (it.id == id) it.copy(
+                quantity = quantity
+            ) else it
+        }) }
     }
 
     fun onAction(action: Checkout.Action) {
@@ -145,26 +223,6 @@ class CheckoutViewModel @Inject constructor(
                 }
             }
 
-            is Checkout.Action.PlaceOrder -> {
-                placeOrder()
-            }
-
-            is Checkout.Action.OnNoteChanged -> {
-                _uiState.update { it.copy(checkout = _uiState.value.checkout.copy(note = action.note)) }
-            }
-
-            is Checkout.Action.OnPaymentMethodChanged -> {
-                _uiState.update { it.copy(checkout = _uiState.value.checkout.copy(method = action.method)) }
-            }
-
-            is Checkout.Action.OnServingTypeChanged -> {
-                val type = if (action.tab == 0) ServingType.INSTORE.name else ServingType.TAKEAWAY.name
-                _uiState.update { it.copy(checkout = _uiState.value.checkout.copy(type = type)) }
-            }
-
-            is Checkout.Action.OnFoodTableIdChanged -> {
-                _uiState.update { it.copy(checkout = _uiState.value.checkout.copy(foodTableId = action.id)) }
-            }
 
             is Checkout.Action.OnChooseVoucher -> {
                 viewModelScope.launch {
@@ -176,6 +234,51 @@ class CheckoutViewModel @Inject constructor(
                 _uiState.update { it.copy(checkout = _uiState.value.checkout.copy(voucher = action.voucher)) }
             }
 
+            Checkout.Action.CheckoutOrder -> {
+                checkoutOrder()
+            }
+
+            Checkout.Action.CancelOrder -> {
+                cancelOrder()
+            }
+
+            Checkout.Action.SaveOrderItems -> {
+                upsertOrderItems()
+            }
+
+            is Checkout.Action.OnOrderItemsChanged -> {
+                val currentItems = _uiState.value.orderItems.toMutableList()
+
+                action.orderItems.forEach { newItem ->
+                    val index = currentItems.indexOfFirst { it.foodId == newItem.foodId }
+                    if (index != -1) {
+
+                        val existingItem = currentItems[index]
+                        currentItems[index] = existingItem.copy(
+                            quantity = existingItem.quantity + newItem.quantity
+                        )
+                    } else {
+
+                        currentItems.add(newItem)
+                    }
+                }
+
+                _uiState.update { it.copy(orderItems = currentItems) }
+            }
+            is Checkout.Action.OnQuantityChange -> {
+                if(action.quantity == 0) removeOrderItems(action.id)
+                else updateQuantity(action.id, action.quantity)
+
+            }
+            Checkout.Action.NavigateToGetFood -> {
+                viewModelScope.launch {
+                    _event.send(Checkout.Event.NavigateToGetFood)
+                }
+            }
+
+            is Checkout.Action.RemoveOrderItem -> {
+                removeOrderItems(action.id)
+            }
         }
     }
 
@@ -184,39 +287,47 @@ class CheckoutViewModel @Inject constructor(
 object Checkout {
     data class UiState(
         val isLoading: Boolean = false,
-        val cartItems: List<CartItem> = emptyList(),
-        val checkoutDetails: CheckoutDetails = CheckoutDetails(
-            BigDecimal(0),
-
-        ),
+        val getOrdersState: GetOrderState = GetOrderState.Loading,
+        val orderItems: List<OrderItem> = emptyList(),
         val error: String? = null,
         val checkout: CheckoutUiModel = CheckoutUiModel(
-            foodTableId = null,
+            foodTableNumber = null,
             voucher = null,
             method = PaymentMethod.CASH.display,
             type = ServingType.INSTORE.display,
-            status = OrderStatus.COMPLETED.name,
+            status = OrderStatus.CONFIRMED.name,
             note = "",
             address = null,
         ),
     )
 
     sealed interface Event {
+        data class ShowToastSuccess(val message: String) : Event
         data object ShowError : Event
         data object ChooseVoucher : Event
         data object OnBack : Event
         data class OrderSuccess(val orderId: Long) : Event
+        data object NavigateToGetFood: Event
+        data object isSaveOrderItems : Event
+    }
+
+    sealed interface GetOrderState {
+        data object Loading : GetOrderState
+        data object Success : GetOrderState
+        data class Error(val message: String) : GetOrderState
     }
 
     sealed interface Action {
         data object OnChooseVoucher : Action
         data object OnBack : Action
-        data object PlaceOrder : Action
-        data class OnNoteChanged(val note: String) : Action
-        data class OnPaymentMethodChanged(val method: String) : Action
-        data class OnServingTypeChanged(val tab: Int) : Action
-        data class OnFoodTableIdChanged(val id: Int?) : Action
+        data object CheckoutOrder : Action
+        data object CancelOrder : Action
+        data class OnOrderItemsChanged(val orderItems: List<OrderItem>) : Action
+        data object SaveOrderItems : Action
         data class OnVoucherChanged(val voucher: Voucher) : Action
+        data class OnQuantityChange(val id: Long, val quantity: Int) : Action
+        data class RemoveOrderItem(val id: Long) : Action
+        data object NavigateToGetFood: Action
 
     }
 }

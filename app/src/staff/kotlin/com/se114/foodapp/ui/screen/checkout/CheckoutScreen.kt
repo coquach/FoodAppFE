@@ -1,5 +1,12 @@
 package com.se114.foodapp.ui.screen.checkout
 
+import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,35 +16,37 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Payment
-import androidx.compose.material.icons.filled.TableRestaurant
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,28 +54,31 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavController
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.foodapp.data.model.CartItem
+import coil.compose.AsyncImage
 import com.example.foodapp.data.model.CheckoutDetails
-import com.example.foodapp.data.model.CheckoutUiModel
-import com.example.foodapp.data.model.FoodTable
+import com.example.foodapp.data.model.OrderItem
 import com.example.foodapp.data.model.Voucher
 import com.example.foodapp.data.model.enums.PaymentMethod
+import com.example.foodapp.navigation.GetFoodForStaff
 import com.example.foodapp.navigation.OrderSuccess
 import com.example.foodapp.navigation.VoucherCheck
-import com.example.foodapp.ui.screen.common.CartItemView
+import com.example.foodapp.navigation.VoucherCheckStaff
 import com.example.foodapp.ui.screen.common.CheckoutDetailsView
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
 import com.example.foodapp.ui.screen.common.calculateVoucherValue
-import com.example.foodapp.ui.screen.components.CustomPagingDropdown
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
+import com.example.foodapp.ui.screen.components.FoodAppDialog
+import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
-import com.example.foodapp.ui.screen.components.LazyPagingSample
+import com.example.foodapp.ui.screen.components.Loading
 import com.example.foodapp.ui.screen.components.LoadingButton
-import com.example.foodapp.ui.screen.components.NoteInput
+import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
-import com.example.foodapp.ui.screen.components.TabWithPager
+import com.example.foodapp.ui.screen.components.Retry
+import com.example.foodapp.utils.StringUtils
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,20 +88,30 @@ fun CheckoutScreen(
     viewModel: CheckoutViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val foodTables = viewModel.foodTables.collectAsLazyPagingItems()
 
     var showErrorSheet by rememberSaveable {
         mutableStateOf(
             false
         )
     }
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    var isCheckOut by rememberSaveable { mutableStateOf(false) }
+    var isSaveOrderItems by rememberSaveable { mutableStateOf(false) }
+    val totalPriceOrderItem by remember {
+        derivedStateOf {
+            uiState.orderItems.sumOf { it.quantity.toBigDecimal() * it.price }
+        }
+    }
+
+
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.event.flowWithLifecycle(lifecycleOwner.lifecycle).collect {
             when (it) {
 
                 Checkout.Event.ChooseVoucher -> {
-                    navController.navigate(VoucherCheck)
+                    navController.navigate(VoucherCheckStaff(totalPriceOrderItem.toPlainString()))
                 }
 
                 Checkout.Event.OnBack -> {
@@ -102,6 +124,22 @@ fun CheckoutScreen(
 
                 Checkout.Event.ShowError -> {
                     showErrorSheet = true
+                }
+
+                is Checkout.Event.ShowToastSuccess -> {
+                    Toast.makeText(
+                        context,
+                        it.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                Checkout.Event.NavigateToGetFood -> {
+                    navController.navigate(GetFoodForStaff)
+                }
+
+                Checkout.Event.isSaveOrderItems -> {
+                    isSaveOrderItems = true
                 }
             }
         }
@@ -120,6 +158,23 @@ fun CheckoutScreen(
         }
     }
 
+    val orderItems =
+        navController.currentBackStackEntry?.savedStateHandle?.getStateFlow<List<OrderItem>?>(
+            "orderItems",
+            null
+        )?.collectAsStateWithLifecycle()
+    LaunchedEffect(key1 = orderItems?.value) {
+        orderItems?.value?.let {
+            viewModel.onAction(Checkout.Action.OnOrderItemsChanged(it))
+        }
+    }
+
+
+//    LaunchedEffect(Unit) {
+//        viewModel.getOrderByFoodTableId()
+//
+//    }
+
 
 
     Column(
@@ -134,73 +189,183 @@ fun CheckoutScreen(
             onBack = {
                 viewModel.onAction(Checkout.Action.OnBack)
             },
-            text = "Xác nhận đơn hàng"
+            text = "Xác nhận đơn hàng",
+            icon = Icons.Default.Fastfood,
+            iconClick = {
+                viewModel.onAction(Checkout.Action.NavigateToGetFood)
+            }
         )
-        TabWithPager(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            tabs = listOf("Tại quán", "Mang về"),
-            pages = listOf(
-                {
-                    CheckoutSection(
+
+        when (uiState.getOrdersState) {
+
+
+            Checkout.GetOrderState.Loading -> {
+                Loading(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+            }
+
+            else -> {
+                if (uiState.orderItems.isEmpty()) {
+                    Nothing(
+                        text = "Chưa có món ăn nào trong đơn hàng",
+                        icon = Icons.Default.Fastfood,
                         modifier = Modifier
-                            .fillMaxSize(),
-                        isInStore = true,
-                        checkoutDetails = uiState.checkoutDetails,
-                        cartItems = uiState.cartItems,
-                        onPlaceOrder = {
-                            viewModel.onAction(Checkout.Action.PlaceOrder)
-                        },
-                        onNoteChange = {
-                            viewModel.onAction(Checkout.Action.OnNoteChanged(it))
-                        },
-                        onPaymentMethodChange = {
-                            viewModel.onAction(Checkout.Action.OnPaymentMethodChanged(it))
-                        },
-                        onFoodTableIdChange = {
-                            viewModel.onAction(Checkout.Action.OnFoodTableIdChanged(it))
-                        },
-                        onChooseVoucher = {
-                            viewModel.onAction(Checkout.Action.OnChooseVoucher)
-                        },
-                        checkOut = uiState.checkout,
-                        isLoading = uiState.isLoading,
-                        foodTables = foodTables
+                            .fillMaxWidth()
+                            .weight(1f)
                     )
-                },
-                {
-                    CheckoutSection(
+                } else {
+                    LazyColumn(
                         modifier = Modifier
-                            .fillMaxSize(),
-                        isInStore = false,
-                        checkoutDetails = uiState.checkoutDetails,
-                        cartItems = uiState.cartItems,
-                        onPlaceOrder = {
-                            viewModel.onAction(Checkout.Action.PlaceOrder)
-                        },
-                        onNoteChange = {
-                            viewModel.onAction(Checkout.Action.OnNoteChanged(it))
-                        },
-                        onPaymentMethodChange = {
-                            viewModel.onAction(Checkout.Action.OnPaymentMethodChanged(it))
-                        },
-                        onChooseVoucher = {
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+
+                        items(items = uiState.orderItems, key = { it.id }) { item ->
+                            SwipeableActionsBox(
+                                modifier = Modifier
+                                    .padding(
+                                        8.dp,
+                                    )
+                                    .clip(RoundedCornerShape(12.dp)),
+                                startActions = listOf(
+                                    SwipeAction(
+                                        icon = rememberVectorPainter(Icons.Default.Delete),
+                                        background = MaterialTheme.colorScheme.error,
+                                        onSwipe = {
+                                            viewModel.onAction(Checkout.Action.RemoveOrderItem(item.id))
+                                            isSaveOrderItems = true
+                                        }
+                                    )
+                                )
+                            ) {
+                                OrderItemCheckoutView(
+                                    orderItem = item,
+                                    onIncrement = {
+                                        viewModel.onAction(
+                                            Checkout.Action.OnQuantityChange(
+                                                it.id,
+                                                it.quantity + 1
+                                            )
+                                        )
+                                        isSaveOrderItems = false
+                                    },
+                                    onDecrement = {
+                                        viewModel.onAction(
+                                            Checkout.Action.OnQuantityChange(
+                                                it.id,
+                                                it.quantity - 1
+                                            )
+                                        )
+                                        isSaveOrderItems = false
+                                    }
+                                )
+                            }
+
+                        }
+
+                        item {
+                            CheckoutDetailsView(
+                                checkoutDetails = CheckoutDetails(
+                                    totalAmount = totalPriceOrderItem
+                                ),
+                                voucher = uiState.checkout.voucher
+                            )
+                        }
+                    }
+                    VoucherCard(
+                        voucher = uiState.checkout.voucher,
+                        onVoucherClicked = {
                             viewModel.onAction(Checkout.Action.OnChooseVoucher)
-                        },
-                        checkOut = uiState.checkout,
-                        isLoading = uiState.isLoading,
-                        foodTables = foodTables
+                        }
                     )
+
+                    AnimatedContent(
+                        targetState = isSaveOrderItems,
+                        modifier = Modifier.fillMaxWidth(),
+                        transitionSpec = {
+                            (slideInVertically { it } + fadeIn()) togetherWith
+                                    (slideOutVertically { -it } + fadeOut())
+                        },
+                        label = "Edit button",
+                    ) {
+                        if (!it) {
+                            LoadingButton(
+                                onClick = {
+                                    viewModel.onAction(Checkout.Action.SaveOrderItems)
+                                    isSaveOrderItems = false
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                text = "Lưu",
+                                loading = uiState.isLoading,
+                            )
+                        } else {
+                            CheckoutRowItem(
+                                title = "Tổng cộng",
+                                value = totalPriceOrderItem + calculateVoucherValue(
+                                    uiState.checkout.voucher,
+                                    CheckoutDetails(totalPriceOrderItem)
+                                ),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                LoadingButton(
+                                    text = "Xác nhận",
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        isCheckOut = true
+                                        showDialog = true
+                                    },
+                                    loading = uiState.isLoading,
+
+                                    )
+                                AppButton(
+                                    text = "Hủy",
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        isCheckOut = false
+                                        showDialog = true
+                                    },
+                                    backgroundColor = MaterialTheme.colorScheme.error,
+                                    enable = !uiState.isLoading
+
+                                )
+                            }
+                        }
+                    }
                 }
-            ),
 
-            onTabSelected = {
-                viewModel.onAction(Checkout.Action.OnServingTypeChanged(it))
+            }
+        }
+
+
+    }
+    if (showDialog) {
+        FoodAppDialog(
+            title = if (isCheckOut) "Thanh toán đơn hàng" else "Hủy đơn hàng",
+            titleColor = if (isCheckOut) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            message = if (isCheckOut) "Bạn có muốn thanh toán đơn hàng này không?" else "Bạn có muốn hủy đơn hàng này không?",
+            onDismiss = {
+                showDialog = false
             },
+            containerConfirmButtonColor = if (isCheckOut) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            onConfirm = {
+                if (isCheckOut) {
+                    viewModel.onAction(Checkout.Action.CheckoutOrder)
+                } else {
+                    viewModel.onAction(Checkout.Action.CancelOrder)
+                }
+            },
+            confirmText = if (isCheckOut) "Thanh toán" else "Hủy",
+            dismissText = "Đóng",
         )
-
-
     }
     if (showErrorSheet) {
         ErrorModalBottomSheet(
@@ -214,147 +379,55 @@ fun CheckoutScreen(
 }
 
 @Composable
-fun CheckoutSection(
-    modifier: Modifier = Modifier,
-    isInStore: Boolean,
-    checkoutDetails: CheckoutDetails,
-    cartItems: List<CartItem>,
-    onPlaceOrder: () -> Unit,
-    onNoteChange: (String) -> Unit,
-    onPaymentMethodChange: (String) -> Unit,
-    onFoodTableIdChange: ((Int) -> Unit)? = null,
-    foodTables: LazyPagingItems<FoodTable>,
-    onChooseVoucher: () -> Unit,
-    checkOut: CheckoutUiModel,
-    isLoading: Boolean,
+fun OrderItemCheckoutView(
+    orderItem: OrderItem,
+    onIncrement: (OrderItem) -> Unit,
+    onDecrement: (OrderItem) -> Unit,
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
+        AsyncImage(
+            model = orderItem.foodImage,
+            contentDescription = null,
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .size(82.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.size(12.dp))
+        Column(
+            verticalArrangement = Arrangement.Center
         ) {
-            if (isInStore) {
-                CustomPagingDropdown(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = "Chọn bàn",
-                    textPlaceholder = "Chọn bàn ăn cho hóa đơn",
-                    selected = checkOut.foodTableId.toString(),
-                    enabled = true,
-                    dropdownContent = {onDismissDropdown ->
-                        FoodTableComboBox(
-                            items = foodTables,
-                            onFoodTableClicked = { tableId->
-                                onFoodTableIdChange?.invoke(tableId)
-                                onDismissDropdown()
-                            }
-                        )
-                    }
+
+            Text(
+                text = orderItem.foodName,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+
+            Spacer(modifier = Modifier.size(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = StringUtils.formatCurrency(orderItem.price),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                FoodItemCounter(
+                    count = orderItem.quantity,
+                    onCounterIncrement = { onIncrement.invoke(orderItem) },
+                    onCounterDecrement = { onDecrement.invoke(orderItem) },
                 )
             }
-            NoteInput(
-                note = checkOut.note,
-                onNoteChange = onNoteChange,
-                maxLines = 2,
-                textHolder = "Nhập ghi chú",
-                modifier = Modifier.height(100.dp)
-            )
-            Surface(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.background,
-                shadowElevation = 6.dp,
-                tonalElevation = 6.dp
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(cartItems, key = { it.id }) { item ->
-                            CartItemView(
-                                cartItem = item
-                            )
-                        }
-
-                        item {
-                            CheckoutDetailsView(
-                                checkoutDetails = checkoutDetails,
-                                voucher = checkOut.voucher
-                            )
-                        }
-                    }
-
-
-                }
-
-            }
-            VoucherCard(
-                voucher = checkOut.voucher,
-                onVoucherClicked = onChooseVoucher
-            )
-            Payment(
-                method = checkOut.method,
-                onSelected = {
-                    val method = PaymentMethod.fromDisplay(it)!!.name
-                    onPaymentMethodChange(method)
-                }
-            )
         }
-
-        CheckoutRowItem(
-            title = "Tổng cộng",
-            value = checkoutDetails.totalAmount + calculateVoucherValue(
-                checkOut.voucher,
-                checkoutDetails
-            ),
-            fontWeight = FontWeight.Bold
-        )
-        LoadingButton(
-            onClick = onPlaceOrder,
-            text = "Hoàn thành",
-            loading = isLoading,
-            modifier = Modifier.fillMaxWidth()
-
-        )
-    }
-}
-
-@Composable
-fun FoodTableComboBox(
-    items: LazyPagingItems<FoodTable>,
-    onFoodTableClicked: (Int) -> Unit
-){
-    LazyPagingSample(
-        modifier = Modifier.fillMaxSize(),
-        items = items,
-        textNothing = "Không có bàn nào cả",
-        iconNothing = Icons.Default.TableRestaurant,
-        columns = 1,
-        key = {
-            it.id!!
-        }
-    ) {
-        DropdownMenuItem(
-                text = { Text(text = "${it.tableNumber}") },
-        onClick = {
-            onFoodTableClicked(it.id!!)
-        }
-        )
     }
 }
 
@@ -364,6 +437,7 @@ fun VoucherCard(voucher: Voucher?, onVoucherClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .clickable {

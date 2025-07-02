@@ -25,6 +25,7 @@ class UpdateFoodUseCase @Inject constructor(
                 description = food.description,
                 price = food.price,
                 menuId = food.menuId,
+                defaultQuantity = food.defaultQuantity
             )
             val foodId = food.id!!
             val imageParts = food.images?.map { ImageUtils.getImagePart(context, it) }

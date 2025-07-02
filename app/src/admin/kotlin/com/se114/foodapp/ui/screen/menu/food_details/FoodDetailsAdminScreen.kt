@@ -34,6 +34,7 @@ import com.example.foodapp.ui.screen.components.FoodAppTextField
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImageListPicker
 import com.example.foodapp.ui.screen.components.LoadingButton
+import com.example.foodapp.ui.screen.components.ValidateTextField
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,13 +110,21 @@ val lifecycleOwner = LocalLifecycleOwner.current
                     viewModel.onAction(AddFood.Action.OnImagesChange(it))
                 }
             )
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.foodAddUi.name,
                 onValueChange = {
                     viewModel.onAction(AddFood.Action.OnNameChange(it))
                 },
                 modifier = Modifier.fillMaxWidth(),
-                labelText = "Tên"
+                labelText = "Tên",
+                errorMessage = uiState.nameError,
+                validate = {
+                    viewModel.validate("name")
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
             )
             ChipsGroupWrap(
                 text = "Danh mục",
@@ -127,6 +136,7 @@ val lifecycleOwner = LocalLifecycleOwner.current
                         viewModel.onAction(AddFood.Action.OnMenuChange(it.id!!, it.name))
                     }
                 },
+                modifier = Modifier.padding(8.dp),
                 containerColor = MaterialTheme.colorScheme.inversePrimary,
                 shouldSelectDefaultOption = true
             )
@@ -136,9 +146,13 @@ val lifecycleOwner = LocalLifecycleOwner.current
                 onValueChange = {
                     viewModel.onAction(AddFood.Action.OnDescriptionChange(it))
                 },
-                modifier = Modifier.fillMaxWidth(), labelText = "Mô tả"
+                modifier = Modifier.fillMaxWidth(), labelText = "Mô tả",
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                )
             )
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.foodAddUi.price.toPlainString(),
                 onValueChange = {
                     viewModel.onAction(AddFood.Action.OnPriceChange(it.toBigDecimalOrNull()))
@@ -148,9 +162,14 @@ val lifecycleOwner = LocalLifecycleOwner.current
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
-                labelText = "Giá"
+                labelText = "Giá",
+                errorMessage = uiState.priceError,
+                validate = {
+                    viewModel.validate("price")
+                },
+
             )
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.foodAddUi.defaultQuantity.toString(),
                 onValueChange = {
                     viewModel.onAction(AddFood.Action.OnDefaultQuantityChange(it.toIntOrNull()))
@@ -160,7 +179,11 @@ val lifecycleOwner = LocalLifecycleOwner.current
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
-                labelText = "Số lượng"
+                labelText = "Số lượng",
+                errorMessage = uiState.defaultQuantityError,
+                validate = {
+                    viewModel.validate("defaultQuantity")
+                },
             )
 
 
@@ -178,6 +201,7 @@ val lifecycleOwner = LocalLifecycleOwner.current
             modifier = Modifier.fillMaxWidth(),
             text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
             loading = uiState.isLoading,
+            enabled = uiState.isValid
 
 
         )

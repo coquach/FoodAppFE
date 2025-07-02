@@ -20,7 +20,7 @@ interface   ImportApi {
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "id",
         @Query("order") order: String = "desc",
-        @Query("supplierId") supplierId: Long? = null,
+        @Query("supplierName") supplierName: String? = null,
         @Query("startDate") startDate: String? = null,
         @Query("endDate") endDate: String? = null,
     ): Response<PageResponse<Import>>

@@ -13,6 +13,6 @@ interface FoodRepository {
     fun addFood(request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part>? = null): Flow<ApiResponse<Food>>
     fun updateFood(foodId: Long, request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part?>? = null): Flow<ApiResponse<Food>>
     fun getFavoriteFoods(foodFilter: FoodFilter): Flow<PagingData<Food>>
-    fun toggleLike(foodId: Long): Flow<ApiResponse<Unit>>
+    fun toggleLike(foodId: Long): Flow<ApiResponse<Boolean>>
     fun toggleStatus(foodId: Long): Flow<ApiResponse<Unit>>
 }

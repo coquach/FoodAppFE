@@ -83,9 +83,6 @@ class MainActivity : BaseFoodAppActivity() {
                                 navController.navigate(Notification)
                             }
 
-                            is MainViewModel.UiEvent.NavigateToResetPassword -> {
-
-                            }
 
                             MainViewModel.UiEvent.NavigateToAuth -> {
                                 navController.navigate(Auth) {
@@ -122,9 +119,7 @@ class MainActivity : BaseFoodAppActivity() {
                         SharedTransitionLayout {
                             AppNavGraph(
                                 navController = navController,
-                                innerPadding = PaddingValues(
-                                    bottom = 75.dp
-                                ),
+                                innerPadding = innerPadding,
                                 startDestination = screen,
                                 isDarkMode = isDarkMode,
                                 onThemeUpdated = {

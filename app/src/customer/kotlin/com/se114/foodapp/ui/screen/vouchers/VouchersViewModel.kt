@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,8 +35,7 @@ class VouchersViewModel @Inject constructor(
     val event = _event.receiveAsFlow()
 
 
-    val vouchers =
-        getVoucherForCustomerUseCase(VoucherFilter())
+    fun getVouchers(filter: VoucherFilter) = getVoucherForCustomerUseCase(filter)
 
     fun onAction(action: Vouchers.Action) {
         when (action) {
@@ -54,7 +54,22 @@ class VouchersViewModel @Inject constructor(
                 _uiState.update { it.copy(filter = it.filter.copy(sortBy = action.sort)) }
             }
             Vouchers.Action.OnSearchFilter -> {
-
+_uiState.update {
+    it.copy(
+        filter = it.filter.copy(
+            code = _uiState.value.nameSearch,
+        )
+    )
+}
+            }
+            Vouchers.Action.OnRefresh -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                           forceRefresh = UUID.randomUUID().toString()
+                        )
+                    )
+                }
             }
         }
     }
@@ -71,6 +86,7 @@ object Vouchers {
     }
 
     sealed interface Action {
+        data object OnRefresh : Action
         data object OnBack : Action
         data class OnChangeNameSearch(val name: String) : Action
         data class OnChangeOrder(val order: String) : Action

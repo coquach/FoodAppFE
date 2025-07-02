@@ -35,9 +35,15 @@ class FeedbackRepoImpl @Inject constructor(
         ).flow
     }
 
+    override fun getFeedbackByOrderItemId(orderItemId: Long): Flow<ApiResponse<Feedback>> {
+        return apiRequestFlow {
+            feedbackApi.getFeedbacksByOrderItemId(orderItemId = orderItemId)
+        }
+    }
+
     override fun createFeedback(
         request: Map<String, @JvmSuppressWildcards RequestBody>,
-        images: List<MultipartBody.Part?>?,
+        images: List<MultipartBody.Part>?,
     ): Flow<ApiResponse<Feedback>> {
         return apiRequestFlow {
             feedbackApi.createFeedback(

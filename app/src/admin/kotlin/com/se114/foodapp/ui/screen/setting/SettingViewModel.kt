@@ -86,6 +86,11 @@ class SettingViewModel @Inject constructor(
                     _event.send(SettingState.Event.NavigateToVoucher)
                 }
             }
+            SettingState.Action.OnChatClicked -> {
+                viewModelScope.launch {
+                    _event.send(SettingState.Event.NavigateToChat)
+                }
+            }
         }
     }
 
@@ -105,6 +110,7 @@ object SettingState{
         data object NavigateToHelp : Event
         data object NavigateToContact : Event
         data object NavigateToPrivacy : Event
+        data object NavigateToChat : Event
 
     }
     sealed interface Action{
@@ -115,5 +121,7 @@ object SettingState{
         data object OnHelpClicked : Action
         data object OnContactClicked : Action
         data object OnPrivacyClicked : Action
+        data object OnChatClicked : Action
+
     }
 }

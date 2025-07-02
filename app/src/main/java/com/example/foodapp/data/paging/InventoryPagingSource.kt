@@ -23,7 +23,7 @@ class InventoryPagingSource @Inject constructor(
                 size = size,
                 sortBy = filter.sortBy,
                 order = filter.order,
-                ingredientId = filter.ingredientId,
+                ingredientName = filter.ingredientName,
                 isExpired = filter.isExpired,
                 isOutOfStock = filter.isOutOfStock
             )

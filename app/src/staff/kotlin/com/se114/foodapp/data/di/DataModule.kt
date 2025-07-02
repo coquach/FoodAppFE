@@ -10,7 +10,6 @@ import com.example.foodapp.domain.repository.InventoryRepository
 import com.example.foodapp.domain.repository.OrderRepository
 import com.example.foodapp.domain.repository.StaffRepository
 import com.example.foodapp.domain.repository.VoucherRepository
-import com.se114.foodapp.data.repository.CartRepoImpl
 import com.se114.foodapp.data.repository.ExportRepoImpl
 import com.se114.foodapp.domain.repository.CartRepository
 import com.se114.foodapp.domain.repository.ExportRepository
@@ -23,8 +22,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
 
-    @Binds
-    abstract fun provideCartRepository(cartRepoImpl: CartRepoImpl): CartRepository
+
 
     @Binds
     abstract fun provideOrderRepository(orderRepoImpl: OrderRepoImpl): OrderRepository

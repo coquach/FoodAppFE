@@ -57,10 +57,12 @@ import coil.compose.AsyncImage
 import com.example.foodapp.data.model.CartItem
 import com.example.foodapp.navigation.CheckoutCustomer
 import com.example.foodapp.ui.screen.common.CheckoutRowItem
+import com.example.foodapp.ui.screen.components.AppButton
 import com.example.foodapp.ui.screen.components.DeleteBar
 import com.example.foodapp.ui.screen.components.ErrorModalBottomSheet
 import com.example.foodapp.ui.screen.components.FoodItemCounter
 import com.example.foodapp.ui.screen.components.Loading
+import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.utils.StringUtils
@@ -187,13 +189,13 @@ fun CartScreen(
                                 value = checkoutDetails.totalAmount,
                                 fontWeight = FontWeight.Bold
                             )
-                            Button(
-                                onClick = { viewModel.onAction(Cart.Action.OnCheckOut)},
-                                modifier = Modifier.fillMaxWidth().height(48.dp),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(text = "Thanh toán")
-                            }
+                            LoadingButton(
+                                onClick = { viewModel.onAction(Cart.Action.OnCheckOut) },
+                                modifier = Modifier.fillMaxWidth(),
+                                text = "Thanh toán",
+                                loading = uiState.isLoading,
+
+                            )
                         }
                     }
 

@@ -35,6 +35,7 @@ class VoucherPagingSource @Inject constructor(
                     minQuantity = filter.minQuantity,
                     maxQuantity = filter.maxQuantity,
                     type = filter.type,
+                    code = filter.code,
                     startDate = StringUtils.formatLocalDate(filter.startDate),
                     endDate = StringUtils.formatLocalDate(filter.endDate)
                 )
@@ -46,6 +47,7 @@ class VoucherPagingSource @Inject constructor(
                     minQuantity = filter.minQuantity,
                     maxQuantity = filter.maxQuantity,
                     type = filter.type,
+                    code = filter.code,
                     startDate = StringUtils.formatLocalDate(filter.startDate),
                     endDate = StringUtils.formatLocalDate(filter.endDate)
                 )

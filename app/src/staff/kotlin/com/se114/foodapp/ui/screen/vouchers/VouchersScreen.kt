@@ -3,14 +3,10 @@ package com.se114.foodapp.ui.screen.vouchers
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,8 +27,6 @@ import com.example.foodapp.ui.screen.common.VoucherCard
 import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.LazyPagingSample
 import com.example.foodapp.ui.screen.components.SearchField
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,11 +36,10 @@ fun VouchersScreen(
     viewModel: VouchersViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val vouchers = viewModel.vouchers.collectAsLazyPagingItems()
-    var search by remember { mutableStateOf("") }
-    val state = rememberPullToRefreshState()
-    val coroutineScope = rememberCoroutineScope()
-    var refresh by remember { mutableStateOf(false) }
+    val vouchers = remember(uiState.filter) {
+        viewModel.getVouchers(uiState.filter)
+    }.collectAsLazyPagingItems()
+
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -69,11 +61,7 @@ fun VouchersScreen(
 
     ) {
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+
             HeaderDefaultView(
                 text = "Voucher",
                 onBack = {
@@ -82,29 +70,41 @@ fun VouchersScreen(
 
                 )
             SearchField(
-                searchInput = search,
-                searchChange = { search = it }
+                searchInput = uiState.nameSearch,
+                searchChange = {
+                    viewModel.onAction(Vouchers.Action.OnChangeNameSearch(it))
+                },
+                searchFilter = {
+                    viewModel.onAction(Vouchers.Action.OnSearchFilter)
+                },
+                switchState = uiState.filter.order == "desc",
+                switchChange = {
+                    when (it) {
+                        true -> viewModel.onAction(Vouchers.Action.OnChangeOrder("desc"))
+                        false -> viewModel.onAction(Vouchers.Action.OnChangeOrder("asc"))
+                    }
+                },
+                filterChange = {
+                    when (it) {
+                        "Giá trị" -> viewModel.onAction(Vouchers.Action.OnChangeSortByName("value"))
+                        "Số lượng" -> viewModel.onAction(Vouchers.Action.OnChangeSortByName("quantity"))
+                    }
+                },
+                filters = listOf("Giá trị", "Số lượng"),
+                filterSelected = when (uiState.filter.sortBy) {
+                    "value" -> "Giá trị"
+                    "quantity" -> "Số lượng"
+                    else -> "Giá trị"
+                },
+                placeHolder = "Tìm kiếm theo code..."
             )
 
-        }
-        PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
-            onRefresh = {
-                viewModel.onAction(Vouchers.Action.OnRefresh)
-            },
-            indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = refresh,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    state = state
-                )
-            },
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            state = state,
-            content = {
+
+
                 LazyPagingSample(
+                    onRefresh = {
+                        viewModel.onAction(Vouchers.Action.OnRefresh)
+                    },
                     items = vouchers,
                     textNothing = "Không có voucher nào cả...",
                     iconNothing = Icons.Default.LocalOffer,
@@ -123,8 +123,8 @@ fun VouchersScreen(
                         )
                     }
                 )
-            }
-        )
+
+
 
     }
 

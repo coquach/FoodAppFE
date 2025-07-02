@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.model.Account
 import com.example.foodapp.data.model.Food
 import com.example.foodapp.domain.use_case.auth.FirebaseResult
-import com.example.foodapp.domain.use_case.auth.LoadProfileUseCase
+import com.se114.foodapp.domain.use_case.user.LoadProfileUseCase
 import com.se114.foodapp.domain.use_case.ai.GetSuggestFoodsUseCase
 import com.se114.foodapp.domain.use_case.cart.GetCartSizeUseCase
 import com.se114.foodapp.ui.screen.setting.Setting

@@ -297,7 +297,7 @@ fun SharedTransitionScope.HomeScreen(
                                     viewModel.onAction(Home.Action.OnFoodClicked(it))
                                 },
                                 isCustomer = true,
-                                isAnimated = false
+                                isAnimated = true
                             )
                         }
                     }

@@ -8,8 +8,9 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 
 interface FeedbackRepository {
+    fun getFeedbackByOrderItemId(orderItemId: Long): Flow<ApiResponse<Feedback>>
     fun getFeedbacks(foodId: Long): Flow<PagingData<Feedback>>
-    fun createFeedback(request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part?>? = null): Flow<ApiResponse<Feedback>>
+    fun createFeedback(request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part>? = null): Flow<ApiResponse<Feedback>>
     fun updateFeedback(id: Long, request: Map<String, @JvmSuppressWildcards RequestBody>, images: List<MultipartBody.Part?>? = null): Flow<ApiResponse<Feedback>>
     fun deleteFeedback(id: Long): Flow<ApiResponse<Unit>>
 }

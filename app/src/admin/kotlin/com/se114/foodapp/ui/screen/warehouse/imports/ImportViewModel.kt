@@ -39,7 +39,7 @@ class ImportViewModel @Inject constructor(
     private val _event = Channel<ImportState.Event>()
     val event get() = _event.receiveAsFlow()
 
-   val imports = getImportsUseCase(_uiState.value.filter)
+    fun getImports(filter: ImportFilter) = getImportsUseCase(filter)
 
     private fun deleteImport() {
         viewModelScope.launch {
@@ -64,11 +64,13 @@ class ImportViewModel @Inject constructor(
             }
         }
     }
+
     fun onAction(action: ImportState.Action) {
         when (action) {
             ImportState.Action.OnDelete -> {
                 deleteImport()
             }
+
             is ImportState.Action.OnImportSelected -> {
                 _uiState.value = _uiState.value.copy(importSelected = action.importId)
             }
@@ -104,23 +106,38 @@ class ImportViewModel @Inject constructor(
             }
 
             is ImportState.Action.OnDateChange -> {
-               _uiState.update {
-                   it.copy(filter = it.filter.copy(startDate = action.startDate, endDate = action.endDate))
-               }
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            startDate = action.startDate,
+                            endDate = action.endDate
+                        )
+                    )
+                }
             }
+
             is ImportState.Action.OnNameSearch -> {
-               _uiState.update {
-                   it.copy(nameSearch = action.name)
-               }
+                _uiState.update {
+                    it.copy(nameSearch = action.name)
+                }
             }
+
             is ImportState.Action.OnOrderChange -> {
                 _uiState.update {
                     it.copy(filter = it.filter.copy(order = action.order))
                 }
             }
-            ImportState.Action.OnSearchFilter -> {
 
+            ImportState.Action.OnSearchFilter -> {
+                _uiState.update {
+                    it.copy(
+                        filter = it.filter.copy(
+                            supplierName = _uiState.value.nameSearch,
+                        )
+                    )
+                }
             }
+
             is ImportState.Action.OnSortByChange -> {
                 _uiState.update {
                     it.copy(filter = it.filter.copy(sortBy = action.sortBy))

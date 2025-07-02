@@ -5,6 +5,7 @@ import com.example.foodapp.data.dto.apiRequestFlow
 import com.example.foodapp.data.dto.response.PageResponse
 import com.example.foodapp.data.model.Export
 import com.example.foodapp.data.paging.ApiPagingSource
+import com.example.foodapp.utils.StringUtils
 import com.se114.foodapp.data.remote.ExportApi
 import com.se114.foodapp.data.dto.filter.ExportFilter
 import kotlinx.coroutines.flow.Flow
@@ -21,9 +22,10 @@ class ExportPagingSource(
             exportApi.getExports(
                 page = page,
                 size = size,
-                staffId = filter.staffId,
-                startDate = filter.startDate,
-                endDate = filter.endDate,
+                order = filter.order,
+                sortBy = filter.sortBy,
+                startDate = StringUtils.formatLocalDate(filter.startDate),
+                endDate = StringUtils.formatLocalDate(filter.endDate),
             )
         }
     }

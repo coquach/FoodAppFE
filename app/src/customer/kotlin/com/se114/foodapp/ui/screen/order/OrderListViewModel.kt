@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,7 +38,7 @@ class OrderListViewModel @Inject constructor(
     val event get() = _event.receiveAsFlow()
 
 
-    val orders = getOrdersUseCase.invoke(_uiState.value.orderFilter)
+    fun getOrders(filter: OrderFilter) = getOrdersUseCase.invoke(filter)
 
 
     fun onAction(action: OrderList.Action) {
@@ -49,18 +50,11 @@ class OrderListViewModel @Inject constructor(
             }
 
             is OrderList.Action.OnTabChanged -> {
-                _uiState.update { it.copy(orderFilter = it.orderFilter.copy(status = action.status)) }
+                _uiState.update { it.copy(orderFilter = it.orderFilter.copy(status = action.status, notStatus = action.notStatus)) }
             }
 
-            is OrderList.Action.OnChangeDateFilter -> {
-                _uiState.update {
-                    it.copy(
-                        orderFilter = it.orderFilter.copy(
-                            startDate = action.startDate,
-                            endDate = action.endDate
-                        )
-                    )
-                }
+            is OrderList.Action.OnRefresh -> {
+                _uiState.update { it.copy(orderFilter = it.orderFilter.copy(forceRefresh = UUID.randomUUID().toString())) }
             }
 
 
@@ -79,8 +73,8 @@ object OrderList {
     }
 
     sealed interface Action {
-        data class OnTabChanged(val status: String?) : Action
+        data class OnTabChanged(val status: String?, val notStatus: String?) : Action
         data class OnOrderClicked(val order: Order) : Action
-        data class OnChangeDateFilter(val startDate: LocalDate?, val endDate: LocalDate?) : Action
+        data object OnRefresh : Action
     }
 }

@@ -15,16 +15,16 @@ import retrofit2.http.Query
 interface SupplierApi {
     @GET("suppliers")
     suspend fun getSuppliers(
-        @Query("page") page: Int,
-        @Query("size") size: Int,
-        @Query("sortBy") sortBy: String = "id",
-        @Query("order") order: String = "asc",
+//        @Query("page") page: Int,
+//        @Query("size") size: Int,
+//        @Query("sortBy") sortBy: String = "id",
+//        @Query("order") order: String = "asc",
         @Query("name") name: String? = null,
         @Query("phone") phone: String? = null,
         @Query("email") email: String? = null,
         @Query("address") address: String? = null,
         @Query("isActive") isActive: Boolean? = null,
-    ): Response<PageResponse<Supplier>>
+    ): Response<List<Supplier>>
 
     @POST("suppliers")
     suspend fun createSupplier(

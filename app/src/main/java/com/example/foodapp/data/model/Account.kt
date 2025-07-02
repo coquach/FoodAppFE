@@ -10,5 +10,5 @@ data class Account (
     val phoneNumber: String = "",
     val gender: String = "",
     val dob: LocalDate?= null,
-    val avatar: Uri? = null,
+    val avatar: String?=null,
 )

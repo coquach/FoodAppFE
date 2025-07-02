@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class ChatKnowledgeEntry(
     val id: Long?=null,
     val title: String= "",
-    val content: String=""
+    val content: String="",
+    val intentType: IntentType?=null
 )

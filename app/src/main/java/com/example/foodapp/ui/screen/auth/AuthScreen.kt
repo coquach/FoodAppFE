@@ -58,8 +58,6 @@ fun AuthScreen(
 
 
 
-
-
     val imageSize = remember { mutableStateOf(IntSize.Zero) }
     val brush = Brush.verticalGradient(
         colors = listOf(
@@ -141,7 +139,7 @@ fun AuthScreen(
             TextButton(onClick = {
                 navController.navigate(Login)
             }) {
-                Text(text = stringResource(id = R.string.already_have_account), color = Color.White)
+                Text(text =if (isCustomer) stringResource(id = R.string.already_have_account) else stringResource(id = R.string.log_in), color = Color.White)
             }
 
         }
