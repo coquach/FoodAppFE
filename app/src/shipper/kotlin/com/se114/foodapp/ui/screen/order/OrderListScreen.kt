@@ -164,7 +164,7 @@ fun OrderListScreen(
             scrollable = true,
             onTabSelected = {
                when(it){
-                   0 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.PENDING.name))
+                   0 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.READY.name))
                    1 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.SHIPPING.name))
                    2 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.COMPLETED.name))
                    3 -> viewModel.onAction(OrderListState.Action.OnStatusFilterChange(OrderStatus.CANCELLED.name))
