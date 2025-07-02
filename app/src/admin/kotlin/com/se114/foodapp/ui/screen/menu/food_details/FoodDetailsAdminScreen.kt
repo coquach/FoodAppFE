@@ -141,12 +141,20 @@ val lifecycleOwner = LocalLifecycleOwner.current
                 shouldSelectDefaultOption = true
             )
 
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.foodAddUi.description,
                 onValueChange = {
                     viewModel.onAction(AddFood.Action.OnDescriptionChange(it))
                 },
-                modifier = Modifier.fillMaxWidth(), labelText = "Mô tả"
+                modifier = Modifier.fillMaxWidth(), labelText = "Mô tả",
+                errorMessage = uiState.descriptionError,
+                validate = {
+                    viewModel.validate("description")
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                )
             )
             ValidateTextField(
                 value = uiState.foodAddUi.price.toPlainString(),

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.model.Supplier
+import com.example.foodapp.ui.screen.components.validateField
 import com.se114.foodapp.data.dto.filter.SupplierFilter
 import com.se114.foodapp.domain.use_case.supplier.AddSupplierUseCase
 import com.se114.foodapp.domain.use_case.supplier.GetSupplierUseCase
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.util.UUID
 import javax.inject.Inject
 
@@ -156,6 +158,56 @@ class SupplierViewModel @Inject constructor(
                     }
                 }
 
+        }
+    }
+
+    fun validate(type: String) {
+        val current = _uiState.value
+        var nameError: String? = current.nameError
+        var phoneError: String? = current.phoneError
+        var emailError: String? = current.emailError
+        var addressError: String? = current.addressError
+
+
+        when (type) {
+            "name" -> {
+                nameError = validateField(
+                    current.supplierSelected.name.trim(),
+                    "Tên không hợp lệ"
+                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
+
+
+            }
+
+            "phone" -> {
+                phoneError = validateField(
+                    current.supplierSelected.phone.trim(),
+                    "Số điện thoại không hợp lệ"
+                ) { it.matches(Regex("^0\\d{9}$")) }}
+
+            "email" -> {
+                emailError = validateField(
+                    current.supplierSelected.email.trim(),
+                    "Email không hợp lệ"
+                ) {  it.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")) }}
+
+            "address" -> {
+                addressError = validateField(
+                    current.supplierSelected.address.trim(),
+                    "Địa chỉ không hợp lệ"
+                ) { it.matches(Regex("^[\\p{L}0-9\\s,.\\-\\/#()]+\$")) }
+            }
+
+        }
+        val isValid = current.supplierSelected.name.isNotBlank() && current.supplierSelected.phone.isNotBlank() && current.supplierSelected.email.isNotBlank() && current.supplierSelected.address.isNotBlank() && emailError == null && phoneError == null && nameError == null && addressError == null
+        _uiState.update {
+            it.copy(
+                nameError = nameError,
+                phoneError = phoneError,
+                emailError = emailError,
+                addressError = addressError,
+                isValid = isValid
+            )
         }
     }
 
@@ -299,6 +351,11 @@ object SupplierState {
         val getSupplierState: GetSupplierState = GetSupplierState.Loading,
         val suppliers: List<Supplier> = emptyList(),
         val nameSearch: String = "",
+        val nameError: String? = null,
+        val phoneError: String? = null,
+        val emailError: String? = null,
+        val addressError: String? = null,
+        val isValid: Boolean = false,
     )
 
     sealed interface GetSupplierState {

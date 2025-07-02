@@ -72,7 +72,9 @@ import com.example.foodapp.ui.screen.components.HeaderDefaultView
 import com.example.foodapp.ui.screen.components.ImagePickerBottomSheet
 import com.example.foodapp.ui.screen.components.LoadingButton
 import com.example.foodapp.ui.screen.components.RadioGroupWrap
+import com.example.foodapp.ui.screen.components.ValidateTextField
 import com.example.foodapp.utils.StringUtils
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -190,7 +192,7 @@ fun StaffDetailsScreen(
 
 
             }
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.staff.fullName,
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangeFullName(it))
@@ -200,7 +202,12 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                labelText = "Họ và tên"
+                labelText = "Họ và tên",
+                errorMessage = uiState.fullNameError,
+                validate = {
+                    viewModel.validate("fullName")
+                },
+
             )
             RadioGroupWrap(
                 text = "Giới tính",
@@ -211,7 +218,7 @@ fun StaffDetailsScreen(
                     viewModel.onAction(StaffDetails.Action.OnChangeGender(it))
                 }
             )
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.staff.phone,
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangePhone(it))
@@ -221,7 +228,11 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                labelText = "Số điện thoại"
+                labelText = "Số điện thoại",
+                errorMessage = uiState.phoneError,
+                validate = {
+                    viewModel.validate("phone")
+                },
             )
 
             ChipsGroupWrap(
@@ -239,7 +250,8 @@ fun StaffDetailsScreen(
             DatePickerSample(
                 text = "Ngày sinh",
                 selectedDate = uiState.staff.birthDate,
-                onDateSelected = { viewModel.onAction(StaffDetails.Action.OnChangeBirthDate(it)) }
+                onDateSelected = { viewModel.onAction(StaffDetails.Action.OnChangeBirthDate(it)) },
+                maxDate = LocalDate.now()
             )
 
             DatePickerSample(
@@ -259,7 +271,7 @@ fun StaffDetailsScreen(
                     labelText = "Ngày nghỉ"
                 )
             }
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.staff.address,
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangeAddress(it))
@@ -269,9 +281,13 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Next
                 ),
-                labelText = "Địa chỉ"
+                labelText = "Địa chỉ",
+                errorMessage = uiState.addressError,
+                validate = {
+                    viewModel.validate("address")
+                },
             )
-            FoodAppTextField(
+            ValidateTextField(
                 value = uiState.staff.basicSalary.toPlainString(),
                 onValueChange = {
                     viewModel.onAction(StaffDetails.Action.OnChangeBasicSalary(it.toBigDecimalOrNull()))
@@ -281,7 +297,11 @@ fun StaffDetailsScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
-                labelText = "Lương cơ bản"
+                labelText = "Lương cơ bản",
+                errorMessage = uiState.basicSalaryError,
+                validate = {
+                    viewModel.validate("basicSalary")
+                },
             )
 
         }
@@ -298,6 +318,7 @@ fun StaffDetailsScreen(
             modifier = Modifier.fillMaxWidth(),
             text = if (uiState.isUpdating) "Cập nhật" else "Tạo",
             loading = uiState.isLoading,
+            enabled = uiState.isValid
 
         )
         

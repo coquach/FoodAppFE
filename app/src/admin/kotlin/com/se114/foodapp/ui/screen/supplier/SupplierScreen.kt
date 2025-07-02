@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
@@ -52,6 +53,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -73,6 +76,7 @@ import com.example.foodapp.ui.screen.components.Nothing
 import com.example.foodapp.ui.screen.components.Retry
 import com.example.foodapp.ui.screen.components.SearchField
 import com.example.foodapp.ui.screen.components.TabWithPager
+import com.example.foodapp.ui.screen.components.ValidateTextField
 import com.example.foodapp.ui.theme.confirm
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
@@ -344,41 +348,70 @@ fun SupplierScreen(
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
-                    FoodAppTextField(
+                    ValidateTextField(
                         labelText = "Tên",
                         value = uiState.supplierSelected.name,
                         onValueChange = {
                             viewModel.onAction(SupplierState.Action.OnNameChange(it))
                         },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+
+                        modifier = Modifier.fillMaxWidth(),
+                        errorMessage = uiState.nameError,
+                        validate = {
+                            viewModel.validate("name")
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
+                        )
                     )
-                    FoodAppTextField(
+                    ValidateTextField(
                         labelText = "Số địện thoại",
                         value = uiState.supplierSelected.phone,
                         onValueChange = {
                             viewModel.onAction(SupplierState.Action.OnPhoneChange(it))
                         },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        errorMessage = uiState.phoneError,
+                        validate = {
+                            viewModel.validate("phone")
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Phone,
+                            imeAction = ImeAction.Next
+                        )
                     )
-                    FoodAppTextField(
+                    ValidateTextField(
                         labelText = "Email",
                         value = uiState.supplierSelected.email,
                         onValueChange = {
                             viewModel.onAction(SupplierState.Action.OnEmailChange(it))
                         },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        errorMessage = uiState.emailError,
+                        validate = {
+                            viewModel.validate("email")
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        )
                     )
-                    FoodAppTextField(
+                    ValidateTextField(
                         labelText = "Địa chỉ",
                         value = uiState.supplierSelected.address,
                         onValueChange = {
                             viewModel.onAction(SupplierState.Action.OnAddressChange(it))
                         },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        errorMessage = uiState.addressError,
+                        validate = {
+                            viewModel.validate("address")
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        )
                     )
                     Row(
                         Modifier.fillMaxWidth(),
@@ -412,6 +445,7 @@ fun SupplierScreen(
                                 showSupplierDialog = false
 
                             },
+                            enabled = uiState.isValid,
                             loading = uiState.isLoading,
                             text = if (uiState.isUpdating) "Cập nhật" else "Tạo"
                         )
