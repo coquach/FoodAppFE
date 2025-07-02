@@ -8,6 +8,7 @@ import com.example.foodapp.data.dto.ApiResponse
 import com.example.foodapp.data.dto.filter.VoucherFilter
 
 import com.example.foodapp.data.model.Voucher
+import com.example.foodapp.ui.screen.components.validateField
 import com.se114.foodapp.data.dto.filter.SupplierFilter
 
 import com.se114.foodapp.domain.use_case.voucher.CreateVoucherUseCase
@@ -158,6 +159,7 @@ class VoucherListViewModel @Inject constructor(
             }
         }
     }
+
 
     fun onAction(action: VoucherSate.Action) {
         when (action) {
@@ -341,6 +343,7 @@ object VoucherSate {
         val voucherSelected: Voucher = Voucher(),
         val isUpdating: Boolean = false,
         val nameSearch: String = "",
+
     )
 
     sealed interface Event {

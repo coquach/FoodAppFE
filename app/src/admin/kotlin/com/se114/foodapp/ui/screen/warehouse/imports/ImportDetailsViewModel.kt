@@ -16,6 +16,7 @@ import com.example.foodapp.data.model.Supplier
 import com.example.foodapp.domain.use_case.staff.GetStaffUseCase
 import com.example.foodapp.navigation.ImportDetails
 import com.example.foodapp.navigation.importNavType
+import com.example.foodapp.ui.screen.components.validateField
 import com.se114.foodapp.data.dto.filter.SupplierFilter
 import com.se114.foodapp.data.mapper.toImportDetailUiModel
 import com.se114.foodapp.domain.use_case.imports.CreateImportUseCase
@@ -57,7 +58,7 @@ class ImportDetailsViewModel @Inject constructor(
         it.toImportDetailUiModel()
     }
     private val mode = arguments.isUpdating
-    private val isEditable = import.importDate  == LocalDate.now()
+    private val isEditable = import.importDate == LocalDate.now()
 
 
     private val _uiState =
@@ -81,10 +82,12 @@ class ImportDetailsViewModel @Inject constructor(
                     is ApiResponse.Success -> {
                         _uiState.update { it.copy(suppliers = response.data) }
                     }
+
                     is ApiResponse.Failure -> {
                         _uiState.update { it.copy(error = response.errorMessage) }
                         _event.send(ImportDetailsState.Event.ShowError)
                     }
+
                     is ApiResponse.Loading -> {
                     }
                 }
@@ -93,68 +96,97 @@ class ImportDetailsViewModel @Inject constructor(
     }
 
 
+    fun getIngredients() {
+        viewModelScope.launch(Dispatchers.IO) {
+            getIngredientUseCase.invoke().catch { }.collect { response ->
+                when (response) {
+                    is ApiResponse.Success -> {
+                        _uiState.update { it.copy(ingredients = response.data) }
+                    }
 
-fun getIngredients() {
-    viewModelScope.launch(Dispatchers.IO) {
-        getIngredientUseCase.invoke().catch { }.collect { response ->
-            when (response) {
-                is ApiResponse.Success -> {
-                    _uiState.update { it.copy(ingredients = response.data) }
-                }
+                    is ApiResponse.Failure -> {
+                        _uiState.update { it.copy(error = response.errorMessage) }
+                        _event.send(ImportDetailsState.Event.ShowError)
 
-                is ApiResponse.Failure -> {
-                    _uiState.update { it.copy(error = response.errorMessage) }
-                    _event.send(ImportDetailsState.Event.ShowError)
+                    }
 
-                }
+                    is ApiResponse.Loading -> {
 
-                is ApiResponse.Loading -> {
-
+                    }
                 }
             }
         }
     }
-}
 
 
-private fun addImportDetails() {
-    val newImportDetails = _uiState.value.importDetailsSelected
-    _uiState.update {
-        it.copy(
-            importDetails = it.importDetails + newImportDetails
-        )
+    private fun addImportDetails() {
+        val newImportDetails = _uiState.value.importDetailsSelected
+        _uiState.update {
+            it.copy(
+                importDetails = it.importDetails + newImportDetails
+            )
+        }
     }
-}
 
-private fun updateImportDetails() {
-    val updatedImportDetails = _uiState.value.importDetailsSelected
-    _uiState.update {
-        it.copy(
-            importDetails = it.importDetails.map { importDetails ->
-                if (importDetails.localId == _uiState.value.importDetailsSelected.localId) {
-                    updatedImportDetails
-                } else {
-                    importDetails
+    private fun updateImportDetails() {
+        val updatedImportDetails = _uiState.value.importDetailsSelected
+        _uiState.update {
+            it.copy(
+                importDetails = it.importDetails.map { importDetails ->
+                    if (importDetails.localId == _uiState.value.importDetailsSelected.localId) {
+                        updatedImportDetails
+                    } else {
+                        importDetails
+                    }
+                })
+        }
+
+    }
+
+    private fun deleteImportDetails(id: String) {
+        _uiState.update {
+            it.copy(
+                importDetails = it.importDetails.filter { importDetails ->
+                    importDetails.localId != id
                 }
-            })
+            )
+        }
     }
 
-}
+    private fun createImport() {
+        viewModelScope.launch {
+            createImportUseCase.invoke(_uiState.value.import, _uiState.value.importDetails)
+                .collect { response ->
+                    when (response) {
+                        is ApiResponse.Success -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _event.send(ImportDetailsState.Event.BackToAfterModify)
+                        }
 
-private fun deleteImportDetails(id: String) {
-    _uiState.update {
-        it.copy(
-            importDetails = it.importDetails.filter { importDetails ->
-                importDetails.localId != id
-            }
-        )
+                        is ApiResponse.Failure -> {
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = response.errorMessage
+                                )
+                            }
+                            _event.send(ImportDetailsState.Event.ShowError)
+                        }
+
+                        is ApiResponse.Loading -> {
+                            _uiState.update { it.copy(isLoading = true) }
+                        }
+                    }
+                }
+        }
     }
-}
 
-private fun createImport() {
-    viewModelScope.launch {
-        createImportUseCase.invoke(_uiState.value.import, _uiState.value.importDetails)
-            .collect { response ->
+    private fun updateImport() {
+        viewModelScope.launch {
+            updateImportUseCase(
+                _uiState.value.import,
+                _uiState.value.importDetails
+            ).collect { response ->
                 when (response) {
                     is ApiResponse.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
@@ -176,134 +208,131 @@ private fun createImport() {
                     }
                 }
             }
-    }
-}
-
-private fun updateImport() {
-    viewModelScope.launch {
-        updateImportUseCase(
-            _uiState.value.import,
-            _uiState.value.importDetails
-        ).collect { response ->
-            when (response) {
-                is ApiResponse.Success -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    _event.send(ImportDetailsState.Event.BackToAfterModify)
-                }
-
-                is ApiResponse.Failure -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = response.errorMessage
-                        )
-                    }
-                    _event.send(ImportDetailsState.Event.ShowError)
-                }
-
-                is ApiResponse.Loading -> {
-                    _uiState.update { it.copy(isLoading = true) }
-                }
-            }
         }
+
+
     }
 
+    fun validate(type: String) {
+        val current = _uiState.value
+      var costError: String? = current.costError
+        when (type) {
+            "cost" -> {
+                costError = validateField(
+                    current.importDetailsSelected.cost.toPlainString().trim(),
+                    "Giá phải lớn hơn 0"
+                ) { it.toBigDecimal() > BigDecimal.ZERO }
 
-}
 
-fun onAction(action: ImportDetailsState.Action) {
-    when (action) {
-        is ImportDetailsState.Action.OnBack -> {
-            viewModelScope.launch {
-                _event.send(ImportDetailsState.Event.OnBack)
             }
-        }
 
-        is ImportDetailsState.Action.OnImportDetailsSelected -> {
-            _uiState.update {
-                it.copy(
-                    importDetailsSelected = action.importDetails
-                )
+
+
+        }
+        val isValid = current.importDetailsSelected.cost > BigDecimal.ZERO && costError == null
+        _uiState.update {
+            it.copy(
+                costError = costError,
+                isValid = isValid
+            )
+        }
+    }
+    fun onAction(action: ImportDetailsState.Action) {
+        when (action) {
+            is ImportDetailsState.Action.OnBack -> {
+                viewModelScope.launch {
+                    _event.send(ImportDetailsState.Event.OnBack)
+                }
             }
-        }
 
-        is ImportDetailsState.Action.OnChangeSupplier -> {
-            _uiState.update {
-                it.copy(
-                    import = it.import.copy(supplierId = action.supplierId, supplierName = action.supplierName)
-                )
-            }
-        }
-
-        is ImportDetailsState.Action.OnChangeIngredient -> {
-            _uiState.update {
-                it.copy(
-                    importDetailsSelected = it.importDetailsSelected.copy(ingredient = action.ingredient)
-                )
-            }
-        }
-
-        is ImportDetailsState.Action.OnChangeExpiryDate -> {
-            _uiState.update {
-                it.copy(
-                    importDetailsSelected = it.importDetailsSelected.copy(expiryDate = action.expiryDate)
-                )
-            }
-        }
-
-        is ImportDetailsState.Action.OnChangeProductionDate -> {
-            _uiState.update {
-                it.copy(
-                    importDetailsSelected = it.importDetailsSelected.copy(productionDate = action.productionDate)
-                )
-            }
-        }
-
-        is ImportDetailsState.Action.OnChangeQuantity -> {
-            _uiState.update {
-                it.copy(
-                    importDetailsSelected = it.importDetailsSelected.copy(quantity = if (action.quantity > BigDecimal.ZERO) action.quantity else BigDecimal.ONE)
-                )
-            }
-        }
-
-        is ImportDetailsState.Action.OnChangeCost -> {
-            _uiState.update {
-                it.copy(
-                    importDetailsSelected = it.importDetailsSelected.copy(
-                        cost = action.cost ?: BigDecimal.ZERO
+            is ImportDetailsState.Action.OnImportDetailsSelected -> {
+                _uiState.update {
+                    it.copy(
+                        importDetailsSelected = action.importDetails
                     )
-                )
+                }
             }
-        }
 
-        is ImportDetailsState.Action.AddImportDetails -> {
-            addImportDetails()
-        }
+            is ImportDetailsState.Action.OnChangeSupplier -> {
+                _uiState.update {
+                    it.copy(
+                        import = it.import.copy(
+                            supplierId = action.supplierId,
+                            supplierName = action.supplierName
+                        )
+                    )
+                }
+            }
 
-        is ImportDetailsState.Action.UpdateImportDetails -> {
-            updateImportDetails()
-        }
+            is ImportDetailsState.Action.OnChangeIngredient -> {
+                _uiState.update {
+                    it.copy(
+                        importDetailsSelected = it.importDetailsSelected.copy(ingredient = action.ingredient)
+                    )
+                }
+            }
 
-        is ImportDetailsState.Action.DeleteImportDetails -> {
-            deleteImportDetails(id = action.importDetailsId)
-        }
+            is ImportDetailsState.Action.OnChangeExpiryDate -> {
+                _uiState.update {
+                    it.copy(
+                        importDetailsSelected = it.importDetailsSelected.copy(expiryDate = action.expiryDate)
+                    )
+                }
+            }
 
-        is ImportDetailsState.Action.CreateImport -> {
-            createImport()
-        }
+            is ImportDetailsState.Action.OnChangeProductionDate -> {
+                _uiState.update {
+                    it.copy(
+                        importDetailsSelected = it.importDetailsSelected.copy(productionDate = action.productionDate)
+                    )
+                }
+            }
 
-        is ImportDetailsState.Action.UpdateImport -> {
-            updateImport()
-        }
+            is ImportDetailsState.Action.OnChangeQuantity -> {
+                _uiState.update {
+                    it.copy(
+                        importDetailsSelected = it.importDetailsSelected.copy(quantity = if (action.quantity > BigDecimal.ZERO) action.quantity else BigDecimal.ONE)
+                    )
+                }
+            }
 
-        is ImportDetailsState.Action.NotifyCantEdit -> {
-            viewModelScope.launch {
-                _event.send(ImportDetailsState.Event.NotifyCantEdit)
+            is ImportDetailsState.Action.OnChangeCost -> {
+                _uiState.update {
+                    it.copy(
+                        importDetailsSelected = it.importDetailsSelected.copy(
+                            cost = action.cost ?: BigDecimal.ZERO
+                        )
+                    )
+                }
+            }
+
+            is ImportDetailsState.Action.AddImportDetails -> {
+                addImportDetails()
+            }
+
+            is ImportDetailsState.Action.UpdateImportDetails -> {
+                updateImportDetails()
+            }
+
+            is ImportDetailsState.Action.DeleteImportDetails -> {
+                deleteImportDetails(id = action.importDetailsId)
+            }
+
+            is ImportDetailsState.Action.CreateImport -> {
+                createImport()
+            }
+
+            is ImportDetailsState.Action.UpdateImport -> {
+                updateImport()
+            }
+
+            is ImportDetailsState.Action.NotifyCantEdit -> {
+                viewModelScope.launch {
+                    _event.send(ImportDetailsState.Event.NotifyCantEdit)
+                }
             }
         }
     }
-}
 }
 
 data class ImportDetailUIModel(
@@ -327,6 +356,8 @@ object ImportDetailsState {
         val importDetailsSelected: ImportDetailUIModel = ImportDetailUIModel(),
         val isEditable: Boolean = true,
         val suppliers: List<Supplier> = emptyList(),
+        val costError: String? = null,
+        val isValid: Boolean = false,
     )
 
     sealed interface Event {

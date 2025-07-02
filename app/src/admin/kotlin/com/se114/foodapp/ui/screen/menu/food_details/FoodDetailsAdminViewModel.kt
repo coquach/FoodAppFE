@@ -148,7 +148,7 @@ class FoodDetailsAdminViewModel @Inject constructor(
         val current = _uiState.value
         var nameError: String? = current.nameError
         var priceError: String? = current.priceError
-        var descriptionError: String? = current.descriptionError
+
         var defaultQuantityError: String? = current.defaultQuantityError
         when (type) {
             "name" -> {
@@ -172,21 +172,13 @@ class FoodDetailsAdminViewModel @Inject constructor(
                     "Số lượng phải lớn hơn 0"
                 ) { it.toInt() > 0 }}
 
-            "description" -> {
-                descriptionError = validateField(
-                    current.foodAddUi.description.trim(),
-                    "Mô tả không hợp lệ"
-
-                ) { it.matches(Regex("^[\\\\p{L}][\\\\p{L} .'-]{1,39}\$")) }
-            }
-
         }
-        val isValid = current.foodAddUi.name.isNotBlank() && current.foodAddUi.price > BigDecimal.ZERO && current.foodAddUi.defaultQuantity > 0 && current.foodAddUi.description.isNotBlank()
+        val isValid = current.foodAddUi.name.isNotBlank() && current.foodAddUi.price > BigDecimal.ZERO && current.foodAddUi.defaultQuantity > 0 && current.foodAddUi.description.isNotBlank() && nameError == null && priceError == null && defaultQuantityError == null
         _uiState.update {
             it.copy(
                 nameError = nameError,
                 priceError = priceError,
-                descriptionError = descriptionError,
+
                 defaultQuantityError = defaultQuantityError,
                 isValid = isValid
             )
@@ -243,7 +235,7 @@ object AddFood {
         val nameError: String? = null,
         val isValid: Boolean = false,
         val priceError: String? = null,
-        val descriptionError: String? = null,
+
         val defaultQuantityError: String? = null,
 
     )
